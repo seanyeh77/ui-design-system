@@ -187,3 +187,18 @@
 - 手機底部分頁列：只有圖示，選中時圖示後方出現膠囊，水滴動畫。
 
 版面見「版面架構」，動畫見「動畫」。
+
+## 教材主題（teaching preset）
+
+Slidev 教材投影片使用 `data-theme="teaching"`。投影片的 CSS 只讀 token 名稱，數值由這個 preset 提供。
+
+已確認的選擇：
+
+- 混合方案：中性色與字型沿用設計系統，強調色、直角與細線邊框沿用投影片風格。
+- 強調色：青綠 `#0f766e`。
+- 圓角：全部 0 px（`radius-sm`、`radius-chip`、`radius-md`、`radius-lg`）。
+- 陰影：不用（`shadow-*` 為 none），外框用 1.5 px 的 `line`。
+- 字型：標題與內文 Inter 加思源黑體，程式碼 Geist Mono。
+- 只有淺色。
+
+`accent-hover`、`accent-press`、`accent-soft` 依「自訂強調色的換算」由 `#0f766e` 算出。版面、字級與投影片規則見 `teaching-materials-style`。
