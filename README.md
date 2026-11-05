@@ -46,3 +46,7 @@
 2. 元件改在 `dist/bundle.js` 和 `dist/bundle.css`，同時更新 `components/<名稱>/README.md`；新元件要加 `preview.html`，第一行寫 `<!-- @dsCard group="Data" height=400 -->`。
 3. 本機預覽文件網站：`python3 scripts/build_site.py`，再用任何靜態伺服器打開 `site/`。
 4. 推上 `main` 後，GitHub Actions 會自動重建並發布文件網站。
+
+## 授權
+
+MIT，見 [LICENSE](LICENSE)。
