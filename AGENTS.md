@@ -31,7 +31,7 @@ Use it for any web page, dashboard, frontend or tool UI unless the user asks for
 5. Rules that are easy to miss: no native `<select>`; one primary button per section; button labels are verbs only; dates `2026/11/04（三）` with relative time inside a week; amounts `NT$ 1,280`; numbers right-aligned with tabular figures; danger actions confirm in a Dialog; error messages give the cause and the fix.
 6. Items marked 看情況 ("situational") in the docs are not fixed rules: choose per context and say which way you chose.
 
-Scope: this system covers web UI. Slidev decks, Notion documents and teaching diagrams follow SeanYeh's separate `teaching-materials-style` skill until a teaching theme preset is added here.
+Scope: this system covers web UI. Slidev decks, Notion documents and teaching diagrams follow SeanYeh's separate `teaching-materials-style` skill. A "teaching" theme preset that matches that style exactly (teal `#0f766e`, sharp corners, Literata titles, light only) is decided but not built yet; until it exists, keep the two separate.
 
 ## Changing the design system
 
@@ -41,3 +41,5 @@ Scope: this system covers web UI. Slidev decks, Notion documents and teaching di
 - Preview locally: `python3 scripts/build_tokens.py && python3 scripts/build_site.py`, then serve `site/`.
 - Pushing to `main` rebuilds and publishes the docs site through GitHub Actions.
 - Docs are written in Traditional Chinese with technical terms in English; every number carries its unit.
+- New design decisions are SeanYeh's: he picks them from option labs with a live demo for every choice. Propose options; do not change tokens, rules or component behavior on your own. Any default you pick must be flagged as yours.
+- Commits never carry Claude co-author or Claude-Session trailers.
