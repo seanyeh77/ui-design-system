@@ -27,6 +27,10 @@
 - 介面文字：`UI.setLocale('en')` 切成英文，`UI.addMessages(locale, dict)` 加其他語系。
 - 日期與數字：`UI.format`，例如 `UI.format.relative(date)`、`UI.format.money(1280)`、`UI.format.fileSize(bytes)`。
 
+## 給 AI agent
+
+使用規則寫在 [AGENTS.md](AGENTS.md)（`CLAUDE.md` 會引用它）。文件網站另外提供 <https://seanyeh77.github.io/ui-design-system/llms.txt>，列出所有規則、token 和元件說明的網址，agent 讀這一個檔案就能找到全部內容。
+
 ## 內容
 
 | 路徑 | 內容 |

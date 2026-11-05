@@ -68,4 +68,40 @@ for c in components:
 index = (ROOT / 'scripts' / 'site_index.html').read_text(encoding='utf-8').replace('__NAV__', json.dumps(nav, ensure_ascii=False))
 (SITE / 'index.html').write_text(index, encoding='utf-8')
 (SITE / '.nojekyll').write_text('')
+
+# Files for agents: raw tokens, AGENTS.md, and an llms.txt index of every published file.
+(SITE / 'tokens').mkdir()
+shutil.copy(ROOT / 'tokens' / 'tokens.json', SITE / 'tokens' / 'tokens.json')
+shutil.copy(ROOT / 'AGENTS.md', SITE / 'AGENTS.md')
+BASE = 'https://seanyeh77.github.io/ui-design-system'
+doc_titles = {'guidelines': 'All confirmed design rules', 'layout': 'Page structure and breakpoints',
+              'motion': 'Animation durations and effects', 'decisions': 'Original wording of each lab decision'}
+lines = [
+    '# ui-design-system',
+    '',
+    "> SeanYeh's design system: React 18 components on window.UI, design tokens and written rules. "
+    'Warm-gray neutrals, accent #2457d6, Inter + Noto Sans TC, Geist Mono for numbers, light and dark themes. '
+    'Read AGENTS.md first, then guidelines before building any UI.',
+    '',
+    '## Start here',
+    '',
+    f'- [AGENTS.md]({BASE}/AGENTS.md): how to load the files, use components and tokens, and change the system',
+    *[f'- [{name}]({BASE}/md/{name}.md): {title}' for name, title in doc_titles.items() if (SITE / 'md' / f'{name}.md').exists()],
+    '',
+    '## Files to load',
+    '',
+    f'- [tokens.css]({BASE}/dist/tokens.css): CSS variables for every token, light and dark',
+    f'- [bundle.css]({BASE}/dist/bundle.css): component styles',
+    f'- [bundle.js]({BASE}/dist/bundle.js): all components on window.UI (needs React 18 UMD)',
+    f'- [index.d.ts]({BASE}/dist/index.d.ts): component props and API types',
+    f'- [tokens.json]({BASE}/tokens/tokens.json): token values with their intended usage',
+    '',
+    '## Components',
+    '',
+    *[f"- [{c['name']}]({BASE}/md/{c['name']}.md) ({GROUP_NAMES.get(c['group'], c['group'])}), "
+      f"live preview {BASE}/preview/{c['name']}.html"
+      for c in components if (SITE / 'md' / f"{c['name']}.md").exists()],
+    '',
+]
+(SITE / 'llms.txt').write_text('\n'.join(lines), encoding='utf-8')
 print('site/:', len(components), 'components')
