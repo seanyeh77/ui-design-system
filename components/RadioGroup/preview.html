@@ -1,0 +1,16 @@
+<!-- @dsCard group="Forms" height=200 -->
+<!doctype html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><title>RadioGroup — preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div id="root"></div>
+<script>
+  var U = window.UI, h = React.createElement;
+  var S=React.useState; function D(){var v=S('week'); return h('div',{style:{padding:20}}, h(U.RadioGroup,{label:'摘要頻率',value:v[0],onChange:v[1],options:[{value:'day',label:'每天'},{value:'week',label:'每週'},{value:'month',label:'每月'}]}));}
+  ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+</script>
+</body>
+</html>

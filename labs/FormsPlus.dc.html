@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>進階表單實驗室</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.opt{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.opt:hover{transform:translateY(-2px)}
+.hv:hover{background:#f6f5f4 !important}
+.dk .hv:hover{background:#443f3b !important}
+@keyframes popIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.pop{animation:popIn .15s ease both}
+.day:hover{background:#f6f5f4}
+.dk .day:hover{background:#443f3b}
+.day.sel:hover{background:#2457d6}
+.chipx:hover{background:rgba(0,0,0,.08)}
+.dk .chipx:hover{background:rgba(255,255,255,.12)}
+input{outline:none}
+.fld:focus-within{border-color:#2457d6 !important;box-shadow:0 0 0 3px rgba(36,87,214,.3)}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #f6f5f4; color: #171512; font-family: Inter, 'Noto Sans TC', sans-serif; font-size: 15px; line-height: 1.55">
+<main style="max-width: 1400px; margin: 0 auto; padding: 40px 32px 56px">
+<div style="font-family: 'Geist Mono', 'Noto Sans TC', monospace; font-size: 13px; font-weight: 600; color: #6d645a">深入 13 · 進階表單</div>
+<h1 style="margin: 6px 0 0; font-size: 39px; line-height: 1.2; font-weight: 700; letter-spacing: -.01em">進階表單實驗室</h1>
+<p style="margin: 8px 0 0; color: #6d645a; max-width: 900px">日期選擇、檔案上傳、多選。日期欄位可以打字也可以點日曆；上傳區可以真的拖檔案進去；多選欄位可以搜尋。選好後把最下方的設定給我。</p>
+
+<div style="margin-top: 28px; display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start">
+
+<div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{sections}}" as="sec" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 18px; font-weight: 700; padding-top: 6px">{{sec.title}}</div>
+<sc-for list="{{sec.groups}}" as="g" hint-placeholder-count="2">
+<section style="padding: 16px; background: #ffffff; border: 1px solid #e2dfdc; border-radius: 10px">
+<div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; color: #ffffff; background: #171512; padding: 1px 7px; border-radius: 4px">{{g.no}}</span>
+<span style="font-size: 16px; font-weight: 700">{{g.label}}</span>
+</div>
+<p style="margin: 6px 0 0; font-size: 13px; color: #6d645a">{{g.desc}}</p>
+<div style="margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px">
+<sc-for list="{{g.opts}}" as="o" hint-placeholder-count="3">
+<button class="opt" type="button" onClick="{{o.pick}}" aria-pressed="{{o.pressed}}" style="display: flex; flex-direction: column; gap: 8px; padding: 10px; min-height: 44px; text-align: left; background: #ffffff; border: {{o.border}}; border-radius: 8px; font: inherit; color: #171512; box-shadow: {{o.ring}}">
+<span aria-hidden="true" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; box-sizing: border-box; padding: 6px; border-radius: 4px; background: #f6f5f4; font-size: 12px; color: #6d645a; text-align: center">
+<sc-for list="{{o.marks}}" as="mk" hint-placeholder-count="2"><span style="display: inline-flex; align-items: center; justify-content: center; width: {{mk.w}}; height: {{mk.h}}; box-sizing: border-box; border-radius: {{mk.r}}; background: {{mk.bg}}; border: {{mk.bd}}; color: {{mk.fg}}; font-size: 11px; font-weight: 700; box-shadow: {{mk.sh}}">{{mk.t}}</span></sc-for>
+<sc-for list="{{o.imgs}}" as="im" hint-placeholder-count="0"><img src="{{im}}" width="22" height="22" alt="" style="display: block"></sc-for>
+<sc-if value="{{o.hasText}}" hint-placeholder-val="{{ false }}"><span style="white-space: pre-line; line-height: 1.4">{{o.text}}</span></sc-if>
+</span>
+<span style="font-size: 13px; font-weight: 700">{{o.name}}</span>
+<span style="font-size: 12px; color: #6d645a; line-height: 1.4">{{o.note}}</span>
+</button>
+</sc-for>
+</div>
+</section>
+</sc-for>
+</div>
+</sc-for>
+</div>
+
+<div style="flex: 1 1 720px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<span style="font-size: 13px; font-weight: 700">預覽主題</span>
+<sc-for list="{{themeBtns}}" as="tb" hint-placeholder-count="2">
+<button type="button" onClick="{{tb.pick}}" aria-pressed="{{tb.pressed}}" style="min-height: 44px; padding: 0 14px; border: 1px solid {{tb.bd}}; background: {{tb.bg}}; color: {{tb.fg}}; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{tb.t}}</button>
+</sc-for>
+</div>
+
+<div class="pv {{dkCls}}" style="background: {{c.page}}; color: {{c.ink}}; border: 1px solid #cfcac4; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 20px; font-size: 15px; line-height: 1.5" onClick="{{closeAll}}">
+<section style="padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}">
+<div style="font-size: 18px; font-weight: 700">日期</div>
+<div style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<div style="position: relative" onClick="{{stop}}">
+<label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px">截止日期</label>
+<sc-if value="{{dInline}}" hint-placeholder-val="{{ false }}"><div style="padding: 12px; border: 1px solid {{c.line}}; border-radius: 12px"><div style="width: {{calW}}">
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px"><button type="button" class="hv" onClick="{{cal1.prev}}" aria-label="上個月" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: {{c.ink}}; cursor: pointer; font-size: 16px">‹</button><span style="font-weight: 700">{{cal1.title}}</span><button type="button" class="hv" onClick="{{cal1.next}}" aria-label="下個月" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: {{c.ink}}; cursor: pointer; font-size: 16px">›</button></div>
+<div style="display: grid; grid-template-columns: repeat(7, 36px); gap: 2px; font-size: 12px; color: {{c.muted}}; text-align: center; margin-bottom: 2px"><sc-for list="{{wk}}" as="w" hint-placeholder-count="7"><span>{{w}}</span></sc-for></div>
+<div style="display: grid; grid-template-columns: repeat(7, 36px); gap: 2px">
+<sc-for list="{{cal1.days}}" as="d" hint-placeholder-count="35"><button type="button" class="day {{d.cls}}" onClick="{{d.pick}}" onMouseEnter="{{d.hover}}" aria-label="{{d.label}}" aria-pressed="{{d.aria}}" disabled="{{d.off}}" style="position: relative; width: 36px; height: 36px; border: {{d.bd}}; border-radius: {{d.r}}; background: {{d.bg}}; color: {{d.fg}}; font: inherit; font-size: 14px; font-weight: {{d.fw}}; font-family: 'Geist Mono', monospace; cursor: pointer; opacity: {{d.op}}; visibility: {{d.vis}}">{{d.n}}<sc-if value="{{d.dot}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 50%; bottom: 4px; width: 4px; height: 4px; margin-left: -2px; border-radius: 99px; background: {{d.dotC}}"></span></sc-if></button></sc-for>
+</div></div></div><div style="margin-top: 6px; font-size: 13px; color: {{c.muted}}">已選：<span style="font-family: 'Geist Mono', monospace">{{singleText}}</span></div></sc-if>
+<sc-if value="{{dField}}" hint-placeholder-val="{{ true }}">
+<div class="fld" style="display: flex; align-items: center; width: 220px; height: 40px; box-sizing: border-box; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: {{c.input}}">
+<input aria-label="截止日期" value="{{singleText}}" readonly="{{dReadonly}}" onChange="{{typeDate}}" onClick="{{openOnClick}}" placeholder="YYYY/MM/DD" style="flex: 1 1 auto; min-width: 0; height: 100%; padding: 0 12px; border: 0; background: transparent; color: {{c.ink}}; font: inherit; font-family: 'Geist Mono', monospace; font-size: 15px; cursor: {{inCursor}}">
+<button type="button" class="hv" onClick="{{toggleCal1}}" aria-label="開啟日曆" aria-expanded="{{cal1Aria}}" style="width: 32px; height: 32px; margin-right: 4px; border: 0; border-radius: 8px; background: transparent; color: {{c.muted}}; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"></path></svg></button>
+</div>
+<div style="margin-top: 6px; font-size: 13px; color: {{dHintC}}">{{dHint}}</div>
+<sc-if value="{{cal1Open}}" hint-placeholder-val="{{ false }}"><div class="pop" role="dialog" aria-label="選擇日期" style="position: absolute; z-index: 20; top: 76px; left: 0; padding: 12px; border-radius: 14px; background: {{c.card}}; border: 1px solid {{c.line}}; box-shadow: {{c.overlay}}"><div style="width: {{calW}}">
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px"><button type="button" class="hv" onClick="{{cal1.prev}}" aria-label="上個月" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: {{c.ink}}; cursor: pointer; font-size: 16px">‹</button><span style="font-weight: 700">{{cal1.title}}</span><button type="button" class="hv" onClick="{{cal1.next}}" aria-label="下個月" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: {{c.ink}}; cursor: pointer; font-size: 16px">›</button></div>
+<div style="display: grid; grid-template-columns: repeat(7, 36px); gap: 2px; font-size: 12px; color: {{c.muted}}; text-align: center; margin-bottom: 2px"><sc-for list="{{wk}}" as="w" hint-placeholder-count="7"><span>{{w}}</span></sc-for></div>
+<div style="display: grid; grid-template-columns: repeat(7, 36px); gap: 2px">
+<sc-for list="{{cal1.days}}" as="d" hint-placeholder-count="35"><button type="button" class="day {{d.cls}}" onClick="{{d.pick}}" onMouseEnter="{{d.hover}}" aria-label="{{d.label}}" aria-pressed="{{d.aria}}" disabled="{{d.off}}" style="position: relative; width: 36px; height: 36px; border: {{d.bd}}; border-radius: {{d.r}}; background: {{d.bg}}; color: {{d.fg}}; font: inherit; font-size: 14px; font-weight: {{d.fw}}; font-family: 'Geist Mono', monospace; cursor: pointer; opacity: {{d.op}}; visibility: {{d.vis}}">{{d.n}}<sc-if value="{{d.dot}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 50%; bottom: 4px; width: 4px; height: 4px; margin-left: -2px; border-radius: 99px; background: {{d.dotC}}"></span></sc-if></button></sc-for>
+</div></div><div style="display: flex; justify-content: space-between; margin-top: 8px"><button type="button" class="hv" onClick="{{pickToday}}" style="height: 32px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: {{c.accentText}}; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">今天</button><button type="button" class="hv" onClick="{{clearSingle}}" style="height: 32px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: {{c.muted}}; font: inherit; font-size: 13px; cursor: pointer">清除</button></div></div></sc-if>
+</sc-if>
+</div>
+
+<div style="position: relative" onClick="{{stop}}">
+<label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px">報表期間（範圍）</label>
+<button type="button" onClick="{{toggleRange}}" aria-expanded="{{rangeAria}}" style="display: flex; align-items: center; gap: 8px; width: 260px; height: 40px; padding: 0 12px; box-sizing: border-box; border: 1px solid {{rangeBd}}; border-radius: 10px; background: {{c.input}}; color: {{c.ink}}; font: inherit; font-family: 'Geist Mono', monospace; font-size: 14px; text-align: left; cursor: pointer; box-shadow: {{rangeSh}}"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{c.muted}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"></path></svg>{{rangeText}}</button>
+<sc-if value="{{rangeOpen}}" hint-placeholder-val="{{ false }}"><div class="pop" role="dialog" aria-label="選擇期間" style="position: absolute; z-index: 20; top: 76px; left: 0; display: flex; gap: 16px; padding: 12px; border-radius: 14px; background: {{c.card}}; border: 1px solid {{c.line}}; box-shadow: {{c.overlay}}" onMouseLeave="{{clearHover}}">
+<sc-if value="{{rQuick}}" hint-placeholder-val="{{ true }}"><div style="display: flex; flex-direction: column; gap: 2px; padding-right: 12px; border-right: 1px solid {{c.line}}; min-width: 110px"><sc-for list="{{quick}}" as="q" hint-placeholder-count="5"><button type="button" class="hv" onClick="{{q.pick}}" style="height: 34px; padding: 0 10px; border: 0; border-radius: 8px; background: {{q.bg}}; color: {{q.fg}}; font: inherit; font-size: 14px; text-align: left; cursor: pointer; white-space: nowrap">{{q.t}}</button></sc-for></div></sc-if>
+<div style="width: {{calW}}">
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px"><button type="button" class="hv" onClick="{{rc1.prev}}" aria-label="上個月" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: {{c.ink}}; cursor: pointer; font-size: 16px">‹</button><span style="font-weight: 700">{{rc1.title}}</span><button type="button" class="hv" onClick="{{rc1.next}}" aria-label="下個月" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: {{c.ink}}; cursor: pointer; font-size: 16px">›</button></div>
+<div style="display: grid; grid-template-columns: repeat(7, 36px); gap: 2px; font-size: 12px; color: {{c.muted}}; text-align: center; margin-bottom: 2px"><sc-for list="{{wk}}" as="w" hint-placeholder-count="7"><span>{{w}}</span></sc-for></div>
+<div style="display: grid; grid-template-columns: repeat(7, 36px); gap: 2px">
+<sc-for list="{{rc1.days}}" as="d" hint-placeholder-count="35"><button type="button" class="day {{d.cls}}" onClick="{{d.pick}}" onMouseEnter="{{d.hover}}" aria-label="{{d.label}}" aria-pressed="{{d.aria}}" disabled="{{d.off}}" style="position: relative; width: 36px; height: 36px; border: {{d.bd}}; border-radius: {{d.r}}; background: {{d.bg}}; color: {{d.fg}}; font: inherit; font-size: 14px; font-weight: {{d.fw}}; font-family: 'Geist Mono', monospace; cursor: pointer; opacity: {{d.op}}; visibility: {{d.vis}}">{{d.n}}<sc-if value="{{d.dot}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 50%; bottom: 4px; width: 4px; height: 4px; margin-left: -2px; border-radius: 99px; background: {{d.dotC}}"></span></sc-if></button></sc-for>
+</div></div>
+<sc-if value="{{rTwo}}" hint-placeholder-val="{{ false }}"><div style="width: {{calW}}">
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px"><button type="button" class="hv" onClick="{{rc2.prev}}" aria-label="上個月" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: {{c.ink}}; cursor: pointer; font-size: 16px">‹</button><span style="font-weight: 700">{{rc2.title}}</span><button type="button" class="hv" onClick="{{rc2.next}}" aria-label="下個月" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: {{c.ink}}; cursor: pointer; font-size: 16px">›</button></div>
+<div style="display: grid; grid-template-columns: repeat(7, 36px); gap: 2px; font-size: 12px; color: {{c.muted}}; text-align: center; margin-bottom: 2px"><sc-for list="{{wk}}" as="w" hint-placeholder-count="7"><span>{{w}}</span></sc-for></div>
+<div style="display: grid; grid-template-columns: repeat(7, 36px); gap: 2px">
+<sc-for list="{{rc2.days}}" as="d" hint-placeholder-count="35"><button type="button" class="day {{d.cls}}" onClick="{{d.pick}}" onMouseEnter="{{d.hover}}" aria-label="{{d.label}}" aria-pressed="{{d.aria}}" disabled="{{d.off}}" style="position: relative; width: 36px; height: 36px; border: {{d.bd}}; border-radius: {{d.r}}; background: {{d.bg}}; color: {{d.fg}}; font: inherit; font-size: 14px; font-weight: {{d.fw}}; font-family: 'Geist Mono', monospace; cursor: pointer; opacity: {{d.op}}; visibility: {{d.vis}}">{{d.n}}<sc-if value="{{d.dot}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 50%; bottom: 4px; width: 4px; height: 4px; margin-left: -2px; border-radius: 99px; background: {{d.dotC}}"></span></sc-if></button></sc-for>
+</div></div></sc-if>
+</div></sc-if>
+<div style="margin-top: 6px; font-size: 13px; color: {{c.muted}}">點兩下選起訖日</div>
+</div>
+</div>
+</section>
+
+<section style="padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}">
+<div style="font-size: 18px; font-weight: 700">檔案上傳</div>
+<sc-if value="{{upErrTop}}" hint-placeholder-val="{{ false }}"><div style="margin-top: 12px; padding: 10px 14px; border-radius: 10px; background: {{c.card}}; border: 1px solid {{c.line}}; border-top: 3px solid #cd2823; font-size: 14px"><b>1 個檔案沒有上傳</b>：big-dataset.zip 超過 100 MB 上限，請壓縮後再試。</div></sc-if>
+<div style="margin-top: 14px">
+<sc-if value="{{uBig}}" hint-placeholder-val="{{ true }}"><div onDragOver="{{dragOver}}" onDragLeave="{{dragLeave}}" onDrop="{{drop}}" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 28px 16px; border: 2px dashed {{dzBd}}; border-radius: 14px; background: {{dzBg}}; text-align: center; transition: background-color .15s ease, border-color .15s ease">
+<svg width="32" height="32" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{c.muted}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"></path></svg>
+<div><b>把檔案拖到這裡</b>，或 <button type="button" onClick="{{pickFiles}}" style="border: 0; padding: 0; background: transparent; color: {{c.accentText}}; font: inherit; font-weight: 700; cursor: pointer">選擇檔案</button></div>
+<sc-if value="{{limitIn}}" hint-placeholder-val="{{ true }}"><div style="font-size: 13px; color: {{c.muted}}">PDF、圖片或 ZIP，每個最大 100 MB</div></sc-if>
+</div></sc-if>
+<sc-if value="{{uLine}}" hint-placeholder-val="{{ false }}"><div onDragOver="{{dragOver}}" onDragLeave="{{dragLeave}}" onDrop="{{drop}}" style="display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px; border: 1px dashed {{dzBd}}; border-radius: 10px; background: {{dzBg}}"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{c.muted}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"></path></svg><span style="flex: 1 1 auto; font-size: 14px">拖放檔案，或 <button type="button" onClick="{{pickFiles}}" style="border: 0; padding: 0; background: transparent; color: {{c.accentText}}; font: inherit; font-weight: 700; cursor: pointer">選擇檔案</button></span><sc-if value="{{limitIn}}" hint-placeholder-val="{{ true }}"><span style="font-size: 13px; color: {{c.muted}}">每個最大 100 MB</span></sc-if></div></sc-if>
+<sc-if value="{{uBtn}}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{pickFiles}}" style="display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: transparent; color: {{c.ink}}; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"></path></svg>上傳檔案</button></sc-if>
+<sc-if value="{{limitBelow}}" hint-placeholder-val="{{ false }}"><div style="margin-top: 6px; font-size: 13px; color: {{c.muted}}">PDF、圖片或 ZIP，每個最大 100 MB</div></sc-if>
+</div>
+<div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{files}}" as="f" hint-placeholder-count="3"><div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid {{f.bd}}; border-radius: 10px">
+<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{f.ic}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6v18h12V7zM14 3v4h4"></path></svg>
+<div style="flex: 1 1 auto; min-width: 0">
+<div style="display: flex; justify-content: space-between; gap: 10px"><span style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{f.name}}</span><span style="flex: 0 0 auto; font-size: 13px; color: {{c.muted}}; font-family: 'Geist Mono', monospace">{{f.size}}</span></div>
+<sc-if value="{{f.showBar}}" hint-placeholder-val="{{ true }}"><div role="progressbar" aria-label="{{f.name}}" aria-valuenow="{{f.p}}" aria-valuemin="0" aria-valuemax="100" style="margin-top: 6px; height: 8px; border-radius: 99px; background: {{c.sub}}; overflow: hidden"><div style="width: {{f.w}}; height: 100%; border-radius: 99px; background: {{f.barC}}; transition: width .15s linear, background-color .3s ease"></div></div></sc-if>
+<div style="margin-top: 4px; font-size: 13px; color: {{f.stC}}; font-family: 'Geist Mono', 'Noto Sans TC', monospace">{{f.status}}<sc-if value="{{f.retry}}" hint-placeholder-val="{{ false }}">　<button type="button" onClick="{{f.doRetry}}" style="border: 0; padding: 0; background: transparent; color: {{c.accentText}}; font: inherit; font-weight: 700; cursor: pointer">重試</button></sc-if></div>
+</div>
+<sc-if value="{{f.showRing}}" hint-placeholder-val="{{ false }}"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12" fill="none" stroke="{{c.sub}}" stroke-width="4"></circle><circle cx="16" cy="16" r="12" fill="none" stroke="{{f.barC}}" stroke-width="4" stroke-linecap="round" stroke-dasharray="{{f.dash}}" transform="rotate(-90 16 16)"></circle></svg></sc-if>
+<button type="button" class="hv" onClick="{{f.remove}}" aria-label="{{f.rmLabel}}" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: {{c.muted}}; cursor: pointer; font-size: 16px">×</button>
+</div></sc-for>
+</div>
+</section>
+
+<section style="padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}">
+<div style="font-size: 18px; font-weight: 700">多選</div>
+<div style="margin-top: 14px; position: relative; width: 420px; max-width: 100%" onClick="{{stop}}">
+<label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px">負責成員</label>
+<div class="fld" onClick="{{openMs}}" style="display: flex; flex-wrap: {{msWrap}}; align-items: center; gap: 6px; min-height: 40px; padding: 4px 8px; box-sizing: border-box; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: {{c.input}}; cursor: text; overflow: hidden">
+<sc-if value="{{chipsIn}}" hint-placeholder-val="{{ true }}"><sc-for list="{{chipsShown}}" as="ch" hint-placeholder-count="2"><span style="display: inline-flex; align-items: center; gap: 2px; height: 28px; padding: 0 4px 0 10px; border-radius: 8px; background: {{c.sub}}; font-size: 14px; white-space: nowrap">{{ch.t}}<button type="button" class="chipx" onClick="{{ch.rm}}" aria-label="{{ch.rmLabel}}" style="width: 22px; height: 22px; border: 0; border-radius: 6px; background: transparent; color: {{c.muted}}; cursor: pointer">×</button></span></sc-for><sc-if value="{{moreN}}" hint-placeholder-val="{{ false }}"><span style="height: 28px; padding: 0 8px; border-radius: 8px; background: {{c.accentSoft}}; color: {{c.accentText}}; font-size: 13px; font-weight: 700; line-height: 28px; white-space: nowrap">+{{moreCount}}</span></sc-if></sc-if>
+<sc-if value="{{countMode}}" hint-placeholder-val="{{ false }}"><span style="font-size: 15px; color: {{countC}}; white-space: nowrap">{{countText}}</span></sc-if>
+<input aria-label="搜尋成員" value="{{msQ}}" onChange="{{setMsQ}}" onKeyDown="{{msKey}}" onFocus="{{openMs}}" placeholder="{{msPh}}" style="flex: 1 1 80px; min-width: 80px; height: 30px; border: 0; background: transparent; color: {{c.ink}}; font: inherit; font-size: 15px">
+</div>
+<sc-if value="{{chipsBelow}}" hint-placeholder-val="{{ false }}"><div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{chipsShown}}" as="ch" hint-placeholder-count="2"><span style="display: inline-flex; align-items: center; gap: 2px; height: 28px; padding: 0 4px 0 10px; border-radius: 8px; background: {{c.sub}}; font-size: 14px">{{ch.t}}<button type="button" class="chipx" onClick="{{ch.rm}}" aria-label="{{ch.rmLabel}}" style="width: 22px; height: 22px; border: 0; border-radius: 6px; background: transparent; color: {{c.muted}}; cursor: pointer">×</button></span></sc-for><sc-if value="{{moreN}}" hint-placeholder-val="{{ false }}"><span style="height: 28px; padding: 0 8px; border-radius: 8px; background: {{c.accentSoft}}; color: {{c.accentText}}; font-size: 13px; font-weight: 700; line-height: 28px">+{{moreCount}}</span></sc-if></div></sc-if>
+<sc-if value="{{msOpen}}" hint-placeholder-val="{{ false }}"><div class="pop" role="listbox" aria-multiselectable="true" style="position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + 6px); max-height: 260px; overflow-y: auto; padding: 6px; border-radius: 10px; background: {{c.card}}; border: 1px solid {{c.line}}; box-shadow: {{c.overlay}}">
+<sc-for list="{{msOpts}}" as="o" hint-placeholder-count="5"><button type="button" role="option" aria-selected="{{o.aria}}" class="hv" onClick="{{o.toggle}}" style="display: flex; align-items: center; gap: 10px; width: 100%; height: 38px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: {{c.ink}}; font: inherit; font-size: 14px; text-align: left; cursor: pointer"><span style="width: 18px; height: 18px; box-sizing: border-box; border-radius: 5px; border: 2px solid {{o.bd}}; background: {{o.bg}}; color: #ffffff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{o.mark}}</span>{{o.t}}</button></sc-for>
+<sc-if value="{{canCreate}}" hint-placeholder-val="{{ false }}"><button type="button" class="hv" onClick="{{create}}" style="display: block; width: 100%; height: 38px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: {{c.accentText}}; font: inherit; font-size: 14px; font-weight: 600; text-align: left; cursor: pointer">新增「{{msQ}}」</button></sc-if>
+<sc-if value="{{msEmpty}}" hint-placeholder-val="{{ false }}"><div style="padding: 10px; font-size: 14px; color: {{c.muted}}">找不到符合的成員</div></sc-if>
+</div></sc-if>
+<div style="margin-top: 6px; font-size: 13px; color: {{c.muted}}">{{msHint}}</div>
+</div>
+</section>
+</div>
+
+</div>
+</div>
+
+<section style="margin-top: 24px; padding: 14px 18px; border: 1px dashed #aca49a; border-radius: 8px; font-size: 13px; color: #6d645a">
+<span style="color: #171512; font-weight: 700">目前設定</span>　{{summary}}
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":4200}}'>
+
+const PAL = (dark) => dark
+  ? { page: '#2f2a25', card: '#393530', chrome: '#35302c', ink: '#f6f5f4', muted: '#b3aba2', line: '#4c4844', lineStrong: '#8c8073', sub: '#443f3b', zebra: '#3e3a35', input: '#26221e', accentSoft: '#2d344c', accentText: '#819ee7', danger: '#f08a80', dangerSolid: '#e5544d', success: '#5cc98a', shadow: '0 1px 2px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.55)', overlay: '0 2px 6px rgba(0,0,0,.5), 0 16px 40px rgba(0,0,0,.55)' }
+  : { page: '#fcfbfb', card: '#ffffff', chrome: '#ffffff', ink: '#171512', muted: '#6d645a', line: '#e2dfdc', lineStrong: '#8c8073', sub: '#f6f5f4', zebra: '#f9f8f7', input: '#ffffff', accentSoft: '#e5ebfa', accentText: '#2457d6', danger: '#c4322b', dangerSolid: '#cd2823', success: '#1b7f4b', shadow: '0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.1)', overlay: '0 2px 6px rgba(16,24,40,.08), 0 16px 40px rgba(16,24,40,.16)' };
+const MK = (self, st, onPick) => {
+  const on = (k, id) => String(st[k]) === String(id);
+  const M = (o) => Object.assign({ t: '', w: '20px', h: '20px', r: '4px', bg: 'transparent', bd: '0', fg: '#171512', sh: 'none' }, o);
+  const mk = (k, list) => list.map((o) => Object.assign({ marks: [], imgs: [], hasText: !!o.text, text: o.text || '' }, o, { pressed: on(k, o.id) ? 'true' : 'false', border: on(k, o.id) ? '1px solid #171512' : '1px solid #e2dfdc', ring: on(k, o.id) ? '0 0 0 2px #171512' : 'none', pick: () => { const ns = { [k]: o.id }; if (onPick) Object.assign(ns, onPick(k, o.id)); self.setState(ns); } }));
+  return { M, mk };
+};
+const THEMEBTNS = (self, st) => [['淺色', false], ['深色', true]].map(([t, d]) => ({ t, pressed: st.dark === d ? 'true' : 'false', bg: st.dark === d ? '#171512' : '#ffffff', fg: st.dark === d ? '#ffffff' : '#171512', bd: st.dark === d ? '#171512' : '#cfcac4', pick: () => self.setState({ dark: d }) }));
+
+
+const TODAY = new Date(2026, 10, 4);
+const MEMBERS = ['王小明', '李小華', '陳大同', '林美玲', '張志豪', '黃雅婷', '吳建宏', '周佳穎', '徐子軒', '蔡宜蓁', '鄭冠廷', '謝欣怡'];
+const pad = (n) => String(n).padStart(2, '0');
+const fmtD = (d) => d ? d.getFullYear() + '/' + pad(d.getMonth() + 1) + '/' + pad(d.getDate()) : '';
+const same = (a, b) => a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+const addD = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { dOpen: 'popover', dSel: 'circle', dToday: 'dot', dRange: 'quick', dWeek: 'sun', uStyle: 'big', uProg: 'bar', uFail: 'inline', uLimit: 'in', msStyle: 'chips', msMany: 'more', msNew: 'list',
+      dark: false, single: new Date(2026, 10, 14), typed: null, cal1: false, m1: new Date(2026, 10, 1), range: [new Date(2026, 9, 6), new Date(2026, 10, 4)], rangeOpen: false, rm: new Date(2026, 9, 1), rHover: null, rPick: null,
+      files: [], drag: false, ms: ['王小明', '李小華', '陳大同', '林美玲', '張志豪'], msQ: '', msOpen: false, quickId: '' };
+  }
+  componentWillUnmount() { clearInterval(this.uI); }
+  tick() {
+    clearInterval(this.uI);
+    this.uI = setInterval(() => {
+      let busy = false;
+      const files = this.state.files.map((f) => { if (f.state !== 'up') return f; busy = true; const p = Math.min(100, f.p + f.speed); if (f.fail && p >= 35) return Object.assign({}, f, { p: 35, state: 'fail' }); return Object.assign({}, f, { p, state: p >= 100 ? 'done' : 'up' }); });
+      this.setState({ files }); if (!busy) clearInterval(this.uI);
+    }, 80);
+  }
+  addFiles(list) { this.setState({ files: this.state.files.concat(list.map((f, i) => Object.assign({ id: Date.now() + '-' + i + Math.random(), p: 0, state: 'up', speed: 3 + (i % 3) * 2 }, f))) }); this.tick(); }
+  renderVals() {
+    const st = this.state;
+    const C = PAL(st.dark);
+    const A = '#2457d6';
+    const { M, mk } = MK(this, st, () => ({ cal1: false, rangeOpen: false, msOpen: false }));
+    const sections = [
+      { title: '日期', groups: [
+        { no: 'D1', label: '打開方式', desc: '單一日期的欄位。', opts: mk('dOpen', [
+          { id: 'popover', name: '輸入框加日曆', note: '可以直接打字，也可以點圖示開日曆', text: '［2026/11/14 ▦］' },
+          { id: 'click', name: '只能點選', note: '點欄位就開日曆，不能打字', text: '［2026/11/14］▾' },
+          { id: 'inline', name: '內嵌月曆', note: '月曆一直顯示在頁面上', text: '▦▦▦\n▦▦▦' }
+        ]) },
+        { no: 'D2', label: '選中的日期', desc: '', opts: mk('dSel', [
+          { id: 'circle', name: '實心圓', note: '', marks: [M({ w: '26px', h: '26px', r: '99px', bg: A, fg: '#ffffff', t: '14' })] },
+          { id: 'square', name: '圓角方塊', note: '和按鈕圓角一致', marks: [M({ w: '26px', h: '26px', r: '7px', bg: A, fg: '#ffffff', t: '14' })] }
+        ]) },
+        { no: 'D3', label: '今天的標示', desc: '', opts: mk('dToday', [
+          { id: 'dot', name: '下方圓點', note: '數字下面一個小點', text: '4\n·' },
+          { id: 'ring', name: '外框', note: '一圈細框', marks: [M({ w: '26px', h: '26px', r: '99px', bd: '1px solid #2457d6', fg: '#2457d6', t: '4' })] },
+          { id: 'bold', name: '強調色粗體', note: '數字變藍變粗', text: '𝟒' }
+        ]) },
+        { no: 'D4', label: '範圍選擇', desc: '點「報表期間」。', opts: mk('dRange', [
+          { id: 'quick', name: '單月加快捷', note: '左邊有「最近 7 天」等快捷', text: '最近 7 天 ▦' },
+          { id: 'two', name: '雙月並排', note: '跨月選比較方便', text: '▦ ▦' },
+          { id: 'both', name: '快捷加雙月', note: '最完整，佔空間', text: '快捷 ▦ ▦' }
+        ]) },
+        { no: 'D5', label: '一週從哪天開始', desc: '', opts: mk('dWeek', [
+          { id: 'sun', name: '週日', note: '台灣月曆常見', text: '日 一 二 …' },
+          { id: 'mon', name: '週一', note: '工作週比較直覺', text: '一 二 … 日' }
+        ]) }
+      ] },
+      { title: '檔案上傳', groups: [
+        { no: 'U1', label: '樣式', desc: '可以真的把檔案拖進去，或按「選擇檔案」放三個示範檔。', opts: mk('uStyle', [
+          { id: 'big', name: '大拖放區', note: '虛線框，中間有圖示', text: '┌ ⇪ ┐\n└ 拖到這裡 ┘' },
+          { id: 'line', name: '一行拖放', note: '節省空間', text: '［⇪ 拖放檔案］' },
+          { id: 'button', name: '按鈕', note: '只有「上傳檔案」按鈕', text: '［⇪ 上傳檔案］' }
+        ]) },
+        { no: 'U2', label: '上傳進度', desc: '', opts: mk('uProg', [
+          { id: 'bar', name: '進度條', note: '和進度元件一致，8 px', text: '━━━─ 64%' },
+          { id: 'ring', name: '圓環', note: '放在每個檔案右邊', text: '◔' },
+          { id: 'text', name: '只有文字', note: '「上傳中 64%」', text: '上傳中 64%' }
+        ]) },
+        { no: 'U3', label: '上傳失敗', desc: '示範檔裡的 big-dataset.zip 會失敗。', opts: mk('uFail', [
+          { id: 'inline', name: '檔案下方紅字加重試', note: '說明原因，可以重試', text: '超過上限　重試' },
+          { id: 'top', name: '上方提示加紅字', note: '多一個提示框統整失敗的檔案', text: '▔▔ 1 個檔案沒有上傳' }
+        ]) },
+        { no: 'U4', label: '限制說明', desc: '檔案類型和大小上限寫在哪裡。', opts: mk('uLimit', [
+          { id: 'in', name: '拖放區裡', note: '', text: '⇪\n每個最大 100 MB' },
+          { id: 'below', name: '欄位下方', note: '和一般欄位的說明一致', text: '⇪\n───\n每個最大 100 MB' }
+        ]) }
+      ] },
+      { title: '多選', groups: [
+        { no: 'S1', label: '樣式', desc: '已經選了 5 位成員。點欄位開選單。', opts: mk('msStyle', [
+          { id: 'chips', name: '標籤在框內', note: '每個選項一個標籤，可以按 × 移除', text: '［王小明×　李小華×］' },
+          { id: 'count', name: '顯示數量', note: '框內只寫「已選 5 位」', text: '［已選 5 位 ▾］' },
+          { id: 'below', name: '標籤在框下方', note: '框只用來搜尋', text: '［搜尋］\n王小明× 李小華×' }
+        ]) },
+        { no: 'S2', label: '選很多時', desc: '只對標籤樣式有效。', opts: mk('msMany', [
+          { id: 'more', name: '顯示 2 個加「+3」', note: '欄位高度不變', text: '王小明× 李小華× +3' },
+          { id: 'wrap', name: '全部顯示並換行', note: '欄位會變高', text: '王小明× 李小華×\n陳大同× …' }
+        ]) },
+        { no: 'S3', label: '新增選項', desc: '輸入清單裡沒有的名字時。', opts: mk('msNew', [
+          { id: 'list', name: '只能從清單選', note: '顯示「找不到符合的成員」', text: '找不到' },
+          { id: 'create', name: '可以新增', note: '出現「新增「…」」，或按 Enter', text: '新增「…」' }
+        ]) }
+      ] }
+    ];
+    sections[0].groups[1].desc = '月曆裡被選中的那一天。';
+    sections[0].groups[1].opts[0].note = '最常見';
+    sections[0].groups[2].desc = '月曆裡的今天（2026/11/04）。';
+    sections[1].groups[3].opts[0].note = '拖放區裡一行小字';
+    // calendars
+    const wkSun = ['日', '一', '二', '三', '四', '五', '六'], mon = st.dWeek === 'mon';
+    const wk = mon ? wkSun.slice(1).concat(['日']) : wkSun;
+    const calendar = (month, mode, nav) => {
+      const y = month.getFullYear(), m = month.getMonth();
+      const first = new Date(y, m, 1), startDow = (first.getDay() + (mon ? 6 : 0)) % 7;
+      const dim = new Date(y, m + 1, 0).getDate();
+      const days = [];
+      for (let i = 0; i < startDow; i++) days.push({ n: '', vis: 'hidden', off: true, cls: '', bd: '0', r: '0', bg: 'transparent', fg: C.ink, fw: 400, op: 1, dot: false, label: '', aria: 'false', pick: () => {}, hover: () => {} });
+      let lo = null, hi = null;
+      if (mode === 'range') { const a = st.rPick || st.range[0], b = st.rPick ? (st.rHover || st.rPick) : st.range[1]; lo = a <= b ? a : b; hi = a <= b ? b : a; }
+      for (let d = 1; d <= dim; d++) {
+        const date = new Date(y, m, d);
+        const isToday = same(date, TODAY);
+        const sel = mode === 'single' ? same(date, st.single) : (same(date, lo) || same(date, hi));
+        const inR = mode === 'range' && lo && hi && date > lo && date < hi;
+        const r = st.dSel === 'circle' ? '99px' : '8px';
+        days.push({ n: String(d), vis: 'visible', off: false, cls: sel ? 'sel' : '', label: y + ' 年 ' + (m + 1) + ' 月 ' + d + ' 日' + (isToday ? '（今天）' : ''), aria: String(!!sel),
+          bg: sel ? A : (inR ? C.accentSoft : 'transparent'), fg: sel ? '#ffffff' : (isToday && st.dToday === 'bold' ? C.accentText : C.ink), fw: sel || (isToday && st.dToday === 'bold') ? 700 : 400,
+          r: inR ? '0' : r, bd: isToday && st.dToday === 'ring' && !sel ? '1px solid ' + C.accentText : '0', op: 1, dot: isToday && st.dToday === 'dot', dotC: sel ? '#ffffff' : C.accentText,
+          pick: (e) => { e && e.stopPropagation && e.stopPropagation(); if (mode === 'single') this.setState({ single: date, typed: null, cal1: st.dOpen === 'inline' ? false : false }); else if (!this.state.rPick) this.setState({ rPick: date, rHover: date, quickId: '' }); else { const a = this.state.rPick; this.setState({ range: a <= date ? [a, date] : [date, a], rPick: null, rHover: null, rangeOpen: false }); } },
+          hover: () => { if (mode === 'range' && this.state.rPick) this.setState({ rHover: date }); } });
+      }
+      const title = y + ' 年 ' + (m + 1) + ' 月';
+      return { title, days, prev: (e) => { e && e.stopPropagation && e.stopPropagation(); nav(-1); }, next: (e) => { e && e.stopPropagation && e.stopPropagation(); nav(1); } };
+    };
+    const shiftM = (key, n) => { const d = this.state[key]; this.setState({ [key]: new Date(d.getFullYear(), d.getMonth() + n, 1) }); };
+    const cal1 = calendar(st.m1, 'single', (n) => shiftM('m1', n));
+    const twoMonths = st.dRange !== 'quick';
+    const rc1 = calendar(st.rm, 'range', (n) => shiftM('rm', n));
+    const rc2 = calendar(new Date(st.rm.getFullYear(), st.rm.getMonth() + 1, 1), 'range', (n) => shiftM('rm', n));
+    const Q = [['today', '今天', [TODAY, TODAY]], ['7', '最近 7 天', [addD(TODAY, -6), TODAY]], ['30', '最近 30 天', [addD(TODAY, -29), TODAY]], ['month', '本月', [new Date(2026, 10, 1), new Date(2026, 10, 30)]], ['last', '上個月', [new Date(2026, 9, 1), new Date(2026, 9, 31)]]];
+    const quick = Q.map(([id, t, r]) => ({ t, bg: st.quickId === id ? C.accentSoft : 'transparent', fg: st.quickId === id ? C.accentText : C.ink, pick: (e) => { e && e.stopPropagation && e.stopPropagation(); this.setState({ range: r, quickId: id, rPick: null, rangeOpen: false }); } }));
+    const typedBad = st.typed !== null && !/^\d{4}\/\d{2}\/\d{2}$/.test(st.typed);
+    // files
+    const DEMO = [{ name: 'report-2026-q3.pdf', size: '2.4 MB' }, { name: 'cluster-photo.jpg', size: '5.1 MB' }, { name: 'big-dataset.zip', size: '210 MB', fail: true }];
+    const files = st.files.map((f) => {
+      const fail = f.state === 'fail', done = f.state === 'done';
+      return { name: f.name, size: f.size, p: String(Math.round(f.p)), w: f.p + '%', bd: fail ? C.danger : C.line, ic: fail ? C.danger : C.muted,
+        showBar: st.uProg === 'bar' && !fail, showRing: st.uProg === 'ring' && !fail && !done, barC: done ? C.success : A, dash: (2 * Math.PI * 12 * f.p / 100).toFixed(1) + ' 999',
+        status: fail ? (st.uFail === 'inline' ? '超過 100 MB 上限，請壓縮後再試。' : '沒有上傳') : done ? '完成 ✓' : (st.uProg === 'text' ? '上傳中 ' + Math.round(f.p) + '%' : Math.round(f.p) + '%'), stC: fail ? C.danger : done ? C.success : C.muted,
+        retry: fail && st.uFail === 'inline', doRetry: () => { this.setState({ files: this.state.files.map((x) => x.id === f.id ? Object.assign({}, x, { p: 0, state: 'up' }) : x) }); this.tick(); },
+        remove: () => this.setState({ files: this.state.files.filter((x) => x.id !== f.id) }), rmLabel: '移除 ' + f.name };
+    });
+    // multiselect
+    const q = st.msQ.trim();
+    const all = MEMBERS.concat(st.ms.filter((n) => MEMBERS.indexOf(n) < 0));
+    const msOpts = all.filter((n) => !q || n.indexOf(q) >= 0).map((t) => { const on = st.ms.indexOf(t) >= 0; return { t, aria: String(on), bd: on ? A : C.lineStrong, bg: on ? A : 'transparent', mark: on ? '✓' : '', toggle: () => { const s = this.state.ms.slice(); const i = s.indexOf(t); if (i >= 0) s.splice(i, 1); else s.push(t); this.setState({ ms: s, msQ: '' }); } }; });
+    const limit = st.msMany === 'more' && st.msStyle !== 'below' ? 2 : 99;
+    const chipsShown = st.ms.slice(0, limit).map((t) => ({ t, rmLabel: '移除 ' + t, rm: (e) => { e && e.stopPropagation && e.stopPropagation(); this.setState({ ms: this.state.ms.filter((x) => x !== t) }); } }));
+    const exact = all.indexOf(q) >= 0;
+    const N = { dOpen: { popover: '輸入框加日曆', click: '只能點選', inline: '內嵌月曆' }, dSel: { circle: '實心圓', square: '圓角方塊' }, dToday: { dot: '下方圓點', ring: '外框', bold: '強調色粗體' }, dRange: { quick: '單月加快捷', two: '雙月並排', both: '快捷加雙月' }, dWeek: { sun: '週日開始', mon: '週一開始' }, uStyle: { big: '大拖放區', line: '一行拖放', button: '按鈕' }, uProg: { bar: '進度條', ring: '圓環', text: '只有文字' }, uFail: { inline: '紅字加重試', top: '上方提示加紅字' }, uLimit: { in: '限制寫在拖放區裡', below: '限制寫在欄位下方' }, msStyle: { chips: '標籤在框內', count: '顯示數量', below: '標籤在框下方' }, msMany: { more: '顯示 2 個加 +n', wrap: '全部換行' }, msNew: { list: '只能從清單選', create: '可以新增' } };
+    return {
+      sections, c: C, dkCls: st.dark ? 'dk' : '', themeBtns: THEMEBTNS(this, st),
+      stop: (e) => { e && e.stopPropagation && e.stopPropagation(); }, closeAll: () => { if (this.state.cal1 || this.state.rangeOpen || this.state.msOpen) this.setState({ cal1: false, rangeOpen: false, msOpen: false, rPick: null }); },
+      wk, calW: (7 * 36 + 12) + 'px', cal1, rc1, rc2,
+      dInline: st.dOpen === 'inline', dField: st.dOpen !== 'inline', dReadonly: st.dOpen === 'click', inCursor: st.dOpen === 'click' ? 'pointer' : 'text',
+      singleText: st.typed !== null ? st.typed : fmtD(st.single), typeDate: (e) => { const v = e.target.value; const ns = { typed: v }; const mm = v.match(/^(\d{4})\/(\d{2})\/(\d{2})$/); if (mm) { const d = new Date(+mm[1], +mm[2] - 1, +mm[3]); if (d.getMonth() === +mm[2] - 1) { ns.single = d; ns.m1 = new Date(d.getFullYear(), d.getMonth(), 1); ns.typed = null; } } this.setState(ns); },
+      openOnClick: () => { if (this.state.dOpen === 'click') this.setState({ cal1: !this.state.cal1, rangeOpen: false, msOpen: false }); },
+      toggleCal1: () => this.setState({ cal1: !this.state.cal1, rangeOpen: false, msOpen: false, m1: new Date(this.state.single ? this.state.single.getFullYear() : 2026, this.state.single ? this.state.single.getMonth() : 10, 1) }), cal1Open: st.cal1, cal1Aria: String(st.cal1),
+      dHint: typedBad ? '日期格式不正確，請寫成 2026/11/14' : (st.dOpen === 'click' ? '點欄位選日期' : '可以直接輸入，例如 2026/11/14'), dHintC: typedBad ? C.danger : C.muted,
+      pickToday: () => this.setState({ single: TODAY, typed: null, cal1: false, m1: new Date(2026, 10, 1) }), clearSingle: () => this.setState({ single: null, typed: null, cal1: false }),
+      rangeText: fmtD(st.range[0]) + ' – ' + fmtD(st.range[1]), rangeOpen: st.rangeOpen, rangeAria: String(st.rangeOpen), rangeBd: st.rangeOpen ? A : C.lineStrong, rangeSh: st.rangeOpen ? '0 0 0 3px rgba(36,87,214,.3)' : 'none',
+      toggleRange: () => this.setState({ rangeOpen: !this.state.rangeOpen, cal1: false, msOpen: false, rPick: null, rm: twoMonths ? new Date(st.range[1].getFullYear(), st.range[1].getMonth() - 1, 1) : new Date(st.range[1].getFullYear(), st.range[1].getMonth(), 1) }),
+      clearHover: () => { if (this.state.rPick) this.setState({ rHover: this.state.rPick }); },
+      rQuick: st.dRange !== 'two', rTwo: twoMonths, quick,
+      uBig: st.uStyle === 'big', uLine: st.uStyle === 'line', uBtn: st.uStyle === 'button', limitIn: st.uLimit === 'in' && st.uStyle !== 'button', limitBelow: st.uLimit === 'below' || st.uStyle === 'button',
+      dzBd: st.drag ? A : C.lineStrong, dzBg: st.drag ? C.accentSoft : 'transparent',
+      dragOver: (e) => { e.preventDefault(); if (!this.state.drag) this.setState({ drag: true }); }, dragLeave: () => this.setState({ drag: false }),
+      drop: (e) => { e.preventDefault(); const fl = Array.from((e.dataTransfer && e.dataTransfer.files) || []); this.setState({ drag: false }); this.addFiles(fl.map((f) => ({ name: f.name, size: (f.size / 1048576).toFixed(1) + ' MB', fail: f.size > 104857600 }))); },
+      pickFiles: () => this.addFiles(DEMO), files, upErrTop: st.uFail === 'top' && st.files.some((f) => f.state === 'fail'),
+      chipsIn: st.msStyle === 'chips', chipsBelow: st.msStyle === 'below', countMode: st.msStyle === 'count', chipsShown, moreN: st.ms.length > limit, moreCount: String(st.ms.length - limit),
+      countText: st.ms.length ? '已選 ' + st.ms.length + ' 位' : '', countC: C.ink, msWrap: st.msMany === 'wrap' || st.msStyle !== 'chips' ? 'wrap' : 'nowrap',
+      msQ: st.msQ, setMsQ: (e) => this.setState({ msQ: e.target.value, msOpen: true }), openMs: () => { if (!this.state.msOpen) this.setState({ msOpen: true, cal1: false, rangeOpen: false }); },
+      msKey: (e) => { if (e.key === 'Enter' && this.state.msNew === 'create' && q && !exact) { e.preventDefault(); this.setState({ ms: this.state.ms.concat([q]), msQ: '' }); } else if (e.key === 'Backspace' && !this.state.msQ && this.state.ms.length) this.setState({ ms: this.state.ms.slice(0, -1) }); else if (e.key === 'Escape') this.setState({ msOpen: false }); },
+      msPh: st.ms.length && st.msStyle !== 'below' ? '' : '搜尋成員', msOpen: st.msOpen, msOpts, canCreate: st.msNew === 'create' && !!q && !exact, msEmpty: msOpts.length === 0 && !(st.msNew === 'create' && q),
+      create: () => this.setState({ ms: this.state.ms.concat([q]), msQ: '' }), msHint: '按 Backspace 移除最後一個；Esc 關閉選單',
+      summary: ['日期 ' + N.dOpen[st.dOpen] + '／' + N.dSel[st.dSel] + '／今天' + N.dToday[st.dToday] + '／範圍' + N.dRange[st.dRange] + '／' + N.dWeek[st.dWeek], '上傳 ' + N.uStyle[st.uStyle] + '／' + N.uProg[st.uProg] + '／失敗' + N.uFail[st.uFail] + '／' + N.uLimit[st.uLimit], '多選 ' + N.msStyle[st.msStyle] + '／' + N.msMany[st.msMany] + '／' + N.msNew[st.msNew]].join(' · ')
+    };
+  }
+}
+
+</script>
+</body>
+</html>

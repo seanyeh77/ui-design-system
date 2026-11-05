@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>頁面範本實驗室</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.opt{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.opt:hover{transform:translateY(-2px)}
+.hv:hover{background:#f6f5f4 !important}
+.dk .hv:hover{background:#443f3b !important}
+@keyframes upIn{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+.barin{animation:upIn .2s cubic-bezier(.2,.8,.2,1) both}
+@keyframes tIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.toast{animation:tIn .3s cubic-bezier(.2,.9,.3,1.2) both}
+input{outline:none}
+.fld:focus-within{border-color:#2457d6 !important;box-shadow:0 0 0 3px rgba(36,87,214,.3)}
+.cat:hover{background:#f6f5f4}
+.dk .cat:hover{background:#443f3b}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #f6f5f4; color: #171512; font-family: Inter, 'Noto Sans TC', sans-serif; font-size: 15px; line-height: 1.55">
+<main style="max-width: 1400px; margin: 0 auto; padding: 40px 32px 56px">
+<div style="font-family: 'Geist Mono', 'Noto Sans TC', monospace; font-size: 13px; font-weight: 600; color: #6d645a">深入 14 · 頁面範本</div>
+<h1 style="margin: 6px 0 0; font-size: 39px; line-height: 1.2; font-weight: 700; letter-spacing: -.01em">頁面範本實驗室</h1>
+<p style="margin: 8px 0 0; color: #6d645a; max-width: 900px">錯誤頁、登入頁、設定頁。用預覽上方的分頁切換頁面；選左邊的選項時會自動跳到對應的頁面。登入頁可以真的送出，設定頁可以真的修改。選好後把最下方的設定給我。</p>
+
+<div style="margin-top: 28px; display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start">
+
+<div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{sections}}" as="sec" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 18px; font-weight: 700; padding-top: 6px">{{sec.title}}</div>
+<sc-for list="{{sec.groups}}" as="g" hint-placeholder-count="2">
+<section style="padding: 16px; background: #ffffff; border: 1px solid #e2dfdc; border-radius: 10px">
+<div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; color: #ffffff; background: #171512; padding: 1px 7px; border-radius: 4px">{{g.no}}</span>
+<span style="font-size: 16px; font-weight: 700">{{g.label}}</span>
+</div>
+<p style="margin: 6px 0 0; font-size: 13px; color: #6d645a">{{g.desc}}</p>
+<div style="margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px">
+<sc-for list="{{g.opts}}" as="o" hint-placeholder-count="3">
+<button class="opt" type="button" onClick="{{o.pick}}" aria-pressed="{{o.pressed}}" style="display: flex; flex-direction: column; gap: 8px; padding: 10px; min-height: 44px; text-align: left; background: #ffffff; border: {{o.border}}; border-radius: 8px; font: inherit; color: #171512; box-shadow: {{o.ring}}">
+<span aria-hidden="true" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; box-sizing: border-box; padding: 6px; border-radius: 4px; background: #f6f5f4; font-size: 12px; color: #6d645a; text-align: center">
+<sc-for list="{{o.marks}}" as="mk" hint-placeholder-count="2"><span style="display: inline-flex; align-items: center; justify-content: center; width: {{mk.w}}; height: {{mk.h}}; box-sizing: border-box; border-radius: {{mk.r}}; background: {{mk.bg}}; border: {{mk.bd}}; color: {{mk.fg}}; font-size: 11px; font-weight: 700; box-shadow: {{mk.sh}}">{{mk.t}}</span></sc-for>
+<sc-for list="{{o.imgs}}" as="im" hint-placeholder-count="0"><img src="{{im}}" width="22" height="22" alt="" style="display: block"></sc-for>
+<sc-if value="{{o.hasText}}" hint-placeholder-val="{{ false }}"><span style="white-space: pre-line; line-height: 1.4">{{o.text}}</span></sc-if>
+</span>
+<span style="font-size: 13px; font-weight: 700">{{o.name}}</span>
+<span style="font-size: 12px; color: #6d645a; line-height: 1.4">{{o.note}}</span>
+</button>
+</sc-for>
+</div>
+</section>
+</sc-for>
+</div>
+</sc-for>
+</div>
+
+<div style="flex: 1 1 720px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<span style="font-size: 13px; font-weight: 700">預覽主題</span>
+<sc-for list="{{themeBtns}}" as="tb" hint-placeholder-count="2">
+<button type="button" onClick="{{tb.pick}}" aria-pressed="{{tb.pressed}}" style="min-height: 44px; padding: 0 14px; border: 1px solid {{tb.bd}}; background: {{tb.bg}}; color: {{tb.fg}}; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{tb.t}}</button>
+</sc-for>
+</div>
+
+<div class="pv {{dkCls}}" style="background: {{c.page}}; color: {{c.ink}}; border: 1px solid #cfcac4; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; font-size: 15px; line-height: 1.5">
+<div role="tablist" aria-label="頁面" style="display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: {{c.sub}}; width: fit-content"><sc-for list="{{pageTabs}}" as="pt" hint-placeholder-count="3"><button type="button" role="tab" aria-selected="{{pt.aria}}" onClick="{{pt.pick}}" style="height: 34px; padding: 0 16px; border: 0; border-radius: 8px; background: {{pt.bg}}; color: {{pt.fg}}; font: inherit; font-size: 14px; font-weight: {{pt.fw}}; cursor: pointer">{{pt.t}}</button></sc-for></div>
+
+<div style="position: relative; height: 620px; border: 1px solid {{c.line}}; border-radius: 12px; overflow: hidden; background: {{c.page}}">
+
+<sc-if value="{{isErr}}" hint-placeholder-val="{{ true }}">
+<div style="position: absolute; top: 12px; right: 12px; display: flex; gap: 4px; z-index: 2"><sc-for list="{{errTabs}}" as="et" hint-placeholder-count="3"><button type="button" onClick="{{et.pick}}" aria-pressed="{{et.aria}}" style="height: 30px; padding: 0 10px; border: 1px solid {{et.bd}}; border-radius: 8px; background: {{et.bg}}; color: {{et.fg}}; font: inherit; font-family: 'Geist Mono', monospace; font-size: 13px; font-weight: 600; cursor: pointer">{{et.t}}</button></sc-for></div>
+<div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center">
+<sc-if value="{{eBig}}" hint-placeholder-val="{{ true }}"><div style="font-family: 'Geist Mono', monospace; font-size: 96px; line-height: 1; font-weight: 700; color: {{c.accentText}}; letter-spacing: -.02em">{{err.code}}</div></sc-if>
+<sc-if value="{{eIcon}}" hint-placeholder-val="{{ false }}"><div style="width: 96px; height: 96px; border-radius: 99px; background: {{c.accentSoft}}; color: {{c.accentText}}; display: flex; align-items: center; justify-content: center"><svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{err.icon}}"></path></svg></div></sc-if>
+<div style="font-size: 25px; font-weight: 700">{{err.title}}</div>
+<div style="max-width: 420px; color: {{c.muted}}">{{err.desc}}</div>
+<div style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center"><sc-if value="{{eSecond}}" hint-placeholder-val="{{ true }}"><button type="button" style="height: 40px; padding: 0 16px; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: transparent; color: {{c.ink}}; font: inherit; font-size: 14px; font-weight: 600">{{eSecondText}}</button></sc-if><button type="button" style="height: 40px; padding: 0 16px; border: 0; border-radius: 10px; background: #2457d6; color: #ffffff; font: inherit; font-size: 14px; font-weight: 600">回首頁</button></div>
+<sc-if value="{{eSmallCode}}" hint-placeholder-val="{{ false }}"><div style="margin-top: 8px; font-size: 13px; color: {{c.muted}}; font-family: 'Geist Mono', 'Noto Sans TC', monospace">錯誤代碼 {{err.code}}</div></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{isLogin}}" hint-placeholder-val="{{ false }}">
+<div style="height: 100%; display: flex">
+<sc-if value="{{lSplit}}" hint-placeholder-val="{{ false }}"><div style="flex: 1 1 50%; background: #2457d6; color: #ffffff; padding: 40px; display: flex; flex-direction: column; justify-content: space-between"><div style="display: flex; align-items: center; gap: 10px; font-weight: 700"><span style="width: 24px; height: 24px; border-radius: 6px; background: #ffffff"></span>專案名稱</div><div><div style="font-size: 31px; font-weight: 700; line-height: 1.25">叢集、專案和成員，<br>在同一個地方管理。</div><div style="margin-top: 10px; opacity: .8">這段文字換成你的產品說明。</div></div></div></sc-if>
+<div style="flex: 1 1 50%; display: flex; align-items: center; justify-content: center; padding: 24px; background: {{lBg}}">
+<div style="width: 360px; max-width: 100%; box-sizing: border-box; padding: {{lPad}}; border-radius: 16px; background: {{lCardBg}}; box-shadow: {{lCardSh}}">
+<sc-if value="{{lLogo}}" hint-placeholder-val="{{ true }}"><div style="display: flex; align-items: center; gap: 10px; font-weight: 700; margin-bottom: 20px"><span style="width: 24px; height: 24px; border-radius: 6px; background: #2457d6"></span>專案名稱</div></sc-if>
+<div style="font-size: 25px; font-weight: 700">登入</div>
+<sc-if value="{{lDone}}" hint-placeholder-val="{{ false }}"><div style="margin-top: 14px; padding: 10px 14px; border-radius: 10px; background: {{c.card}}; border: 1px solid {{c.line}}; border-top: 3px solid #1ca655; font-size: 14px">登入成功（示範）</div></sc-if>
+<sc-if value="{{lTopErr}}" hint-placeholder-val="{{ false }}"><div role="alert" style="margin-top: 14px; padding: 10px 14px; border-radius: 10px; background: {{c.card}}; border: 1px solid {{c.line}}; border-top: 3px solid #cd2823; font-size: 14px">{{lTopMsg}}</div></sc-if>
+<sc-if value="{{lPassword}}" hint-placeholder-val="{{ true }}">
+<div style="margin-top: 16px; display: flex; flex-direction: column; gap: 14px">
+<label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">帳號</span><div class="fld" style="display: flex; height: 40px; border: 1px solid {{uBd}}; border-radius: 10px; background: {{c.input}}"><input value="{{lUser}}" onChange="{{setUser}}" onKeyDown="{{enter}}" placeholder="Email 或帳號" aria-invalid="{{uInv}}" style="flex: 1 1 auto; min-width: 0; padding: 0 12px; border: 0; background: transparent; color: {{c.ink}}; font: inherit; font-size: 15px"></div><sc-if value="{{uErrShow}}" hint-placeholder-val="{{ false }}"><span role="alert" style="font-size: 13px; color: {{c.danger}}">{{uErr}}</span></sc-if></label>
+<label style="display: flex; flex-direction: column; gap: 6px"><span style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 600">密碼<sc-if value="{{forgotInline}}" hint-placeholder-val="{{ true }}"><a href="#" style="font-weight: 600; color: {{c.accentText}}">忘記密碼？</a></sc-if></span><div class="fld" style="display: flex; align-items: center; height: 40px; border: 1px solid {{pBd}}; border-radius: 10px; background: {{c.input}}"><input type="{{pType}}" value="{{lPass}}" onChange="{{setPass}}" onKeyDown="{{enter}}" aria-invalid="{{pInv}}" style="flex: 1 1 auto; min-width: 0; padding: 0 12px; border: 0; background: transparent; color: {{c.ink}}; font: inherit; font-size: 15px"><sc-if value="{{lEye}}" hint-placeholder-val="{{ true }}"><button type="button" class="hv" onClick="{{toggleEye}}" aria-label="{{eyeLabel}}" aria-pressed="{{eyeAria}}" style="width: 32px; height: 32px; margin-right: 4px; border: 0; border-radius: 8px; background: transparent; color: {{c.muted}}; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{eyeIcon}}"></path></svg></button></sc-if></div><sc-if value="{{pErrShow}}" hint-placeholder-val="{{ false }}"><span role="alert" style="font-size: 13px; color: {{c.danger}}">{{pErr}}</span></sc-if></label>
+<button type="button" onClick="{{submit}}" style="height: 40px; border: 0; border-radius: 10px; background: #2457d6; color: #ffffff; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">登入</button>
+<sc-if value="{{forgotBelow}}" hint-placeholder-val="{{ false }}"><a href="#" style="text-align: center; font-size: 14px; font-weight: 600; color: {{c.accentText}}">忘記密碼？</a></sc-if>
+</div>
+</sc-if>
+<sc-if value="{{lDivider}}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 10px; margin: 16px 0; font-size: 13px; color: {{c.muted}}"><span style="flex: 1 1 auto; height: 1px; background: {{c.line}}"></span>或<span style="flex: 1 1 auto; height: 1px; background: {{c.line}}"></span></div></sc-if>
+<sc-if value="{{lSso}}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{sso}}" style="width: 100%; height: 40px; margin-top: {{ssoMt}}; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: transparent; color: {{c.ink}}; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer">使用組織帳號登入</button></sc-if>
+<div style="margin-top: 14px; font-size: 12px; color: {{c.muted}}; text-align: center">示範帳號 sean／密碼 1234</div>
+</div></div></div>
+</sc-if>
+
+<sc-if value="{{isSet}}" hint-placeholder-val="{{ false }}">
+<div style="height: 100%; display: flex; flex-direction: column; overflow: hidden">
+<div style="padding: 20px 24px 0; font-size: 25px; font-weight: 700">設定</div>
+<sc-if value="{{gTabs}}" hint-placeholder-val="{{ false }}"><div role="tablist" style="display: flex; gap: 4px; margin: 14px 24px 0; padding: 4px; border-radius: 10px; background: {{c.sub}}; width: fit-content"><sc-for list="{{cats}}" as="ct" hint-placeholder-count="4"><button type="button" role="tab" aria-selected="{{ct.aria}}" onClick="{{ct.pick}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 8px; background: {{ct.tabBg}}; color: {{ct.tabFg}}; font: inherit; font-size: 14px; font-weight: {{ct.fw}}; cursor: pointer">{{ct.t}}</button></sc-for></div></sc-if>
+<div style="flex: 1 1 auto; min-height: 0; display: flex; gap: 20px; padding: 16px 24px 24px">
+<sc-if value="{{gSide}}" hint-placeholder-val="{{ true }}"><nav aria-label="設定分類" style="flex: 0 0 160px; display: flex; flex-direction: column; gap: 2px"><sc-for list="{{cats}}" as="ct" hint-placeholder-count="4"><button type="button" class="cat" onClick="{{ct.pick}}" aria-current="{{ct.cur}}" style="position: relative; height: 40px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: {{ct.sideFg}}; font: inherit; font-weight: {{ct.fw}}; text-align: left; cursor: pointer"><sc-if value="{{ct.on}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: #2457d6"></span></sc-if>{{ct.t}}</button></sc-for></nav></sc-if>
+<div style="flex: 1 1 auto; min-width: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding-bottom: 72px">
+<sc-for list="{{secs}}" as="s" hint-placeholder-count="2">
+<section style="padding: 18px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}; border: {{s.bd}}">
+<div style="font-size: 18px; font-weight: 700; color: {{s.tc}}">{{s.t}}</div>
+<sc-if value="{{s.profile}}" hint-placeholder-val="{{ false }}"><div style="margin-top: 12px; display: flex; flex-direction: column; gap: 12px"><label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">名稱</span><div class="fld" style="display: flex; height: 40px; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: {{c.input}}"><input value="{{nameV}}" onChange="{{setName}}" style="flex: 1 1 auto; padding: 0 12px; border: 0; background: transparent; color: {{c.ink}}; font: inherit; font-size: 15px"></div></label><label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 600">Email</span><div class="fld" style="display: flex; height: 40px; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: {{c.input}}"><input value="{{mailV}}" onChange="{{setMail}}" style="flex: 1 1 auto; padding: 0 12px; border: 0; background: transparent; color: {{c.ink}}; font: inherit; font-size: 15px"></div></label></div></sc-if>
+<sc-if value="{{s.toggles}}" hint-placeholder-val="{{ false }}"><div style="margin-top: 8px; display: flex; flex-direction: column"><sc-for list="{{s.items}}" as="tg" hint-placeholder-count="2"><div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 48px; border-bottom: 1px solid {{c.line}}"><div><div style="font-weight: 600">{{tg.t}}</div><div style="font-size: 13px; color: {{c.muted}}">{{tg.d}}</div></div><button type="button" role="switch" aria-checked="{{tg.aria}}" aria-label="{{tg.t}}" onClick="{{tg.toggle}}" style="position: relative; flex: 0 0 52px; width: 52px; height: 32px; padding: 0; box-sizing: border-box; border-radius: 99px; border: 2px solid {{tg.bd}}; background: {{tg.bg}}; cursor: pointer; transition: background-color .2s ease"><span style="position: absolute; top: 50%; left: {{tg.left}}; width: {{tg.size}}; height: {{tg.size}}; margin-top: {{tg.mt}}; border-radius: 99px; background: {{tg.knob}}; transition: left .25s cubic-bezier(.34,1.4,.64,1), width .2s, height .2s, margin-top .2s"></span></button></div></sc-for></div></sc-if>
+<sc-if value="{{s.danger}}" hint-placeholder-val="{{ false }}"><div style="margin-top: 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap"><div style="font-size: 14px; color: {{c.muted}}">刪除後，所有專案和資料都無法復原。</div><button type="button" onClick="{{askDelete}}" style="height: 40px; padding: 0 16px; border: 0; border-radius: 10px; background: #cd2823; color: #ffffff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">刪除帳號</button></div></sc-if>
+<sc-if value="{{s.ownSave}}" hint-placeholder-val="{{ false }}"><div style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 8px"><button type="button" onClick="{{s.save}}" disabled="{{s.saveDis}}" style="height: 36px; padding: 0 16px; border: 0; border-radius: 10px; background: {{s.saveBg}}; color: {{s.saveFg}}; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">儲存</button></div></sc-if>
+</section>
+</sc-for>
+</div>
+</div>
+<sc-if value="{{showBar}}" hint-placeholder-val="{{ false }}"><div class="barin" style="position: absolute; left: 50%; bottom: 16px; display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 16px; border-radius: 14px; background: {{c.card}}; border: 1px solid {{c.line}}; box-shadow: {{c.overlay}}; white-space: nowrap; z-index: 5"><span style="font-size: 14px; font-weight: 600">有尚未儲存的變更</span><button type="button" onClick="{{discard}}" style="height: 36px; padding: 0 14px; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: transparent; color: {{c.ink}}; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">捨棄</button><button type="button" onClick="{{saveAll}}" style="height: 36px; padding: 0 14px; border: 0; border-radius: 10px; background: #2457d6; color: #ffffff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">儲存</button></div></sc-if>
+<sc-if value="{{toastOn}}" hint-placeholder-val="{{ false }}"><div class="toast" role="status" style="position: absolute; right: 16px; bottom: 16px; padding: 12px 16px; border-radius: 10px; background: {{c.card}}; border: 1px solid {{c.line}}; box-shadow: {{c.overlay}}; font-size: 14px; z-index: 6"><span style="color: {{c.success}}">✓</span>　{{toastText}}</div></sc-if>
+<sc-if value="{{delAsk}}" hint-placeholder-val="{{ false }}"><div style="position: absolute; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.2); backdrop-filter: blur(4px)"><div role="alertdialog" aria-label="刪除帳號" style="width: 380px; max-width: calc(100% - 32px); padding: 20px; border-radius: 14px; background: {{c.card}}; box-shadow: {{c.overlay}}"><div style="font-size: 18px; font-weight: 700">刪除帳號？</div><div style="margin-top: 6px; font-size: 14px; color: {{c.muted}}">所有專案和資料都會刪除，無法復原。</div><div style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 8px"><button type="button" onClick="{{cancelDelete}}" style="height: 40px; padding: 0 16px; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: transparent; color: {{c.ink}}; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">取消</button><button type="button" onClick="{{cancelDelete}}" style="height: 40px; padding: 0 16px; border: 0; border-radius: 10px; background: #cd2823; color: #ffffff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">刪除</button></div></div></div></sc-if>
+</div>
+</sc-if>
+</div>
+</div>
+
+</div>
+</div>
+
+<section style="margin-top: 24px; padding: 14px 18px; border: 1px dashed #aca49a; border-radius: 8px; font-size: 13px; color: #6d645a">
+<span style="color: #171512; font-weight: 700">目前設定</span>　{{summary}}
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":3600}}'>
+
+const PAL = (dark) => dark
+  ? { page: '#2f2a25', card: '#393530', chrome: '#35302c', ink: '#f6f5f4', muted: '#b3aba2', line: '#4c4844', lineStrong: '#8c8073', sub: '#443f3b', zebra: '#3e3a35', input: '#26221e', accentSoft: '#2d344c', accentText: '#819ee7', danger: '#f08a80', dangerSolid: '#e5544d', success: '#5cc98a', shadow: '0 1px 2px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.55)', overlay: '0 2px 6px rgba(0,0,0,.5), 0 16px 40px rgba(0,0,0,.55)' }
+  : { page: '#fcfbfb', card: '#ffffff', chrome: '#ffffff', ink: '#171512', muted: '#6d645a', line: '#e2dfdc', lineStrong: '#8c8073', sub: '#f6f5f4', zebra: '#f9f8f7', input: '#ffffff', accentSoft: '#e5ebfa', accentText: '#2457d6', danger: '#c4322b', dangerSolid: '#cd2823', success: '#1b7f4b', shadow: '0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.1)', overlay: '0 2px 6px rgba(16,24,40,.08), 0 16px 40px rgba(16,24,40,.16)' };
+const MK = (self, st, onPick) => {
+  const on = (k, id) => String(st[k]) === String(id);
+  const M = (o) => Object.assign({ t: '', w: '20px', h: '20px', r: '4px', bg: 'transparent', bd: '0', fg: '#171512', sh: 'none' }, o);
+  const mk = (k, list) => list.map((o) => Object.assign({ marks: [], imgs: [], hasText: !!o.text, text: o.text || '' }, o, { pressed: on(k, o.id) ? 'true' : 'false', border: on(k, o.id) ? '1px solid #171512' : '1px solid #e2dfdc', ring: on(k, o.id) ? '0 0 0 2px #171512' : 'none', pick: () => { const ns = { [k]: o.id }; if (onPick) Object.assign(ns, onPick(k, o.id)); self.setState(ns); } }));
+  return { M, mk };
+};
+const THEMEBTNS = (self, st) => [['淺色', false], ['深色', true]].map(([t, d]) => ({ t, pressed: st.dark === d ? 'true' : 'false', bg: st.dark === d ? '#171512' : '#ffffff', fg: st.dark === d ? '#ffffff' : '#171512', bd: st.dark === d ? '#171512' : '#cfcac4', pick: () => self.setState({ dark: d }) }));
+
+
+const ERR = {
+  404: { code: '404', title: '找不到這個頁面', desc: '網址可能打錯了，或這個頁面已經移除。', icon: 'M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM20 20l-4-4M8.5 11h5' },
+  500: { code: '500', title: '伺服器暫時無法回應', desc: '這個問題已經記錄下來，請稍後重新整理再試。', icon: 'M12 9v4M12 17h.01M10.3 3.9L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z' },
+  403: { code: '403', title: '沒有權限查看這個頁面', desc: '請向管理員申請權限，或切換成有權限的帳號。', icon: 'M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4' }
+};
+const EYE = 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', EYEOFF = 'M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4M6.6 6.6C3.7 8.5 2 12 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2';
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { eLayout: 'big', eBtns: 'both', eCode: 'big', lLayout: 'card', lMethod: 'both', lEye: 'yes', lErr: 'field', lForgot: 'inline', gLayout: 'side', gSave: 'bar', gDanger: 'bottom',
+      dark: false, page: 'err', errCode: 404, user: '', pass: '', showPass: false, tried: false, loginErr: '', done: false,
+      cat: 'profile', name: 'SeanYeh', mail: 'sean@example.com', saved: { name: 'SeanYeh', mail: 'sean@example.com', n1: true, n2: false, s1: true }, n1: true, n2: false, s1: true, toast: '', delAsk: false };
+  }
+  componentWillUnmount() { clearTimeout(this.tT); }
+  say(t) { clearTimeout(this.tT); this.setState({ toast: t }); this.tT = setTimeout(() => this.setState({ toast: '' }), 3000); }
+  renderVals() {
+    const st = this.state;
+    const C = PAL(st.dark);
+    const { M, mk } = MK(this, st, (k) => ({ page: k[0] === 'e' ? 'err' : k[0] === 'l' ? 'login' : 'set', tried: false, loginErr: '', done: false }));
+    const sections = [
+      { title: '錯誤頁', groups: [
+        { no: 'E1', label: '主視覺', desc: '右上角可以切換 404、500、403。', opts: mk('eLayout', [
+          { id: 'big', name: '大號錯誤碼', note: '等寬字 96 px，用強調色', text: '404' },
+          { id: 'icon', name: '圖示', note: '淺色圓底加大圖示', text: '◯ ⌕' },
+          { id: 'text', name: '只有文字', note: '標題加說明', text: '找不到這個頁面' }
+        ]) },
+        { no: 'E2', label: '按鈕', desc: '', opts: mk('eBtns', [
+          { id: 'both', name: '回上一頁加回首頁', note: '回首頁是主要按鈕', text: '［回上一頁］［回首頁］' },
+          { id: 'home', name: '只有回首頁', note: '最單純', text: '［回首頁］' },
+          { id: 'report', name: '回報問題加回首頁', note: '500 這類系統錯誤時有用', text: '［回報問題］［回首頁］' }
+        ]) },
+        { no: 'E3', label: '錯誤碼', desc: '選「大號錯誤碼」時已經顯示。', opts: mk('eCode', [
+          { id: 'big', name: '跟著主視覺', note: '只有大號錯誤碼時才顯示', text: '404' },
+          { id: 'small', name: '下方小字', note: '「錯誤代碼 404」，方便回報', text: '錯誤代碼 404' }
+        ]) }
+      ] },
+      { title: '登入頁', groups: [
+        { no: 'L1', label: '版面', desc: '', opts: mk('lLayout', [
+          { id: 'card', name: '置中卡片', note: '淺灰底上一張白卡片', text: '　▢　' },
+          { id: 'split', name: '左右分割', note: '左邊強調色放產品說明', text: '▮ ▢' },
+          { id: 'plain', name: '無卡片', note: '整頁白底，表單置中', text: '　≡　' }
+        ]) },
+        { no: 'L2', label: '登入方式', desc: '', opts: mk('lMethod', [
+          { id: 'password', name: '帳號密碼', note: '', text: '帳號\n密碼' },
+          { id: 'both', name: '帳號密碼加組織帳號', note: '中間用「或」分隔', text: '帳號密碼\n— 或 —\n組織帳號' },
+          { id: 'sso', name: '只有組織帳號', note: '單一登入，沒有密碼欄', text: '［使用組織帳號登入］' }
+        ]) },
+        { no: 'L3', label: '顯示密碼', desc: '密碼欄右邊的眼睛按鈕。', opts: mk('lEye', [
+          { id: 'yes', name: '有', note: '可以確認有沒有打錯', text: '•••• 👁' },
+          { id: 'no', name: '沒有', note: '', text: '••••' }
+        ]) },
+        { no: 'L4', label: '錯誤訊息', desc: '空著按「登入」，或輸入錯誤密碼試試。', opts: mk('lErr', [
+          { id: 'field', name: '欄位下方', note: '和一般表單一致；密碼錯誤顯示在密碼欄', text: '［　］\n請輸入帳號' },
+          { id: 'top', name: '表單上方提示', note: '所有錯誤集中在一個提示框', text: '▔ 帳號或密碼不正確\n［　］' }
+        ]) },
+        { no: 'L5', label: '「忘記密碼」', desc: '', opts: mk('lForgot', [
+          { id: 'inline', name: '密碼標籤右邊', note: '', text: '密碼　忘記密碼？' },
+          { id: 'below', name: '登入按鈕下方', note: '', text: '［登入］\n忘記密碼？' }
+        ]) }
+      ] },
+      { title: '設定頁', groups: [
+        { no: 'G1', label: '版面', desc: '', opts: mk('gLayout', [
+          { id: 'side', name: '左側分類', note: '分類多時最清楚', text: '個人 ▕ ▬\n通知 ▕ ▬' },
+          { id: 'tabs', name: '上方分頁', note: '和分頁切換元件一致', text: '［個人｜通知｜安全］' },
+          { id: 'long', name: '單頁分區', note: '全部放一頁，往下捲', text: '▬ 個人\n▬ 通知\n▬ 安全' }
+        ]) },
+        { no: 'G2', label: '儲存方式', desc: '改一下名稱或開關試試。', opts: mk('gSave', [
+          { id: 'bar', name: '底部浮動儲存列', note: '有變更才出現「捨棄／儲存」', text: '▬\n［有變更　捨棄 儲存］' },
+          { id: 'section', name: '每區自己的儲存', note: '每個區塊右下角一個按鈕', text: '▬ ［儲存］\n▬ ［儲存］' },
+          { id: 'auto', name: '自動儲存', note: '改完就存，右下角提示「已儲存」', text: '✓ 已儲存' }
+        ]) },
+        { no: 'G3', label: '危險操作', desc: '刪除帳號這類操作。', opts: mk('gDanger', [
+          { id: 'bottom', name: '最下方紅框區塊', note: '和其他設定放一起，但用紅框隔開', text: '▬\n┏ 刪除帳號 ┓' },
+          { id: 'cat', name: '獨立分類', note: '分類清單最後一項「危險操作」', text: '…\n危險操作' }
+        ]) }
+      ] }
+    ];
+    sections[0].groups[1].desc = '錯誤頁下方的按鈕。';
+    sections[1].groups[0].desc = '登入表單的版面。';
+    sections[1].groups[1].opts[0].note = '最常見';
+    sections[1].groups[2].opts[1].note = '最單純';
+    sections[1].groups[4].desc = '連結的位置。';
+    sections[1].groups[4].opts[0].note = '最常見';
+    sections[1].groups[4].opts[1].note = '和登入按鈕放一起';
+    sections[2].groups[0].desc = '設定項目怎麼分類。';
+    const pageTabs = [['err', '錯誤頁'], ['login', '登入頁'], ['set', '設定頁']].map(([id, t]) => { const o = st.page === id; return { t, aria: String(o), bg: o ? C.card : 'transparent', fg: o ? C.ink : C.muted, fw: o ? 700 : 400, pick: () => this.setState({ page: id }) }; });
+    const err = ERR[st.errCode];
+    const errTabs = [404, 500, 403].map((code) => { const o = st.errCode === code; return { t: String(code), aria: String(o), bd: o ? '#2457d6' : C.line, bg: o ? '#2457d6' : C.card, fg: o ? '#ffffff' : C.ink, pick: () => this.setState({ errCode: code }) }; });
+    // login
+    const fieldMode = st.lErr === 'field';
+    const uEmpty = st.tried && !st.user, pEmpty = st.tried && !st.pass;
+    const submit = () => { const s = this.state; if (!s.user || !s.pass) { this.setState({ tried: true, loginErr: '', done: false }); return; } if (s.user === 'sean' && s.pass === '1234') this.setState({ tried: false, loginErr: '', done: true }); else this.setState({ tried: true, loginErr: '帳號或密碼不正確，請再試一次。', done: false }); };
+    const topMsg = uEmpty || pEmpty ? '請輸入' + (uEmpty && pEmpty ? '帳號和密碼' : uEmpty ? '帳號' : '密碼') + '。' : st.loginErr;
+    const pwd = st.lMethod !== 'sso';
+    // settings
+    const changed = st.name !== st.saved.name || st.mail !== st.saved.mail || st.n1 !== st.saved.n1 || st.n2 !== st.saved.n2 || st.s1 !== st.saved.s1;
+    const setV = (k, v) => { const ns = { [k]: v }; this.setState(ns); if (this.state.gSave === 'auto') { const sv = Object.assign({}, this.state.saved, ns); this.setState({ saved: sv }); this.say('已儲存'); } };
+    const sw = (k, t, d) => { const v = !!st[k]; return { t, d, aria: String(v), bd: v ? '#2457d6' : C.lineStrong, bg: v ? '#2457d6' : C.sub, knob: v ? '#ffffff' : C.lineStrong, size: v ? '24px' : '16px', mt: v ? '-12px' : '-8px', left: v ? '22px' : '6px', toggle: () => setV(k, !this.state[k]) }; };
+    const CATS = [['profile', '個人資料'], ['noti', '通知'], ['security', '安全性']].concat(st.gDanger === 'cat' ? [['danger', '危險操作']] : []);
+    const secDefs = { profile: { t: '個人資料', profile: true, keys: ['name', 'mail'] }, noti: { t: '通知', toggles: true, items: [sw('n1', 'Email 通知', '有人提到你或指派工作時寄信'), sw('n2', '每週摘要', '每週一早上寄送上週的整理')], keys: ['n1', 'n2'] }, security: { t: '安全性', toggles: true, items: [sw('s1', '兩步驟驗證', '登入時需要手機上的驗證碼')], keys: ['s1'] }, danger: { t: '危險操作', danger: true, keys: [] } };
+    let showKeys = st.gLayout === 'long' ? CATS.map((x) => x[0]) : [st.cat === 'danger' && st.gDanger !== 'cat' ? 'profile' : st.cat];
+    if (st.gDanger === 'bottom' && showKeys.indexOf('danger') < 0 && (st.gLayout === 'long' || showKeys[0] === 'security')) showKeys = showKeys.concat(['danger']);
+    const secs = showKeys.map((k) => { const d = secDefs[k]; const dirty = d.keys.some((x) => st[x] !== st.saved[x]); return Object.assign({ profile: false, toggles: false, danger: false, items: [] }, d, { bd: k === 'danger' ? '1px solid ' + C.danger : '0', tc: k === 'danger' ? C.danger : C.ink,
+      ownSave: st.gSave === 'section' && k !== 'danger', saveDis: !dirty, saveBg: dirty ? '#2457d6' : C.sub, saveFg: dirty ? '#ffffff' : C.muted, save: () => { const sv = Object.assign({}, this.state.saved); d.keys.forEach((x) => { sv[x] = this.state[x]; }); this.setState({ saved: sv }); this.say('已儲存「' + d.t + '」'); } }); });
+    const cats = CATS.map(([id, t]) => { const o = st.cat === id || (st.gLayout !== 'long' && st.cat === 'danger' && id === 'danger'); return { t, on: o, cur: o ? 'page' : 'false', sideFg: id === 'danger' ? C.danger : (o ? C.ink : C.muted), fw: o ? 700 : 400, aria: String(o), tabBg: o ? C.card : 'transparent', tabFg: o ? C.ink : C.muted, pick: () => this.setState({ cat: id }) }; });
+    const N = { eLayout: { big: '大號錯誤碼', icon: '圖示', text: '只有文字' }, eBtns: { both: '回上一頁加回首頁', home: '只有回首頁', report: '回報問題加回首頁' }, eCode: { big: '錯誤碼跟著主視覺', small: '錯誤碼下方小字' }, lLayout: { card: '置中卡片', split: '左右分割', plain: '無卡片' }, lMethod: { password: '帳號密碼', both: '帳號密碼加組織帳號', sso: '只有組織帳號' }, lEye: { yes: '可顯示密碼', no: '不可顯示密碼' }, lErr: { field: '錯誤在欄位下方', top: '錯誤在表單上方' }, lForgot: { inline: '忘記密碼在標籤右邊', below: '忘記密碼在按鈕下方' }, gLayout: { side: '左側分類', tabs: '上方分頁', long: '單頁分區' }, gSave: { bar: '底部浮動儲存列', section: '每區自己儲存', auto: '自動儲存' }, gDanger: { bottom: '危險操作在最下方紅框', cat: '危險操作獨立分類' } };
+    return {
+      sections, c: C, dkCls: st.dark ? 'dk' : '', themeBtns: THEMEBTNS(this, st), pageTabs,
+      isErr: st.page === 'err', isLogin: st.page === 'login', isSet: st.page === 'set',
+      err, errTabs, eBig: st.eLayout === 'big', eIcon: st.eLayout === 'icon', eSecond: st.eBtns !== 'home', eSecondText: st.eBtns === 'report' ? '回報問題' : '回上一頁', eSmallCode: st.eCode === 'small',
+      lSplit: st.lLayout === 'split', lBg: st.lLayout === 'card' ? C.sub : C.page, lCardBg: st.lLayout === 'card' ? C.card : 'transparent', lCardSh: st.lLayout === 'card' ? C.shadow : 'none', lPad: st.lLayout === 'card' ? '28px' : '0', lLogo: st.lLayout !== 'split',
+      lPassword: pwd, lSso: st.lMethod !== 'password', lDivider: st.lMethod === 'both', ssoMt: st.lMethod === 'sso' ? '20px' : '0', sso: () => this.setState({ done: true, loginErr: '', tried: false }),
+      lUser: st.user, lPass: st.pass, setUser: (e) => this.setState({ user: e.target.value }), setPass: (e) => this.setState({ pass: e.target.value }), enter: (e) => { if (e.key === 'Enter') submit(); }, submit,
+      lEye: st.lEye === 'yes', pType: st.showPass && st.lEye === 'yes' ? 'text' : 'password', toggleEye: () => this.setState({ showPass: !this.state.showPass }), eyeLabel: st.showPass ? '隱藏密碼' : '顯示密碼', eyeAria: String(st.showPass), eyeIcon: st.showPass ? EYEOFF : EYE,
+      uErrShow: fieldMode && uEmpty, uErr: '請輸入帳號', pErrShow: fieldMode && (pEmpty || (!!st.loginErr && !uEmpty)), pErr: pEmpty ? '請輸入密碼' : st.loginErr,
+      uBd: (uEmpty) ? C.danger : C.lineStrong, pBd: (pEmpty || st.loginErr) ? C.danger : C.lineStrong, uInv: String(uEmpty), pInv: String(pEmpty || !!st.loginErr),
+      lTopErr: !fieldMode && !!topMsg && (st.tried), lTopMsg: topMsg, lDone: st.done, forgotInline: st.lForgot === 'inline', forgotBelow: st.lForgot === 'below',
+      gSide: st.gLayout === 'side', gTabs: st.gLayout === 'tabs', cats, secs,
+      nameV: st.name, mailV: st.mail, setName: (e) => setV('name', e.target.value), setMail: (e) => setV('mail', e.target.value),
+      showBar: st.gSave === 'bar' && changed, discard: () => this.setState(Object.assign({}, this.state.saved)), saveAll: () => { const s = this.state; this.setState({ saved: { name: s.name, mail: s.mail, n1: s.n1, n2: s.n2, s1: s.s1 } }); this.say('已儲存'); },
+      toastOn: !!st.toast, toastText: st.toast, askDelete: () => this.setState({ delAsk: true }), delAsk: st.delAsk, cancelDelete: () => this.setState({ delAsk: false }),
+      summary: ['錯誤頁 ' + N.eLayout[st.eLayout] + '／' + N.eBtns[st.eBtns] + '／' + N.eCode[st.eCode], '登入頁 ' + N.lLayout[st.lLayout] + '／' + N.lMethod[st.lMethod] + '／' + N.lEye[st.lEye] + '／' + N.lErr[st.lErr] + '／' + N.lForgot[st.lForgot], '設定頁 ' + N.gLayout[st.gLayout] + '／' + N.gSave[st.gSave] + '／' + N.gDanger[st.gDanger]].join(' · ')
+    };
+  }
+}
+
+</script>
+</body>
+</html>

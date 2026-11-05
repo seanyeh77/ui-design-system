@@ -1,0 +1,16 @@
+<!-- @dsCard group="Data" height=380 -->
+<!doctype html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><title>LineChart — preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div id="root"></div>
+<script>
+  var U = window.UI, h = React.createElement;
+  var L=[]; for(var i=0;i<14;i++){var d=new Date(2026,9,22+i);L.push((d.getMonth()+1)+'/'+d.getDate());} function D(){return h('div',{style:{padding:20}}, h(U.LineChart,{label:'每日請求數',unit:'次',labels:L,labelEvery:2,series:[{name:'API',values:[420,460,440,510,530,500,560,590,570,620,640,610,680,700]},{name:'網頁',values:[300,320,310,290,330,350,340,360,380,370,390,410,400,430]},{name:'行動裝置',values:[150,170,160,190,200,230,220,240,260,250,280,300,310,330]}]}));}
+  ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+</script>
+</body>
+</html>

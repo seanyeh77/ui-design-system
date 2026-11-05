@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>導覽元件實驗室</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit;opacity:.8}
+.opt{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.opt:hover{transform:translateY(-2px)}
+.pv,.pv *{transition:background-color .3s ease,border-color .3s ease,color .3s ease}
+.nvi{position:relative;cursor:pointer}
+.hv-gray .nvi:hover .nvb[aria-current="false"]{background:#f6f5f4 !important}
+.dk.hv-gray .nvi:hover .nvb[aria-current="false"]{background:#443f3b !important}
+.hv-ink .nvi:hover .nvb[aria-current="false"]{color:#171512 !important}
+.dk.hv-ink .nvi:hover .nvb[aria-current="false"]{color:#f6f5f4 !important}
+.tipon .nvi:hover .tip{opacity:1;transform:translate(0,-50%)}
+.tip{opacity:0;transform:translate(-4px,-50%);transition:opacity .15s ease,transform .15s ease;pointer-events:none}
+.flyon .nvi:hover .fly{opacity:1;visibility:visible}
+.fly{opacity:0;visibility:hidden;transition:opacity .15s ease}
+.tabbtn{cursor:pointer}
+@keyframes inLA{from{opacity:0;transform:translateX(-36px)}to{opacity:1;transform:none}}
+@keyframes inLB{from{opacity:0;transform:translateX(-36px)}to{opacity:1;transform:none}}
+@keyframes inRA{from{opacity:0;transform:translateX(36px)}to{opacity:1;transform:none}}
+@keyframes inRB{from{opacity:0;transform:translateX(36px)}to{opacity:1;transform:none}}
+@keyframes blurA{from{opacity:0;filter:blur(10px);transform:scale(.98)}to{opacity:1;filter:none;transform:none}}
+@keyframes blurB{from{opacity:0;filter:blur(10px);transform:scale(.98)}to{opacity:1;filter:none;transform:none}}
+@keyframes riseA{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes riseB{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+.c-dirL-A>*{animation:inLA .45s cubic-bezier(.2,.8,.2,1) both}.c-dirL-B>*{animation:inLB .45s cubic-bezier(.2,.8,.2,1) both}
+.c-dirR-A>*{animation:inRA .45s cubic-bezier(.2,.8,.2,1) both}.c-dirR-B>*{animation:inRB .45s cubic-bezier(.2,.8,.2,1) both}
+.c-blur-A>*{animation:blurA .5s ease both}.c-blur-B>*{animation:blurB .5s ease both}
+.c-rise-A>*{animation:riseA .5s cubic-bezier(.34,1.4,.64,1) both}.c-rise-B>*{animation:riseB .5s cubic-bezier(.34,1.4,.64,1) both}
+.c-rise-A>*:nth-child(2),.c-rise-B>*:nth-child(2){animation-delay:70ms}.c-rise-A>*:nth-child(3),.c-rise-B>*:nth-child(3){animation-delay:140ms}
+@keyframes indFadeA{0%{opacity:0;transform:scale(.85)}100%{opacity:1;transform:none}}
+@keyframes indFadeB{0%{opacity:0;transform:scale(.85)}100%{opacity:1;transform:none}}
+.ind-fade-A{animation:indFadeA .3s ease both}.ind-fade-B{animation:indFadeB .3s ease both}
+@keyframes pillGrow{from{transform:scaleX(.35);opacity:.3}to{transform:none;opacity:1}}
+.pill-grow{animation:pillGrow .4s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes iconPop{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
+.icon-pop{animation:iconPop .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes rip0A{from{clip-path:circle(0% at 12% 0%)}to{clip-path:circle(160% at 12% 0%)}}
+@keyframes rip0B{from{clip-path:circle(0% at 12% 0%)}to{clip-path:circle(160% at 12% 0%)}}
+@keyframes rip1A{from{clip-path:circle(0% at 30% 0%)}to{clip-path:circle(160% at 30% 0%)}}
+@keyframes rip1B{from{clip-path:circle(0% at 30% 0%)}to{clip-path:circle(160% at 30% 0%)}}
+@keyframes rip2A{from{clip-path:circle(0% at 48% 0%)}to{clip-path:circle(160% at 48% 0%)}}
+@keyframes rip2B{from{clip-path:circle(0% at 48% 0%)}to{clip-path:circle(160% at 48% 0%)}}
+.c-rip0-A{animation:rip0A .7s cubic-bezier(.4,0,.2,1) both}.c-rip0-B{animation:rip0B .7s cubic-bezier(.4,0,.2,1) both}
+.c-rip1-A{animation:rip1A .7s cubic-bezier(.4,0,.2,1) both}.c-rip1-B{animation:rip1B .7s cubic-bezier(.4,0,.2,1) both}
+.c-rip2-A{animation:rip2A .7s cubic-bezier(.4,0,.2,1) both}.c-rip2-B{animation:rip2B .7s cubic-bezier(.4,0,.2,1) both}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #f6f5f4; color: #171512; font-family: Inter, 'Noto Sans TC', sans-serif; font-size: 15px; line-height: 1.55">
+<svg width="0" height="0" aria-hidden="true" style="position: absolute; width: 0; height: 0"><defs><filter id="goo"><feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"></feGaussianBlur><feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9" result="goo"></feColorMatrix><feComposite in="SourceGraphic" in2="goo" operator="atop"></feComposite></filter></defs></svg>
+<main style="max-width: 1400px; margin: 0 auto; padding: 40px 32px 56px">
+<div style="font-family: 'Geist Mono', 'Noto Sans TC', monospace; font-size: 13px; font-weight: 600; color: #6d645a">深入 6 · 導覽元件</div>
+<h1 style="margin: 6px 0 0; font-size: 39px; line-height: 1.2; font-weight: 700; letter-spacing: -.01em">導覽元件實驗室</h1>
+<p style="margin: 8px 0 0; color: #6d645a; max-width: 900px">版面已確定為側邊欄加頂部列、收合按鈕在左下角。這裡決定導覽元件本身的樣子。左邊選，右邊的應用畫面和手機畫面可以實際點選、收合、切換分頁；最上面的「切換動畫」決定切換時的動態。選好後把最下方的設定給我。</p>
+
+<div style="margin-top: 28px; display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start">
+
+<div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{sections}}" as="sec" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 18px; font-weight: 700; padding-top: 6px">{{sec.title}}</div>
+<sc-for list="{{sec.groups}}" as="g" hint-placeholder-count="3">
+<section style="padding: 16px; background: #ffffff; border: 1px solid #e2dfdc; border-radius: 10px">
+<div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; color: #ffffff; background: #171512; padding: 1px 7px; border-radius: 4px">{{g.no}}</span>
+<span style="font-size: 16px; font-weight: 700">{{g.label}}</span>
+</div>
+<p style="margin: 6px 0 0; font-size: 13px; color: #6d645a">{{g.desc}}</p>
+<div style="margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px">
+<sc-for list="{{g.opts}}" as="o" hint-placeholder-count="3">
+<button class="opt" type="button" onClick="{{o.pick}}" aria-pressed="{{o.pressed}}" style="display: flex; flex-direction: column; gap: 8px; padding: 10px; min-height: 44px; text-align: left; background: #ffffff; border: {{o.border}}; border-radius: 8px; font: inherit; color: #171512; box-shadow: {{o.ring}}">
+<span aria-hidden="true" style="display: flex; flex-direction: column; justify-content: center; gap: 4px; width: 100%; min-height: 54px; box-sizing: border-box; padding: 6px 8px; border-radius: 4px; background: #f6f5f4">
+<sc-for list="{{o.rows}}" as="rw" hint-placeholder-count="2"><span style="display: flex; align-items: center; gap: 6px; height: {{rw.h}}; padding: 0 6px; border-radius: {{rw.r}}; background: {{rw.bg}}; color: {{rw.fg}}; border-left: {{rw.bl}}; border-bottom: {{rw.bb}}; font-size: 11px; font-weight: {{rw.w}}; white-space: nowrap; overflow: hidden; justify-content: {{rw.jc}}">{{rw.t}}</span></sc-for>
+</span>
+<span style="font-size: 13px; font-weight: 700">{{o.name}}</span>
+<span style="font-size: 12px; color: #6d645a; line-height: 1.4">{{o.note}}</span>
+</button>
+</sc-for>
+</div>
+</section>
+</sc-for>
+</div>
+</sc-for>
+</div>
+
+<div style="flex: 1 1 760px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<span style="font-size: 13px; font-weight: 700">預覽主題</span>
+<sc-for list="{{themeBtns}}" as="tb" hint-placeholder-count="2">
+<button type="button" onClick="{{tb.pick}}" aria-pressed="{{tb.pressed}}" style="min-height: 44px; padding: 0 14px; border: 1px solid {{tb.bd}}; background: {{tb.bg}}; color: {{tb.fg}}; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{tb.t}}</button>
+</sc-for>
+<span style="font-size: 12px; color: #6d645a">側邊欄項目、收合按鈕、分頁都可以點；收合後滑過圖示看提示</span>
+</div>
+
+<div class="pv {{appCls}}" style="display: flex; height: 560px; border: 1px solid #cfcac4; border-radius: 12px; overflow: hidden; background: {{c.page}}; color: {{c.ink}}; font-size: 15px; line-height: 1.5">
+<aside style="position: relative; z-index: 3; flex: 0 0 {{sideW}}; width: {{sideW}}; box-sizing: border-box; display: flex; flex-direction: column; padding: 14px 10px; background: {{c.chrome}}; border-right: 1px solid {{c.line}}; transition: flex-basis .3s cubic-bezier(.3,.7,.3,1), width .3s cubic-bezier(.3,.7,.3,1)">
+<div style="display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 8px; margin-bottom: 8px; white-space: nowrap; overflow: hidden">
+<span style="flex: 0 0 24px; width: 24px; height: 24px; border-radius: 6px; background: #2457d6"></span>
+<sc-if value="{{expanded}}" hint-placeholder-val="{{ true }}"><span style="font-weight: 700">[專案名稱]</span></sc-if>
+</div>
+<nav aria-label="主要導覽" style="position: relative; display: flex; flex-direction: column; gap: {{itemGap}}">
+<sc-if value="{{sideDrop}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position: absolute; inset: -8px 0; filter: {{gooF}}; pointer-events: none">
+<span style="position: absolute; left: {{sdX}}; right: {{sdX}}; top: {{sdT}}; bottom: {{sdB}}; border-radius: {{sideR}}; background: {{sideIndBg}}; transition: {{sdTr}}"></span>
+</span></sc-if>
+<sc-if value="{{sideInd}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: {{sideIndTop}}; height: {{itemH}}; border-radius: {{sideR}}; background: {{sideIndBg}}; box-shadow: {{sideIndSh}}; transition: top {{dMain}} cubic-bezier(.34,1.45,.64,1), background-color .3s ease"></span></sc-if>
+<sc-if value="{{sideBar}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position: absolute; z-index: 1; left: 0; top: {{sideBarTop}}; height: {{sideBarH}}; width: 3px; border-radius: 0 3px 3px 0; background: #2457d6; transition: top .45s cubic-bezier(.34,1.45,.64,1)"></span></sc-if>
+<sc-for list="{{navRows}}" as="n" hint-placeholder-count="8">
+<sc-if value="{{n.isHead}}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{n.showHead}}" hint-placeholder-val="{{ true }}"><div style="height: 30px; box-sizing: border-box; padding: 12px 10px 0; line-height: 18px; font-family: 'Geist Mono', 'Noto Sans TC', monospace; font-size: 12px; font-weight: 600; color: {{c.muted}}; white-space: nowrap; overflow: hidden">{{n.t}}</div></sc-if>
+<sc-if value="{{n.showLine}}" hint-placeholder-val="{{ false }}"><div style="height: 17px; display: flex; align-items: center; padding: 0 6px"><span style="flex: 1 1 auto; height: 1px; background: {{c.line}}"></span></div></sc-if>
+</sc-if>
+<sc-if value="{{n.isItem}}" hint-placeholder-val="{{ true }}">
+<div class="nvi">
+<button class="nvb" type="button" onClick="{{n.pick}}" aria-current="{{n.current}}" aria-label="{{n.t}}" style="position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; width: 100%; height: {{itemH}}; padding: 0 {{n.padR}} 0 {{n.padL}}; border: 0; border-radius: {{n.r}}; background: {{n.bg}}; color: {{n.fg}}; font: inherit; font-size: {{n.fs}}; font-weight: {{n.fw}}; text-align: left; white-space: nowrap; overflow: hidden; box-shadow: {{n.inset}}">
+<sc-if value="{{n.barIn}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: #2457d6"></span></sc-if>
+<sc-if value="{{n.hasIcon}}" hint-placeholder-val="{{ true }}"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{n.ic}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: 0 0 20px"><path d="{{n.icon}}"></path></svg></sc-if>
+<sc-if value="{{expanded}}" hint-placeholder-val="{{ true }}"><span style="flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis">{{n.t}}</span></sc-if>
+<sc-if value="{{n.chev}}" hint-placeholder-val="{{ false }}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: 0 0 16px; transform: {{n.chevTf}}; transition: transform .25s ease"><path d="M9 6l6 6-6 6"></path></svg></sc-if>
+</button>
+<sc-if value="{{n.tip}}" hint-placeholder-val="{{ false }}"><span class="tip" role="tooltip" style="position: absolute; left: calc(100% + 10px); top: 50%; padding: 6px 10px; border-radius: 6px; background: {{c.tipBg}}; color: {{c.tipFg}}; font-size: 13px; font-weight: 600; white-space: nowrap; box-shadow: 0 6px 16px rgba(0,0,0,.2)">{{n.t}}</span></sc-if>
+<sc-if value="{{n.fly}}" hint-placeholder-val="{{ false }}"><div class="fly" style="position: absolute; left: calc(100% + 8px); top: 0; width: 160px; padding: 6px; border-radius: 10px; background: {{c.card}}; box-shadow: 0 12px 32px rgba(0,0,0,.2); display: flex; flex-direction: column; gap: 2px">
+<sc-for list="{{subs}}" as="sb" hint-placeholder-count="2"><span style="display: flex; align-items: center; height: 36px; padding: 0 10px; border-radius: 8px; background: {{sb.flyBg}}; color: {{sb.flyFg}}; font-size: 14px; font-weight: 500">{{sb.t}}</span></sc-for>
+</div></sc-if>
+</div>
+</sc-if>
+</sc-for>
+</nav>
+<button type="button" onClick="{{toggleSide}}" aria-label="{{collapseLabel}}" title="{{collapseLabel}}" style="margin-top: auto; width: 44px; height: 44px; margin-left: 2px; border: 0; border-radius: 10px; background: transparent; color: {{c.muted}}; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: {{collapseRot}}; transition: transform .3s ease"><path d="M4 4h16v16H4zM9 4v16M15 10l-2 2 2 2"></path></svg>
+</button>
+</aside>
+
+<div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+<header style="flex: 0 0 auto; height: 64px; box-sizing: border-box; display: flex; align-items: center; gap: 16px; padding: 0 24px; background: {{c.chrome}}; border-bottom: 1px solid {{c.line}}">
+<sc-if value="{{topCrumb}}" hint-placeholder-val="{{ false }}"><span style="display: flex; align-items: center; gap: 8px; font-family: {{crumbFont}}; font-size: {{crumbFs}}; color: {{c.muted}}; white-space: nowrap"><sc-for list="{{crumbs}}" as="cb" hint-placeholder-count="3"><span style="color: {{cb.fg}}; font-weight: {{cb.fw}}">{{cb.t}}</span><sc-if value="{{cb.sep}}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="color: {{c.muted}}">{{crumbSep}}</span></sc-if></sc-for></span></sc-if>
+<sc-if value="{{topTitle}}" hint-placeholder-val="{{ false }}"><span style="font-size: 20px; font-weight: 700">{{pageTitle}}</span></sc-if>
+<span style="margin-left: auto; display: flex; align-items: center; gap: 10px">
+<sc-if value="{{searchBox}}" hint-placeholder-val="{{ true }}"><span style="display: flex; align-items: center; gap: 8px; width: 240px; height: 40px; padding: 0 12px; box-sizing: border-box; border-radius: 10px; background: {{search.bg}}; border: {{search.bd}}; color: {{c.muted}}; font-size: 14px"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM20 20l-4-4"></path></svg>搜尋<span style="margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 12px">Ctrl K</span></span></sc-if>
+<sc-if value="{{searchIcon}}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 10px; color: {{c.ink}}"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM20 20l-4-4"></path></svg></span></sc-if>
+<sc-if value="{{topActions}}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border-radius: 10px; background: #2457d6; color: #ffffff; font-size: 15px; font-weight: 600">新增</span></sc-if>
+<span style="width: 36px; height: 36px; border-radius: 99px; background: {{c.sub}}; border: 1px solid {{c.line}}"></span>
+</span>
+</header>
+<div style="flex: 1 1 auto; min-height: 0; overflow: auto; padding: 24px">
+<sc-if value="{{inCrumb}}" hint-placeholder-val="{{ true }}"><div style="display: flex; align-items: center; gap: 8px; font-family: {{crumbFont}}; font-size: {{crumbFs}}; color: {{c.muted}}"><sc-for list="{{crumbs}}" as="cb" hint-placeholder-count="3"><span style="color: {{cb.fg}}; font-weight: {{cb.fw}}">{{cb.t}}</span><sc-if value="{{cb.sep}}" hint-placeholder-val="{{ true }}"><span aria-hidden="true">{{crumbSep}}</span></sc-if></sc-for></div></sc-if>
+<sc-if value="{{inTitle}}" hint-placeholder-val="{{ true }}"><h2 style="margin: 6px 0 0; font-size: 31px; line-height: 1.2; font-weight: 700">{{pageTitle}}</h2></sc-if>
+<div role="tablist" aria-label="檢視" style="position: relative; margin-top: 18px; display: inline-flex; gap: {{tabGap}}; padding: {{tabPad}}; background: {{tabTrack}}; border-radius: {{tabR}}; border-bottom: {{tabLine}}">
+<sc-if value="{{tabDrop}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position: absolute; inset: 0; filter: {{gooF}}; pointer-events: none">
+<span style="position: absolute; left: {{dL}}; right: {{dR}}; top: {{indTop}}; height: {{indH}}; border-radius: {{dropR}}; background: {{indBg}}; transform: {{dSquash}}; transition: {{dTabTr}}"></span>
+</span></sc-if>
+<sc-if value="{{tabSolid}}" hint-placeholder-val="{{ true }}"><span class="{{indCls}}" style="position: absolute; left: {{indL}}; top: {{indTop}}; width: {{indW}}; height: {{indH}}; border-radius: {{indR}}; background: {{indBg}}; box-shadow: {{indSh}}; transition: {{indTr}}"></span></sc-if>
+<sc-for list="{{tabs}}" as="tb" hint-placeholder-count="3">
+<button class="tabbtn" type="button" role="tab" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}" style="position: relative; width: {{tabW}}; height: {{tabH}}; border: 0; border-radius: {{indR}}; background: transparent; color: {{tb.fg}}; font: inherit; font-size: 15px; font-weight: {{tb.fw}}">{{tb.t}}</button>
+</sc-for>
+</div>
+<div class="{{contentCls}}" style="animation-duration: {{dRipple}}; margin-top: 18px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+<sc-for list="{{tabCards}}" as="cd" hint-placeholder-count="3"><div style="height: 120px; padding: 16px; box-sizing: border-box; border-radius: 14px; background: {{c.card}}; box-shadow: {{c.shadow}}"><div style="font-weight: 700">{{cd}}</div><div style="margin-top: 8px; height: 8px; width: 70%; border-radius: 4px; background: {{c.sub}}"></div><div style="margin-top: 8px; height: 8px; width: 45%; border-radius: 4px; background: {{c.sub}}"></div></div></sc-for>
+</div>
+</div>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+<div class="pv" style="flex: 0 0 auto; width: 300px; height: 600px; border: 1px solid #cfcac4; border-radius: 28px; overflow: hidden; background: {{c.page}}">
+<div style="width: 390px; height: 780px; transform: scale(.769); transform-origin: top left; display: flex; flex-direction: column; background: {{c.page}}; color: {{c.ink}}; font-size: 16px">
+<div style="flex: 0 0 60px; display: flex; align-items: center; gap: 10px; padding: 0 16px; background: {{c.chrome}}; border-bottom: 1px solid {{c.line}}"><span style="width: 22px; height: 22px; border-radius: 6px; background: #2457d6"></span><span style="font-weight: 700">{{mTitle}}</span></div>
+<div style="flex: 1 1 auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{cards}}" as="cd" hint-placeholder-count="3"><div style="height: 96px; padding: 14px; box-sizing: border-box; border-radius: 14px; background: {{c.card}}; box-shadow: {{c.shadow}}; font-weight: 700">{{cd}}</div></sc-for>
+</div>
+<nav aria-label="手機導覽" style="position: relative; flex: 0 0 auto; height: {{mBarH}}; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: {{c.chrome}}; border-top: 1px solid {{c.line}}">
+<sc-if value="{{mDrop}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position: absolute; inset: 0; filter: {{gooF}}; pointer-events: none">
+<span style="position: absolute; left: {{mL}}; right: {{mRt}}; top: {{mPillTop}}; height: {{mPH}}; border-radius: {{mR}}; background: {{c.accentSoft}}; transition: {{mTr}}"></span>
+</span></sc-if>
+<sc-for list="{{mtabs}}" as="mt" hint-placeholder-count="4">
+<button class="tabbtn" type="button" onClick="{{mt.pick}}" aria-current="{{mt.current}}" aria-label="{{mt.t}}" style="position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 0; background: transparent; color: {{mt.fg}}; font: inherit; font-size: 12px; font-weight: 600">
+<sc-if value="{{mt.topLine}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; top: 0; left: 30%; right: 30%; height: 3px; border-radius: 0 0 3px 3px; background: #2457d6"></span></sc-if>
+<span class="{{mt.pillCls}}" style="display: flex; align-items: center; justify-content: center; width: 56px; height: 30px; border-radius: 99px; background: {{mt.pill}}; transition: background-color .2s ease"><svg class="{{mt.iconCls}}" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{mt.icon}}"></path></svg></span>
+<sc-if value="{{mt.showLabel}}" hint-placeholder-val="{{ true }}"><span>{{mt.t}}</span></sc-if>
+</button>
+</sc-for>
+</nav>
+</div>
+</div>
+<div style="flex: 1 1 260px; min-width: 0; padding: 16px; background: #ffffff; border: 1px solid #e2dfdc; border-radius: 10px; font-size: 13px; color: #6d645a">
+<div style="font-size: 15px; font-weight: 700; color: #171512">手機版 390 px</div>
+<p style="margin: 6px 0 0">底部分頁列的四個項目都可以點，選中樣式照左邊 M1、M2 的選擇。</p>
+<p style="margin: 10px 0 0">已確定的規則：小於 600 px 時沒有側邊欄，改用底部分頁列。</p>
+</div>
+</div>
+</div>
+</div>
+
+<section style="margin-top: 24px; padding: 14px 18px; border: 1px dashed #aca49a; border-radius: 8px; font-size: 13px; color: #6d645a">
+<span style="color: #171512; font-weight: 700">目前設定</span>　{{summary}}
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":5400}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { xDur: 200, xLag: 2.2, xShape: 'round', xEdge: 'crisp', moving: false, sideDir: 'down', xTab: 'drop', xSide: 'slide', xContent: 'rise', xMobile: 'drop', mFrom: 1, tabFrom: 0, stretching: false, cN: 0, dir: 'R', sSel: 'bar', sHover: 'gray', sH: 40, sGroup: 'lines', sTip: 'yes', sSub: 'indent', tContent: 'crumb', tSearch: 'filled', bSep: 'chev', bFont: 'sans', tabStyle: 'segment', mStyle: 'pill', mLabel: 'never', dark: false, collapsed: false, sel: 'active', projOpen: true, tab: 0, mtab: 1 };
+  }
+  componentWillUnmount() { clearTimeout(this.tS); clearTimeout(this.tM); }
+  bump() { this.setState({ moving: true }); clearTimeout(this.tM); this.tM = setTimeout(() => this.setState({ moving: false }), this.state.xDur * this.state.xLag + 120); }
+  renderVals() {
+    const st = this.state;
+    const A = '#2457d6';
+    const C = st.dark
+      ? { page: '#2f2a25', card: '#393530', chrome: '#35302c', ink: '#f6f5f4', muted: '#b3aba2', line: '#4c4844', lineStrong: '#8c8073', sub: '#443f3b', accentSoft: '#2d344c', accentText: '#819ee7', hover: '#443f3b', tipBg: '#f6f5f4', tipFg: '#171512', shadow: '0 1px 2px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.55)', segBg: '#514a43' }
+      : { page: '#fcfbfb', card: '#ffffff', chrome: '#ffffff', ink: '#171512', muted: '#6d645a', line: '#e2dfdc', lineStrong: '#8c8073', sub: '#f6f5f4', accentSoft: '#e5ebfa', accentText: '#2457d6', hover: '#f6f5f4', tipBg: '#171512', tipFg: '#ffffff', shadow: '0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.1)', segBg: '#ffffff' };
+    const set = (k, v) => () => this.setState({ [k]: v });
+    const on = (k, id) => String(st[k]) === String(id);
+    const R = (t, o) => Object.assign({ t, h: '16px', r: '4px', bg: 'transparent', fg: '#6d645a', bl: '0', bb: '0', w: 500, jc: 'flex-start' }, o || {});
+    const mk = (k, list) => list.map((o) => Object.assign({ rows: [] }, o, { pressed: on(k, o.id) ? 'true' : 'false', border: on(k, o.id) ? '1px solid #171512' : '1px solid #e2dfdc', ring: on(k, o.id) ? '0 0 0 2px #171512' : 'none', pick: set(k, o.id) }));
+    const sections = [
+      { title: '切換動畫', groups: [
+        { no: 'X1', label: '分頁指示塊', desc: '切換分頁時，指示塊怎麼移動。在右邊的分頁點來點去比較，跨兩格時最明顯。', opts: mk('xTab', [
+          { id: 'smooth', name: '平滑滑動', note: '300 ms，穩定', rows: [R('▭ ── ▶', { jc: 'center' })] },
+          { id: 'spring', name: '彈性回彈', note: '滑過頭再彈回，有重量感', rows: [R('▭ ──▶ ◀', { jc: 'center' })] },
+          { id: 'stretch', name: '拉伸變形', note: '先拉長蓋住兩格，再縮到新位置', rows: [R('▭▭▭ → ▭', { jc: 'center' })] },
+          { id: 'fade', name: '原地出現', note: '舊的消失，新的放大淡入', rows: [R('▭ ··· ▭', { jc: 'center' })] },
+          { id: 'drop', name: '水滴', note: '前端先流過去拉長，後端再跟上收回，始終是一整塊', rows: [R('⬬━━▶', { jc: 'center', fg: A })] }
+        ]) },
+        { no: 'X2', label: '側邊欄選中', desc: '點側邊欄其他項目時，選中的底色怎麼移動。', opts: mk('xSide', [
+          { id: 'slide', name: '滑到新項目', note: '底色帶回彈地滑過去', rows: [R('首頁'), R('↓', { jc: 'center' }), R('成員', { bg: '#e5ebfa', fg: A })] },
+          { id: 'instant', name: '直接切換', note: '沒有過場', rows: [R('首頁'), R('成員', { bg: '#e5ebfa', fg: A })] },
+          { id: 'drop', name: '水滴', note: '底色往下拉長流過去，再收成一塊', rows: [R('首頁'), R('⬮', { jc: 'center', fg: '#e5ebfa' }), R('成員', { bg: '#e5ebfa', fg: A, r: '99px' })] }
+        ]) },
+        { no: 'X3', label: '內容切換', desc: '換分頁時，下方內容怎麼出現。', opts: mk('xContent', [
+          { id: 'dir', name: '方向滑入', note: '往右切從右邊進來，往左切從左邊', rows: [R('▢▢▢ ←', { jc: 'center' })] },
+          { id: 'blur', name: '模糊淡入', note: '從模糊變清楚', rows: [R('░░░ → ▢▢▢', { jc: 'center' })] },
+          { id: 'rise', name: '依序浮起', note: '卡片一張接一張彈上來', rows: [R('▢ ▢ ▢ ↑', { jc: 'center' })] },
+          { id: 'ripple', name: '水波擴散', note: '從點的分頁位置像水波一樣擴散開來', rows: [R('◜ ◠ ◝', { jc: 'center' })] },
+          { id: 'none', name: '直接換', note: '沒有動畫', rows: [R('▢▢▢', { jc: 'center' })] }
+        ]) },
+        { no: 'X4', label: '手機分頁切換', desc: '點手機底部分頁時。', opts: mk('xMobile', [
+          { id: 'grow', name: '膠囊展開加圖示彈跳', note: '膠囊從中間往兩邊展開', rows: [R('( ◉ )', { jc: 'center', fg: A })] },
+          { id: 'drop', name: '水滴膠囊', note: '膠囊拉長流到新分頁再收回', rows: [R('(━━ ◉ )', { jc: 'center', fg: A })] },
+          { id: 'pop', name: '只有圖示彈跳', note: '圖示放大再縮回', rows: [R('◉', { jc: 'center', fg: A })] },
+          { id: 'none', name: '直接切換', note: '沒有動畫', rows: [R('◉', { jc: 'center' })] }
+        ]) },
+        { no: 'X5', label: '動畫時間', desc: '指示塊從起點移到終點要多久。分頁、側邊欄、手機分頁和水波都會套用。', opts: mk('xDur', [
+          { id: 200, name: '0.2 s', note: '非常俐落', rows: [R('●▶', { jc: 'center', fg: A })] },
+          { id: 350, name: '0.35 s', note: '俐落', rows: [R('●━▶', { jc: 'center', fg: A })] },
+          { id: 550, name: '0.55 s', note: '標準', rows: [R('●━━▶', { jc: 'center', fg: A })] },
+          { id: 800, name: '0.8 s', note: '從容，水感明顯', rows: [R('●━━━▶', { jc: 'center', fg: A })] },
+          { id: 1100, name: '1.1 s', note: '很慢，像黏稠的液體', rows: [R('●━━━━▶', { jc: 'center', fg: A })] }
+        ]) },
+        { no: 'X6', label: '拉伸程度', desc: '後端比前端慢多少才跟上，越慢水滴被拉得越長。只影響水滴效果。', opts: mk('xLag', [
+          { id: 1.25, name: '輕微', note: '後端慢 1.25 倍', rows: [R('⬬━▶', { jc: 'center', fg: A })] },
+          { id: 1.6, name: '中等', note: '後端慢 1.6 倍', rows: [R('⬬━━━▶', { jc: 'center', fg: A })] },
+          { id: 2.2, name: '明顯', note: '後端慢 2.2 倍，拉得很長', rows: [R('⬬━━━━━▶', { jc: 'center', fg: A })] }
+        ]) },
+        { no: 'X7', label: '停下來的形狀', desc: '動畫結束、指示塊固定不動時的形狀。', opts: mk('xShape', [
+          { id: 'pill', name: '膠囊', note: '兩端全圓', rows: [R('選中', { bg: '#e5ebfa', fg: A, r: '99px', jc: 'center' })] },
+          { id: 'round', name: '圓角矩形', note: '10 px 圓角，和按鈕一致', rows: [R('選中', { bg: '#e5ebfa', fg: A, r: '5px', jc: 'center' })] },
+          { id: 'square', name: '小圓角', note: '4 px，比較方正', rows: [R('選中', { bg: '#e5ebfa', fg: A, r: '2px', jc: 'center' })] },
+          { id: 'drop', name: '水滴形', note: '上窄下寬的不對稱圓角', rows: [R('選中', { bg: '#e5ebfa', fg: A, r: '50% 50% 50% 50% / 40% 40% 60% 60%', jc: 'center' })] }
+        ]) },
+        { no: 'X8', label: '停下來的邊緣', desc: '水滴效果結束後，邊緣要變回清晰，還是一直保持柔和的水感。', opts: mk('xEdge', [
+          { id: 'crisp', name: '變回清晰', note: '只有移動時才有水感', rows: [R('選中', { bg: '#e5ebfa', fg: A, r: '99px', jc: 'center', w: 700 })] },
+          { id: 'soft', name: '保持柔和', note: '邊緣一直是水滴的柔和輪廓', rows: [R('選中', { bg: '#dbe3f8', fg: A, r: '99px', jc: 'center' })] }
+        ]) }
+      ] },
+      { title: '側邊欄', groups: [
+        { no: 'S1', label: '選中項目的樣式', desc: '目前所在頁面在側邊欄上怎麼標示。', opts: mk('sSel', [
+          { id: 'soft', name: '強調淺底', note: '淡藍底加藍字', rows: [R('首頁'), R('專案', { bg: '#e5ebfa', fg: A, w: 700 })] },
+          { id: 'bar', name: '左側指示條', note: '細條加粗體，無底色', rows: [R('首頁'), R('專案', { bl: '3px solid ' + A, fg: '#171512', w: 700, r: '0' })] },
+          { id: 'solid', name: '實心強調色', note: '藍底白字，最明顯', rows: [R('首頁'), R('專案', { bg: A, fg: '#ffffff', w: 700 })] },
+          { id: 'raised', name: '浮起白塊', note: '灰色側邊欄上的白色浮起塊', rows: [R('首頁'), R('專案', { bg: '#ffffff', fg: '#171512', w: 700 })] },
+          { id: 'text', name: '只變顏色', note: '沒有底色，文字和圖示變藍', rows: [R('首頁'), R('專案', { fg: A, w: 700 })] }
+        ]) },
+        { no: 'S2', label: '滑過效果', desc: '滑鼠移到沒選中的項目上時。', opts: mk('sHover', [
+          { id: 'gray', name: '灰底', note: '淡灰色底', rows: [R('成員', { bg: '#e1dedb', fg: '#171512' })] },
+          { id: 'ink', name: '文字變深', note: '不加底色', rows: [R('成員', { fg: '#171512', w: 600 })] },
+          { id: 'none', name: '不變', note: '只有游標改變', rows: [R('成員')] }
+        ]) },
+        { no: 'S3', label: '項目高度', desc: '每一個導覽項目的高度。', opts: mk('sH', [36, 40, 44].map((h) => ({ id: h, name: h + ' px', note: h === 36 ? '緊湊，放得多' : (h === 40 ? '和按鈕一樣' : '寬鬆，好點'), rows: [R('首頁', { h: Math.round(h / 2.4) + 'px' }), R('專案', { h: Math.round(h / 2.4) + 'px', bg: '#e5ebfa', fg: A })] }))) },
+        { no: 'S4', label: '項目分組', desc: '項目多的時候怎麼分組。', opts: mk('sGroup', [
+          { id: 'heads', name: '分組標題', note: '小字標題分開每一組', rows: [R('工作區', { h: '12px', w: 600 }), R('首頁'), R('分析', { h: '12px', w: 600 })] },
+          { id: 'lines', name: '分隔線', note: '只用一條細線分開', rows: [R('首頁'), R('', { h: '1px', bg: '#cfcac4' }), R('報表')] },
+          { id: 'none', name: '不分組', note: '一整列排下去', rows: [R('首頁'), R('專案'), R('報表')] }
+        ]) },
+        { no: 'S5', label: '收合後的名稱提示', desc: '側邊欄收合成圖示時，滑過圖示要不要顯示名稱。按左下角收合試試。', opts: mk('sTip', [
+          { id: 'yes', name: '顯示提示', note: '滑過時在右邊出現名稱', rows: [R('▣　專案', { fg: '#171512' })] },
+          { id: 'no', name: '不顯示', note: '只有圖示', rows: [R('▣', { fg: '#171512' })] }
+        ]) },
+        { no: 'S6', label: '子選單', desc: '「專案」底下還有子頁面時。', opts: mk('sSub', [
+          { id: 'indent', name: '展開縮排', note: '點一下往下展開', rows: [R('專案　⌄', { fg: '#171512' }), R('　　進行中')] },
+          { id: 'flyout', name: '彈出選單', note: '滑過時在右邊彈出', rows: [R('專案　›', { fg: '#171512' }), R('　　　　進行中', { bg: '#ffffff' })] },
+          { id: 'none', name: '不使用', note: '子頁面改用頁內分頁', rows: [R('專案', { fg: '#171512' })] }
+        ]) }
+      ] },
+      { title: '頂部列', groups: [
+        { no: 'T1', label: '頂部列內容', desc: '頂部列左邊放什麼。', opts: mk('tContent', [
+          { id: 'crumb', name: '麵包屑', note: '頁面標題放在內容區', rows: [R('首頁 / 專案 / 叢集監控')] },
+          { id: 'title', name: '頁面標題', note: '標題移到頂部列', rows: [R('叢集監控', { fg: '#171512', w: 700 })] },
+          { id: 'titleAct', name: '頁面標題加動作', note: '主要按鈕也放上來', rows: [R('叢集監控　　　新增', { fg: '#171512', w: 700 })] },
+          { id: 'empty', name: '留白', note: '只有右側的搜尋與頭像', rows: [R('　')] }
+        ]) },
+        { no: 'T2', label: '搜尋框', desc: '頂部列右側的搜尋。', opts: mk('tSearch', [
+          { id: 'filled', name: '填色', note: '灰底，無外框', rows: [R('⌕ 搜尋　Ctrl K', { bg: '#e1dedb', h: '20px' })] },
+          { id: 'outline', name: '外框', note: '和輸入框一致', rows: [R('⌕ 搜尋　Ctrl K', { bg: '#ffffff', h: '20px', bb: '1px solid #8c8073' })] },
+          { id: 'icon', name: '只有圖示', note: '按了才打開', rows: [R('⌕', { jc: 'flex-end', fg: '#171512' })] }
+        ]) }
+      ] },
+      { title: '麵包屑', groups: [
+        { no: 'B1', label: '分隔符號', desc: '層級之間用什麼隔開。', opts: mk('bSep', [
+          { id: 'slash', name: '斜線', note: '首頁 / 專案', rows: [R('首頁 / 專案 / 叢集監控')] },
+          { id: 'chev', name: '箭頭', note: '首頁 › 專案', rows: [R('首頁 › 專案 › 叢集監控')] },
+          { id: 'dot', name: '圓點', note: '首頁 · 專案', rows: [R('首頁 · 專案 · 叢集監控')] }
+        ]) },
+        { no: 'B2', label: '麵包屑字體', desc: '用等寬字還是一般字。', opts: mk('bFont', [
+          { id: 'mono', name: '等寬字', note: 'Geist Mono，13 px', rows: [R('首頁 / 專案')] },
+          { id: 'sans', name: '一般字', note: 'Inter，14 px', rows: [R('首頁 / 專案')] }
+        ]) }
+      ] },
+      { title: '分頁切換', groups: [
+        { no: 'P1', label: '分頁樣式', desc: '同一頁裡切換不同檢視。點右邊的分頁試試。', opts: mk('tabStyle', [
+          { id: 'segment', name: '分段控制', note: '灰底上的白色滑塊', rows: [R('總覽　任務　成員', { bg: '#e1dedb', h: '20px' })] },
+          { id: 'underline', name: '底線', note: '選中的下方一條藍線', rows: [R('總覽　任務　成員', { bb: '2px solid ' + A, h: '20px', r: '0' })] },
+          { id: 'pill', name: '膠囊', note: '選中的變成淺藍膠囊', rows: [R('總覽', { bg: '#e5ebfa', fg: A, r: '99px', h: '20px' })] }
+        ]) }
+      ] },
+      { title: '手機底部分頁列', groups: [
+        { no: 'M1', label: '選中樣式', desc: '目前所在的分頁怎麼標示。', opts: mk('mStyle', [
+          { id: 'pill', name: '圖示後方膠囊', note: '參考 Material 3 的做法', rows: [R('◉ 專案', { bg: '#e5ebfa', fg: A, r: '99px', jc: 'center' })] },
+          { id: 'color', name: '只變顏色', note: '圖示和文字變藍', rows: [R('◉ 專案', { fg: A, jc: 'center' })] },
+          { id: 'line', name: '上方指示線', note: '頂端一條短藍線', rows: [R('▔', { fg: A, jc: 'center', h: '8px' }), R('◉ 專案', { fg: '#171512', jc: 'center' })] }
+        ]) },
+        { no: 'M2', label: '文字標籤', desc: '圖示下方要不要放文字。', opts: mk('mLabel', [
+          { id: 'always', name: '都顯示', note: '最清楚', rows: [R('◉　◉　◉', { jc: 'center' }), R('首頁 專案 報表', { jc: 'center' })] },
+          { id: 'selected', name: '只有選中的顯示', note: '其他只有圖示', rows: [R('◉　◉　◉', { jc: 'center' }), R('　 專案 　', { jc: 'center' })] },
+          { id: 'never', name: '都不顯示', note: '只有圖示', rows: [R('◉　◉　◉', { jc: 'center' })] }
+        ]) }
+      ] }
+    ];
+    const icons = { home: 'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z', proj: 'M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z', users: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M17 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-4-6.3', chart: 'M4 20V10M10 20V4M16 20v-7M2 20h20', gauge: 'M12 13l4-4M3 13a9 9 0 0 1 18 0M5 19h14', set: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M14 4v4M8 10v4M16 16v4' };
+    const expanded = !st.collapsed;
+    const subIds = ['active', 'archived'];
+    const projectSelected = st.sel === 'proj' || subIds.indexOf(st.sel) >= 0;
+    const style = (selected, sub) => {
+      const base = { bg: 'transparent', fg: C.muted, ic: C.muted, fw: 500, bar: false, inset: 'none', r: '10px' };
+      if (!selected) return base;
+      if (st.sSel === 'soft') return Object.assign(base, { bg: C.accentSoft, fg: C.accentText, ic: C.accentText, fw: 700 });
+      if (st.sSel === 'bar') return Object.assign(base, { fg: C.ink, ic: C.accentText, fw: 700, bar: true });
+      if (st.sSel === 'solid') return Object.assign(base, { bg: A, fg: '#ffffff', ic: '#ffffff', fw: 700 });
+      if (st.sSel === 'raised') return Object.assign(base, { bg: st.dark ? '#514a43' : '#ffffff', fg: C.ink, ic: C.accentText, fw: 700, inset: st.dark ? '0 1px 2px rgba(0,0,0,.5)' : '0 1px 2px rgba(16,24,40,.12), 0 2px 6px rgba(16,24,40,.06)' });
+      return Object.assign(base, { fg: C.accentText, ic: C.accentText, fw: 700 });
+    };
+    const item = (id, t, icon, opts) => {
+      const o = opts || {};
+      const selected = o.isParent ? (projectSelected && (!expanded || st.sSub !== 'indent' || !st.projOpen)) : st.sel === id;
+      const s = style(selected);
+      return Object.assign({ isHead: false, isItem: true, showHead: false, showLine: false, t, icon, hasIcon: !o.sub, current: selected ? 'page' : 'false',
+        padL: o.sub ? '44px' : '10px', padR: '10px', fs: o.sub ? '14px' : '15px',
+        chev: !!o.isParent && expanded && st.sSub === 'indent', chevTf: st.projOpen ? 'rotate(90deg)' : 'none',
+        tip: !expanded && st.sTip === 'yes' && !(o.isParent && st.sSub === 'flyout'), fly: !!o.isParent && st.sSub === 'flyout',
+        pick: () => { if (o.isParent && st.sSub === 'indent' && expanded) this.setState({ projOpen: !st.projOpen }); else { this.bump(); const ord = ['home', 'proj', 'active', 'archived', 'users', 'report', 'usage', 'settings']; const nid = o.isParent ? 'active' : id; this.setState({ sel: nid, sideDir: ord.indexOf(nid) >= ord.indexOf(this.state.sel) ? 'down' : 'up' }); } }
+      }, s);
+    };
+    const head = (t, first) => ({ isHead: true, isItem: false, t, showHead: st.sGroup === 'heads' && expanded, showLine: (st.sGroup === 'lines' || (st.sGroup === 'heads' && !expanded)) && !first });
+    let navRows = [];
+    if (st.sGroup !== 'none') navRows.push(head('工作區', true));
+    navRows.push(item('home', '首頁', icons.home));
+    navRows.push(item('proj', '專案', icons.proj, { isParent: st.sSub !== 'none' }));
+    if (st.sSub === 'indent' && expanded && st.projOpen) {
+      navRows.push(item('active', '進行中', '', { sub: true }));
+      navRows.push(item('archived', '已封存', '', { sub: true }));
+    }
+    navRows.push(item('users', '成員', icons.users));
+    if (st.sGroup !== 'none') navRows.push(head('分析', false));
+    navRows.push(item('report', '報表', icons.chart));
+    navRows.push(item('usage', '用量', icons.gauge));
+    if (st.sGroup !== 'none') navRows.push(head('系統', false));
+    navRows.push(item('settings', '設定', icons.set));
+    const slideOn = (st.xSide === 'slide' || st.xSide === 'drop') && (st.sSel === 'soft' || st.sSel === 'solid' || st.sSel === 'raised' || st.sSel === 'bar');
+    const gapPx = st.sH === 44 ? 4 : 2;
+    let y = 0, selTop = -1;
+    navRows.forEach((r, i) => {
+      if (i > 0) y += gapPx;
+      if (r.isHead) { if (r.showHead) y += 30; else if (r.showLine) y += 17; else y -= gapPx; }
+      else { if (r.current === 'page' && selTop < 0) selTop = y; y += st.sH; }
+    });
+    navRows.forEach((r) => { if (r.isItem) { r.barIn = r.bar && !slideOn; if (slideOn && r.current === 'page' && st.sSel !== 'bar') { r.bg = 'transparent'; r.inset = 'none'; } } });
+    const navH = y;
+    const selStyle = style(true);
+    const titles = { home: '首頁', proj: '專案', active: '進行中的專案', archived: '已封存的專案', users: '成員', report: '報表', usage: '用量', settings: '設定' };
+    const pageTitle = titles[st.sel] || '專案';
+    const crumbList = projectSelected ? ['首頁', '專案', pageTitle] : (st.sel === 'home' ? ['首頁'] : ['首頁', pageTitle]);
+    const crumbs = crumbList.map((t, i) => ({ t, sep: i < crumbList.length - 1, fg: i === crumbList.length - 1 ? C.ink : C.muted, fw: i === crumbList.length - 1 ? 600 : 400 }));
+    const tabNames = ['總覽', '任務', '成員'];
+    const TW = 96;
+    const TS = st.tabStyle;
+    const tabs = tabNames.map((t, i) => ({ t, sel: st.tab === i ? 'true' : 'false', fg: st.tab === i ? (TS === 'pill' ? C.accentText : C.ink) : C.muted, fw: st.tab === i ? 700 : 500, pick: () => {
+      if (i === this.state.tab) return;
+      const from = this.state.tab;
+      this.bump();
+      this.setState({ tabFrom: from, tab: i, cN: this.state.cN + 1, dir: i > from ? 'R' : 'L', stretching: this.state.xTab === 'stretch' });
+      clearTimeout(this.tS); if (this.state.xTab === 'stretch') this.tS = setTimeout(() => this.setState({ stretching: false }), this.state.xDur * .35);
+    } }));
+    const gap = TS === 'pill' ? 6 : 0, pad = TS === 'segment' ? 4 : 0, step = TW + gap;
+    const lo = Math.min(st.tabFrom, st.tab), hi = Math.max(st.tabFrom, st.tab);
+    const indL = st.stretching ? pad + lo * step : pad + st.tab * step;
+    const indW = st.stretching ? (hi - lo) * step + TW : TW;
+    const dropOn = st.xTab === 'drop';
+    const SH = { pill: '99px', round: '10px', square: '4px', drop: '50% 50% 50% 50% / 40% 40% 60% 60%' }[st.xShape];
+    const tH = TS === 'underline' ? 2 : 38;
+    const indTr = { smooth: 'left ' + st.xDur / 1000 + 's cubic-bezier(.3,.7,.3,1), width ' + st.xDur / 1000 + 's cubic-bezier(.3,.7,.3,1)', spring: 'left ' + st.xDur / 1000 + 's cubic-bezier(.34,1.6,.5,1), width ' + st.xDur / 1000 + 's cubic-bezier(.34,1.6,.5,1)', stretch: 'left ' + st.xDur * .35 / 1000 + 's cubic-bezier(.4,0,.2,1), width ' + st.xDur * .35 / 1000 + 's cubic-bezier(.4,0,.2,1)', fade: 'none', drop: 'left .55s ease' }[st.xTab] + ', background-color .3s ease';
+    const ab = st.cN % 2 ? 'B' : 'A';
+    const mIcons = [icons.home, icons.proj, icons.chart, icons.set];
+    const mNames = ['首頁', '專案', '報表', '設定'];
+    const mDropOn = st.xMobile === 'drop' && st.mStyle === 'pill';
+    const mtabs = mNames.map((t, i) => {
+      const s = st.mtab === i;
+      return { pillCls: s && st.xMobile === 'grow' && st.mStyle === 'pill' ? 'pill-grow' : '', iconCls: s && st.xMobile !== 'none' && st.mN ? 'icon-pop' : '', t, icon: mIcons[i], current: s ? 'page' : 'false', fg: s ? (st.mStyle === 'line' ? C.ink : C.accentText) : C.muted, pill: s && st.mStyle === 'pill' && !mDropOn ? C.accentSoft : 'transparent', topLine: s && st.mStyle === 'line', showLabel: st.mLabel === 'always' || (st.mLabel === 'selected' && s), pick: () => { if (i !== this.state.mtab) this.bump(); if (i !== this.state.mtab) this.setState({ mFrom: this.state.mtab, mtab: i, mN: (this.state.mN || 0) + 1 }); } };
+    });
+    const dLead = (st.xDur * .6 / 1000) + 's cubic-bezier(.2,.8,.2,1)';
+    const dFollow = (st.xDur * st.xLag / 1000) + 's cubic-bezier(.65,0,.25,1.15)';
+    const contW = pad * 2 + 3 * TW + 2 * gap;
+    const tgtL = pad + st.tab * step;
+    const goingR = st.dir === 'R';
+    const dTabTr = 'left ' + (goingR ? dFollow : dLead) + ', right ' + (goingR ? dLead : dFollow) + ', transform .3s ease, border-radius .3s ease, background-color .3s ease';
+    const sdTop = selTop + 8, sdBot = navH + 8 - selTop - st.sH;
+    const down = st.sideDir === 'down';
+    const sdTr = 'top ' + (down ? dFollow : dLead) + ', bottom ' + (down ? dLead : dFollow) + ', left .3s ease, right .3s ease, border-radius .3s ease';
+    const mCenter = st.mtab * 97.5 + 48.75;
+    const mGoR = st.mtab >= (st.mFrom === undefined ? 1 : st.mFrom);
+    const mTr = 'left ' + (mGoR ? dFollow : dLead) + ', right ' + (mGoR ? dLead : dFollow) + ', border-radius .3s ease';
+    const NX = { xTab: { smooth: '平滑滑動', spring: '彈性回彈', stretch: '拉伸變形', fade: '原地出現', drop: '水滴' }, xSide: { slide: '滑到新項目', instant: '直接切換', drop: '水滴' }, xContent: { dir: '方向滑入', blur: '模糊淡入', rise: '依序浮起', ripple: '水波擴散', none: '直接換' }, xMobile: { grow: '膠囊展開加圖示彈跳', drop: '水滴膠囊', pop: '只有圖示彈跳', none: '直接切換' } };
+    const N = { sSel: { soft: '強調淺底', bar: '左側指示條', solid: '實心強調色', raised: '浮起白塊', text: '只變顏色' }, sHover: { gray: '灰底', ink: '文字變深', none: '不變' }, sGroup: { heads: '分組標題', lines: '分隔線', none: '不分組' }, sTip: { yes: '顯示提示', no: '不顯示' }, sSub: { indent: '展開縮排', flyout: '彈出選單', none: '不使用' }, tContent: { crumb: '麵包屑', title: '頁面標題', titleAct: '頁面標題加動作', empty: '留白' }, tSearch: { filled: '填色', outline: '外框', icon: '只有圖示' }, bSep: { slash: '斜線', chev: '箭頭', dot: '圓點' }, bFont: { mono: '等寬字', sans: '一般字' }, tabStyle: { segment: '分段控制', underline: '底線', pill: '膠囊' }, mStyle: { pill: '圖示後方膠囊', color: '只變顏色', line: '上方指示線' }, mLabel: { always: '都顯示', selected: '只有選中的顯示', never: '都不顯示' } };
+    return {
+      sections, c: C,
+      themeBtns: [['淺色', false], ['深色', true]].map(([t, d]) => ({ t, pressed: st.dark === d ? 'true' : 'false', bg: st.dark === d ? '#171512' : '#ffffff', fg: st.dark === d ? '#ffffff' : '#171512', bd: st.dark === d ? '#171512' : '#cfcac4', pick: () => this.setState({ dark: d }) })),
+      appCls: ['hv-' + st.sHover, st.dark ? 'dk' : '', !expanded && st.sTip === 'yes' ? 'tipon' : '', st.sSub === 'flyout' ? 'flyon' : ''].join(' '),
+      sideW: expanded ? '240px' : '72px', expanded,
+      collapseLabel: expanded ? '收合側邊欄' : '展開側邊欄', collapseRot: expanded ? 'scaleX(1)' : 'scaleX(-1)',
+      toggleSide: () => this.setState({ collapsed: !st.collapsed }),
+      navRows, itemH: st.sH + 'px', itemGap: st.sH === 44 ? '4px' : '2px',
+      subs: [['active', '進行中'], ['archived', '已封存']].map(([id, t]) => ({ t, flyBg: st.sel === id ? C.accentSoft : 'transparent', flyFg: st.sel === id ? C.accentText : C.ink })),
+      pageTitle, crumbs,
+      crumbSep: { slash: '/', chev: '›', dot: '·' }[st.bSep],
+      crumbFont: st.bFont === 'mono' ? "'Geist Mono', 'Noto Sans TC', monospace" : "Inter, 'Noto Sans TC', sans-serif",
+      crumbFs: st.bFont === 'mono' ? '13px' : '14px',
+      topCrumb: st.tContent === 'crumb', topTitle: st.tContent === 'title' || st.tContent === 'titleAct', topActions: st.tContent === 'titleAct',
+      inCrumb: st.tContent !== 'crumb', inTitle: st.tContent === 'crumb' || st.tContent === 'empty',
+      searchBox: st.tSearch !== 'icon', searchIcon: st.tSearch === 'icon',
+      search: st.tSearch === 'filled' ? { bg: C.sub, bd: '1px solid transparent' } : { bg: C.card, bd: '1px solid ' + C.lineStrong },
+      tabs, tabW: TW + 'px', tabH: TS === 'underline' ? '44px' : '38px',
+      tabGap: TS === 'pill' ? '6px' : '0', tabPad: TS === 'segment' ? '4px' : '0',
+      tabTrack: TS === 'segment' ? C.sub : 'transparent', tabR: TS === 'segment' ? '10px' : '0',
+      tabLine: TS === 'underline' ? '1px solid ' + C.line : '0',
+      indTop: TS === 'underline' ? '42px' : (TS === 'segment' ? '4px' : '0'), indH: TS === 'underline' ? '2px' : '38px',
+      indR: TS === 'underline' ? '0' : SH,
+      indBg: TS === 'underline' ? A : (TS === 'pill' ? C.accentSoft : C.segBg),
+      indSh: TS === 'segment' && !st.dark ? '0 1px 3px rgba(0,0,0,.12)' : 'none',
+      indL: indL + 'px', indW: indW + 'px', indTr,
+      dMain: (st.xDur / 1000) + 's', dTrail: (st.xDur * st.xLag / 1000) + 's', dRipple: (st.xDur * 1.3 / 1000) + 's',
+      gooF: st.xEdge === 'soft' || st.moving ? 'url(#goo)' : 'none',
+      tabDrop: dropOn, tabSolid: !dropOn, dropR: TS === 'underline' ? '2px' : SH,
+      sideR: SH, mR: SH,
+      dL: tgtL + 'px', dR: (contW - tgtL - TW) + 'px', dSquash: st.moving ? 'scaleY(.82)' : 'none', dTabTr,
+      sdX: st.moving ? '6px' : '0', sdT: sdTop + 'px', sdB: sdBot + 'px', sdTr,
+      mL: (mCenter - 28) + 'px', mRt: (390 - mCenter - 28) + 'px', mPH: '30px', mTr,
+      sideDrop: slideOn && st.xSide === 'drop' && st.sSel !== 'bar' && selTop >= 0,
+      mDrop: mDropOn, mPillTop: (st.mLabel === 'never' ? 15 : 10) + 'px', indCls: st.xTab === 'fade' && st.cN ? 'ind-fade-' + ab : '',
+      contentCls: st.xContent === 'none' || !st.cN ? '' : st.xContent === 'ripple' ? 'c-rip' + st.tab + '-' + ab : (st.xContent === 'dir' ? 'c-dir' + st.dir + '-' + ab : 'c-' + st.xContent + '-' + ab),
+      tabCards: [['網站改版', '叢集監控', '課程平台'], ['部署 web-frontend', '更新文件', '修正登入'], ['[成員一]', '[成員二]', '[成員三]']][st.tab],
+      sideInd: slideOn && st.xSide !== 'drop' && st.sSel !== 'bar' && selTop >= 0, sideIndTop: selTop + 'px', sideIndBg: selStyle.bg, sideIndSh: selStyle.inset,
+      sideBar: slideOn && st.sSel === 'bar' && selTop >= 0, sideBarTop: (selTop + 8) + 'px', sideBarH: (st.sH - 16) + 'px',
+      cards: ['網站改版', '叢集監控', '課程平台'],
+      mTitle: mNames[st.mtab], mtabs, mBarH: st.mLabel === 'never' ? '60px' : '72px',
+      summary: ['動畫時間 ' + st.xDur / 1000 + ' s', '拉伸程度 ' + { 1.25: '輕微', 1.6: '中等', 2.2: '明顯' }[st.xLag], '停下形狀 ' + { pill: '膠囊', round: '圓角矩形', square: '小圓角', drop: '水滴形' }[st.xShape], '停下邊緣 ' + (st.xEdge === 'soft' ? '保持柔和' : '變回清晰'), '分頁指示 ' + NX.xTab[st.xTab], '側邊欄選中 ' + NX.xSide[st.xSide], '內容切換 ' + NX.xContent[st.xContent], '手機切換 ' + NX.xMobile[st.xMobile], '選中 ' + N.sSel[st.sSel], '滑過 ' + N.sHover[st.sHover], '項目高度 ' + st.sH + ' px', '分組 ' + N.sGroup[st.sGroup], '收合提示 ' + N.sTip[st.sTip], '子選單 ' + N.sSub[st.sSub], '頂部列 ' + N.tContent[st.tContent], '搜尋框 ' + N.tSearch[st.tSearch], '麵包屑 ' + N.bSep[st.bSep] + '／' + N.bFont[st.bFont], '分頁 ' + N.tabStyle[st.tabStyle], '手機選中 ' + N.mStyle[st.mStyle], '手機文字 ' + N.mLabel[st.mLabel]].join(' · ')
+    };
+  }
+}
+</script>
+</body>
+</html>

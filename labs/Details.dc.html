@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>元件細節實驗室</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit;opacity:.8}
+.opt{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.opt:hover{transform:translateY(-2px)}
+.pv,.pv *{transition:background-color .3s ease,border-color .3s ease,color .3s ease}
+.live{cursor:pointer;transition:filter .15s ease,transform .1s ease,background-color .15s ease}
+.live:hover{filter:brightness(1.07)}
+.live:active{transform:translateY(1px)}
+.h-accent:hover{background:#e5ebfa !important}
+.dk .h-accent:hover{background:#2d344c !important}
+.h-gray:hover{background:#e1dedb !important}
+.dk .h-gray:hover{background:#504a45 !important}
+@keyframes shimmer{0%{background-position:-300px 0}100%{background-position:300px 0}}
+.skel{background-size:600px 100% !important;animation:shimmer 1.2s linear infinite}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.scrim{animation:fadeIn .2s ease both}
+@keyframes popC{from{opacity:0;transform:translate(-50%,-46%) scale(.97)}to{opacity:1;transform:translate(-50%,-50%)}}
+.m-center{animation:popC .22s cubic-bezier(.2,.9,.3,1.1) both}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.t-up{animation:toastIn .32s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes fullA{from{opacity:0;transform:translateY(40px) scale(.9)}to{opacity:1;transform:none}}
+@keyframes fullB{from{opacity:0;transform:translateY(40px) scale(.9)}to{opacity:1;transform:none}}
+@keyframes fadeA2{from{opacity:0}to{opacity:1}}
+@keyframes fadeB2{from{opacity:0}to{opacity:1}}
+.an-fullA{animation:fullA .7s cubic-bezier(.2,.8,.2,1) both}.an-fullB{animation:fullB .7s cubic-bezier(.2,.8,.2,1) both}
+.an-fadeA{animation:fadeA2 .15s ease both}.an-fadeB{animation:fadeB2 .15s ease both}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #f6f5f4; color: #171512; font-family: Inter, 'Noto Sans TC', sans-serif; font-size: 15px; line-height: 1.55">
+<main style="max-width: 1400px; margin: 0 auto; padding: 40px 32px 56px">
+<div style="font-family: 'Geist Mono', 'Noto Sans TC', monospace; font-size: 13px; font-weight: 600; color: #6d645a">深入 5 · 元件細節</div>
+<h1 style="margin: 6px 0 0; font-size: 39px; line-height: 1.2; font-weight: 700; letter-spacing: -.01em">元件細節實驗室</h1>
+<p style="margin: 8px 0 0; color: #6d645a; max-width: 900px">這裡是設計系統中還沒確認的細節，每一項都有選項。左邊選，右邊的元件會跟著變，而且都可以操作。全部選好後，把最下方的設定複製給我，我再加回設計系統。</p>
+<p style="margin: 10px 0 0; padding: 10px 14px; border-radius: 10px; background: #e5ebfa; color: #193d96; max-width: 900px; font-size: 14px">Badge 已選「浮起 Chip」、Alert 已選「頂部色條」，下面 B0 到 B3、A1 到 A3 是它們的細節；C1 到 C3 是按鈕規則。</p>
+
+<div style="margin-top: 28px; display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start">
+
+<div style="flex: 1 1 440px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{sections}}" as="sec" hint-placeholder-count="8">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 18px; font-weight: 700; padding-top: 6px">{{sec.title}}</div>
+<sc-for list="{{sec.groups}}" as="g" hint-placeholder-count="3">
+<section style="padding: 16px; background: #ffffff; border: 1px solid #e2dfdc; border-radius: 10px">
+<div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; color: #ffffff; background: #171512; padding: 1px 7px; border-radius: 4px">{{g.no}}</span>
+<span style="font-size: 16px; font-weight: 700">{{g.label}}</span>
+</div>
+<p style="margin: 6px 0 0; font-size: 13px; color: #6d645a">{{g.desc}}</p>
+<div style="margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px">
+<sc-for list="{{g.opts}}" as="o" hint-placeholder-count="3">
+<button class="opt" type="button" onClick="{{o.pick}}" aria-pressed="{{o.pressed}}" style="display: flex; flex-direction: column; gap: 8px; padding: 10px; min-height: 44px; text-align: left; background: #ffffff; border: {{o.border}}; border-radius: 8px; font: inherit; color: #171512; box-shadow: {{o.ring}}">
+<span aria-hidden="true" style="display: flex; flex-wrap: wrap; align-content: center; align-items: center; justify-content: center; gap: 4px; width: 100%; min-height: 54px; box-sizing: border-box; padding: 6px; border-radius: 4px; background: #f6f5f4; position: relative; overflow: hidden">
+<sc-for list="{{o.chips}}" as="cp" hint-placeholder-count="0"><span style="display: inline-flex; align-items: center; gap: 4px; height: {{cp.h}}; padding: {{cp.p}}; border-radius: {{cp.r}}; background: {{cp.bg}}; color: {{cp.fg}}; border: {{cp.bd}}; font-size: 11px; font-weight: 700; white-space: nowrap; width: {{cp.w}}; box-sizing: border-box; justify-content: {{cp.jc}}"><sc-if value="{{cp.dot}}" hint-placeholder-val="{{ false }}"><span style="width: 6px; height: 6px; border-radius: 99px; background: {{cp.dc}}"></span></sc-if>{{cp.t}}</span></sc-for>
+<sc-for list="{{o.lines}}" as="ln" hint-placeholder-count="0"><span style="display: block; width: 100%; font-size: 12px; line-height: 1.4; color: {{ln.c}}; font-weight: {{ln.w}}; text-align: center">{{ln.t}}</span></sc-for>
+</span>
+<span style="font-size: 13px; font-weight: 700">{{o.name}}</span>
+<span style="font-size: 12px; color: #6d645a; line-height: 1.4">{{o.note}}</span>
+</button>
+</sc-for>
+</div>
+</section>
+</sc-for>
+</div>
+</sc-for>
+</div>
+
+<div style="flex: 1 1 720px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<span style="font-size: 13px; font-weight: 700">預覽主題</span>
+<sc-for list="{{themeBtns}}" as="tb" hint-placeholder-count="2">
+<button type="button" onClick="{{tb.pick}}" aria-pressed="{{tb.pressed}}" style="min-height: 44px; padding: 0 14px; border: 1px solid {{tb.bd}}; background: {{tb.bg}}; color: {{tb.fg}}; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{tb.t}}</button>
+</sc-for>
+</div>
+
+<div class="pv {{dkCls}}" style="background: {{c.page}}; color: {{c.ink}}; border: 1px solid #cfcac4; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 20px; font-size: 16px; line-height: 1.65">
+
+<section style="padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}">
+<div style="font-size: 20px; font-weight: 700">按鈕規則</div>
+<div style="margin-top: 14px; padding: 16px; border-radius: 10px; background: {{c.page}}; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px">
+<sc-for list="{{priCards}}" as="pc" hint-placeholder-count="2">
+<div style="padding: 16px; border-radius: 12px; background: {{c.card}}; box-shadow: {{c.shadow}}">
+<div style="font-weight: 700">{{pc.title}}</div>
+<div style="font-size: 13px; color: {{c.muted}}">{{pc.body}}</div>
+<div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap">
+<sc-for list="{{pc.btns}}" as="pb" hint-placeholder-count="2"><span style="display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border-radius: 10px; background: {{pb.bg}}; color: {{pb.fg}}; border: {{pb.bd}}; font-size: 15px; font-weight: 600">{{pb.t}}</span></sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="margin-top: 14px; position: relative; padding: 16px; border-radius: 10px; background: {{c.page}}; min-height: 150px; overflow: hidden">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 12px; background: {{c.card}}; box-shadow: {{c.shadow}}; opacity: {{delOp}}">
+<span><span style="display: block; font-weight: 700">文件系統</span><span style="font-size: 13px; color: {{c.muted}}">{{delText}}</span></span>
+<button class="live" type="button" onClick="{{pressDelete}}" style="height: 40px; padding: 0 16px; border-radius: 10px; background: {{dBtn.bg}}; color: {{dBtn.fg}}; border: {{dBtn.bd}}; font: inherit; font-size: 15px; font-weight: 600">刪除</button>
+</div>
+<sc-if value="{{delAsk}}" hint-placeholder-val="{{ false }}">
+<div class="scrim" onClick="{{cancelDel}}" style="position: absolute; inset: 0; background: rgba(0,0,0,.2); backdrop-filter: blur(4px)"></div>
+<div class="m-center" role="dialog" aria-label="刪除文件系統" style="position: absolute; left: 50%; top: 50%; width: 320px; max-width: calc(100% - 24px); box-sizing: border-box; padding: 16px; background: {{c.card}}; border-radius: 14px; box-shadow: 0 20px 48px rgba(0,0,0,.35)">
+<div style="font-weight: 700">刪除這個專案？</div>
+<div style="font-size: 13px; color: {{c.muted}}">這個動作無法復原。</div>
+<div style="margin-top: 12px; display: flex; justify-content: flex-end; gap: 8px">
+<button class="live" type="button" onClick="{{cancelDel}}" style="height: 36px; padding: 0 14px; border-radius: 10px; background: transparent; color: {{c.ink}}; border: 1px solid {{c.lineStrong}}; font: inherit; font-size: 14px; font-weight: 600">取消</button>
+<button class="live" type="button" onClick="{{confirmDel}}" style="height: 36px; padding: 0 14px; border-radius: 10px; background: #cd2823; color: #ffffff; border: 0; font: inherit; font-size: 14px; font-weight: 600">刪除</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{delToast}}" hint-placeholder-val="{{ false }}">
+<div class="t-up" role="status" style="position: absolute; right: 16px; bottom: 16px; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; background: {{c.card}}; border: 1px solid {{c.line}}; box-shadow: 0 12px 32px rgba(0,0,0,.18); font-size: 14px">已刪除<button type="button" onClick="{{undoDel}}" style="min-height: 28px; padding: 0 6px; border: 0; border-radius: 6px; background: transparent; color: {{c.accentText}}; font: inherit; font-weight: 700; cursor: pointer">復原</button></div>
+</sc-if>
+</div>
+<div style="margin-top: 14px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; padding: 16px; border-radius: 10px; background: {{c.page}}">
+<span style="position: relative; display: inline-flex; align-items: center; justify-content: center; width: {{touchBox}}; height: {{touchBox}}; border: {{touchBd}}; border-radius: 12px; box-sizing: border-box"><span style="display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 10px; background: #2457d6; color: #ffffff"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></span></span>
+<span style="font-size: 13px; color: {{c.muted}}">按鈕外觀 40 px，可點範圍 {{cTouch}} px（虛線）</span>
+</div>
+</section>
+
+<section style="padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}">
+<div style="font-size: 20px; font-weight: 700">Badge：浮起 Chip</div>
+<div style="margin-top: 14px; padding: 16px; border-radius: 10px; background: {{c.page}}; display: flex; flex-wrap: wrap; gap: 12px">
+<sc-for list="{{chips}}" as="ch" hint-placeholder-count="5"><span style="display: inline-flex; align-items: center; gap: 8px; height: {{ch.h}}; padding: {{ch.p}}; border-radius: 8px; background: {{c.card}}; box-shadow: {{chipSh}}; color: {{ch.fg}}; font-size: {{ch.fs}}; font-weight: {{ch.fw}}; white-space: nowrap"><sc-if value="{{ch.mDot}}" hint-placeholder-val="{{ true }}"><span style="width: {{ch.d}}; height: {{ch.d}}; border-radius: 99px; background: {{ch.dc}}; box-shadow: {{ch.halo}}"></span></sc-if><sc-if value="{{ch.mRing}}" hint-placeholder-val="{{ false }}"><span style="width: {{ch.d}}; height: {{ch.d}}; box-sizing: border-box; border-radius: 99px; border: 2px solid {{ch.dc}}"></span></sc-if><sc-if value="{{ch.mSquare}}" hint-placeholder-val="{{ false }}"><span style="width: {{ch.d}}; height: {{ch.d}}; border-radius: 2px; background: {{ch.dc}}"></span></sc-if><sc-if value="{{ch.mBar}}" hint-placeholder-val="{{ false }}"><span style="width: 3px; height: {{ch.barH}}; border-radius: 2px; background: {{ch.dc}}"></span></sc-if><sc-if value="{{ch.mIcon}}" hint-placeholder-val="{{ false }}"><svg width="{{ch.iz}}" height="{{ch.iz}}" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{ch.dc}}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="{{ch.icon}}"></path></svg></sc-if><sc-if value="{{ch.mProg}}" hint-placeholder-val="{{ false }}"><svg width="{{ch.iz}}" height="{{ch.iz}}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="{{ch.dc}}" stroke-width="2.5"></circle><path d="{{ch.prog}}" fill="{{ch.dc}}"></path></svg></sc-if>{{ch.t}}</span></sc-for>
+</div>
+</section>
+
+<section style="padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+<span style="font-size: 20px; font-weight: 700">Alert：頂部色條</span>
+<button class="live" type="button" onClick="{{resetA}}" style="height: 40px; padding: 0 16px; border-radius: 10px; background: transparent; color: {{c.ink}}; border: 1px solid {{c.lineStrong}}; font: inherit; font-size: 15px; font-weight: 600">重新顯示</button>
+</div>
+<div style="margin-top: 14px; padding: 16px; border-radius: 10px; background: {{c.page}}; display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{tAlerts}}" as="ta" hint-placeholder-count="4">
+<sc-if value="{{ta.show}}" hint-placeholder-val="{{ true }}">
+<div role="{{ta.role}}" style="position: relative; overflow: hidden; display: flex; gap: 12px; align-items: flex-start; padding: {{ta.pad}}; border-radius: 10px; background: {{c.card}}; box-shadow: {{c.shadow}}; font-size: 14px; line-height: 1.5">
+<span style="position: absolute; left: 0; right: 0; top: 0; height: {{ta.bar}}; background: {{ta.strong}}"></span>
+<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{ta.strong}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: 0 0 18px; margin-top: 1px"><path d="{{ta.path}}"></path></svg>
+<span style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+<span><span style="display: block; font-weight: 700">{{ta.title}}</span><span style="color: {{c.muted}}">{{ta.body}}</span></span>
+<sc-if value="{{ta.linkAct}}" hint-placeholder-val="{{ false }}"><span style="font-weight: 700; color: {{ta.linkColor}}">{{ta.act}}</span></sc-if>
+</span>
+<sc-if value="{{ta.btnAct}}" hint-placeholder-val="{{ false }}"><span style="flex: 0 0 auto; align-self: center; display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid {{c.lineStrong}}; font-weight: 700; font-size: 13px">{{ta.act}}</span></sc-if>
+<sc-if value="{{ta.dismiss}}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ta.close}}" aria-label="關閉提示" style="flex: 0 0 32px; width: 32px; height: 32px; margin: -6px -8px -6px 0; border: 0; border-radius: 8px; background: transparent; color: {{c.muted}}; cursor: pointer; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></sc-if>
+</div>
+</sc-if>
+</sc-for>
+</div>
+</section>
+
+<section style="padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+<span style="font-size: 20px; font-weight: 700">表格、骨架與空狀態</span>
+<span style="display: flex; gap: 8px; flex-wrap: wrap">
+<sc-for list="{{tblBtns}}" as="tbb" hint-placeholder-count="5">
+<button class="live" type="button" onClick="{{tbb.pick}}" aria-pressed="{{tbb.pressed}}" style="height: 40px; padding: 0 14px; border-radius: 10px; background: {{tbb.bg}}; color: {{tbb.fg}}; border: 1px solid {{c.lineStrong}}; font: inherit; font-size: 14px; font-weight: 600">{{tbb.t}}</button>
+</sc-for>
+</span>
+</div>
+<div style="margin-top: 6px; font-size: 13px; color: {{c.muted}}">{{loadNote}}</div>
+<div style="margin: 14px auto 0; width: {{tblW}}; max-width: 100%; min-height: 240px; border: {{tblFrame}}; border-radius: 12px; padding: {{tblFramePad}}; box-sizing: border-box; transition: width .3s ease">
+<sc-if value="{{showSkel}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 14px; padding-top: 8px">
+<sc-for list="{{skelRows}}" as="sk" hint-placeholder-count="5"><div style="display: flex; gap: 16px"><span class="skel" style="height: 16px; width: {{sk.a}}; border-radius: 6px; background: {{skelBg}}"></span><span class="skel" style="height: 16px; width: {{sk.b}}; border-radius: 6px; background: {{skelBg}}"></span><span class="skel" style="height: 16px; width: 12%; border-radius: 6px; background: {{skelBg}}"></span></div></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{showTableRows}}" hint-placeholder-val="{{ true }}">
+<div style="overflow-x: auto">
+<div style="min-width: {{tblMinW}}">
+<sc-if value="{{tblHead}}" hint-placeholder-val="{{ true }}">
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 10px 14px; font-size: 13px; font-weight: 600; color: {{c.muted}}; border-bottom: 1px solid {{c.line}}"><span>名稱</span><span>狀態</span><span style="text-align: right">{{hTasks}}</span><span style="text-align: right">{{hCpu}}</span></div>
+</sc-if>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="4">
+<sc-if value="{{tblHead}}" hint-placeholder-val="{{ true }}">
+<div class="{{hoverCls}}" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; align-items: center; padding: 12px 14px; background: {{r.bg}}; font-size: 15px; transition: background-color .15s ease">
+<span style="font-weight: 600">{{r.n}}</span><span style="font-size: 14px; color: {{r.sc}}">{{r.s}}</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace; font-size: 14px">{{r.tasks}}</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace; font-size: 14px">{{r.cpu}}</span>
+</div>
+</sc-if>
+<sc-if value="{{tblCards}}" hint-placeholder-val="{{ false }}">
+<div class="{{hoverCls}}" style="margin-bottom: 10px; padding: 14px; border-radius: 10px; background: {{c.sub}}; display: flex; flex-direction: column; gap: 4px; transition: background-color .15s ease">
+<span style="display: flex; justify-content: space-between; gap: 8px"><span style="font-weight: 700">{{r.n}}</span><span style="font-size: 14px; color: {{r.sc}}">{{r.s}}</span></span>
+<span style="display: flex; justify-content: space-between; font-size: 13px; color: {{c.muted}}"><span>{{hTasks}}</span><span style="font-family: 'Geist Mono', monospace; color: {{c.ink}}">{{r.tasks}}</span></span>
+<span style="display: flex; justify-content: space-between; font-size: 13px; color: {{c.muted}}"><span>{{hCpu}}</span><span style="font-family: 'Geist Mono', monospace; color: {{c.ink}}">{{r.cpu}}</span></span>
+</div>
+</sc-if>
+</sc-for>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{showEmpty}}" hint-placeholder-val="{{ false }}">
+<div style="min-height: 240px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; padding: 12px">
+<span style="font-size: 20px; font-weight: 700">{{emptyTitle}}</span>
+<span style="font-size: 14px; color: {{c.muted}}; max-width: 360px">{{emptyBody}}</span>
+<sc-if value="{{emptySteps}}" hint-placeholder-val="{{ true }}">
+<div style="margin-top: 6px; display: flex; flex-direction: column; gap: 8px; text-align: left">
+<sc-for list="{{steps}}" as="sp" hint-placeholder-count="3"><div style="display: flex; align-items: center; gap: 10px; font-size: 14px"><span style="flex: 0 0 24px; width: 24px; height: 24px; border-radius: 99px; background: {{sp.bg}}; color: {{sp.fg}}; font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{sp.n}}</span><span style="color: {{sp.tc}}">{{sp.t}}</span></div></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{emptyBtn}}" hint-placeholder-val="{{ true }}"><span style="margin-top: 8px; display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border-radius: 10px; background: {{emptyBtnBg}}; color: {{emptyBtnFg}}; border: {{emptyBtnBd}}; font-size: 15px; font-weight: 600">{{emptyBtnText}}</span></sc-if>
+</div>
+</sc-if>
+</div>
+</section>
+
+<section style="padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+<span style="font-size: 20px; font-weight: 700">對話框與提示訊息</span>
+<span style="display: flex; gap: 8px; flex-wrap: wrap">
+<button class="live" type="button" onClick="{{openModal}}" style="height: 40px; padding: 0 16px; border-radius: 10px; background: #2457d6; color: #ffffff; border: 0; font: inherit; font-size: 15px; font-weight: 600">開啟對話框</button>
+<button class="live" type="button" onClick="{{showToast}}" style="height: 40px; padding: 0 16px; border-radius: 10px; background: transparent; color: {{c.ink}}; border: 1px solid {{c.lineStrong}}; font: inherit; font-size: 15px; font-weight: 600">顯示提示</button>
+</span>
+</div>
+<div style="margin-top: 6px; font-size: 13px; color: {{c.muted}}">{{closeNote}}</div>
+<div style="margin-top: 14px; position: relative; height: 380px; border-radius: 10px; overflow: hidden; background: {{c.page}}; border: 1px solid {{c.line}}">
+<div style="padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 18px; font-weight: 700">專案總覽</span>
+<span style="height: 14px; width: 70%; border-radius: 6px; background: {{c.sub}}"></span>
+<span style="height: 14px; width: 55%; border-radius: 6px; background: {{c.sub}}"></span>
+<span style="display: flex; gap: 10px"><span style="width: 140px; height: 80px; border-radius: 10px; background: #2457d6"></span><span style="width: 140px; height: 80px; border-radius: 10px; background: {{c.sub}}"></span></span>
+</div>
+<sc-if value="{{modal}}" hint-placeholder-val="{{ false }}">
+<div class="scrim" onClick="{{scrimClick}}" style="position: absolute; inset: 0; background: {{overlayBg}}; backdrop-filter: {{overlayBlur}}"></div>
+<div class="m-center" role="dialog" aria-label="刪除這個專案" style="position: absolute; left: 50%; top: 50%; width: {{dlgW}}; max-width: calc(100% - 24px); box-sizing: border-box; padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: 0 20px 48px rgba(0,0,0,.35); display: flex; flex-direction: column; gap: 10px">
+<span style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px"><span style="font-size: 20px; font-weight: 700">刪除這個專案？</span>
+<sc-if value="{{closeX}}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{closeModal}}" aria-label="關閉" style="flex: 0 0 32px; width: 32px; height: 32px; margin: -4px -6px 0 0; border: 0; border-radius: 8px; background: transparent; color: {{c.muted}}; cursor: pointer; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></sc-if></span>
+<span style="font-size: 14px; color: {{c.muted}}">專案內的 12 個任務會一起刪除，這個動作無法復原。</span>
+<span style="margin-top: 8px; display: flex; flex-direction: {{btnDir}}; justify-content: flex-end; gap: 8px">
+<sc-for list="{{dlgBtns}}" as="db" hint-placeholder-count="2">
+<button class="live" type="button" onClick="{{closeModal}}" style="height: 40px; padding: 0 16px; border-radius: 10px; background: {{db.bg}}; color: {{db.fg}}; border: {{db.bd}}; font: inherit; font-size: 15px; font-weight: 600">{{db.t}}</button>
+</sc-for>
+</span>
+</div>
+</sc-if>
+<sc-if value="{{toast}}" hint-placeholder-val="{{ false }}">
+<div class="t-up" role="status" style="position: absolute; right: 16px; bottom: 16px; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; background: {{ts.bg}}; color: {{ts.fg}}; border: {{ts.bd}}; box-shadow: {{ts.sh}}; font-size: 14px">
+<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{ts.ic}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg>
+<span>已儲存變更</span>
+<sc-if value="{{toastUndo}}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{hideToast}}" style="min-height: 28px; padding: 0 6px; border: 0; border-radius: 6px; background: transparent; color: {{ts.link}}; font: inherit; font-weight: 700; cursor: pointer">復原</button></sc-if>
+<sc-if value="{{toastClose}}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{hideToast}}" aria-label="關閉提示" style="width: 28px; height: 28px; border: 0; border-radius: 6px; background: transparent; color: {{ts.fg}}; cursor: pointer; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></sc-if>
+</div>
+</sc-if>
+</div>
+</section>
+
+<section style="padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}">
+<div style="font-size: 20px; font-weight: 700">文字語氣</div>
+<div style="margin-top: 6px; font-size: 13px; color: {{c.muted}}">按鈕文字與錯誤訊息會照左邊 15、16 的選擇改變。</div>
+<div style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end">
+<div style="flex: 1 1 260px; min-width: 0">
+<label for="dt-mail" style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px">Email</label>
+<div style="position: relative"><input id="dt-mail" type="email" value="name@" aria-invalid="true" aria-describedby="dt-mail-err" style="box-sizing: border-box; width: 100%; height: 40px; padding: 0 40px 0 12px; font: inherit; font-size: 15px; color: {{c.ink}}; background: {{c.card}}; border: 1.5px solid #cd2823; border-radius: 10px; outline: none"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#cd2823" stroke-width="2" stroke-linecap="round" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%)"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 8v5M12 16.5v.5"></path></svg></div>
+<div id="dt-mail-err" style="margin-top: 6px; font-size: 13px; color: {{c.dangerFg}}">{{errText}}</div>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<span style="display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border-radius: 10px; border: 1px solid {{c.lineStrong}}; font-size: 15px; font-weight: 600">{{txt.cancel}}</span>
+<span style="display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border-radius: 10px; background: #2457d6; color: #ffffff; font-size: 15px; font-weight: 600">{{txt.save}}</span>
+<span style="display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border-radius: 10px; background: #cd2823; color: #ffffff; font-size: 15px; font-weight: 600">{{txt.del}}</span>
+</div>
+</div>
+</section>
+
+<section style="padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}">
+<div style="font-size: 20px; font-weight: 700">斷點與平板側邊欄</div>
+<div style="margin-top: 6px; font-size: 13px; color: {{c.muted}}">拖動滑桿改變畫面寬度，看版面在哪個寬度切換。斷點與平板側邊欄照左邊 17、18 的選擇。</div>
+<div style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center">
+<label for="dt-vw" style="font-size: 14px; font-weight: 600">畫面寬度</label>
+<input id="dt-vw" type="range" min="320" max="1440" step="10" value="{{vw}}" onChange="{{setVw}}" onInput="{{setVw}}" style="flex: 1 1 260px; min-width: 0; accent-color: #2457d6">
+<span style="font-family: 'Geist Mono', monospace; font-size: 14px; font-weight: 600">{{vw}} px · {{bpName}}</span>
+</div>
+<div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px">
+<sc-for list="{{bpMarks}}" as="bm" hint-placeholder-count="3"><span style="padding: 2px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; background: {{bm.bg}}; color: {{bm.fg}}">{{bm.t}}</span></sc-for>
+</div>
+<div style="margin-top: 14px; height: 300px; overflow: hidden; background: {{c.page}}; border-radius: 10px; border: 1px solid {{c.line}}; padding: 12px; box-sizing: border-box">
+<div style="width: {{frameW}}; height: 276px; margin: 0 auto; display: flex; flex-direction: column; background: {{c.page}}; border: 2px solid {{c.lineStrong}}; border-radius: 8px; overflow: hidden; transition: width .15s ease">
+<div style="flex: 0 0 28px; display: flex; align-items: center; gap: 8px; padding: 0 10px; background: {{c.card}}; border-bottom: 1px solid {{c.line}}">
+<sc-if value="{{showHamb}}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{c.ink}}" stroke-width="2.5" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></sc-if>
+<span style="width: 10px; height: 10px; border-radius: 3px; background: #2457d6"></span><span style="font-size: 11px; font-weight: 700">[專案名稱]</span>
+</div>
+<div style="flex: 1 1 auto; display: flex; min-height: 0">
+<sc-if value="{{showSide}}" hint-placeholder-val="{{ true }}">
+<div style="flex: 0 0 {{sideW}}; width: {{sideW}}; background: {{c.sub}}; border-right: 1px solid {{c.line}}; padding: 8px 6px; box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; transition: flex-basis .2s ease, width .2s ease">
+<sc-for list="{{sideItems}}" as="si" hint-placeholder-count="4"><span style="display: flex; align-items: center; gap: 6px; height: 18px; padding: 0 4px; border-radius: 4px; background: {{si.bg}}"><span style="flex: 0 0 10px; width: 10px; height: 10px; border-radius: 3px; background: {{si.ic}}"></span><sc-if value="{{sideLabels}}" hint-placeholder-val="{{ true }}"><span style="height: 6px; width: 60%; border-radius: 3px; background: {{c.lineStrong}}"></span></sc-if></span></sc-for>
+</div>
+</sc-if>
+<div style="flex: 1 1 auto; min-width: 0; padding: 10px; display: grid; grid-template-columns: repeat({{gridCols}}, minmax(0, 1fr)); gap: 8px; align-content: start">
+<sc-for list="{{miniCards}}" as="mc" hint-placeholder-count="6"><span style="height: 54px; border-radius: 6px; background: {{c.card}}; box-shadow: {{c.shadow}}"></span></sc-for>
+</div>
+</div>
+<sc-if value="{{showTabs}}" hint-placeholder-val="{{ false }}">
+<div style="flex: 0 0 30px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: {{c.card}}; border-top: 1px solid {{c.line}}">
+<sc-for list="{{sideItems}}" as="si" hint-placeholder-count="4"><span style="display: flex; align-items: center; justify-content: center"><span style="width: 10px; height: 10px; border-radius: 3px; background: {{si.ic}}"></span></span></sc-for>
+</div>
+</sc-if>
+</div>
+</div>
+</section>
+
+<section style="padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+<span style="font-size: 20px; font-weight: 700">減少動態效果</span>
+<span style="display: flex; gap: 8px; flex-wrap: wrap">
+<button class="live" type="button" onClick="{{toggleRm}}" aria-pressed="{{rmPressed}}" style="height: 40px; padding: 0 14px; border-radius: 10px; background: {{rmBtn.bg}}; color: {{rmBtn.fg}}; border: 1px solid {{c.lineStrong}}; font: inherit; font-size: 14px; font-weight: 600">{{rmLabel}}</button>
+<button class="live" type="button" onClick="{{play}}" style="height: 40px; padding: 0 16px; border-radius: 10px; background: #2457d6; color: #ffffff; border: 0; font: inherit; font-size: 15px; font-weight: 600">播放進場動畫</button>
+</span>
+</div>
+<div style="margin-top: 6px; font-size: 13px; color: {{c.muted}}">{{rmNote}}</div>
+<div style="margin-top: 14px; height: 150px; display: flex; align-items: center; justify-content: center; gap: 12px; background: {{c.page}}; border-radius: 10px; border: 1px solid {{c.line}}">
+<sc-for list="{{rmCards}}" as="rc" hint-placeholder-count="3"><span class="{{rc.cls}}" style="width: 120px; height: 90px; border-radius: 12px; background: {{c.card}}; box-shadow: {{c.shadow}}; animation-delay: {{rc.d}}; display: flex; align-items: flex-end; padding: 10px; box-sizing: border-box"><span style="height: 8px; width: 60%; border-radius: 4px; background: {{rc.bar}}"></span></span></sc-for>
+</div>
+</section>
+
+</div>
+</div>
+</div>
+
+<section style="margin-top: 24px; padding: 14px 18px; border: 1px dashed #aca49a; border-radius: 8px; font-size: 13px; color: #6d645a">
+<span style="color: #171512; font-weight: 700">目前設定</span>　{{summary}}
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":6800}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { cPri: 'page', cDanger: 'dialog', cTouch: 44, delDone: false, delAsk: false, vw: 900, rmOn: true, playN: 0, bMark: 'dot', bSet2: 'five', bH: 32, bText: 'ink', aClose: 'no', aAct: 'link', aBar: 3, closedA: {}, bShape: 'pill', bFill: 'soft', bSet: 'five', aStyle: 'soft', aIcon: 'yes', aDismiss: 'no', tHover: 'accent', tUnit: 'header', tMobile: 'scroll', skDelay: 0, eBtn: 'primary', eSearch: 'explain', tStyle: 'inverse', tTime: 3, tUndo: 'yes', dW: 400, dOverlay: 40, dClose: 'all', dOrder: 'secLeft', dDanger: 'solid', txBtn: 'verbObject', txErr: 'reasonFix', bp: '768-1024', tablet: 'collapsed', rm: 'fade', dark: false, closed: {}, phone: false, mode: 'data', loading: false, skVisible: false, modalOpen: false, toast: false };
+  }
+  componentWillUnmount() { clearTimeout(this.t1); clearTimeout(this.t2); clearTimeout(this.t3); clearTimeout(this.t4); }
+  renderVals() {
+    const st = this.state;
+    const A = '#2457d6';
+    const C = st.dark
+      ? { page: '#2f2a25', card: '#393530', ink: '#f6f5f4', muted: '#b3aba2', line: '#4c4844', lineStrong: '#8c8073', sub: '#443f3b', accentSoft: '#2d344c', accentText: '#819ee7', okBg: '#2c3e2d', okFg: '#82cea2', warnBg: '#4a3922', warnFg: '#e8bd7c', dangerBg: '#482a25', dangerFg: '#e48986', infoBg: '#2d3141', infoFg: '#87a3e8', shadow: '0 1px 2px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.55)' }
+      : { page: '#fcfbfb', card: '#ffffff', ink: '#171512', muted: '#6d645a', line: '#e2dfdc', lineStrong: '#8c8073', sub: '#f6f5f4', accentSoft: '#e5ebfa', accentText: '#2457d6', okBg: '#e8f6ee', okFg: '#14743b', warnBg: '#fbf3e7', warnFg: '#965f0b', dangerBg: '#faeae9', dangerFg: '#901c19', infoBg: '#e9eefb', infoFg: '#193d96', shadow: '0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.1)' };
+    const TONES = {
+      neutral: { t: '草稿', soft: [C.sub, C.muted], solid: ['#6d645a', '#ffffff'], strong: '#8c8073' },
+      accent: { t: '進行中', soft: [C.accentSoft, C.accentText], solid: [A, '#ffffff'], strong: A },
+      success: { t: '完成', soft: [C.okBg, C.okFg], solid: ['#14743b', '#ffffff'], strong: '#1ca655' },
+      warning: { t: '待審核', soft: [C.warnBg, C.warnFg], solid: ['#d68710', '#171512'], strong: '#d68710' },
+      danger: { t: '失敗', soft: [C.dangerBg, C.dangerFg], solid: ['#cd2823', '#ffffff'], strong: '#cd2823' }
+    };
+    const SETS = { two: ['neutral', 'accent'], three: ['neutral', 'success', 'danger'], five: ['neutral', 'accent', 'success', 'warning', 'danger'] };
+    const badge = (tone, shape, fill, small) => {
+      const T = TONES[tone];
+      const r = { pill: '999px', round: '6px', square: '2px', dot: '999px' }[shape];
+      let bg = T.soft[0], fg = T.soft[1], bd = '1px solid transparent', dot = false;
+      if (fill === 'solid') { bg = T.solid[0]; fg = T.solid[1]; }
+      if (fill === 'outline') { bg = 'transparent'; bd = '1px solid ' + T.strong; }
+      if (shape === 'dot') { bg = 'transparent'; bd = '1px solid transparent'; fg = st.dark ? '#f6f5f4' : '#171512'; dot = true; if (fill === 'outline') bd = '1px solid ' + C.lineStrong; }
+      return { t: T.t, r, bg, fg, bd, dot, dc: T.strong, p: shape === 'dot' ? (fill === 'outline' ? '0 10px' : '0 2px') : '0 10px', h: small ? '20px' : '24px' };
+    };
+    const set = (k, v) => () => this.setState({ [k]: v });
+    const on = (k, id) => String(st[k]) === String(id);
+    const L = (t, c, w) => ({ t, c: c || '#171512', w: w || 500 });
+    const chipOf = (b) => ({ t: b.t, h: '20px', p: b.p === '0 2px' ? '0 2px' : '0 7px', r: b.r, bg: b.bg, fg: b.fg, bd: b.bd, dot: b.dot, dc: b.dc, w: 'auto', jc: 'center' });
+    const box = (o) => Object.assign({ t: '', h: '20px', p: '0 7px', r: '4px', bg: '#ffffff', fg: '#171512', bd: '1px solid transparent', dot: false, dc: '#000', w: 'auto', jc: 'center' }, o);
+    const mk = (k, list) => list.map((o) => Object.assign({ chips: [], lines: [] }, o, {
+      pressed: on(k, o.id) ? 'true' : 'false', border: on(k, o.id) ? '1px solid #171512' : '1px solid #e2dfdc', ring: on(k, o.id) ? '0 0 0 2px #171512' : 'none',
+      pick: () => this.setState({ [k]: o.id, closed: {} })
+    }));
+    const lightStub = { sub: '#f6f5f4', muted: '#6d645a' };
+    const bPrev = (shape, fill, setKey) => SETS[setKey].slice(0, 3).map((t) => chipOf(badge(t, shape, fill, true)));
+    const sections = [
+      { title: '按鈕規則', groups: [
+        { no: 'C1', label: '主要按鈕的數量', desc: '同一個畫面裡可以有幾個實心主要按鈕。看右邊兩張卡片的按鈕怎麼變。', opts: mk('cPri', [
+          { id: 'page', name: '每個畫面一個', note: '其他都用次要按鈕', chips: [box({ t: '儲存', bg: A, fg: '#ffffff', h: '22px' }), box({ t: '匯出', bd: '1px solid #8c8073', h: '22px' })] },
+          { id: 'section', name: '每個區塊一個', note: '每張卡片各有一個', chips: [box({ t: '儲存', bg: A, fg: '#ffffff', h: '22px' }), box({ t: '匯出', bg: A, fg: '#ffffff', h: '22px' })] },
+          { id: 'free', name: '不限制', note: '依情況決定', chips: [box({ t: '儲存', bg: A, fg: '#ffffff', h: '22px' }), box({ t: '匯出', bg: A, fg: '#ffffff', h: '22px' }), box({ t: '分享', bg: A, fg: '#ffffff', h: '22px' })] }
+        ]) },
+        { no: 'C2', label: '危險按鈕的用法', desc: '刪除等無法復原的動作。按右邊的「刪除」試試。', opts: mk('cDanger', [
+          { id: 'dialog', name: '先跳確認', note: '頁面上是外框紅，確認框裡才是實心紅', chips: [box({ t: '刪除', fg: '#cd2823', bd: '1px solid #cd2823', h: '22px' }), box({ t: '刪除', bg: '#cd2823', fg: '#ffffff', h: '22px' })] },
+          { id: 'direct', name: '直接執行加復原', note: '按了就刪，用 Toast 提供復原', chips: [box({ t: '刪除', bg: '#cd2823', fg: '#ffffff', h: '22px' }), box({ t: '已刪除　復原', bg: '#ffffff', bd: '1px solid #e2dfdc', h: '22px' })] },
+          { id: 'solidAsk', name: '實心紅加確認', note: '頁面上就是實心紅，按了再確認', chips: [box({ t: '刪除', bg: '#cd2823', fg: '#ffffff', h: '22px' })] }
+        ]) },
+        { no: 'C3', label: '觸控點擊範圍', desc: '手機上手指可以點到的範圍。按鈕外觀維持 40 px，虛線是實際可以點的範圍。', opts: mk('cTouch', [40, 44, 48].map((t) => ({ id: t, name: t + ' px', note: t === 40 ? '和按鈕一樣大' : (t === 44 ? 'Apple 建議值' : 'Material 建議值'), chips: [box({ t: '儲存', bg: A, fg: '#ffffff', h: '20px', bd: (t > 40 ? '3px' : '0') + ' dashed #8c8073' })] }))) }
+      ] },
+      { title: 'Badge：浮起 Chip', groups: [
+        { no: 'B0', label: '前置標記', desc: '文字左邊用什麼標出狀態。', opts: mk('bMark', [
+          { id: 'dot', name: '圓點', note: '目前的樣子', lines: [L('● 完成', '#171512', 600)] },
+          { id: 'halo', name: '光暈圓點', note: '圓點外加一圈淡光', lines: [L('◉ 完成', '#171512', 600)] },
+          { id: 'ring', name: '圓環', note: '空心，較輕', lines: [L('○ 完成', '#171512', 600)] },
+          { id: 'square', name: '小方塊', note: '方正，偏工程感', lines: [L('■ 完成', '#171512', 600)] },
+          { id: 'bar', name: '短豎條', note: '細長，像標記線', lines: [L('┃ 完成', '#171512', 600)] },
+          { id: 'icon', name: '狀態圖示', note: '每種狀態一個圖示', lines: [L('✓ 完成', '#171512', 600), L('✕ 失敗', '#171512', 600)] },
+          { id: 'progress', name: '進度圓圈', note: '圓圈填滿程度代表進度', lines: [L('◐ 進行中', '#171512', 600), L('● 完成', '#171512', 600)] },
+          { id: 'none', name: '不放', note: '只靠文字顏色區分', lines: [L('完成', '#14743b', 600)] }
+        ]) },
+        { no: 'B1', label: '狀態種類', desc: '需要幾種狀態顏色，各代表什麼。', opts: mk('bSet2', [
+          { id: 'three', name: '3 種', note: '草稿、完成、失敗', lines: [L('● 草稿　● 完成　● 失敗')] },
+          { id: 'four', name: '4 種', note: '加上進行中', lines: [L('● 草稿　● 進行中'), L('● 完成　● 失敗')] },
+          { id: 'five', name: '5 種', note: '再加上待審核', lines: [L('● 草稿　● 進行中　● 待審核'), L('● 完成　● 失敗')] }
+        ]) },
+        { no: 'B2', label: 'Chip 高度', desc: '浮起 Chip 的高度，會影響在表格列裡的份量。', opts: mk('bH', [24, 28, 32].map((h) => ({ id: h, name: h + ' px', note: h === 24 ? '精簡，適合表格' : (h === 28 ? '中間' : '和 Material 3 一樣'), chips: [box({ t: '完成', h: Math.round(h * .75) + 'px', bg: '#ffffff', r: '6px', dot: true, dc: '#1ca655', bd: '1px solid #e2dfdc' })] }))) },
+        { no: 'B3', label: 'Chip 文字顏色', desc: '文字用主要文字色，還是跟圓點一樣用狀態色。', opts: mk('bText', [
+          { id: 'ink', name: '主要文字色', note: '只有圓點有顏色，最安靜', lines: [L('● 完成', '#171512', 600)] },
+          { id: 'tone', name: '狀態色', note: '文字也帶顏色，較容易區分', lines: [L('● 完成', '#14743b', 600)] }
+        ]) }
+      ] },
+      { title: 'Alert：頂部色條', groups: [
+        { no: 'A1', label: '能不能關閉', desc: '右上角要不要有關閉按鈕。', opts: mk('aClose', [
+          { id: 'no', name: '不可關閉', note: '問題解決才消失', lines: [L('連線失敗', '#171512', 700)] },
+          { id: 'yes', name: '都可關閉', note: '右上角有 × 按鈕', lines: [L('連線失敗　×', '#171512', 700)] },
+          { id: 'info', name: '只有資訊與成功可關閉', note: '錯誤和警告不能關', lines: [L('有新版本　×', '#171512', 700), L('連線失敗', '#171512', 700)] }
+        ]) },
+        { no: 'A2', label: '動作', desc: '提示裡要不要放可以處理問題的動作。', opts: mk('aAct', [
+          { id: 'none', name: '不放', note: '只有說明', lines: [L('連線失敗', '#171512', 700)] },
+          { id: 'link', name: '文字連結', note: '說明下方一行強調色文字', lines: [L('連線失敗', '#171512', 700), L('重試', A, 700)] },
+          { id: 'button', name: '外框按鈕', note: '放在右側', chips: [box({ t: '重試', h: '22px', bg: '#ffffff', bd: '1px solid #8c8073' })] }
+        ]) },
+        { no: 'A3', label: '色條粗細', desc: '上緣狀態色條的高度。', opts: mk('aBar', [2, 3, 4].map((b) => ({ id: b, name: b + ' px', note: b === 2 ? '細緻' : (b === 3 ? '標準' : '明顯'), chips: [box({ w: '100%', h: b * 2 + 'px', bg: '#cd2823', r: '0' }), box({ w: '100%', h: '24px', bg: '#ffffff', r: '0' })] }))) }
+      ] },
+      { title: '表格', groups: [
+        { no: '01', label: '滑過列的效果', desc: '滑鼠移到某一列時。在右邊表格上試試。', opts: mk('tHover', [
+          { id: 'accent', name: '強調淺底', note: '淡藍色', chips: [box({ w: '100%', h: '12px', bg: '#ffffff' }), box({ w: '100%', h: '12px', bg: '#e5ebfa' }), box({ w: '100%', h: '12px', bg: '#f6f5f4' })] },
+          { id: 'gray', name: '灰底', note: '較深的灰', chips: [box({ w: '100%', h: '12px', bg: '#ffffff' }), box({ w: '100%', h: '12px', bg: '#e1dedb' }), box({ w: '100%', h: '12px', bg: '#f6f5f4' })] },
+          { id: 'none', name: '不變色', note: '斑馬紋已足夠', chips: [box({ w: '100%', h: '12px', bg: '#ffffff' }), box({ w: '100%', h: '12px', bg: '#f6f5f4' }), box({ w: '100%', h: '12px', bg: '#ffffff' })] }
+        ]) },
+        { no: '02', label: '數字單位', desc: '數字的單位寫在哪裡。', opts: mk('tUnit', [
+          { id: 'header', name: '欄位標題', note: '「CPU (%)」', lines: [L('CPU (%)', '#6d645a', 600), L('11.80')] },
+          { id: 'cell', name: '每格數字後面', note: '「11.80 %」', lines: [L('CPU', '#6d645a', 600), L('11.80 %')] }
+        ]) },
+        { no: '03', label: '手機上的表格', desc: '螢幕太窄時。按右邊的「手機寬度」看看。', opts: mk('tMobile', [
+          { id: 'scroll', name: '橫向捲動', note: '保留表格，左右滑', chips: [box({ w: '130%', h: '14px', bg: '#e1dedb', jc: 'flex-start' }), box({ w: '130%', h: '14px', bg: '#ffffff' })] },
+          { id: 'cards', name: '轉成卡片', note: '每列變一張卡片', chips: [box({ w: '100%', h: '20px', bg: '#ffffff', r: '6px' }), box({ w: '100%', h: '20px', bg: '#ffffff', r: '6px' })] }
+        ]) }
+      ] },
+      { title: '骨架與空狀態', groups: [
+        { no: '04', label: '骨架延遲', desc: '開始載入後多久才顯示骨架。很快就載完時，延遲可以避免畫面閃一下。用右邊的「快速載入」比較。', opts: mk('skDelay', [
+          { id: 0, name: '立即顯示', note: '0 ms', lines: [L('0 ms')] },
+          { id: 300, name: '300 ms 後', note: '快速載入時不閃', lines: [L('300 ms')] },
+          { id: 1000, name: '1 s 後', note: '只在慢的時候出現', lines: [L('1000 ms')] }
+        ]) },
+        { no: '05', label: '空狀態的按鈕', desc: '引導步驟下方放什麼。', opts: mk('eBtn', [
+          { id: 'primary', name: '主要按鈕', note: '對應第一步', chips: [box({ t: '新增專案', bg: A, fg: '#ffffff', h: '24px', r: '6px' })] },
+          { id: 'secondary', name: '次要按鈕', note: '較低調', chips: [box({ t: '新增專案', bg: '#ffffff', fg: '#171512', bd: '1px solid #8c8073', h: '24px', r: '6px' })] },
+          { id: 'none', name: '不放', note: '只有步驟', lines: [L('1 建立專案'), L('2 邀請成員')] }
+        ]) },
+        { no: '06', label: '搜尋沒有結果', desc: '有資料但搜尋找不到時。按右邊的「搜尋沒結果」看看。', opts: mk('eSearch', [
+          { id: 'explain', name: '說明加清除篩選', note: '提供下一步', lines: [L('找不到「GPU」', '#171512', 700), L('清除篩選', A, 700)] },
+          { id: 'text', name: '只有一句話', note: '最精簡', lines: [L('找不到符合的結果', '#6d645a')] },
+          { id: 'steps', name: '同引導步驟', note: '和沒有資料時一樣', lines: [L('1 建立專案'), L('2 邀請成員')] }
+        ]) }
+      ] },
+      { title: '提示訊息 Toast', groups: [
+        { no: '07', label: 'Toast 樣式', desc: '右下角短暫提示的外觀。按右邊的「顯示提示」。', opts: mk('tStyle', [
+          { id: 'inverse', name: '反色', note: '淺色主題用深底', chips: [box({ t: '✓ 已儲存', bg: '#171512', fg: '#ffffff', h: '26px', r: '6px' })] },
+          { id: 'card', name: '卡片', note: '白底加陰影', chips: [box({ t: '✓ 已儲存', bg: '#ffffff', fg: '#171512', bd: '1px solid #e2dfdc', h: '26px', r: '6px' })] },
+          { id: 'semantic', name: '語意色', note: '成功用綠色淺底', chips: [box({ t: '✓ 已儲存', bg: '#e8f6ee', fg: '#14743b', h: '26px', r: '6px' })] }
+        ]) },
+        { no: '08', label: 'Toast 停留時間', desc: '出現後多久自動消失。', opts: mk('tTime', [
+          { id: 3, name: '3 s', note: '短句適用', lines: [L('3 s')] },
+          { id: 5, name: '5 s', note: '有復原時較從容', lines: [L('5 s')] },
+          { id: 0, name: '手動關閉', note: '不自動消失，有 × 按鈕', lines: [L('×')] }
+        ]) },
+        { no: '09', label: 'Toast 復原', desc: '可以反悔的操作要不要附「復原」。', opts: mk('tUndo', [
+          { id: 'yes', name: '附復原', note: '刪除、封存等可逆操作', lines: [L('已封存　復原', '#171512', 600)] },
+          { id: 'no', name: '不附', note: '只顯示結果', lines: [L('已封存', '#171512', 600)] }
+        ]) }
+      ] },
+      { title: '對話框 Dialog', groups: [
+        { no: '10', label: '對話框寬度', desc: '置中對話框的寬度。', opts: mk('dW', [400, 480, 560].map((w) => ({ id: w, name: w + ' px', note: w === 400 ? '確認用' : (w === 480 ? '可放短表單' : '可放較多內容'), chips: [box({ w: Math.round(w / 560 * 100) + '%', h: '36px', bg: '#ffffff', r: '6px' })] }))) },
+        { no: '11', label: '背景遮罩', desc: '對話框後面的頁面怎麼處理。', opts: mk('dOverlay', [
+          { id: 40, name: '40% 黑', note: '清楚聚焦', chips: [box({ w: '100%', h: '36px', bg: 'rgba(0,0,0,.4)' })] },
+          { id: 20, name: '20% 黑', note: '較輕', chips: [box({ w: '100%', h: '36px', bg: 'rgba(0,0,0,.2)' })] },
+          { id: 'blur', name: '模糊背景', note: '20% 黑加模糊', chips: [box({ w: '100%', h: '36px', bg: 'rgba(0,0,0,.25)' })] }
+        ]) },
+        { no: '12', label: '關閉方式', desc: '除了按鈕以外，還能怎麼關閉。', opts: mk('dClose', [
+          { id: 'all', name: '遮罩、Esc、×', note: '最寬鬆', lines: [L('點外面 · Esc · ×')] },
+          { id: 'escX', name: 'Esc 與 ×', note: '點外面不會誤關', lines: [L('Esc · ×')] },
+          { id: 'buttons', name: '只有按鈕', note: '一定要選一個', lines: [L('取消 / 刪除')] }
+        ]) },
+        { no: '13', label: '按鈕順序', desc: '對話框底部按鈕的排法。', opts: mk('dOrder', [
+          { id: 'secLeft', name: '次要在左、主要在右', note: '常見於網頁', chips: [box({ t: '取消', bd: '1px solid #8c8073', h: '22px' }), box({ t: '刪除', bg: '#cd2823', fg: '#ffffff', h: '22px' })] },
+          { id: 'priLeft', name: '主要在左、次要在右', note: '常見於 Windows', chips: [box({ t: '刪除', bg: '#cd2823', fg: '#ffffff', h: '22px' }), box({ t: '取消', bd: '1px solid #8c8073', h: '22px' })] },
+          { id: 'stack', name: '滿版直排', note: '主要在上，手機好按', chips: [box({ t: '刪除', w: '100%', bg: '#cd2823', fg: '#ffffff', h: '20px' }), box({ t: '取消', w: '100%', bd: '1px solid #8c8073', h: '20px' })] }
+        ]) },
+        { no: '14', label: '危險動作按鈕', desc: '刪除等無法復原的動作用什麼樣式。', opts: mk('dDanger', [
+          { id: 'solid', name: '紅色實心', note: '最明確的警告', chips: [box({ t: '刪除', bg: '#cd2823', fg: '#ffffff', h: '26px', r: '6px' })] },
+          { id: 'outline', name: '紅色外框', note: '提醒但不搶眼', chips: [box({ t: '刪除', bg: '#ffffff', fg: '#cd2823', bd: '1px solid #cd2823', h: '26px', r: '6px' })] },
+          { id: 'accent', name: '一般主要按鈕', note: '靠文字說明危險', chips: [box({ t: '刪除', bg: A, fg: '#ffffff', h: '26px', r: '6px' })] }
+        ]) }
+      ] },
+      { title: '文字語氣', groups: [
+        { no: '15', label: '按鈕文字', desc: '按鈕上的字怎麼寫。', opts: mk('txBtn', [
+          { id: 'verbObject', name: '動詞加對象', note: '說清楚做什麼', lines: [L('刪除專案'), L('儲存變更')] },
+          { id: 'verb', name: '只有動詞', note: '短，靠上下文', lines: [L('刪除'), L('儲存')] },
+          { id: 'generic', name: '通用字', note: '確定、取消', lines: [L('確定'), L('取消')] }
+        ]) },
+        { no: '16', label: '錯誤訊息', desc: '欄位或操作出錯時的寫法。', opts: mk('txErr', [
+          { id: 'reasonFix', name: '原因加修正方式', note: '最完整', lines: [L('Email 格式不正確，例如 name@example.com', '#901c19')] },
+          { id: 'reason', name: '只說原因', note: '簡潔', lines: [L('Email 格式不正確', '#901c19')] },
+          { id: 'short', name: '極短', note: '只標出錯誤', lines: [L('格式錯誤', '#901c19')] }
+        ]) }
+      ] },
+      { title: '斷點與動態', groups: [
+        { no: '17', label: '斷點', desc: '畫面寬度到多少時切換手機、平板、桌面版面。', opts: mk('bp', [
+          { id: '768-1024', name: '768 / 1024 px', note: '最常見', lines: [L('手機 < 768'), L('平板 768 到 1023'), L('桌面 ≥ 1024')] },
+          { id: '640-1024', name: '640 / 1024 px', note: '平板範圍較大', lines: [L('手機 < 640'), L('平板 640 到 1023'), L('桌面 ≥ 1024')] },
+          { id: '600-960-1280', name: '600 / 960 / 1280 px', note: '多一段大螢幕', lines: [L('< 600 · 600 到 959'), L('960 到 1279 · ≥ 1280')] }
+        ]) },
+        { no: '18', label: '平板上的側邊欄', desc: 'Dashboard 類在平板寬度時。', opts: mk('tablet', [
+          { id: 'collapsed', name: '收合成圖示', note: '72 px', chips: [box({ w: '18%', h: '40px', bg: '#8c8073' }), box({ w: '70%', h: '40px', bg: '#ffffff' })] },
+          { id: 'expanded', name: '維持展開', note: '240 px', chips: [box({ w: '36%', h: '40px', bg: '#8c8073' }), box({ w: '54%', h: '40px', bg: '#ffffff' })] },
+          { id: 'drawer', name: '隱藏成抽屜', note: '漢堡按鈕打開', chips: [box({ w: '92%', h: '40px', bg: '#ffffff' })] }
+        ]) },
+        { no: '19', label: '減少動態效果', desc: '使用者在系統開啟「減少動態效果」時。', opts: mk('rm', [
+          { id: 'fade', name: '只留淡入淡出', note: '關掉位移與縮放', lines: [L('淡入 ✓　位移 ✕')] },
+          { id: 'off', name: '全部關閉', note: '所有動畫都停', lines: [L('淡入 ✕　位移 ✕')] },
+          { id: 'ignore', name: '不特別處理', note: '照常播放', lines: [L('淡入 ✓　位移 ✓')] }
+        ]) }
+      ] }
+    ];
+    const bset = SETS[st.bSet];
+    const badges = bset.map((t) => badge(t, st.bShape, st.bFill, false));
+    const AL = [
+      { k: 'info', title: '有新版本', body: '重新整理後即可使用新功能。', bg: C.infoBg, fg: C.infoFg, strong: A, path: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 11v5M12 7.5v.5' },
+      { k: 'success', title: '已儲存變更', body: '所有成員都會看到更新。', bg: C.okBg, fg: C.okFg, strong: '#1ca655', path: 'M5 12.5l4.5 4.5L19 7' },
+      { k: 'warning', title: '空間即將用完', body: '目前已使用 92%。', bg: C.warnBg, fg: C.warnFg, strong: '#d68710', path: 'M12 4l9 16H3zM12 10v4M12 17v.5' },
+      { k: 'danger', title: '連線失敗', body: '請檢查網路後再試一次。', bg: C.dangerBg, fg: C.dangerFg, strong: '#cd2823', path: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 8v5M12 16.5v.5' }
+    ];
+    const alerts = AL.map((a) => {
+      const s = st.aStyle;
+      const canClose = st.aDismiss === 'yes' || (st.aDismiss === 'info' && a.k === 'info');
+      return {
+        title: a.title, body: a.body, path: a.path, role: a.k === 'danger' ? 'alert' : 'status',
+        show: !st.closed[a.k], icon: st.aIcon === 'yes', ic: a.strong, dismiss: canClose,
+        close: () => this.setState({ closed: Object.assign({}, this.state.closed, { [a.k]: true }) }),
+        bg: s === 'outline' || s === 'plain' ? 'transparent' : a.bg,
+        fg: a.fg, bodyFg: s === 'plain' ? C.ink : a.fg,
+        bd: s === 'outline' ? '1px solid ' + a.strong : '1px solid transparent',
+        r: s === 'banner' ? '0' : '10px', pad: s === 'plain' ? '4px 0' : '12px 16px',
+        m: s === 'banner' ? '0 -20px' : '0'
+      };
+    });
+    const hoverCls = st.tHover === 'accent' ? 'h-accent' : (st.tHover === 'gray' ? 'h-gray' : '');
+    const unitCell = st.tUnit === 'cell';
+    const statusColor = { '進行中': C.accentText, '完成': C.okFg, '待審核': C.warnFg, '已封存': C.muted };
+    const rawRows = [['網站改版', '進行中', 12, '11.80'], ['叢集監控', '完成', 8, '7.15'], ['課程平台', '待審核', 21, '100.00'], ['文件系統', '已封存', 5, '0.98']];
+    const rows = rawRows.map(([n, s, t, c], i) => ({ n, s, sc: statusColor[s], tasks: unitCell ? t + ' 個' : String(t), cpu: unitCell ? c + ' %' : c, bg: i % 2 ? C.sub : 'transparent' }));
+    const cardsMode = st.phone && st.tMobile === 'cards';
+    const loadAction = (dur) => () => {
+      clearTimeout(this.t1); clearTimeout(this.t2);
+      this.setState({ loading: true, skVisible: st.skDelay === 0, mode: 'data' });
+      if (st.skDelay > 0) this.t2 = setTimeout(() => this.setState({ skVisible: true }), st.skDelay);
+      this.t1 = setTimeout(() => { clearTimeout(this.t2); this.setState({ loading: false, skVisible: false }); }, dur);
+    };
+    const btnOn = (b) => ({ bg: b ? (st.dark ? '#f6f5f4' : '#171512') : 'transparent', fg: b ? (st.dark ? '#171512' : '#ffffff') : C.ink, pressed: b ? 'true' : 'false' });
+    const tblBtns = [
+      Object.assign({ t: '快速載入 0.25 s', pick: loadAction(250) }, btnOn(false)),
+      Object.assign({ t: '慢速載入 1.8 s', pick: loadAction(1800) }, btnOn(false)),
+      Object.assign({ t: '沒有資料', pick: () => this.setState({ mode: st.mode === 'empty' ? 'data' : 'empty', loading: false }) }, btnOn(st.mode === 'empty')),
+      Object.assign({ t: '搜尋沒結果', pick: () => this.setState({ mode: st.mode === 'search' ? 'data' : 'search', loading: false }) }, btnOn(st.mode === 'search')),
+      Object.assign({ t: '手機寬度', pick: () => this.setState({ phone: !st.phone }) }, btnOn(st.phone))
+    ];
+    const isSearch = st.mode === 'search';
+    const emptyUseSteps = st.mode === 'empty' || (isSearch && st.eSearch === 'steps');
+    const btnStyles = {
+      primary: { bg: A, fg: '#ffffff', bd: '0' },
+      secondary: { bg: 'transparent', fg: C.ink, bd: '1px solid ' + C.lineStrong }
+    };
+    const eb = st.mode === 'empty' ? st.eBtn : (isSearch && st.eSearch === 'explain' ? 'secondary' : (isSearch && st.eSearch === 'steps' ? st.eBtn : 'none'));
+    const danger = { solid: { bg: '#cd2823', fg: '#ffffff', bd: '0' }, outline: { bg: 'transparent', fg: st.dark ? '#e48986' : '#cd2823', bd: '1px solid #cd2823' }, accent: { bg: A, fg: '#ffffff', bd: '0' } }[st.dDanger];
+    const btnText = { verbObject: ['取消', '刪除專案'], verb: ['取消', '刪除'], generic: ['取消', '確定'] }[st.txBtn];
+    const sec = { t: btnText[0], bg: 'transparent', fg: C.ink, bd: '1px solid ' + C.lineStrong };
+    const pri = Object.assign({ t: btnText[1] }, danger);
+    const dlgBtns = st.dOrder === 'priLeft' ? [pri, sec] : (st.dOrder === 'stack' ? [pri, sec] : [sec, pri]);
+    const TS = {
+      inverse: st.dark ? { bg: '#f6f5f4', fg: '#171512', bd: '0', sh: '0 12px 32px rgba(0,0,0,.3)', ic: '#14743b', link: A } : { bg: '#171512', fg: '#ffffff', bd: '0', sh: '0 12px 32px rgba(0,0,0,.28)', ic: '#1ca655', link: '#819ee7' },
+      card: { bg: C.card, fg: C.ink, bd: '1px solid ' + C.line, sh: '0 12px 32px rgba(0,0,0,.18)', ic: '#1ca655', link: C.accentText },
+      semantic: { bg: C.okBg, fg: C.okFg, bd: '0', sh: '0 12px 32px rgba(0,0,0,.14)', ic: C.okFg, link: C.okFg }
+    }[st.tStyle];
+    const errText = { reasonFix: 'Email 格式不正確，例如 name@example.com', reason: 'Email 格式不正確', short: '格式錯誤' }[st.txErr];
+    const N0 = { cPri: { page: '每個畫面一個', section: '每個區塊一個', free: '不限制' }, cDanger: { dialog: '先跳確認', direct: '直接執行加復原', solidAsk: '實心紅加確認' } };
+    const N = { bShape: { pill: '膠囊', round: '小圓角', square: '方角', dot: '圓點加文字' }, bFill: { soft: '柔和底色', solid: '實心', outline: '外框' }, bSet: { two: '2 種', three: '3 種', five: '5 種' }, aStyle: { soft: '柔和底色', outline: '外框', banner: '橫幅', plain: '只有文字' }, aIcon: { yes: '有圖示', no: '沒有圖示' }, aDismiss: { no: '不可關閉', yes: '可關閉', info: '只有資訊類可關閉' }, tHover: { accent: '強調淺底', gray: '灰底', none: '不變色' }, tUnit: { header: '欄位標題', cell: '每格數字後面' }, tMobile: { scroll: '橫向捲動', cards: '轉成卡片' }, eBtn: { primary: '主要按鈕', secondary: '次要按鈕', none: '不放' }, eSearch: { explain: '說明加清除篩選', text: '只有一句話', steps: '同引導步驟' }, tStyle: { inverse: '反色', card: '卡片', semantic: '語意色' }, tUndo: { yes: '附復原', no: '不附' }, dOverlay: { 40: '40% 黑', 20: '20% 黑', blur: '模糊背景' }, dClose: { all: '遮罩 Esc ×', escX: 'Esc 與 ×', buttons: '只有按鈕' }, dOrder: { secLeft: '次要在左', priLeft: '主要在左', stack: '滿版直排' }, dDanger: { solid: '紅色實心', outline: '紅色外框', accent: '一般主要按鈕' }, txBtn: { verbObject: '動詞加對象', verb: '只有動詞', generic: '通用字' }, txErr: { reasonFix: '原因加修正方式', reason: '只說原因', short: '極短' }, tablet: { collapsed: '收合成圖示', expanded: '維持展開', drawer: '隱藏成抽屜' }, rm: { fade: '只留淡入淡出', off: '全部關閉', ignore: '不特別處理' } };
+    const CH = { draft: ['草稿', '#8c8073', C.muted, 'M5 19h14M7 15l8-8 3 3-8 8H7z', ''], doing: ['進行中', A, C.accentText, 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 7v5l3 2', 'M12 4a8 8 0 0 1 0 16z'], review: ['待審核', '#d68710', C.warnFg, 'M12 4l9 16H3zM12 10v4M12 17v.5', 'M12 4a8 8 0 0 1 8 8h-8z'], done: ['完成', '#1ca655', C.okFg, 'M5 12.5l4.5 4.5L19 7', 'M12 4a8 8 0 1 1 0 16a8 8 0 1 1 0-16z'], fail: ['失敗', '#cd2823', C.dangerFg, 'M6 6l12 12M18 6L6 18', 'M12 4a8 8 0 1 1 0 16a8 8 0 1 1 0-16z'] };
+    const mk2 = st.bMark;
+    const chipSet = { three: ['draft', 'done', 'fail'], four: ['draft', 'doing', 'done', 'fail'], five: ['draft', 'doing', 'review', 'done', 'fail'] }[st.bSet2];
+    const chips = chipSet.map((k) => ({ t: CH[k][0], dc: CH[k][1], fg: st.bText === 'tone' || st.bMark === 'none' ? CH[k][2] : C.ink, h: st.bH + 'px', p: st.bH === 24 ? '0 10px 0 8px' : '0 12px 0 10px', fs: st.bH === 24 ? '12px' : '13px', fw: st.bText === 'tone' ? 600 : 500, d: st.bH === 24 ? '7px' : '8px', mDot: mk2 === 'dot' || mk2 === 'halo', halo: mk2 === 'halo' ? '0 0 0 3px ' + (st.dark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)') : 'none', mRing: mk2 === 'ring', mSquare: mk2 === 'square', mBar: mk2 === 'bar', barH: st.bH === 24 ? '12px' : '14px', mIcon: mk2 === 'icon', mProg: mk2 === 'progress', icon: CH[k][3], prog: CH[k][4], iz: st.bH === 24 ? '13' : '15' }));
+    const TA = [
+      { k: 'info', title: '有新版本', body: '重新整理後即可使用新功能。', act: '重新整理', strong: A, link: C.accentText, path: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 11v5M12 7.5v.5' },
+      { k: 'success', title: '已儲存變更', body: '所有成員都會看到更新。', act: '查看紀錄', strong: '#1ca655', link: C.okFg, path: 'M5 12.5l4.5 4.5L19 7' },
+      { k: 'warning', title: '空間即將用完', body: '目前已使用 92%。', act: '管理空間', strong: '#d68710', link: C.warnFg, path: 'M12 4l9 16H3zM12 10v4M12 17v.5' },
+      { k: 'danger', title: '連線失敗', body: '請檢查網路後再試一次。', act: '重試', strong: '#cd2823', link: C.dangerFg, path: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 8v5M12 16.5v.5' }
+    ];
+    const tAlerts = TA.map((a) => ({
+      title: a.title, body: a.body, act: a.act, strong: a.strong, linkColor: a.link, path: a.path, role: a.k === 'danger' ? 'alert' : 'status',
+      show: !st.closedA[a.k], bar: st.aBar + 'px', pad: (12 + st.aBar) + 'px 14px 12px',
+      linkAct: st.aAct === 'link', btnAct: st.aAct === 'button',
+      dismiss: st.aClose === 'yes' || (st.aClose === 'info' && (a.k === 'info' || a.k === 'success')),
+      close: () => this.setState({ closedA: Object.assign({}, this.state.closedA, { [a.k]: true }) })
+    }));
+    const chipSh = st.dark ? '0 1px 3px rgba(0,0,0,.6), 0 2px 6px rgba(0,0,0,.4)' : '0 1px 2px rgba(16,24,40,.14), 0 2px 6px rgba(16,24,40,.08)';
+    const BPS = { '768-1024': [768, 1024], '640-1024': [640, 1024], '600-960-1280': [600, 960, 1280] }[st.bp];
+    const vw = st.vw;
+    const isPhone = vw < BPS[0];
+    const isTablet = !isPhone && vw < BPS[1];
+    const isWide = BPS.length === 3 && vw >= BPS[2];
+    const bpName = isPhone ? '手機' : (isTablet ? '平板' : (isWide ? '大螢幕' : '桌面'));
+    const tabMode = st.tablet;
+    const showSide = !isPhone && !(isTablet && tabMode === 'drawer');
+    const sideW = isTablet && tabMode === 'collapsed' ? '30px' : '84px';
+    const bpMarks = (BPS.length === 3 ? [['手機 < ' + BPS[0], isPhone], ['平板 ' + BPS[0] + ' 到 ' + (BPS[1] - 1), isTablet], ['桌面 ' + BPS[1] + ' 到 ' + (BPS[2] - 1), !isPhone && !isTablet && !isWide], ['大螢幕 ≥ ' + BPS[2], isWide]] : [['手機 < ' + BPS[0], isPhone], ['平板 ' + BPS[0] + ' 到 ' + (BPS[1] - 1), isTablet], ['桌面 ≥ ' + BPS[1], !isPhone && !isTablet]]).map(([t, on]) => ({ t: t + ' px', bg: on ? '#2457d6' : C.sub, fg: on ? '#ffffff' : C.muted }));
+    const txtMap = { verbObject: { cancel: '取消', save: '儲存變更', del: '刪除專案' }, verb: { cancel: '取消', save: '儲存', del: '刪除' }, generic: { cancel: '取消', save: '確定', del: '確定' } };
+    const rmOn = st.rmOn;
+    const ab = st.playN % 2 ? 'B' : 'A';
+    const rmCls = st.playN === 0 ? '' : (!rmOn || st.rm === 'ignore' ? 'an-full' + ab : (st.rm === 'fade' ? 'an-fade' + ab : ''));
+    const rmNoteText = !rmOn ? '目前模擬「系統沒有開啟減少動態效果」：卡片從下方放大滑入。' : ({ fade: '目前模擬「系統已開啟減少動態效果」：位移與縮放關閉，只剩 150 ms 淡入。', off: '目前模擬「系統已開啟減少動態效果」：動畫全部關閉，卡片直接出現。', ignore: '目前模擬「系統已開啟減少動態效果」：不特別處理，動畫照常播放。' })[st.rm];
+    const priBtn = { bg: A, fg: '#ffffff', bd: '0' }, secBtn = { bg: 'transparent', fg: C.ink, bd: '1px solid ' + C.lineStrong };
+    const priCards = [
+      { title: '專案設定', body: '名稱、描述與成員', btns: [Object.assign({ t: '儲存' }, priBtn), Object.assign({ t: '取消' }, secBtn)] },
+      { title: '匯出資料', body: '下載所有任務紀錄', btns: [Object.assign({ t: '匯出' }, st.cPri === 'page' ? secBtn : priBtn), Object.assign({ t: '分享' }, st.cPri === 'free' ? priBtn : secBtn)] }
+    ];
+    const dBtn = st.cDanger === 'dialog' ? { bg: 'transparent', fg: st.dark ? '#e48986' : '#cd2823', bd: '1px solid #cd2823' } : { bg: '#cd2823', fg: '#ffffff', bd: '0' };
+    const closeModal = () => this.setState({ modalOpen: false });
+    return {
+      sections, c: C, dkCls: st.dark ? 'dk' : '', priCards, dBtn, cTouch: st.cTouch,
+      delAsk: st.delAsk, delToast: st.delDone && st.cDanger === 'direct', delOp: st.delDone ? .35 : 1, delText: st.delDone ? '已刪除' : '12 個任務',
+      pressDelete: () => { if (this.state.delDone) return; if (st.cDanger === 'direct') { this.setState({ delDone: true }); clearTimeout(this.t4); this.t4 = setTimeout(() => this.setState({ delDone: false }), 3000); } else this.setState({ delAsk: true }); },
+      cancelDel: () => this.setState({ delAsk: false }),
+      confirmDel: () => { this.setState({ delAsk: false, delDone: true }); clearTimeout(this.t4); this.t4 = setTimeout(() => this.setState({ delDone: false }), 2000); },
+      undoDel: () => { clearTimeout(this.t4); this.setState({ delDone: false }); },
+      touchBox: st.cTouch + 'px', touchBd: st.cTouch > 40 ? '2px dashed ' + C.lineStrong : '2px dashed transparent', errText, txt: txtMap[st.txBtn],
+      vw, setVw: (e) => this.setState({ vw: Number(e.target.value) }), bpName, bpMarks,
+      frameW: Math.round(vw / 1440 * 100) + '%', showHamb: isPhone || (isTablet && tabMode === 'drawer'), showSide, sideW, sideLabels: sideW === '84px',
+      sideItems: [0, 1, 2, 3].map((i) => ({ bg: i === 1 ? C.accentSoft : 'transparent', ic: i === 1 ? '#2457d6' : C.lineStrong })),
+      gridCols: isPhone ? 1 : (isTablet ? 2 : (isWide ? 4 : 3)), miniCards: [0, 1, 2, 3, 4, 5], showTabs: isPhone,
+      toggleRm: () => this.setState({ rmOn: !st.rmOn }), rmPressed: rmOn ? 'true' : 'false', rmLabel: rmOn ? '系統：已開啟減少動態' : '系統：沒有開啟減少動態',
+      rmBtn: { bg: rmOn ? (st.dark ? '#f6f5f4' : '#171512') : 'transparent', fg: rmOn ? (st.dark ? '#171512' : '#ffffff') : C.ink },
+      play: () => this.setState({ playN: st.playN + 1 }), rmNote: rmNoteText,
+      rmCards: [0, 1, 2].map((i) => ({ cls: rmCls, d: rmCls.indexOf('full') === 0 ? (i * 90) + 'ms' : '0ms', bar: i === 0 ? '#2457d6' : C.lineStrong })), chips, chipSh, tAlerts, resetA: () => this.setState({ closedA: {} }),
+      themeBtns: [['淺色', false], ['深色', true]].map(([t, d]) => ({ t, pressed: st.dark === d ? 'true' : 'false', bg: st.dark === d ? '#171512' : '#ffffff', fg: st.dark === d ? '#ffffff' : '#171512', bd: st.dark === d ? '#171512' : '#cfcac4', pick: () => this.setState({ dark: d }) })),
+      badges, alerts, resetAlerts: () => this.setState({ closed: {} }),
+      tblBtns, hoverCls,
+      loadNote: '骨架延遲 ' + st.skDelay + ' ms：' + (st.loading ? (st.skVisible ? '顯示骨架中' : '載入中，骨架還沒出現') : '按快速或慢速載入比較'),
+      tblW: st.phone ? '360px' : '100%', tblFrame: st.phone ? '1px dashed ' + C.lineStrong : '1px solid transparent', tblFramePad: st.phone ? '12px' : '0',
+      tblMinW: st.phone && st.tMobile === 'scroll' ? '480px' : '0',
+      showSkel: st.loading && st.skVisible,
+      showTableRows: !st.loading && st.mode === 'data',
+      tblHead: !cardsMode, tblCards: cardsMode,
+      hTasks: unitCell ? '任務' : '任務 (個)', hCpu: unitCell ? 'CPU' : 'CPU (%)',
+      rows,
+      skelBg: 'linear-gradient(90deg, ' + C.sub + ' 0%, ' + (st.dark ? '#504a45' : '#fcfbfb') + ' 50%, ' + C.sub + ' 100%)',
+      skelRows: [['30%', '18%'], ['40%', '14%'], ['26%', '20%'], ['36%', '16%'], ['22%', '18%']].map(([a, b]) => ({ a, b })),
+      showEmpty: !st.loading && st.mode !== 'data',
+      emptyTitle: isSearch ? (st.eSearch === 'steps' ? '三步驟開始使用' : '找不到「GPU」的結果') : '三步驟開始使用',
+      emptyBody: isSearch ? (st.eSearch === 'explain' ? '試試其他關鍵字，或清除篩選條件。' : (st.eSearch === 'text' ? '' : '建立第一個專案後，成員、任務與進度都會顯示在這裡。')) : '建立第一個專案後，成員、任務與進度都會顯示在這裡。',
+      emptySteps: emptyUseSteps,
+      steps: ['建立專案', '邀請成員', '新增第一個任務'].map((t, i) => ({ n: i + 1, t, bg: i === 0 ? A : C.sub, fg: i === 0 ? '#ffffff' : C.muted, tc: i === 0 ? C.ink : C.muted })),
+      emptyBtn: eb !== 'none',
+      emptyBtnText: isSearch && st.eSearch === 'explain' ? '清除篩選' : (st.txBtn === 'generic' ? '開始' : (st.txBtn === 'verb' ? '新增' : '新增專案')),
+      emptyBtnBg: (btnStyles[eb] || btnStyles.primary).bg, emptyBtnFg: (btnStyles[eb] || btnStyles.primary).fg, emptyBtnBd: (btnStyles[eb] || btnStyles.primary).bd,
+      modal: st.modalOpen, openModal: () => this.setState({ modalOpen: true }), closeModal,
+      scrimClick: st.dClose === 'all' ? closeModal : () => {},
+      overlayBg: st.dOverlay === 40 ? 'rgba(0,0,0,.4)' : (st.dOverlay === 20 ? 'rgba(0,0,0,.2)' : 'rgba(0,0,0,.2)'),
+      overlayBlur: st.dOverlay === 'blur' ? 'blur(4px)' : 'none',
+      dlgW: st.dW + 'px', closeX: st.dClose !== 'buttons',
+      btnDir: st.dOrder === 'stack' ? 'column' : 'row',
+      dlgBtns,
+      closeNote: { all: '對話框可以點遮罩、按 Esc 或右上角 × 關閉。', escX: '對話框可以按 Esc 或右上角 × 關閉，點遮罩不會關閉。', buttons: '對話框只能按底部按鈕關閉。' }[st.dClose] + ' 錯誤訊息範例：' + errText,
+      toast: st.toast, ts: TS, toastUndo: st.tUndo === 'yes', toastClose: st.tTime === 0,
+      showToast: () => { clearTimeout(this.t3); this.setState({ toast: false }); setTimeout(() => this.setState({ toast: true }), 20); if (st.tTime > 0) this.t3 = setTimeout(() => this.setState({ toast: false }), st.tTime * 1000); },
+      hideToast: () => { clearTimeout(this.t3); this.setState({ toast: false }); },
+      summary: [
+        '主要按鈕 ' + N0.cPri[st.cPri], '危險按鈕 ' + N0.cDanger[st.cDanger], '觸控範圍 ' + st.cTouch + ' px',
+        'Badge 浮起 Chip／' + { dot: '圓點', halo: '光暈圓點', ring: '圓環', square: '小方塊', bar: '短豎條', icon: '狀態圖示', progress: '進度圓圈', none: '不放標記' }[st.bMark] + '／' + { three: '3 種', four: '4 種', five: '5 種' }[st.bSet2] + '／' + st.bH + ' px／' + (st.bText === 'tone' ? '狀態色文字' : '主要文字色'),
+        'Alert 頂部色條／' + { no: '不可關閉', yes: '都可關閉', info: '只有資訊與成功可關閉' }[st.aClose] + '／' + { none: '不放動作', link: '文字連結', button: '外框按鈕' }[st.aAct] + '／色條 ' + st.aBar + ' px',
+        '表格滑過 ' + N.tHover[st.tHover], '單位 ' + N.tUnit[st.tUnit], '手機表格 ' + N.tMobile[st.tMobile],
+        '骨架延遲 ' + st.skDelay + ' ms', '空狀態按鈕 ' + N.eBtn[st.eBtn], '搜尋無結果 ' + N.eSearch[st.eSearch],
+        'Toast ' + N.tStyle[st.tStyle] + '／' + (st.tTime ? st.tTime + ' s' : '手動關閉') + '／' + N.tUndo[st.tUndo],
+        '對話框 ' + st.dW + ' px／' + N.dOverlay[st.dOverlay] + '／' + N.dClose[st.dClose] + '／' + N.dOrder[st.dOrder] + '／' + N.dDanger[st.dDanger],
+        '按鈕文字 ' + N.txBtn[st.txBtn], '錯誤訊息 ' + N.txErr[st.txErr],
+        '斷點 ' + st.bp + ' px', '平板側邊欄 ' + N.tablet[st.tablet], '減少動態 ' + N.rm[st.rm]
+      ].join(' · ')
+    };
+  }
+}
+</script>
+</body>
+</html>

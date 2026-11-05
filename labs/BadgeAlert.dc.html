@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>Badge 與 Alert 新方向</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit;opacity:.8}
+.dir{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease,background-color .3s ease}
+.dir:hover{transform:translateY(-2px)}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: {{c.page}}; color: {{c.ink}}; font-family: Inter, 'Noto Sans TC', sans-serif; font-size: 15px; line-height: 1.55; transition: background-color .35s ease, color .35s ease">
+<main style="max-width: 1360px; margin: 0 auto; padding: 40px 32px 56px">
+<div style="font-family: 'Geist Mono', 'Noto Sans TC', monospace; font-size: 13px; font-weight: 600; color: {{c.muted}}">深入 5 · 元件細節</div>
+<div style="display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: flex-end; justify-content: space-between">
+<h1 style="margin: 6px 0 0; font-size: 39px; line-height: 1.2; font-weight: 700; letter-spacing: -.01em">Badge 與 Alert 新方向</h1>
+<span style="display: flex; gap: 8px">
+<sc-for list="{{themeBtns}}" as="tb" hint-placeholder-count="2">
+<button type="button" onClick="{{tb.pick}}" aria-pressed="{{tb.pressed}}" style="min-height: 44px; padding: 0 14px; border: 1px solid {{tb.bd}}; background: {{tb.bg}}; color: {{tb.fg}}; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">{{tb.t}}</button>
+</sc-for>
+</span>
+</div>
+<p style="margin: 8px 0 0; color: {{c.muted}}; max-width: 900px">形狀與外框完全重做。後半段的方向參考了 Atlassian、GitHub Primer、Shopify Polaris、IBM Carbon 與你 Figma 裡的 Material 3 Design Kit，卡片說明裡註明了來源。點一張卡片選擇方向，可以切換深色主題確認兩套都好看。選好後把最下方的設定給我，再進一步調細節。</p>
+
+<h2 style="margin: 36px 0 0; font-size: 25px; line-height: 1.3; font-weight: 700">Badge</h2>
+<div style="margin-top: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px">
+<sc-for list="{{badgeDirs}}" as="d" hint-placeholder-count="7">
+<button class="dir" type="button" onClick="{{d.pick}}" aria-pressed="{{d.pressed}}" style="display: flex; flex-direction: column; gap: 14px; padding: 20px; text-align: left; background: {{c.card}}; border: 0; border-radius: 14px; box-shadow: {{d.ring}}; font: inherit; color: {{c.ink}}">
+<span style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; color: {{c.muted}}">{{d.no}}</span>
+<span style="font-size: 18px; font-weight: 700">{{d.name}}</span>
+<span style="font-size: 12px; font-weight: 600; color: {{c.muted}}">存在感 {{d.level}}</span>
+</span>
+<span style="font-size: 13px; color: {{c.muted}}">{{d.note}}</span>
+<span style="display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: center">
+<sc-for list="{{d.items}}" as="b" hint-placeholder-count="5">
+<span style="display: inline-flex; align-items: center; gap: 6px; height: {{b.h}}; padding: {{b.p}}; border-radius: {{b.r}}; background: {{b.bg}}; color: {{b.fg}}; border: {{b.bd}}; border-bottom: {{b.bb}}; font-family: {{b.ff}}; font-size: {{b.fs}}; font-weight: {{b.fw}}; letter-spacing: {{b.ls}}; clip-path: {{b.clip}}; box-shadow: {{b.bsh}}; white-space: nowrap; box-sizing: border-box; overflow: {{b.ovf}}">
+<sc-if value="{{b.anchor}}" hint-placeholder-val="{{ false }}"><span style="position: relative; display: inline-flex; width: 24px; height: 24px; margin-right: 4px"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{b.ic}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{b.path}}"></path></svg><span style="position: absolute; top: {{b.at}}; left: {{b.al}}; min-width: {{b.aw}}; height: {{b.ah}}; padding: {{b.ap}}; box-sizing: border-box; border-radius: 99px; background: {{b.dc}}; color: #ffffff; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 700; line-height: {{b.ah}}; text-align: center; box-shadow: 0 0 0 2px {{b.ring}}">{{b.an}}</span></span></sc-if>
+<sc-if value="{{b.split}}" hint-placeholder-val="{{ false }}"><span style="align-self: stretch; display: inline-flex; align-items: center; margin: 0 2px 0 -8px; padding: 0 8px; background: {{b.sbg}}; color: {{b.sfg}}; font-weight: 600">{{b.st}}</span></sc-if>
+<sc-if value="{{b.dot}}" hint-placeholder-val="{{ false }}"><span style="width: 8px; height: 8px; border-radius: 99px; background: {{b.dc}}; box-shadow: {{b.halo}}"></span></sc-if>
+<sc-if value="{{b.icon}}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{b.ic}}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="{{b.path}}"></path></svg></sc-if>
+<sc-if value="{{b.glyph}}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="{{b.dc}}" stroke-width="2.5"></circle><path d="{{b.gpath}}" fill="{{b.dc}}"></path></svg></sc-if>
+{{b.t}}<sc-if value="{{b.count}}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border-radius: 99px; background: {{b.cbg}}; color: {{b.cfg}}; font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700">{{b.cn}}</span></sc-if></span>
+</sc-for>
+</span>
+<span style="display: block; padding: 12px 14px; border-radius: 10px; background: {{c.sub}}; font-size: 14px">
+<span style="display: flex; justify-content: space-between; align-items: center; gap: 10px"><span style="font-weight: 600">叢集監控</span><sc-for list="{{d.rowItems}}" as="b" hint-placeholder-count="1">
+<span style="display: inline-flex; align-items: center; gap: 6px; height: {{b.h}}; padding: {{b.p}}; border-radius: {{b.r}}; background: {{b.bg}}; color: {{b.fg}}; border: {{b.bd}}; border-bottom: {{b.bb}}; font-family: {{b.ff}}; font-size: {{b.fs}}; font-weight: {{b.fw}}; letter-spacing: {{b.ls}}; clip-path: {{b.clip}}; box-shadow: {{b.bsh}}; white-space: nowrap; box-sizing: border-box; overflow: {{b.ovf}}">
+<sc-if value="{{b.anchor}}" hint-placeholder-val="{{ false }}"><span style="position: relative; display: inline-flex; width: 24px; height: 24px; margin-right: 4px"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{b.ic}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{b.path}}"></path></svg><span style="position: absolute; top: {{b.at}}; left: {{b.al}}; min-width: {{b.aw}}; height: {{b.ah}}; padding: {{b.ap}}; box-sizing: border-box; border-radius: 99px; background: {{b.dc}}; color: #ffffff; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 700; line-height: {{b.ah}}; text-align: center; box-shadow: 0 0 0 2px {{b.ring}}">{{b.an}}</span></span></sc-if>
+<sc-if value="{{b.split}}" hint-placeholder-val="{{ false }}"><span style="align-self: stretch; display: inline-flex; align-items: center; margin: 0 2px 0 -8px; padding: 0 8px; background: {{b.sbg}}; color: {{b.sfg}}; font-weight: 600">{{b.st}}</span></sc-if>
+<sc-if value="{{b.dot}}" hint-placeholder-val="{{ false }}"><span style="width: 8px; height: 8px; border-radius: 99px; background: {{b.dc}}; box-shadow: {{b.halo}}"></span></sc-if>
+<sc-if value="{{b.icon}}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{b.ic}}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="{{b.path}}"></path></svg></sc-if>
+<sc-if value="{{b.glyph}}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="{{b.dc}}" stroke-width="2.5"></circle><path d="{{b.gpath}}" fill="{{b.dc}}"></path></svg></sc-if>
+{{b.t}}<sc-if value="{{b.count}}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border-radius: 99px; background: {{b.cbg}}; color: {{b.cfg}}; font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700">{{b.cn}}</span></sc-if></span>
+</sc-for></span>
+</span>
+</button>
+</sc-for>
+</div>
+
+<h2 style="margin: 40px 0 0; font-size: 25px; line-height: 1.3; font-weight: 700">Alert</h2>
+<div style="margin-top: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(520px, 1fr)); gap: 16px">
+<sc-for list="{{alertDirs}}" as="d" hint-placeholder-count="6">
+<button class="dir" type="button" onClick="{{d.pick}}" aria-pressed="{{d.pressed}}" style="display: flex; flex-direction: column; gap: 14px; padding: 20px; text-align: left; background: {{c.card}}; border: 0; border-radius: 14px; box-shadow: {{d.ring}}; font: inherit; color: {{c.ink}}">
+<span style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; color: {{c.muted}}">{{d.no}}</span>
+<span style="font-size: 18px; font-weight: 700">{{d.name}}</span>
+<span style="font-size: 12px; font-weight: 600; color: {{c.muted}}">存在感 {{d.level}}</span>
+</span>
+<span style="font-size: 13px; color: {{c.muted}}">{{d.note}}</span>
+<span style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 10px; background: {{c.page}}">
+<sc-for list="{{d.items}}" as="a" hint-placeholder-count="2">
+<span style="position: relative; display: flex; align-items: {{a.align}}; gap: 12px; padding: {{a.pad}}; border-radius: {{a.r}}; background: {{a.bg}}; color: {{a.fg}}; border: {{a.bd}}; border-bottom: {{a.bb}}; box-shadow: {{a.sh}}; overflow: {{a.ovf}}; font-size: 14px; line-height: 1.5; align-self: {{a.self}}">
+<sc-if value="{{a.headerBar}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 0; right: 0; top: 0; height: 36px; display: flex; align-items: center; gap: 8px; padding: 0 14px; background: {{a.strong}}; color: {{a.hfg}}; font-weight: 700"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{a.path}}"></path></svg>{{a.title}}</span></sc-if>
+<sc-if value="{{a.topBar}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 0; right: 0; top: 0; height: 3px; background: {{a.strong}}"></span></sc-if>
+<sc-if value="{{a.block}}" hint-placeholder-val="{{ false }}"><span style="flex: 0 0 44px; align-self: stretch; display: flex; align-items: center; justify-content: center; background: {{a.strong}}; color: #ffffff; margin: -12px 0 -12px -14px"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{a.path}}"></path></svg></span></sc-if>
+<sc-if value="{{a.circle}}" hint-placeholder-val="{{ false }}"><span style="flex: 0 0 32px; width: 32px; height: 32px; border-radius: 99px; background: {{a.soft}}; color: {{a.iconColor}}; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{a.path}}"></path></svg></span></sc-if>
+<sc-if value="{{a.plainIcon}}" hint-placeholder-val="{{ false }}"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{a.iconColor}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: 0 0 18px; margin-top: {{a.iconTop}}"><path d="{{a.path}}"></path></svg></sc-if>
+<sc-if value="{{a.dot}}" hint-placeholder-val="{{ false }}"><span style="flex: 0 0 8px; width: 8px; height: 8px; border-radius: 99px; background: {{a.dotColor}}"></span></sc-if>
+<span style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+<span style="display: flex; flex-direction: {{a.textDir}}; gap: {{a.textGap}}; flex-wrap: wrap"><sc-if value="{{a.showTitle}}" hint-placeholder-val="{{ true }}"><span style="font-weight: 700; color: {{a.titleColor}}; text-decoration: {{a.titleDeco}}; text-underline-offset: 3px">{{a.title}}</span></sc-if><sc-if value="{{a.showBody}}" hint-placeholder-val="{{ true }}"><span style="color: {{a.bodyColor}}">{{a.body}}</span></sc-if></span>
+<sc-if value="{{a.links}}" hint-placeholder-val="{{ false }}"><span style="display: flex; gap: 16px; font-weight: 700; color: {{a.linkColor}}"><span>{{a.actText}}</span><span>了解原因</span></span></sc-if>
+<sc-if value="{{a.bubble}}" hint-placeholder-val="{{ false }}"><span style="position: relative; display: block; margin-top: 6px; padding: 10px 12px; border-radius: 10px; background: {{a.bubbleBg}}; color: {{a.bubbleFg}}; box-shadow: {{a.bubbleSh}}; font-size: 13px">{{a.body}}<span style="position: absolute; left: 14px; top: -5px; width: 10px; height: 10px; background: {{a.bubbleBg}}; transform: rotate(45deg)"></span></span></sc-if>
+</span>
+<sc-if value="{{a.action2}}" hint-placeholder-val="{{ false }}"><span style="flex: 0 0 auto; display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid {{a.lineStrong}}; color: {{a.ink}}; font-weight: 700; font-size: 13px">稍後</span></sc-if>
+<sc-if value="{{a.action}}" hint-placeholder-val="{{ false }}"><span style="flex: 0 0 auto; display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 8px; border: {{a.actBd}}; background: {{a.actBg}}; color: {{a.actFg}}; font-weight: 700; font-size: 13px">{{a.actText}}</span></sc-if>
+<sc-if value="{{a.closeX}}" hint-placeholder-val="{{ false }}"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{a.titleColor}}" stroke-width="2" stroke-linecap="round" style="flex: 0 0 18px"><path d="M6 6l12 12M18 6L6 18"></path></svg></sc-if>
+</span>
+</sc-for>
+</span>
+</button>
+</sc-for>
+</div>
+
+<section style="margin-top: 28px; padding: 14px 18px; border: 1px dashed {{c.lineStrong}}; border-radius: 8px; font-size: 13px; color: {{c.muted}}">
+<span style="color: {{c.ink}}; font-weight: 700">目前設定</span>　{{summary}}
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":5400}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { badge: 'light', alert: 'card', dark: false }; }
+  renderVals() {
+    const st = this.state;
+    const A = '#2457d6';
+    const C = st.dark
+      ? { page: '#2f2a25', card: '#393530', ink: '#f6f5f4', muted: '#b3aba2', line: '#4c4844', lineStrong: '#8c8073', sub: '#443f3b', shadow: '0 1px 2px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.55)' }
+      : { page: '#fcfbfb', card: '#ffffff', ink: '#171512', muted: '#6d645a', line: '#e2dfdc', lineStrong: '#8c8073', sub: '#f6f5f4', shadow: '0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.1)' };
+    const T = st.dark ? {
+      accent: { g: 'M12 4a8 8 0 0 1 0 16z', bold: false, n: 4, t: '進行中', strong: A, text: '#819ee7', soft: '#2d344c', icon: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 7v5l3 2' },
+      success: { g: 'M12 4a8 8 0 1 1 0 16a8 8 0 1 1 0-16z', bold: false, n: 12, t: '完成', strong: '#1ca655', text: '#82cea2', soft: '#2c3e2d', icon: 'M5 12.5l4.5 4.5L19 7' },
+      warning: { g: 'M12 4a8 8 0 0 1 0 16z', bold: true, n: 2, t: '待審核', strong: '#d68710', text: '#e8bd7c', soft: '#4a3922', icon: 'M12 4l9 16H3zM12 10v4M12 17v.5' },
+      danger: { g: 'M12 4a8 8 0 1 1 0 16a8 8 0 1 1 0-16z', bold: true, n: 1, t: '失敗', strong: '#cd2823', text: '#e48986', soft: '#482a25', icon: 'M6 6l12 12M18 6L6 18' },
+      neutral: { g: '', bold: false, n: 7, t: '草稿', strong: '#8c8073', text: '#b3aba2', soft: '#443f3b', icon: 'M5 19h14M7 15l8-8 3 3-8 8H7z' }
+    } : {
+      accent: { g: 'M12 4a8 8 0 0 1 0 16z', bold: false, n: 4, t: '進行中', strong: A, text: A, soft: '#e5ebfa', icon: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 7v5l3 2' },
+      success: { g: 'M12 4a8 8 0 1 1 0 16a8 8 0 1 1 0-16z', bold: false, n: 12, t: '完成', strong: '#1ca655', text: '#14743b', soft: '#e8f6ee', icon: 'M5 12.5l4.5 4.5L19 7' },
+      warning: { g: 'M12 4a8 8 0 0 1 0 16z', bold: true, n: 2, t: '待審核', strong: '#d68710', text: '#965f0b', soft: '#fbf3e7', icon: 'M12 4l9 16H3zM12 10v4M12 17v.5' },
+      danger: { g: 'M12 4a8 8 0 1 1 0 16a8 8 0 1 1 0-16z', bold: true, n: 1, t: '失敗', strong: '#cd2823', text: '#901c19', soft: '#faeae9', icon: 'M6 6l12 12M18 6L6 18' },
+      neutral: { g: '', bold: false, n: 7, t: '草稿', strong: '#8c8073', text: '#6d645a', soft: '#f6f5f4', icon: 'M5 19h14M7 15l8-8 3 3-8 8H7z' }
+    };
+    const order = ['accent', 'success', 'warning', 'danger', 'neutral'];
+    const mono = "'Geist Mono', 'Noto Sans TC', monospace", sans = "Inter, 'Noto Sans TC', sans-serif";
+    const base = { h: '24px', p: '0', r: '0', bg: 'transparent', fg: C.ink, bd: '0', bb: '0', ff: sans, fs: '13px', fw: 600, ls: '0', clip: 'none', dot: false, icon: false, halo: 'none', path: '', dc: '#000', ic: '#000', glyph: false, gpath: '', split: false, sbg: '#000', sfg: '#fff', st: '', count: false, cbg: '#000', cfg: '#fff', cn: '', bsh: 'none', ovf: 'hidden', anchor: false, at: '0', al: '0', aw: '0', ah: '0', ap: '0', an: '', ring: '#fff' };
+    const BD = {
+      light: { name: '狀態燈', level: '低', note: '一顆發光的圓點加上文字，沒有底色，像機器上的指示燈。', make: (x) => ({ dot: true, dc: x.strong, halo: '0 0 0 3px ' + x.soft, fg: C.ink, t: x.t }) },
+      icon: { name: '圖示標記', level: '低', note: '每種狀態一個圖示，文字用狀態色，沒有外框。', make: (x) => ({ icon: true, dc: x.strong, path: x.icon, fg: x.text, t: x.t }) },
+      bracket: { name: '等寬括號', level: '低', note: '用 Geist Mono 和方括號，呼應等寬字點綴，偏工程感。', make: (x) => ({ ff: mono, fs: '13px', fw: 600, fg: x.text, t: '[ ' + x.t + ' ]' }) },
+      underline: { name: '底線標記', level: '中', note: '文字下方一條 2 px 狀態色底線，像被螢光筆標過。', make: (x) => ({ fg: x.text, fw: 700, bb: '2px solid ' + x.strong, h: '22px', t: x.t }) },
+      tag: { name: '切角吊牌', level: '中', note: '左側切角的吊牌形狀，淺色底，形狀本身就有辨識度。', make: (x) => ({ bg: x.soft, fg: x.text, p: '0 10px 0 14px', clip: 'polygon(8px 0, 100% 0, 100% 100%, 8px 100%, 0 50%)', fw: 700, fs: '12px', t: x.t }) },
+      mono: { name: '等寬方塊', level: '中', note: '方角灰底，文字用狀態色等寬字，像程式碼裡的關鍵字。', make: (x) => ({ bg: C.sub, fg: x.text, p: '0 8px', r: '4px', ff: mono, fs: '12px', fw: 600, ls: '.02em', h: '22px', t: x.t }) },
+      solid: { name: '實心方塊', level: '高', note: '狀態色實心、白字、小方角，一眼就看到。', make: (x) => ({ bg: x.strong, fg: x.strong === '#d68710' ? '#171512' : '#ffffff', p: '0 8px', r: '4px', fs: '12px', fw: 700, h: '22px', t: x.t }) },
+      progress: { name: '進度圓圈', level: '中', note: '參考 Shopify Polaris Badge 的 progress：圓圈填滿的程度代表進度，空心、半滿、全滿。', make: (x) => ({ glyph: true, dc: x.strong, gpath: x.g, bg: x.soft, fg: x.text, p: '0 10px 0 7px', r: '999px', fs: '12px', fw: 700, t: x.t }) },
+      state: { name: '圖示狀態標籤', level: '高', note: '參考 GitHub Primer State label：較大的實心膠囊，白色圖示加文字，用在項目的主要狀態。', make: (x) => ({ icon: true, ic: x.strong === '#d68710' ? '#171512' : '#ffffff', path: x.icon, bg: x.strong, fg: x.strong === '#d68710' ? '#171512' : '#ffffff', p: '0 12px 0 10px', r: '999px', h: '28px', fs: '13px', fw: 600, t: x.t }) },
+      twoLevel: { name: '雙層強度', level: '中到高', note: '參考 Atlassian Lozenge 的 subtle 與 bold：平常用淺色，只有需要注意的狀態用實心。', make: (x) => (x.bold ? { bg: x.strong, fg: x.strong === '#d68710' ? '#171512' : '#ffffff', p: '0 8px', r: '4px', fs: '12px', fw: 700, h: '22px', t: x.t } : { bg: x.soft, fg: x.text, p: '0 8px', r: '4px', fs: '12px', fw: 700, h: '22px', t: x.t }) },
+      split: { name: '分段標籤', level: '中', note: '左半段寫類別、右半段寫狀態，像開發者常見的徽章，資訊多一層。', make: (x) => ({ split: true, st: '狀態', sbg: st.dark ? '#514a43' : '#514a43', sfg: '#ffffff', bg: x.strong, fg: x.strong === '#d68710' ? '#171512' : '#ffffff', p: '0 8px', r: '4px', h: '22px', fs: '12px', fw: 700, t: x.t }) },
+      counter: { name: '文字加計數', level: '低', note: '參考 GitHub Primer Counter：狀態是純文字，旁邊一顆數字膠囊標出數量。', make: (x) => ({ fg: x.text, fw: 600, fs: '13px', count: true, cn: String(x.n), cbg: x.soft, cfg: x.text, t: x.t }) },
+      corner: { name: '圖示角標', level: '中', note: '參考 Material 3 Badges：數字或小圓點掛在圖示右上角，用來提示「有新東西」，例如通知數量。偶數狀態顯示數字，其他只顯示小點。', make: (x) => ({ anchor: true, ovf: 'visible', path: 'M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0', ic: C.muted, dc: x.strong === '#d68710' ? '#965f0b' : (x.strong === '#8c8073' ? '#6d645a' : x.strong), ring: C.card, an: x.n > 3 ? String(x.n) : '', at: x.n > 3 ? '-4px' : '1px', al: x.n > 3 ? '12px' : '16px', aw: x.n > 3 ? '16px' : '7px', ah: x.n > 3 ? '16px' : '7px', ap: x.n > 3 ? '0 4px' : '0', fg: C.ink, fw: 600, fs: '13px', h: '28px', t: x.t }) },
+      assist: { name: '外框 Chip', level: '中', note: '參考 Material 3 Assist chip：8 px 圓角、細外框、32 px 高，左側一個狀態色圖示，文字維持主要文字色。', make: (x) => ({ icon: true, ic: x.strong, path: x.icon, bd: '1px solid ' + C.lineStrong, r: '8px', h: '32px', p: '0 12px 0 8px', fg: C.ink, fs: '13px', fw: 500, t: x.t }) },
+      tonal: { name: '色調 Chip', level: '中', note: '參考 Material 3 Filter chip 的選中狀態：整塊淺色調底、圖示加文字，8 px 圓角，比膠囊方正。', make: (x) => ({ icon: true, ic: x.text, path: x.icon, bg: x.soft, r: '8px', h: '32px', p: '0 12px 0 8px', fg: x.text, fs: '13px', fw: 600, t: x.t }) },
+      elevated: { name: '浮起 Chip', level: '中', note: '參考 Material 3 Elevated chip：沒有外框，用陰影浮起，和系統的陰影分層一致；左側狀態色圓點。', make: (x) => ({ dot: true, dc: x.strong, halo: 'none', bg: C.card, bsh: st.dark ? '0 1px 3px rgba(0,0,0,.6), 0 2px 6px rgba(0,0,0,.4)' : '0 1px 2px rgba(16,24,40,.14), 0 2px 6px rgba(16,24,40,.08)', r: '8px', h: '32px', p: '0 12px 0 10px', fg: C.ink, fs: '13px', fw: 500, t: x.t }) }
+    };
+    const badgeDirs = Object.keys(BD).map((k, i) => {
+      const d = BD[k];
+      const items = order.map((tone) => Object.assign({}, base, d.make(T[tone])));
+      return { no: String(i + 1).padStart(2, '0'), name: d.name, level: d.level, note: d.note, items, rowItems: [items[1]],
+        pressed: st.badge === k ? 'true' : 'false', ring: st.badge === k ? '0 0 0 2px ' + A + ', ' + C.shadow : C.shadow, pick: () => this.setState({ badge: k }) };
+    });
+    const info = { title: '有新版本', body: '重新整理後即可使用新功能。', x: T.accent, path: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 11v5M12 7.5v.5', act: '重新整理' };
+    const err = { title: '連線失敗', body: '請檢查網路後再試一次。', x: T.danger, path: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 8v5M12 16.5v.5', act: '重試' };
+    const aBase = { align: 'flex-start', pad: '12px 14px', r: '10px', bg: 'transparent', fg: C.ink, bd: '0', sh: 'none', self: 'stretch', topBar: false, block: false, circle: false, plainIcon: false, dot: false, iconTop: '1px', textDir: 'column', textGap: '0', action: false, actBd: '0', actFg: C.ink, actText: '', strong: '#000', soft: '#000', iconColor: '#000', dotColor: '#000', headerBar: false, hfg: '#fff', showTitle: true, showBody: true, titleDeco: 'none', links: false, linkColor: '#000', bubble: false, bubbleBg: '#000', bubbleFg: '#fff', bubbleSh: 'none', bb: '0', ovf: 'hidden', closeX: false, action2: false, lineStrong: C.lineStrong, ink: C.ink, actBg: 'transparent' };
+    const AD = {
+      inline: { name: '行內訊息', level: '低', note: '沒有框，只有狀態色圖示和文字，直接放在相關內容旁邊。', make: (m) => ({ pad: '0', plainIcon: true, iconColor: m.x.strong, titleColor: m.x.text, bodyColor: C.muted, textDir: 'row', textGap: '8px', align: 'center', iconTop: '0' }) },
+      card: { name: '浮起卡片', level: '中', note: '和系統的卡片一樣用陰影浮起，圓形淺底圖示，右側放動作。', make: (m) => ({ bg: C.card, sh: C.shadow, circle: true, soft: m.x.soft, iconColor: m.x.strong, titleColor: C.ink, bodyColor: C.muted, align: 'center', action: true, actText: m.act, actBd: '1px solid ' + C.lineStrong, actFg: C.ink }) },
+      topbar: { name: '頂部色條', level: '中', note: '白底卡片，上緣一條 3 px 狀態色，圖示同色。', make: (m) => ({ bg: C.card, sh: C.shadow, topBar: true, strong: m.x.strong, plainIcon: true, iconColor: m.x.strong, titleColor: C.ink, bodyColor: C.muted, pad: '15px 14px 12px' }) },
+      pill: { name: '深色膠囊', level: '中', note: '反色的膠囊條，左邊一顆狀態色圓點，安靜但清楚。', make: (m) => ({ bg: st.dark ? '#f6f5f4' : '#171512', r: '999px', dot: true, dotColor: m.x.strong, titleColor: st.dark ? '#171512' : '#ffffff', bodyColor: st.dark ? '#514a43' : '#cfcac4', textDir: 'row', textGap: '8px', align: 'center', pad: '10px 18px', self: 'flex-start' }) },
+      split: { name: '分割色塊', level: '高', note: '左側一塊狀態色方塊放白色圖示，右側是內容，邊界清楚。', make: (m) => ({ bg: C.card, bd: '1px solid ' + C.line, block: true, strong: m.x.strong, titleColor: C.ink, bodyColor: C.muted, align: 'center', action: true, actText: m.act, actBd: '0', actFg: m.x.text }) },
+      banner: { name: '實心橫幅', level: '高', note: '狀態色滿版橫幅、白字，放在頁面最上方，最難忽略。', make: (m) => ({ bg: m.x.strong, r: '0', plainIcon: true, iconColor: '#ffffff', titleColor: '#ffffff', bodyColor: 'rgba(255,255,255,.92)', textDir: 'row', textGap: '8px', align: 'center', iconTop: '0', action: true, actText: m.act, actBd: '1px solid rgba(255,255,255,.7)', actFg: '#ffffff' }) },
+      section: { name: '區塊訊息', level: '中', note: '參考 Atlassian Section message：淺色底、較大的圖示，標題與說明下方放一排文字連結。', make: (m) => ({ bg: m.x.soft, r: '10px', pad: '16px', plainIcon: true, iconColor: m.x.strong, titleColor: C.ink, bodyColor: C.ink, links: true, linkColor: m.x.text, actText: m.act }) },
+      header: { name: '標題列卡片', level: '高', note: '狀態色標題列在上、白底內容在下，標題和內容分得很清楚。', make: (m) => ({ bg: C.card, sh: C.shadow, headerBar: true, strong: m.x.strong, hfg: m.x.strong === '#d68710' ? '#171512' : '#ffffff', showTitle: false, titleColor: C.ink, bodyColor: C.muted, pad: '48px 14px 14px', links: true, linkColor: m.x.text, actText: m.act }) },
+      contrast: { name: '高對比深色', level: '高', note: '參考 IBM Carbon 的 high-contrast 通知：反色深底、狀態色圖示，在淺色頁面上非常醒目。', make: (m) => ({ bg: st.dark ? '#f6f5f4' : '#25211d', plainIcon: true, iconColor: m.x.strong, titleColor: st.dark ? '#171512' : '#ffffff', bodyColor: st.dark ? '#514a43' : '#cfcac4', action: true, actText: m.act, actBd: '1px solid ' + (st.dark ? '#8c8073' : '#8c8073'), actFg: st.dark ? '#171512' : '#ffffff', align: 'center' }) },
+      list: { name: '問題清單', level: '低', note: '參考 Shopify Polaris Exception list：沒有框，一列一個問題，小圖示加說明，適合表單上方的錯誤摘要。', make: (m) => ({ pad: '8px 0', r: '0', bb: '1px solid ' + C.line, plainIcon: true, iconColor: m.x.strong, titleColor: m.x.text, bodyColor: C.muted, textDir: 'row', textGap: '8px', align: 'center', iconTop: '0' }) },
+      bubble: { name: '可展開說明', level: '低', note: '參考 Atlassian Inline message：平常只有圖示和短句，點一下才在下方展開說明泡泡。這裡顯示展開後的樣子。', make: (m) => ({ pad: '0', plainIcon: true, iconColor: m.x.strong, titleColor: m.x.text, titleDeco: 'underline dotted', showBody: false, bubble: true, bubbleBg: C.card, bubbleFg: C.ink, bubbleSh: C.shadow, align: 'flex-start', ovf: 'visible' }) },
+      snackbar: { name: '深色通知列', level: '中到高', note: '參考 Material 3 Snackbar：反色深底、4 px 小圓角，一行訊息加強調色文字動作，最右邊是關閉。這裡改成固定在頁面裡的版本。', make: (m) => ({ bg: st.dark ? '#f6f5f4' : '#25211d', r: '4px', pad: '12px 16px', titleColor: st.dark ? '#171512' : '#f6f5f4', bodyColor: st.dark ? '#514a43' : '#cfcac4', textDir: 'row', textGap: '8px', align: 'center', sh: '0 4px 12px rgba(0,0,0,.2)', action: true, actText: m.act, actBd: '0', actFg: st.dark ? '#2457d6' : '#819ee7', closeX: true }) },
+      rich: { name: '豐富提示卡', level: '中', note: '參考 Material 3 Rich tooltip：淡色調的浮起卡片，標題、說明，下方兩個文字動作，適合放在相關欄位旁邊。', make: (m) => ({ bg: st.dark ? '#3d3a40' : '#f3f1f5', sh: C.shadow, r: '12px', pad: '14px 16px', titleColor: C.ink, bodyColor: C.muted, links: true, linkColor: (st.dark ? '#819ee7' : '#2457d6'), actText: m.act, self: 'flex-start' }) },
+      filled: { name: '填色卡片', level: '中', note: '參考 Material 3 Filled card：灰底卡片、圓形圖示、標題與說明，右側一組次要加主要按鈕，像一張可以直接處理的任務卡。', make: (m) => ({ bg: C.sub, r: '12px', pad: '14px 16px', circle: true, soft: m.x.soft, iconColor: m.x.strong, titleColor: C.ink, bodyColor: C.muted, align: 'center', action2: true, action: true, actText: m.act, actBd: '0', actBg: '#2457d6', actFg: '#ffffff' }) }
+    };
+    const alertDirs = Object.keys(AD).map((k, i) => {
+      const d = AD[k];
+      const items = [err, info].map((m) => Object.assign({}, aBase, { title: m.title, body: m.body, path: m.path }, d.make(m)));
+      return { no: String(i + 1).padStart(2, '0'), name: d.name, level: d.level, note: d.note, items,
+        pressed: st.alert === k ? 'true' : 'false', ring: st.alert === k ? '0 0 0 2px ' + A + ', ' + C.shadow : C.shadow, pick: () => this.setState({ alert: k }) };
+    });
+    return {
+      c: C, badgeDirs, alertDirs,
+      themeBtns: [['淺色', false], ['深色', true]].map(([t, d]) => ({ t, pressed: st.dark === d ? 'true' : 'false', bg: st.dark === d ? C.ink : 'transparent', fg: st.dark === d ? C.page : C.ink, bd: st.dark === d ? C.ink : C.lineStrong, pick: () => this.setState({ dark: d }) })),
+      summary: 'Badge ' + BD[st.badge].name + ' · Alert ' + AD[st.alert].name
+    };
+  }
+}
+</script>
+</body>
+</html>

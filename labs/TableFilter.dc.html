@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>表格篩選實驗室</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.opt{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.opt:hover{transform:translateY(-2px)}
+.hv:hover{background:#f6f5f4 !important}
+.dk .hv:hover{background:#443f3b !important}
+@keyframes popIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.pop{animation:popIn .15s ease both}
+.tr:hover > div{background:#e5ebfa !important}
+.dk .tr:hover > div{background:#2d344c !important}
+input{outline:none}
+.fld:focus-within{border-color:#2457d6 !important;box-shadow:0 0 0 3px rgba(36,87,214,.3)}
+mark{background:#fde68a;color:inherit;border-radius:2px;padding:0 1px}
+.dk mark{background:#7c5d12}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #f6f5f4; color: #171512; font-family: Inter, 'Noto Sans TC', sans-serif; font-size: 15px; line-height: 1.55">
+<main style="max-width: 1400px; margin: 0 auto; padding: 40px 32px 56px">
+<div style="font-family: 'Geist Mono', 'Noto Sans TC', monospace; font-size: 13px; font-weight: 600; color: #6d645a">深入 16 · 表格篩選</div>
+<h1 style="margin: 6px 0 0; font-size: 39px; line-height: 1.2; font-weight: 700; letter-spacing: -.01em">表格篩選實驗室</h1>
+<p style="margin: 8px 0 0; color: #6d645a; max-width: 900px">之前定的表格規則照用：灰底表頭、48 px、斑馬紋加格線、數字靠右、金額 NT$、日期加星期。這裡決定篩選和幾個表格細節。右邊的表格可以實際篩選，逾期的截止日用紅字。選好後把最下方的設定給我。</p>
+
+<div style="margin-top: 28px; display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start">
+
+<div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{sections}}" as="sec" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 18px; font-weight: 700; padding-top: 6px">{{sec.title}}</div>
+<sc-for list="{{sec.groups}}" as="g" hint-placeholder-count="2">
+<section style="padding: 16px; background: #ffffff; border: 1px solid #e2dfdc; border-radius: 10px">
+<div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; color: #ffffff; background: #171512; padding: 1px 7px; border-radius: 4px">{{g.no}}</span>
+<span style="font-size: 16px; font-weight: 700">{{g.label}}</span>
+</div>
+<p style="margin: 6px 0 0; font-size: 13px; color: #6d645a">{{g.desc}}</p>
+<div style="margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px">
+<sc-for list="{{g.opts}}" as="o" hint-placeholder-count="3">
+<button class="opt" type="button" onClick="{{o.pick}}" aria-pressed="{{o.pressed}}" style="display: flex; flex-direction: column; gap: 8px; padding: 10px; min-height: 44px; text-align: left; background: #ffffff; border: {{o.border}}; border-radius: 8px; font: inherit; color: #171512; box-shadow: {{o.ring}}">
+<span aria-hidden="true" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; box-sizing: border-box; padding: 6px; border-radius: 4px; background: #f6f5f4; font-size: 12px; color: #6d645a; text-align: center">
+<sc-for list="{{o.marks}}" as="mk" hint-placeholder-count="2"><span style="display: inline-flex; align-items: center; justify-content: center; width: {{mk.w}}; height: {{mk.h}}; box-sizing: border-box; border-radius: {{mk.r}}; background: {{mk.bg}}; border: {{mk.bd}}; color: {{mk.fg}}; font-size: 11px; font-weight: 700; box-shadow: {{mk.sh}}">{{mk.t}}</span></sc-for>
+<sc-for list="{{o.imgs}}" as="im" hint-placeholder-count="0"><img src="{{im}}" width="22" height="22" alt="" style="display: block"></sc-for>
+<sc-if value="{{o.hasText}}" hint-placeholder-val="{{ false }}"><span style="white-space: pre-line; line-height: 1.4">{{o.text}}</span></sc-if>
+</span>
+<span style="font-size: 13px; font-weight: 700">{{o.name}}</span>
+<span style="font-size: 12px; color: #6d645a; line-height: 1.4">{{o.note}}</span>
+</button>
+</sc-for>
+</div>
+</section>
+</sc-for>
+</div>
+</sc-for>
+</div>
+
+<div style="flex: 1 1 720px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<span style="font-size: 13px; font-weight: 700">預覽主題</span>
+<sc-for list="{{themeBtns}}" as="tb" hint-placeholder-count="2">
+<button type="button" onClick="{{tb.pick}}" aria-pressed="{{tb.pressed}}" style="min-height: 44px; padding: 0 14px; border: 1px solid {{tb.bd}}; background: {{tb.bg}}; color: {{tb.fg}}; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{tb.t}}</button>
+</sc-for>
+</div>
+
+<div class="pv {{dkCls}}" style="background: {{c.page}}; color: {{c.ink}}; border: 1px solid #cfcac4; border-radius: 12px; padding: 20px; font-size: 15px; line-height: 1.5" onClick="{{closeAll}}">
+<section style="padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap"><div style="font-size: 20px; font-weight: 700">專案</div>
+<div style="display: flex; gap: 8px; align-items: center" onClick="{{stop}}">
+<sc-if value="{{colMenuOn}}" hint-placeholder-val="{{ true }}"><div style="position: relative"><button type="button" class="hv" onClick="{{toggleCols}}" aria-expanded="{{colsAria}}" style="display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: transparent; color: {{c.ink}}; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5h16v14H4zM10 5v14M16 5v14"></path></svg>欄位</button>
+<sc-if value="{{colsOpen}}" hint-placeholder-val="{{ false }}"><div class="pop" style="position: absolute; z-index: 30; right: 0; top: calc(100% + 6px); width: 200px; padding: 6px; border-radius: 10px; background: {{c.card}}; border: 1px solid {{c.line}}; box-shadow: {{c.overlay}}"><div style="padding: 6px 10px; font-size: 12px; font-weight: 700; color: {{c.muted}}">顯示的欄位</div><sc-for list="{{colToggles}}" as="ct" hint-placeholder-count="5"><button type="button" class="hv" role="checkbox" aria-checked="{{ct.aria}}" disabled="{{ct.lock}}" onClick="{{ct.toggle}}" style="display: flex; align-items: center; gap: 10px; width: 100%; height: 36px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: {{ct.fg}}; font: inherit; font-size: 14px; text-align: left; cursor: pointer"><span style="width: 18px; height: 18px; box-sizing: border-box; border-radius: 5px; border: 2px solid {{ct.bd}}; background: {{ct.bg}}; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{ct.mark}}</span>{{ct.t}}</button></sc-for></div></sc-if></div></sc-if>
+<button type="button" style="height: 40px; padding: 0 16px; border: 0; border-radius: 10px; background: #2457d6; color: #ffffff; font: inherit; font-size: 14px; font-weight: 600">新增專案</button>
+</div></div>
+
+<sc-if value="{{viewsOn}}" hint-placeholder-val="{{ false }}"><div role="tablist" aria-label="檢視" style="margin-top: 14px; display: flex; gap: 4px; border-bottom: 1px solid {{c.line}}"><sc-for list="{{views}}" as="vw" hint-placeholder-count="4"><button type="button" role="tab" aria-selected="{{vw.aria}}" onClick="{{vw.pick}}" style="position: relative; height: 40px; padding: 0 12px; border: 0; background: transparent; color: {{vw.fg}}; font: inherit; font-size: 14px; font-weight: {{vw.fw}}; cursor: pointer">{{vw.t}}<span style="margin-left: 6px; font-family: 'Geist Mono', monospace; font-size: 12px; color: {{c.muted}}">{{vw.n}}</span><sc-if value="{{vw.on}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 8px; right: 8px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: #2457d6"></span></sc-if></button></sc-for></div></sc-if>
+
+<div style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center" onClick="{{stop}}">
+<div class="fld" style="position: relative; flex: 0 1 260px; min-width: 180px; display: flex; align-items: center; height: 36px; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: {{c.input}}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{c.muted}}" stroke-width="2" stroke-linecap="round" style="margin-left: 12px"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM20 20l-4-4"></path></svg><input aria-label="{{searchPh}}" placeholder="{{searchPh}}" value="{{q}}" onChange="{{setQ}}" style="flex: 1 1 auto; min-width: 0; height: 100%; padding: 0 10px; border: 0; background: transparent; color: {{c.ink}}; font: inherit; font-size: 14px"></div>
+<sc-if value="{{entryChips}}" hint-placeholder-val="{{ false }}"><sc-for list="{{stChips}}" as="sc" hint-placeholder-count="6"><button type="button" onClick="{{sc.pick}}" aria-pressed="{{sc.aria}}" style="height: 32px; padding: 0 12px; border-radius: 99px; border: 1px solid {{sc.bd}}; background: {{sc.bg}}; color: {{sc.fg}}; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{sc.t}}<sc-if value="{{showCounts}}" hint-placeholder-val="{{ false }}"><span style="margin-left: 6px; font-family: 'Geist Mono', monospace; font-weight: 400; opacity: .8">{{sc.n}}</span></sc-if></button></sc-for></sc-if>
+<sc-if value="{{entryPop}}" hint-placeholder-val="{{ true }}"><div style="position: relative"><button type="button" class="hv" onClick="{{togglePop}}" aria-expanded="{{popAria}}" style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: {{popBg}}; color: {{c.ink}}; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18l-7 8v6l-4-2v-4z"></path></svg>篩選<sc-if value="{{btnCount}}" hint-placeholder-val="{{ false }}"><span style="min-width: 20px; height: 20px; padding: 0 6px; box-sizing: border-box; border-radius: 99px; background: #2457d6; color: #fff; font-size: 12px; display: inline-flex; align-items: center; justify-content: center">{{activeN}}</span></sc-if></button>
+<sc-if value="{{popOpen}}" hint-placeholder-val="{{ false }}"><div class="pop" role="dialog" aria-label="篩選" style="position: absolute; z-index: 30; left: 0; top: calc(100% + 8px); width: 520px; max-width: calc(100vw - 80px); padding: 16px; border-radius: 14px; background: {{c.card}}; border: 1px solid {{c.line}}; box-shadow: {{c.overlay}}"><div style="display: grid; grid-template-columns: {{facetCols}}; gap: 16px"><sc-for list="{{facets}}" as="fc" hint-placeholder-count="4"><div style="min-width: 0"><div style="font-size: 13px; font-weight: 700; margin-bottom: 6px">{{fc.t}}</div>
+<sc-if value="{{fc.isList}}" hint-placeholder-val="{{ true }}"><div style="display: flex; flex-direction: column"><sc-for list="{{fc.opts}}" as="fo" hint-placeholder-count="4"><button type="button" role="checkbox" aria-checked="{{fo.aria}}" onClick="{{fo.toggle}}" style="display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 0; border: 0; background: transparent; color: {{fo.fg}}; font: inherit; font-size: 14px; text-align: left; cursor: pointer"><span style="flex: 0 0 18px; width: 18px; height: 18px; box-sizing: border-box; border-radius: 5px; border: 2px solid {{fo.bd}}; background: {{fo.bg}}; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{fo.mark}}</span><span style="flex: 1 1 auto">{{fo.t}}</span><sc-if value="{{showCounts}}" hint-placeholder-val="{{ false }}"><span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: {{c.muted}}">{{fo.n}}</span></sc-if></button></sc-for></div></sc-if>
+<sc-if value="{{fc.isRange}}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 6px"><div class="fld" style="flex: 1 1 0; display: flex; align-items: center; height: 34px; border: 1px solid {{c.lineStrong}}; border-radius: 8px; background: {{c.input}}"><span style="padding-left: 8px; font-size: 12px; color: {{c.muted}}">NT$</span><input aria-label="預算下限" value="{{fc.min}}" onChange="{{fc.setMin}}" placeholder="最低" style="width: 100%; min-width: 0; padding: 0 6px; border: 0; background: transparent; color: {{c.ink}}; font: inherit; font-family: 'Geist Mono', monospace; font-size: 13px"></div><span style="color: {{c.muted}}">–</span><div class="fld" style="flex: 1 1 0; display: flex; align-items: center; height: 34px; border: 1px solid {{c.lineStrong}}; border-radius: 8px; background: {{c.input}}"><span style="padding-left: 8px; font-size: 12px; color: {{c.muted}}">NT$</span><input aria-label="預算上限" value="{{fc.max}}" onChange="{{fc.setMax}}" placeholder="最高" style="width: 100%; min-width: 0; padding: 0 6px; border: 0; background: transparent; color: {{c.ink}}; font: inherit; font-family: 'Geist Mono', monospace; font-size: 13px"></div></div><div style="margin-top: 4px; font-size: 12px; color: {{c.muted}}">單位：萬</div></sc-if>
+<sc-if value="{{fc.isDue}}" hint-placeholder-val="{{ false }}"><div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{fc.opts}}" as="fo" hint-placeholder-count="4"><button type="button" onClick="{{fo.toggle}}" aria-pressed="{{fo.aria}}" style="height: 30px; padding: 0 10px; border-radius: 99px; border: 1px solid {{fo.cbd}}; background: {{fo.cbg}}; color: {{fo.cfg}}; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{fo.t}}<sc-if value="{{showCounts}}" hint-placeholder-val="{{ false }}"><span style="margin-left: 4px; font-family: 'Geist Mono', monospace; font-weight: 400">{{fo.n}}</span></sc-if></button></sc-for></div></sc-if>
+</div></sc-for></div><sc-if value="{{applyBtn}}" hint-placeholder-val="{{ false }}"><div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid {{c.line}}; display: flex; justify-content: space-between; align-items: center"><span style="font-size: 13px; color: {{c.muted}}">套用後會顯示 {{draftCount}} 筆</span><div style="display: flex; gap: 8px"><button type="button" onClick="{{clearDraft}}" style="height: 36px; padding: 0 12px; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: transparent; color: {{c.ink}}; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">清除</button><button type="button" onClick="{{applyDraft}}" style="height: 36px; padding: 0 14px; border: 0; border-radius: 10px; background: #2457d6; color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">套用</button></div></div></sc-if></div></sc-if></div></sc-if>
+<sc-if value="{{resultOn}}" hint-placeholder-val="{{ true }}"><span style="margin-left: auto; font-size: 13px; color: {{c.muted}}">{{resultText}}</span></sc-if>
+</div>
+
+<sc-if value="{{appliedOn}}" hint-placeholder-val="{{ false }}"><div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center"><sc-for list="{{applied}}" as="ap" hint-placeholder-count="2"><span style="display: inline-flex; align-items: center; gap: 2px; height: 30px; padding: 0 4px 0 10px; border-radius: 8px; background: {{c.accentSoft}}; color: {{c.accentText}}; font-size: 13px"><span style="font-weight: 700">{{ap.k}}：</span>{{ap.v}}<button type="button" class="hv" onClick="{{ap.rm}}" aria-label="{{ap.rmLabel}}" style="width: 24px; height: 24px; border: 0; border-radius: 6px; background: transparent; color: inherit; cursor: pointer">×</button></span></sc-for><button type="button" class="hv" onClick="{{clearAll}}" style="height: 30px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: {{c.accentText}}; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">清除全部</button></div></sc-if>
+
+<div style="margin-top: 14px; display: flex; gap: 16px; align-items: flex-start">
+<sc-if value="{{entryPanel}}" hint-placeholder-val="{{ false }}"><aside aria-label="篩選" style="flex: 0 0 200px; display: flex; flex-direction: column; gap: 14px; padding: 4px 0" onClick="{{stop}}"><div style="display: grid; grid-template-columns: {{facetCols}}; gap: 16px"><sc-for list="{{facets}}" as="fc" hint-placeholder-count="4"><div style="min-width: 0"><div style="font-size: 13px; font-weight: 700; margin-bottom: 6px">{{fc.t}}</div>
+<sc-if value="{{fc.isList}}" hint-placeholder-val="{{ true }}"><div style="display: flex; flex-direction: column"><sc-for list="{{fc.opts}}" as="fo" hint-placeholder-count="4"><button type="button" role="checkbox" aria-checked="{{fo.aria}}" onClick="{{fo.toggle}}" style="display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 0; border: 0; background: transparent; color: {{fo.fg}}; font: inherit; font-size: 14px; text-align: left; cursor: pointer"><span style="flex: 0 0 18px; width: 18px; height: 18px; box-sizing: border-box; border-radius: 5px; border: 2px solid {{fo.bd}}; background: {{fo.bg}}; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{fo.mark}}</span><span style="flex: 1 1 auto">{{fo.t}}</span><sc-if value="{{showCounts}}" hint-placeholder-val="{{ false }}"><span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: {{c.muted}}">{{fo.n}}</span></sc-if></button></sc-for></div></sc-if>
+<sc-if value="{{fc.isRange}}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 6px"><div class="fld" style="flex: 1 1 0; display: flex; align-items: center; height: 34px; border: 1px solid {{c.lineStrong}}; border-radius: 8px; background: {{c.input}}"><span style="padding-left: 8px; font-size: 12px; color: {{c.muted}}">NT$</span><input aria-label="預算下限" value="{{fc.min}}" onChange="{{fc.setMin}}" placeholder="最低" style="width: 100%; min-width: 0; padding: 0 6px; border: 0; background: transparent; color: {{c.ink}}; font: inherit; font-family: 'Geist Mono', monospace; font-size: 13px"></div><span style="color: {{c.muted}}">–</span><div class="fld" style="flex: 1 1 0; display: flex; align-items: center; height: 34px; border: 1px solid {{c.lineStrong}}; border-radius: 8px; background: {{c.input}}"><span style="padding-left: 8px; font-size: 12px; color: {{c.muted}}">NT$</span><input aria-label="預算上限" value="{{fc.max}}" onChange="{{fc.setMax}}" placeholder="最高" style="width: 100%; min-width: 0; padding: 0 6px; border: 0; background: transparent; color: {{c.ink}}; font: inherit; font-family: 'Geist Mono', monospace; font-size: 13px"></div></div><div style="margin-top: 4px; font-size: 12px; color: {{c.muted}}">單位：萬</div></sc-if>
+<sc-if value="{{fc.isDue}}" hint-placeholder-val="{{ false }}"><div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{fc.opts}}" as="fo" hint-placeholder-count="4"><button type="button" onClick="{{fo.toggle}}" aria-pressed="{{fo.aria}}" style="height: 30px; padding: 0 10px; border-radius: 99px; border: 1px solid {{fo.cbd}}; background: {{fo.cbg}}; color: {{fo.cfg}}; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{fo.t}}<sc-if value="{{showCounts}}" hint-placeholder-val="{{ false }}"><span style="margin-left: 4px; font-family: 'Geist Mono', monospace; font-weight: 400">{{fo.n}}</span></sc-if></button></sc-for></div></sc-if>
+</div></sc-for></div><sc-if value="{{applyBtn}}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{applyDraft}}" style="height: 36px; border: 0; border-radius: 10px; background: #2457d6; color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">套用（{{draftCount}} 筆）</button></sc-if></aside></sc-if>
+<div style="flex: 1 1 auto; min-width: 0; overflow-x: auto; border: 1px solid {{c.line}}; border-radius: 10px">
+<div role="table" aria-label="專案列表" style="min-width: {{minW}}">
+<div role="row" style="display: grid; grid-template-columns: {{cols}}; background: {{c.sub}}; font-size: 14px; font-weight: 700">
+<sc-for list="{{heads}}" as="hd" hint-placeholder-count="6"><div role="columnheader" style="position: {{hd.pos}}; left: 0; z-index: {{hd.z}}; display: flex; align-items: center; justify-content: {{hd.jc}}; gap: 4px; height: 44px; padding: 0 12px; background: {{c.sub}}; border-right: 1px solid {{c.line}}; box-shadow: {{hd.sh}}; white-space: nowrap" onClick="{{stop}}"><span>{{hd.t}}</span><sc-if value="{{hd.filter}}" hint-placeholder-val="{{ false }}"><span style="position: relative"><button type="button" class="hv" onClick="{{hd.toggle}}" aria-label="{{hd.fLabel}}" aria-expanded="{{hd.aria}}" style="width: 28px; height: 28px; border: 0; border-radius: 6px; background: {{hd.fBg}}; color: {{hd.fFg}}; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18l-7 8v6l-4-2v-4z"></path></svg></button><sc-if value="{{hd.open}}" hint-placeholder-val="{{ false }}"><div class="pop" role="dialog" aria-label="{{hd.fLabel}}" style="position: absolute; z-index: 40; top: calc(100% + 6px); {{hd.side}}: 0; width: 220px; padding: 12px; border-radius: 12px; background: {{c.card}}; border: 1px solid {{c.line}}; box-shadow: {{c.overlay}}; font-weight: 400; white-space: normal">
+<sc-for list="{{hd.facets}}" as="fc" hint-placeholder-count="1"><div style="min-width: 0"><div style="font-size: 13px; font-weight: 700; margin-bottom: 6px">{{fc.t}}</div>
+<sc-if value="{{fc.isList}}" hint-placeholder-val="{{ true }}"><div style="display: flex; flex-direction: column"><sc-for list="{{fc.opts}}" as="fo" hint-placeholder-count="4"><button type="button" role="checkbox" aria-checked="{{fo.aria}}" onClick="{{fo.toggle}}" style="display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 0; border: 0; background: transparent; color: {{fo.fg}}; font: inherit; font-size: 14px; text-align: left; cursor: pointer"><span style="flex: 0 0 18px; width: 18px; height: 18px; box-sizing: border-box; border-radius: 5px; border: 2px solid {{fo.bd}}; background: {{fo.bg}}; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{fo.mark}}</span><span style="flex: 1 1 auto">{{fo.t}}</span><sc-if value="{{showCounts}}" hint-placeholder-val="{{ false }}"><span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: {{c.muted}}">{{fo.n}}</span></sc-if></button></sc-for></div></sc-if>
+<sc-if value="{{fc.isRange}}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 6px"><div class="fld" style="flex: 1 1 0; display: flex; align-items: center; height: 34px; border: 1px solid {{c.lineStrong}}; border-radius: 8px; background: {{c.input}}"><span style="padding-left: 8px; font-size: 12px; color: {{c.muted}}">NT$</span><input aria-label="預算下限" value="{{fc.min}}" onChange="{{fc.setMin}}" placeholder="最低" style="width: 100%; min-width: 0; padding: 0 6px; border: 0; background: transparent; color: {{c.ink}}; font: inherit; font-family: 'Geist Mono', monospace; font-size: 13px"></div><span style="color: {{c.muted}}">–</span><div class="fld" style="flex: 1 1 0; display: flex; align-items: center; height: 34px; border: 1px solid {{c.lineStrong}}; border-radius: 8px; background: {{c.input}}"><span style="padding-left: 8px; font-size: 12px; color: {{c.muted}}">NT$</span><input aria-label="預算上限" value="{{fc.max}}" onChange="{{fc.setMax}}" placeholder="最高" style="width: 100%; min-width: 0; padding: 0 6px; border: 0; background: transparent; color: {{c.ink}}; font: inherit; font-family: 'Geist Mono', monospace; font-size: 13px"></div></div><div style="margin-top: 4px; font-size: 12px; color: {{c.muted}}">單位：萬</div></sc-if>
+<sc-if value="{{fc.isDue}}" hint-placeholder-val="{{ false }}"><div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{fc.opts}}" as="fo" hint-placeholder-count="4"><button type="button" onClick="{{fo.toggle}}" aria-pressed="{{fo.aria}}" style="height: 30px; padding: 0 10px; border-radius: 99px; border: 1px solid {{fo.cbd}}; background: {{fo.cbg}}; color: {{fo.cfg}}; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{fo.t}}<sc-if value="{{showCounts}}" hint-placeholder-val="{{ false }}"><span style="margin-left: 4px; font-family: 'Geist Mono', monospace; font-weight: 400">{{fo.n}}</span></sc-if></button></sc-for></div></sc-if>
+</div></sc-for>
+</div></sc-if></span></sc-if></div></sc-for>
+</div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="8"><div class="tr" role="row" style="display: grid; grid-template-columns: {{cols}}"><sc-for list="{{r.cells}}" as="cl" hint-placeholder-count="6"><div role="cell" style="position: {{cl.pos}}; left: 0; z-index: {{cl.z}}; display: flex; align-items: center; justify-content: {{cl.jc}}; min-height: 48px; padding: 0 12px; background: {{r.bg}}; border-top: 1px solid {{c.line}}; border-right: 1px solid {{c.line}}; box-shadow: {{cl.sh}}; font-weight: {{cl.fw}}; font-family: {{cl.ff}}; white-space: nowrap"><sc-if value="{{cl.isBadge}}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 8px; border-radius: 8px; background: {{c.card}}; box-shadow: {{c.chip}}; font-size: 13px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 99px; background: {{cl.dot}}"></span>{{cl.v}}</span></sc-if><sc-if value="{{cl.isHl}}" hint-placeholder-val="{{ false }}"><span>{{cl.pre}}<mark>{{cl.hit}}</mark>{{cl.post}}</span></sc-if><sc-if value="{{cl.isPlain}}" hint-placeholder-val="{{ true }}"><span style="color: {{cl.fg}}">{{cl.v}}</span></sc-if></div></sc-for></div></sc-for>
+<sc-if value="{{totalOn}}" hint-placeholder-val="{{ false }}"><div role="row" style="display: grid; grid-template-columns: {{cols}}; font-weight: 700"><sc-for list="{{totals}}" as="tt" hint-placeholder-count="6"><div role="cell" style="position: {{tt.pos}}; left: 0; z-index: {{tt.z}}; display: flex; align-items: center; justify-content: {{tt.jc}}; min-height: 48px; padding: 0 12px; background: {{c.sub}}; border-top: 2px solid {{c.lineStrong}}; border-right: 1px solid {{c.line}}; box-shadow: {{tt.sh}}; font-family: {{tt.ff}}; white-space: nowrap">{{tt.v}}</div></sc-for></div></sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{ false }}"><div style="padding: 32px 12px; text-align: center; color: {{c.muted}}">沒有符合的專案<sc-if value="{{emptyClear}}" hint-placeholder-val="{{ true }}"><div style="margin-top: 10px"><button type="button" onClick="{{clearAll}}" style="height: 36px; padding: 0 14px; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: transparent; color: {{c.ink}}; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">清除篩選</button></div></sc-if></div></sc-if>
+</div></div></div>
+<sc-if value="{{urlOn}}" hint-placeholder-val="{{ false }}"><div style="margin-top: 12px; padding: 8px 12px; border-radius: 8px; background: {{c.sub}}; font-family: 'Geist Mono', monospace; font-size: 12px; color: {{c.muted}}; overflow-x: auto; white-space: nowrap">{{urlText}}</div></sc-if>
+</section>
+</div>
+
+</div>
+</div>
+
+<section style="margin-top: 24px; padding: 14px 18px; border: 1px dashed #aca49a; border-radius: 8px; font-size: 13px; color: #6d645a">
+<span style="color: #171512; font-weight: 700">目前設定</span>　{{summary}}
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":3800}}'>
+
+const PAL = (dark) => dark
+  ? { page: '#2f2a25', card: '#393530', chrome: '#35302c', ink: '#f6f5f4', muted: '#b3aba2', line: '#4c4844', lineStrong: '#8c8073', sub: '#443f3b', zebra: '#3e3a35', input: '#26221e', accentSoft: '#2d344c', accentText: '#819ee7', danger: '#f08a80', dangerSolid: '#e5544d', success: '#5cc98a', shadow: '0 1px 2px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.55)', overlay: '0 2px 6px rgba(0,0,0,.5), 0 16px 40px rgba(0,0,0,.55)' }
+  : { page: '#fcfbfb', card: '#ffffff', chrome: '#ffffff', ink: '#171512', muted: '#6d645a', line: '#e2dfdc', lineStrong: '#8c8073', sub: '#f6f5f4', zebra: '#f9f8f7', input: '#ffffff', accentSoft: '#e5ebfa', accentText: '#2457d6', danger: '#c4322b', dangerSolid: '#cd2823', success: '#1b7f4b', shadow: '0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.1)', overlay: '0 2px 6px rgba(16,24,40,.08), 0 16px 40px rgba(16,24,40,.16)' };
+const MK = (self, st, onPick) => {
+  const on = (k, id) => String(st[k]) === String(id);
+  const M = (o) => Object.assign({ t: '', w: '20px', h: '20px', r: '4px', bg: 'transparent', bd: '0', fg: '#171512', sh: 'none' }, o);
+  const mk = (k, list) => list.map((o) => Object.assign({ marks: [], imgs: [], hasText: !!o.text, text: o.text || '' }, o, { pressed: on(k, o.id) ? 'true' : 'false', border: on(k, o.id) ? '1px solid #171512' : '1px solid #e2dfdc', ring: on(k, o.id) ? '0 0 0 2px #171512' : 'none', pick: () => { const ns = { [k]: o.id }; if (onPick) Object.assign(ns, onPick(k, o.id)); self.setState(ns); } }));
+  return { M, mk };
+};
+const THEMEBTNS = (self, st) => [['淺色', false], ['深色', true]].map(([t, d]) => ({ t, pressed: st.dark === d ? 'true' : 'false', bg: st.dark === d ? '#171512' : '#ffffff', fg: st.dark === d ? '#ffffff' : '#171512', bd: st.dark === d ? '#171512' : '#cfcac4', pick: () => self.setState({ dark: d }) }));
+
+
+const NAMES = ['叢集監控', '帳號整合', '資料備份', '成本報表', '日誌搜尋', '告警通知', '權限管理', '容器部署', '效能分析', '使用者回饋', 'API 閘道', '排程系統', '檔案上傳', '計費模組', '行動版首頁', '搜尋最佳化', '設計系統', '資料匯入', '安全稽核', '文件網站', '模型推論', '儲存擴充', '網路拓樸', '測試平台'];
+const OWNERS = ['王小明', '李小華', '陳大同', '林美玲'];
+const STS = [['draft', '草稿'], ['doing', '進行中'], ['review', '審核中'], ['done', '完成'], ['fail', '失敗']];
+const TODAY = new Date(2026, 10, 4);
+const DATA = NAMES.map((n, i) => ({ id: i, name: n, owner: OWNERS[(i * 3 + 1) % 4], st: STS[(i * 7 + 2) % 5][0], due: new Date(2026, 10, 4 + ((i * 5) % 40) - 12), budget: ((i * 137) % 23 + 2) * 85000, prog: [12, 64, 88, 100, 40, 25, 72, 100, 55, 90, 33, 100, 8, 61, 100, 47, 79, 18, 100, 66, 52, 95, 30, 84][i] }));
+const DUE = [['overdue', '已逾期'], ['week', '7 天內到期'], ['month', '本月到期'], ['later', '之後']];
+const dueOf = (d) => { const days = Math.round((d - TODAY) / 86400000); if (days < 0) return 'overdue'; if (days <= 7) return 'week'; if (d.getMonth() === TODAY.getMonth()) return 'month'; return 'later'; };
+const WD = ['日', '一', '二', '三', '四', '五', '六'];
+const fd = (d) => d.getFullYear() + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0') + '（' + WD[d.getDay()] + '）';
+const money = (v) => 'NT$ ' + v.toLocaleString('en-US');
+const EMPTYF = () => ({ st: [], owner: [], due: [], min: '', max: '' });
+const COLS = [['name', '名稱', 150, 1.4], ['owner', '負責人', 100, 1], ['st', '狀態', 120, 1], ['due', '截止日', 150, 1.1], ['budget', '預算', 150, 1.1], ['prog', '進度', 90, .7]];
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { entry: 'popover', multi: 'multi', applied: 'chips', apply: 'instant', search: 'name', result: 'show', empty: 'clear', counts: 'yes', views: 'yes', url: 'no', colMenu: 'yes', sticky: 'yes', total: 'yes',
+      dark: false, q: '', f: Object.assign(EMPTYF(), { st: ['doing', 'review'] }), draft: null, pop: false, colOpen: -1, view: 'all', hide: {}, colsOpen: false };
+  }
+  matches(d, f, q, skip) {
+    const s = this.state;
+    if (q) { const hay = s.search === 'all' ? [d.name, d.owner, STS.find((x) => x[0] === d.st)[1], fd(d.due)].join(' ') : d.name; if (hay.indexOf(q) < 0) return false; }
+    if (skip !== 'st' && f.st.length && f.st.indexOf(d.st) < 0) return false;
+    if (skip !== 'owner' && f.owner.length && f.owner.indexOf(d.owner) < 0) return false;
+    if (skip !== 'due' && f.due.length && f.due.indexOf(dueOf(d.due)) < 0) return false;
+    if (skip !== 'budget') { const mn = parseFloat(f.min), mx = parseFloat(f.max); if (!isNaN(mn) && d.budget < mn * 10000) return false; if (!isNaN(mx) && d.budget > mx * 10000) return false; }
+    return true;
+  }
+  viewData() { const v = this.state.view; return DATA.filter((d) => v === 'all' ? true : v === 'mine' ? d.owner === '王小明' : v === 'week' ? ['overdue', 'week'].indexOf(dueOf(d.due)) >= 0 : d.st === 'review'); }
+  renderVals() {
+    const st = this.state;
+    const C = Object.assign(PAL(st.dark), { chip: st.dark ? '0 1px 2px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.06)' : '0 1px 2px rgba(16,24,40,.08), 0 0 0 1px rgba(16,24,40,.06)' });
+    const { M, mk } = MK(this, st, (k, v) => { const ns = { pop: false, colOpen: -1, draft: null }; if (k === 'multi' && v === 'single') { const f = this.state.f; ns.f = { st: f.st.slice(0, 1), owner: f.owner.slice(0, 1), due: f.due.slice(0, 1), min: f.min, max: f.max }; } if (k === 'entry' && v === 'chips') ns.f = Object.assign(EMPTYF(), { st: this.state.f.st }); return ns; });
+    const sections = [
+      { title: '篩選', groups: [
+        { no: 'F1', label: '篩選入口', desc: '條件放在哪裡。', opts: mk('entry', [
+          { id: 'chips', name: '上方膠囊', note: '只能篩一個欄位（狀態），目前的做法', text: '⌕　(全部)(進行中)…' },
+          { id: 'popover', name: '篩選按鈕', note: '點開彈出框，可以篩多個欄位', text: '⌕　［⏷ 篩選 2］' },
+          { id: 'column', name: '欄位標題', note: '每個可篩選的欄位標題有漏斗', text: '狀態 ⏷　負責人 ⏷' },
+          { id: 'panel', name: '左側面板', note: '條件一直顯示在表格左邊', text: '▕條件▏▬▬▬' }
+        ]) },
+        { no: 'F2', label: '同一欄位選多個', desc: '例如同時看「進行中」和「審核中」。', opts: mk('multi', [
+          { id: 'multi', name: '可以多選', note: '同一欄位的選項是「或」', text: '☑ 進行中\n☑ 審核中' },
+          { id: 'single', name: '只能選一個', note: '', text: '◉ 進行中\n○ 審核中' }
+        ]) },
+        { no: 'F3', label: '已套用的條件', desc: '套用後在表格上方怎麼呈現。', opts: mk('applied', [
+          { id: 'chips', name: '條件標籤列', note: '「狀態：進行中、審核中 ×」加「清除全部」', text: '［狀態：進行中 ×］清除全部' },
+          { id: 'count', name: '只在按鈕上顯示數量', note: '「篩選 2」', text: '［⏷ 篩選 2］' },
+          { id: 'none', name: '不另外顯示', note: '', text: '（無）' }
+        ]) },
+        { no: 'F4', label: '套用時機', desc: '', opts: mk('apply', [
+          { id: 'instant', name: '勾選就生效', note: '表格立即更新', text: '☑ → 表格更新' },
+          { id: 'button', name: '按「套用」才生效', note: '按鈕上預告會剩幾筆', text: '［套用（8 筆）］' }
+        ]) },
+        { no: 'F5', label: '選項旁的筆數', desc: '', opts: mk('counts', [
+          { id: 'yes', name: '顯示', note: '「進行中 5」，先知道選了會剩多少', text: '進行中　5' },
+          { id: 'no', name: '不顯示', note: '', text: '進行中' }
+        ]) },
+        { no: 'F6', label: '搜尋範圍', desc: '', opts: mk('search', [
+          { id: 'name', name: '只搜名稱', note: '', text: '⌕ 名稱' },
+          { id: 'all', name: '搜所有欄位並標示', note: '符合的文字用黃底標出', text: '⌕ 王小明 → 王小明' }
+        ]) },
+        { no: 'F7', label: '結果筆數', desc: '', opts: mk('result', [
+          { id: 'show', name: '顯示', note: '右側寫「8 / 24 筆」', text: '8 / 24 筆' },
+          { id: 'hide', name: '不顯示', note: '', text: '（無）' }
+        ]) },
+        { no: 'F8', label: '沒有結果時', desc: '搜尋「zzz」試試。', opts: mk('empty', [
+          { id: 'clear', name: '一句話加「清除篩選」', note: '一鍵回到全部', text: '沒有符合的專案\n［清除篩選］' },
+          { id: 'text', name: '只有一句話', note: '之前定的規則', text: '沒有符合的專案' }
+        ]) },
+        { no: 'F9', label: '常用檢視', desc: '把常用的條件存成分頁。', opts: mk('views', [
+          { id: 'yes', name: '有', note: '「全部、我負責的、本週到期、待審核」', text: '全部　我負責的　本週到期' },
+          { id: 'no', name: '沒有', note: '', text: '（無）' }
+        ]) },
+        { no: 'F10', label: '條件寫進網址', desc: '重新整理或分享連結時保留條件。', opts: mk('url', [
+          { id: 'yes', name: '寫進網址', note: '下方顯示網址的樣子', text: '?status=doing,review' },
+          { id: 'no', name: '不保存', note: '重新整理就清掉', text: '（無）' }
+        ]) }
+      ] },
+      { title: '表格', groups: [
+        { no: 'C1', label: '欄位顯示設定', desc: '讓使用者自己隱藏欄位。', opts: mk('colMenu', [
+          { id: 'yes', name: '有', note: '右上角「欄位」選單，可以勾掉欄位', text: '［▥ 欄位］' },
+          { id: 'no', name: '沒有', note: '', text: '（無）' }
+        ]) },
+        { no: 'C2', label: '固定第一欄', desc: '表格太寬、橫向捲動時。把視窗縮窄或隱藏篩選面板外的空間試試。', opts: mk('sticky', [
+          { id: 'yes', name: '固定名稱欄', note: '捲動時名稱一直看得到', text: '名稱┃→→' },
+          { id: 'no', name: '不固定', note: '', text: '→→→' }
+        ]) },
+        { no: 'C3', label: '合計列', desc: '', opts: mk('total', [
+          { id: 'yes', name: '有', note: '最下方加總預算、平均進度', text: '▬\n━ 合計' },
+          { id: 'no', name: '沒有', note: '', text: '▬\n▬' }
+        ]) }
+      ] }
+    ];
+    sections[0].groups[3].desc = '只對篩選按鈕和左側面板有效。';
+    sections[0].groups[4].desc = '每個選項後面的數字。';
+    sections[0].groups[5].desc = '搜尋框找哪些欄位。';
+    sections[0].groups[6].desc = '篩選後剩幾筆。';
+    sections[1].groups[2].desc = '表格最下面一列。';
+    const base = this.viewData();
+    const useDraft = st.apply === 'button' && (st.entry === 'popover' || st.entry === 'panel');
+    const draft = useDraft ? (st.draft || st.f) : st.f;
+    const setF = (nf) => { if (useDraft) this.setState({ draft: nf }); else this.setState({ f: nf }); };
+    const toggleIn = (key, v) => { const f = Object.assign({}, useDraft ? (this.state.draft || this.state.f) : this.state.f); const a = f[key].slice(); const i = a.indexOf(v); if (i >= 0) a.splice(i, 1); else if (this.state.multi === 'single') { a.length = 0; a.push(v); } else a.push(v); f[key] = a; setF(f); };
+    const countFor = (key, v, f) => base.filter((d) => this.matches(d, f, st.q, key) && (key === 'st' ? d.st === v : key === 'owner' ? d.owner === v : dueOf(d.due) === v)).length;
+    const listFacet = (key, title, opts, f, style) => ({ t: title, isList: style !== 'due', isRange: false, isDue: style === 'due', opts: opts.map(([v, t]) => { const on = f[key].indexOf(v) >= 0; return { t, n: String(countFor(key, v, f)), aria: String(on), bd: on ? '#2457d6' : C.lineStrong, bg: on ? '#2457d6' : 'transparent', mark: on ? '✓' : '', fg: C.ink, cbd: on ? '#2457d6' : C.line, cbg: on ? '#2457d6' : C.card, cfg: on ? '#fff' : C.ink, toggle: () => toggleIn(key, v) }; }) });
+    const rangeFacet = (f) => ({ t: '預算', isList: false, isRange: true, isDue: false, opts: [], min: f.min, max: f.max, setMin: (e) => setF(Object.assign({}, useDraft ? (this.state.draft || this.state.f) : this.state.f, { min: e.target.value.replace(/[^\d.]/g, '') })), setMax: (e) => setF(Object.assign({}, useDraft ? (this.state.draft || this.state.f) : this.state.f, { max: e.target.value.replace(/[^\d.]/g, '') })) });
+    const allFacets = (f) => ({ st: listFacet('st', '狀態', STS, f), owner: listFacet('owner', '負責人', OWNERS.map((o) => [o, o]), f), due: listFacet('due', '截止日', DUE, f, 'due'), budget: rangeFacet(f) });
+    const AF = allFacets(draft);
+    const facets = [AF.st, AF.owner, AF.due, AF.budget];
+    // applied
+    const f = st.f;
+    const rows0 = base.filter((d) => this.matches(d, f, st.q));
+    const hide = st.colMenu === 'yes' ? st.hide : {};
+    const vis = COLS.filter(([k]) => !hide[k]);
+    const cols = vis.map(([k, t, w, g]) => 'minmax(' + w + 'px, ' + g + 'fr)').join(' ');
+    const minW = vis.reduce((a, c) => a + c[2], 0) + 'px';
+    const stickyOn = st.sticky === 'yes';
+    const stickCell = (i) => stickyOn && i === 0 ? { pos: 'sticky', z: 2, sh: '1px 0 0 ' + C.line + ', 6px 0 8px -6px rgba(0,0,0,.18)' } : { pos: 'relative', z: 1, sh: 'none' };
+    const qq = st.q;
+    const hlOn = st.search === 'all' && qq;
+    const cellFor = (d, k) => {
+      const num = k === 'budget' || k === 'prog';
+      let v = k === 'name' ? d.name : k === 'owner' ? d.owner : k === 'st' ? STS.find((x) => x[0] === d.st)[1] : k === 'due' ? fd(d.due) : k === 'budget' ? money(d.budget) : d.prog + '%';
+      const hl = (k === 'name' || hlOn) && qq && typeof v === 'string' && v.indexOf(qq) >= 0 && k !== 'st';
+      const ix = hl ? v.indexOf(qq) : -1;
+      const overdue = k === 'due' && dueOf(d.due) === 'overdue' && d.st !== 'done';
+      return { v, isBadge: k === 'st', isHl: hl, isPlain: !hl && k !== 'st', pre: hl ? v.slice(0, ix) : '', hit: hl ? qq : '', post: hl ? v.slice(ix + qq.length) : '', jc: num ? 'flex-end' : 'flex-start', fw: k === 'name' ? 600 : 400, ff: (k === 'due' || num) ? "'Geist Mono', 'Noto Sans TC', monospace" : 'inherit', fg: overdue ? C.danger : (k === 'owner' ? C.muted : C.ink), dot: { draft: C.muted, doing: '#2457d6', review: '#d68710', done: '#1ca655', fail: '#cd2823' }[d.st] };
+    };
+    const rows = rows0.map((d, ri) => ({ bg: ri % 2 ? C.zebra : C.card, cells: vis.map(([k], i) => Object.assign(cellFor(d, k), stickCell(i))) }));
+    const filterKeys = { st: 1, owner: 1, due: 1, budget: 1 };
+    const heads = vis.map(([k, t], i) => { const canF = st.entry === 'column' && filterKeys[k]; const open = st.colOpen === i; const act = k === 'budget' ? (f.min || f.max) : (f[k] && f[k].length); return Object.assign({ t, jc: (k === 'budget' || k === 'prog') ? 'flex-end' : 'flex-start', filter: !!canF, open, aria: String(open), fLabel: '篩選' + t, fBg: act ? C.accentSoft : 'transparent', fFg: act ? C.accentText : C.muted, side: i > vis.length / 2 ? 'right' : 'left', facets: canF ? [AF[k]] : [], toggle: () => this.setState({ colOpen: open ? -1 : i, pop: false }) }, stickCell(i)); });
+    const sum = rows0.reduce((a, d) => a + d.budget, 0), avg = rows0.length ? Math.round(rows0.reduce((a, d) => a + d.prog, 0) / rows0.length) : 0;
+    const totals = vis.map(([k], i) => Object.assign({ v: k === 'name' ? '合計 ' + rows0.length + ' 筆' : k === 'budget' ? money(sum) : k === 'prog' ? '平均 ' + avg + '%' : '', jc: (k === 'budget' || k === 'prog') ? 'flex-end' : 'flex-start', ff: (k === 'budget' || k === 'prog') ? "'Geist Mono', 'Noto Sans TC', monospace" : 'inherit' }, stickCell(i)));
+    const applied = [];
+    const lab = (key, v) => key === 'st' ? STS.find((x) => x[0] === v)[1] : key === 'due' ? DUE.find((x) => x[0] === v)[1] : v;
+    [['st', '狀態'], ['owner', '負責人'], ['due', '截止日']].forEach(([key, t]) => { if (f[key].length) applied.push({ k: t, v: f[key].map((v) => lab(key, v)).join('、'), rmLabel: '移除' + t + '條件', rm: () => { const nf = Object.assign({}, this.state.f); nf[key] = []; this.setState({ f: nf, draft: null }); } }); });
+    if (f.min || f.max) applied.push({ k: '預算', v: (f.min ? 'NT$ ' + f.min + ' 萬' : '') + ' – ' + (f.max ? 'NT$ ' + f.max + ' 萬' : ''), rmLabel: '移除預算條件', rm: () => this.setState({ f: Object.assign({}, this.state.f, { min: '', max: '' }), draft: null }) });
+    const activeN = applied.length;
+    const stChips = [['all', '全部']].concat(STS).map(([v, t]) => { const on = v === 'all' ? !f.st.length : f.st.indexOf(v) >= 0; return { t, n: String(v === 'all' ? base.filter((d) => this.matches(d, Object.assign({}, f, { st: [] }), st.q)).length : countFor('st', v, f)), aria: String(on), bd: on ? '#2457d6' : C.line, bg: on ? '#2457d6' : C.card, fg: on ? '#fff' : C.ink, pick: () => { if (v === 'all') this.setState({ f: Object.assign({}, this.state.f, { st: [] }) }); else toggleIn('st', v); } }; });
+    const V = [['all', '全部'], ['mine', '我負責的'], ['week', '本週到期'], ['review', '待審核']];
+    const views = V.map(([id, t]) => { const on = st.view === id; const n = DATA.filter((d) => id === 'all' ? true : id === 'mine' ? d.owner === '王小明' : id === 'week' ? ['overdue', 'week'].indexOf(dueOf(d.due)) >= 0 : d.st === 'review').length; return { t, n: String(n), on, aria: String(on), fg: on ? C.ink : C.muted, fw: on ? 700 : 400, pick: () => this.setState({ view: id }) }; });
+    const params = [];
+    if (st.view !== 'all') params.push('view=' + st.view);
+    if (st.q) params.push('q=' + encodeURIComponent(st.q));
+    ['st', 'owner', 'due'].forEach((k) => { if (f[k].length) params.push({ st: 'status', owner: 'owner', due: 'due' }[k] + '=' + f[k].map(encodeURIComponent).join(',')); });
+    if (f.min) params.push('budget_min=' + f.min * 10000); if (f.max) params.push('budget_max=' + f.max * 10000);
+    const draftCount = base.filter((d) => this.matches(d, draft, st.q)).length;
+    const colToggles = COLS.map(([k, t]) => { const on = !hide[k]; const lock = k === 'name'; return { t: lock ? t + '（固定）' : t, aria: String(on), lock, bd: on ? '#2457d6' : C.lineStrong, bg: on ? '#2457d6' : 'transparent', mark: on ? '✓' : '', fg: lock ? C.muted : C.ink, toggle: () => { if (lock) return; const h2 = Object.assign({}, this.state.hide); h2[k] = !h2[k]; this.setState({ hide: h2 }); } }; });
+    const N = { entry: { chips: '上方膠囊', popover: '篩選按鈕', column: '欄位標題', panel: '左側面板' }, multi: { multi: '可以多選', single: '只能選一個' }, applied: { chips: '條件標籤列', count: '按鈕上顯示數量', none: '不另外顯示' }, apply: { instant: '勾選就生效', button: '按套用才生效' }, counts: { yes: '顯示筆數', no: '不顯示筆數' }, search: { name: '只搜名稱', all: '搜所有欄位並標示' }, result: { show: '顯示結果筆數', hide: '不顯示結果筆數' }, empty: { clear: '一句話加清除篩選', text: '只有一句話' }, views: { yes: '有常用檢視', no: '沒有常用檢視' }, url: { yes: '條件寫進網址', no: '不保存條件' }, colMenu: { yes: '有欄位顯示設定', no: '沒有欄位設定' }, sticky: { yes: '固定第一欄', no: '不固定第一欄' }, total: { yes: '有合計列', no: '沒有合計列' } };
+    return {
+      sections, c: C, dkCls: st.dark ? 'dk' : '', themeBtns: THEMEBTNS(this, st),
+      stop: (e) => { e && e.stopPropagation && e.stopPropagation(); }, closeAll: () => { if (this.state.pop || this.state.colOpen >= 0 || this.state.colsOpen) this.setState({ pop: false, colOpen: -1, colsOpen: false, draft: null }); },
+      colMenuOn: st.colMenu === 'yes', colsOpen: st.colsOpen, colsAria: String(st.colsOpen), toggleCols: () => this.setState({ colsOpen: !this.state.colsOpen, pop: false }), colToggles,
+      viewsOn: st.views === 'yes', views,
+      searchPh: st.search === 'all' ? '搜尋名稱、負責人、狀態、日期' : '搜尋專案名稱', q: st.q, setQ: (e) => this.setState({ q: e.target.value }),
+      entryChips: st.entry === 'chips', stChips, showCounts: st.counts === 'yes',
+      entryPop: st.entry === 'popover', popOpen: st.pop, popAria: String(st.pop), popBg: st.pop ? C.sub : 'transparent', togglePop: () => this.setState({ pop: !this.state.pop, draft: null, colOpen: -1 }),
+      btnCount: activeN > 0 && st.applied !== 'none', activeN: String(activeN), facets, facetCols: st.entry === 'panel' ? '1fr' : 'repeat(2, minmax(0, 1fr))',
+      applyBtn: useDraft, draftCount: String(draftCount), applyDraft: () => this.setState({ f: this.state.draft || this.state.f, draft: null, pop: false }), clearDraft: () => this.setState({ draft: EMPTYF() }),
+      entryPanel: st.entry === 'panel',
+      resultOn: st.result === 'show', resultText: rows0.length + ' / ' + base.length + ' 筆',
+      appliedOn: st.applied === 'chips' && st.entry !== 'chips' && activeN > 0, applied, clearAll: () => this.setState({ f: EMPTYF(), q: '', draft: null }),
+      minW, cols, heads, rows, totalOn: st.total === 'yes' && rows0.length > 0, totals,
+      empty: rows0.length === 0, emptyClear: st.empty === 'clear',
+      urlOn: st.url === 'yes', urlText: 'https://example.com/projects' + (params.length ? '?' + params.join('&') : ''),
+      summary: ['入口 ' + N.entry[st.entry], N.multi[st.multi], '已套用 ' + N.applied[st.applied], N.apply[st.apply], N.counts[st.counts], N.search[st.search], N.result[st.result], '沒有結果 ' + N.empty[st.empty], N.views[st.views], N.url[st.url], N.colMenu[st.colMenu], N.sticky[st.sticky], N.total[st.total]].join(' · ')
+    };
+  }
+}
+
+</script>
+</body>
+</html>

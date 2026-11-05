@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>階層清單實驗室</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.opt{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.opt:hover{transform:translateY(-2px)}
+.hv:hover{background:#f6f5f4 !important}
+.dk .hv:hover{background:#443f3b !important}
+.row:not(.on):hover{background:#f6f5f4 !important}
+.dk .row:not(.on):hover{background:#443f3b !important}
+.tv{container-type:inline-size}
+.mauto .mc{display:none}
+@container (min-width: 640px){.mauto .mb{display:none}.mauto .mc{display:block}}
+.row:focus-visible{outline:none;box-shadow:inset 0 0 0 2px #2457d6}
+.row .act{transition:opacity .12s ease}
+.acthover .row .act{opacity:0}
+.acthover .row:hover .act,.acthover .row:focus-within .act,.acthover .row:focus .act{opacity:1}
+@keyframes grow0{from{opacity:0;max-height:0;transform:translateY(-6px)}to{opacity:1;max-height:72px;transform:none}}
+@keyframes grow1{from{opacity:0;max-height:0;transform:translateY(-6px)}to{opacity:1;max-height:72px;transform:none}}
+@keyframes fade0{from{opacity:0}to{opacity:1}}
+@keyframes fade1{from{opacity:0}to{opacity:1}}
+.an-grow0{overflow:hidden;animation:grow0 .26s cubic-bezier(.2,.8,.2,1) both}
+.an-grow1{overflow:hidden;animation:grow1 .26s cubic-bezier(.2,.8,.2,1) both}
+.an-fade0{animation:fade0 .2s ease both}.an-fade1{animation:fade1 .2s ease both}
+.caret{transition:transform .2s cubic-bezier(.2,.8,.2,1)}
+@media (prefers-reduced-motion: reduce){.an-grow0,.an-grow1{animation:fade0 .15s ease both}.caret{transition:none}}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #f6f5f4; color: #171512; font-family: Inter, 'Noto Sans TC', sans-serif; font-size: 15px; line-height: 1.55">
+<main style="max-width: 1400px; margin: 0 auto; padding: 40px 32px 56px">
+<div style="font-family: 'Geist Mono', 'Noto Sans TC', monospace; font-size: 13px; font-weight: 600; color: #6d645a">深入 17 · 階層清單</div>
+<h1 style="margin: 6px 0 0; font-size: 39px; line-height: 1.2; font-weight: 700; letter-spacing: -.01em">階層清單實驗室</h1>
+<p style="margin: 8px 0 0; color: #6d645a; max-width: 900px">資料夾裡放檔案、可以一層層展開的清單，用課程教材當例子。右邊的清單可以點資料夾展開、勾選、用鍵盤操作、按下載。選好後把最下方的設定給我。</p>
+
+<div style="margin-top: 28px; display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start">
+
+<div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{sections}}" as="sec" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 18px; font-weight: 700; padding-top: 6px">{{sec.title}}</div>
+<sc-for list="{{sec.groups}}" as="g" hint-placeholder-count="2">
+<section style="padding: 16px; background: #ffffff; border: 1px solid #e2dfdc; border-radius: 10px">
+<div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; color: #ffffff; background: #171512; padding: 1px 7px; border-radius: 4px">{{g.no}}</span>
+<span style="font-size: 16px; font-weight: 700">{{g.label}}</span>
+</div>
+<p style="margin: 6px 0 0; font-size: 13px; color: #6d645a">{{g.desc}}</p>
+<div style="margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px">
+<sc-for list="{{g.opts}}" as="o" hint-placeholder-count="3">
+<button class="opt" type="button" onClick="{{o.pick}}" aria-pressed="{{o.pressed}}" style="display: flex; flex-direction: column; gap: 8px; padding: 10px; min-height: 44px; text-align: left; background: #ffffff; border: {{o.border}}; border-radius: 8px; font: inherit; color: #171512; box-shadow: {{o.ring}}">
+<span aria-hidden="true" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; box-sizing: border-box; padding: 6px; border-radius: 4px; background: #f6f5f4; font-size: 12px; color: #6d645a; text-align: center">
+<sc-for list="{{o.marks}}" as="mk" hint-placeholder-count="2"><span style="display: inline-flex; align-items: center; justify-content: center; width: {{mk.w}}; height: {{mk.h}}; box-sizing: border-box; border-radius: {{mk.r}}; background: {{mk.bg}}; border: {{mk.bd}}; color: {{mk.fg}}; font-size: 11px; font-weight: 700; box-shadow: {{mk.sh}}">{{mk.t}}</span></sc-for>
+<sc-for list="{{o.imgs}}" as="im" hint-placeholder-count="0"><img src="{{im}}" width="22" height="22" alt="" style="display: block"></sc-for>
+<sc-if value="{{o.hasText}}" hint-placeholder-val="{{ false }}"><span style="white-space: pre-line; line-height: 1.4">{{o.text}}</span></sc-if>
+</span>
+<span style="font-size: 13px; font-weight: 700">{{o.name}}</span>
+<span style="font-size: 12px; color: #6d645a; line-height: 1.4">{{o.note}}</span>
+</button>
+</sc-for>
+</div>
+</section>
+</sc-for>
+</div>
+</sc-for>
+</div>
+
+<div style="flex: 1 1 720px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<span style="font-size: 13px; font-weight: 700">預覽主題</span>
+<sc-for list="{{themeBtns}}" as="tb" hint-placeholder-count="2">
+<button type="button" onClick="{{tb.pick}}" aria-pressed="{{tb.pressed}}" style="min-height: 44px; padding: 0 14px; border: 1px solid {{tb.bd}}; background: {{tb.bg}}; color: {{tb.fg}}; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{tb.t}}</button>
+</sc-for>
+</div>
+
+<div class="pv {{dkCls}}" style="background: {{c.page}}; color: {{c.ink}}; border: 1px solid #cfcac4; border-radius: 12px; padding: 20px; font-size: 15px; line-height: 1.45">
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px"><span style="font-size: 13px; font-weight: 700">預覽寬度</span><sc-for list="{{wBtns}}" as="wb" hint-placeholder-count="2"><button type="button" onClick="{{wb.pick}}" aria-pressed="{{wb.pressed}}" style="min-height: 36px; padding: 0 12px; border: 1px solid {{wb.bd}}; background: {{wb.bg}}; color: {{wb.fg}}; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{wb.t}}</button></sc-for></div>
+<section class="tv {{actCls}} {{metaCls}}" style="max-width: {{pvMax}}; margin: 0 auto; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}; overflow: hidden">
+<sc-if value="{{noSel}}" hint-placeholder-val="{{ true }}"><div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 67px; box-sizing: border-box; padding: 16px 20px; border-bottom: 1px solid {{c.line}}; flex-wrap: wrap">
+<div style="font-size: 20px; font-weight: 700">課程教材</div>
+<div style="display: flex; gap: 6px; align-items: center"><sc-if value="{{showToggleAll}}" hint-placeholder-val="{{ true }}"><button type="button" class="hv" onClick="{{toggleAll}}" style="height: 34px; padding: 0 12px; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: transparent; color: {{c.ink}}; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{toggleAllText}}</button></sc-if></div>
+</div></sc-if>
+<sc-if value="{{hasSel}}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 8px; min-height: 67px; box-sizing: border-box; padding: 16px 20px; border-bottom: 1px solid {{c.line}}; background: {{c.accentSoft}}; flex-wrap: wrap"><div style="flex: 1 1 auto; font-weight: 700">{{selText}}<span style="margin-left: 8px; font-weight: 400; font-size: 13px; color: {{c.muted}}; font-family: 'Geist Mono', 'Noto Sans TC', monospace">{{selSize}}</span></div><button type="button" class="hv" onClick="{{clearSel}}" style="height: 34px; padding: 0 12px; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: transparent; color: {{c.ink}}; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">清除選取</button><button type="button" class="hv" onClick="{{dlSel}}" style="height: 34px; padding: 0 14px; border: 0; border-radius: 10px; background: {{accent}}; color: {{onAccent}}; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">下載</button></div></sc-if>
+<sc-if value="{{crumbMode}}" hint-placeholder-val="{{ false }}"><nav aria-label="路徑" style="display: flex; align-items: center; gap: 6px; padding: 10px 20px; border-bottom: 1px solid {{c.line}}; font-size: 14px"><sc-for list="{{crumbs}}" as="cb" hint-placeholder-count="2"><sc-if value="{{cb.sep}}" hint-placeholder-val="{{ false }}"><span style="color: {{c.muted}}">›</span></sc-if><sc-if value="{{cb.last}}" hint-placeholder-val="{{ false }}"><span aria-current="page" style="font-weight: 700">{{cb.t}}</span></sc-if><sc-if value="{{cb.link}}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{cb.go}}" style="border: 0; padding: 0; background: transparent; color: {{c.accentText}}; font: inherit; font-weight: 600; cursor: pointer">{{cb.t}}</button></sc-if></sc-for></nav></sc-if>
+<div role="tree" aria-label="課程教材" onKeyDown="{{onKey}}">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="12">
+<div class="row {{r.an}} {{r.onCls}}" onMouseEnter="{{r.enter}}" onMouseLeave="{{r.leave}}" onBlur="{{r.blur}}" role="treeitem" tabindex="{{r.tab}}" aria-level="{{r.level}}" aria-expanded="{{r.ariaExp}}" aria-selected="false" data-rk="{{r.key}}" onClick="{{r.click}}" onFocus="{{r.focus}}" style="position: relative; display: flex; align-items: center; gap: 12px; min-height: {{r.h}}; padding: 6px 16px 6px {{r.pad}}; border-top: {{r.bt}}; background: {{r.bg}}; cursor: pointer">
+<sc-for list="{{r.guides}}" as="gd" hint-placeholder-count="0"><span aria-hidden="true" style="position: absolute; top: 0; bottom: 0; left: {{gd}}; width: 1px; background: {{c.line}}"></span></sc-for>
+<sc-if value="{{r.ckShow}}" hint-placeholder-val="{{ false }}"><span role="checkbox" aria-checked="{{r.ckAria}}" aria-label="{{r.ckLabel}}" onClick="{{r.ckClick}}" style="position: absolute; left: 8px; top: 50%; margin-top: -18px; width: 36px; height: 36px; opacity: {{r.ckOp}}; transition: opacity .12s ease; display: flex; align-items: center; justify-content: center; cursor: pointer"><span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 5px; border: 2px solid {{r.ckBd}}; background: {{r.ckBg}}; color: {{onAccent}}; display: flex; align-items: center; justify-content: center"><sc-if value="{{r.ckOn}}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if><sc-if value="{{r.ckMix}}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 12h12"></path></svg></sc-if></span></span></sc-if>
+<sc-if value="{{r.isFolder}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" class="caret" style="flex: 0 0 16px; display: flex; color: {{c.muted}}; transform: {{r.caret}}; visibility: {{r.caretVis}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></span></sc-if>
+<sc-if value="{{r.icStd}}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: {{r.icW}}; height: 28px; border-radius: 6px; background: {{r.icBg}}; color: {{r.icC}}; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 700">
+<sc-if value="{{r.icSvg}}" hint-placeholder-val="{{ true }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{r.icPath}}"></path></svg></sc-if><sc-if value="{{r.icText}}" hint-placeholder-val="{{ false }}">{{r.ext}}</sc-if></span></sc-if>
+<sc-if value="{{r.icDoc}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position: relative; flex: 0 0 30px; width: 30px; height: 36px; color: {{c.muted}}"><svg width="30" height="36" viewBox="0 0 30 36" fill="{{c.card}}" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M5 1.5h15l7.5 7.5v25.5H5z"></path><path d="M20 1.5V9h7.5" fill="none"></path></svg><span style="position: absolute; left: 0; bottom: 5px; min-width: 22px; padding: 0 3px; border-radius: 3px; background: {{r.icC}}; color: #fff; font-family: 'Geist Mono', monospace; font-size: 9px; font-weight: 700; line-height: 14px; text-align: center">{{r.ext}}</span></span></sc-if>
+<sc-if value="{{r.icThumbV}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position: relative; flex: 0 0 64px; width: 64px; height: 36px; border-radius: 6px; background: {{r.thBg}}; display: flex; align-items: center; justify-content: center; color: #fff; overflow: hidden"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg><span style="position: absolute; right: 3px; bottom: 3px; padding: 0 4px; border-radius: 3px; background: rgba(0,0,0,.62); font-family: 'Geist Mono', monospace; font-size: 9px; line-height: 13px">{{r.dur}}</span></span></sc-if>
+<sc-if value="{{r.icThumbP}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="flex: 0 0 64px; display: flex; align-items: center; justify-content: center"><span style="width: {{r.pgW}}; height: {{r.pgH}}; box-sizing: border-box; border: 1px solid #cfcac4; border-radius: 3px; background: #fff; padding: 5px 4px 0; display: flex; flex-direction: column; gap: 3px; overflow: hidden"><span style="height: 4px; width: 70%; border-radius: 1px; background: {{r.icC}}"></span><span style="height: 2px; background: #dcd7d1"></span><span style="height: 2px; background: #dcd7d1"></span><span style="height: 2px; width: 60%; background: #dcd7d1"></span></span></span></sc-if>
+<div style="flex: 1 1 auto; min-width: 0">
+<div style="display: flex; align-items: center; gap: 8px; min-width: 0"><span style="font-weight: {{r.fw}}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{r.name}}</span>
+<sc-if value="{{r.newChip}}" hint-placeholder-val="{{ false }}"><span style="flex: 0 0 auto; height: 20px; padding: 0 7px; border-radius: 99px; background: {{c.accentSoft}}; color: {{c.accentText}}; font-size: 11px; font-weight: 700; line-height: 20px">新</span></sc-if>
+<sc-if value="{{r.newDot}}" hint-placeholder-val="{{ false }}"><span aria-label="新" style="flex: 0 0 auto; width: 8px; height: 8px; border-radius: 99px; background: {{accent}}"></span></sc-if>
+<sc-if value="{{r.newCount}}" hint-placeholder-val="{{ false }}"><span style="flex: 0 0 auto; font-size: 12px; font-weight: 700; color: {{c.accentText}}">{{r.newCountText}}</span></sc-if>
+<sc-if value="{{r.countInline}}" hint-placeholder-val="{{ false }}"><span style="flex: 0 0 auto; font-size: 13px; color: {{c.muted}}; font-family: 'Geist Mono', 'Noto Sans TC', monospace">{{r.count}}</span></sc-if></div>
+<sc-if value="{{r.metaBelow}}" hint-placeholder-val="{{ true }}"><div class="mb" style="font-size: 13px; color: {{c.muted}}; font-family: 'Geist Mono', 'Noto Sans TC', monospace"><span style="color: {{r.dateC}}; font-weight: {{r.dateW}}">{{r.date}}</span> · {{r.size}}</div></sc-if>
+</div>
+<sc-if value="{{r.colsRight}}" hint-placeholder-val="{{ false }}"><span class="mc" style="flex: 0 0 150px; font-size: 13px; color: {{r.dateC}}; font-weight: {{r.dateW}}; font-family: 'Geist Mono', 'Noto Sans TC', monospace; white-space: nowrap">{{r.date}}</span><span class="mc" style="flex: 0 0 72px; text-align: right; font-size: 13px; color: {{c.muted}}; font-family: 'Geist Mono', monospace; white-space: nowrap">{{r.size}}</span></sc-if>
+<sc-if value="{{r.folderRight}}" hint-placeholder-val="{{ false }}"><span style="flex: 0 0 auto; font-size: 13px; color: {{r.dateC}}; font-weight: {{r.dateW}}; font-family: 'Geist Mono', 'Noto Sans TC', monospace; white-space: nowrap">{{r.right}}</span></sc-if>
+<sc-if value="{{r.showAct}}" hint-placeholder-val="{{ false }}"><button type="button" class="act hv" onClick="{{r.download}}" aria-label="{{r.dlLabel}}" tabindex="-1" style="flex: 0 0 36px; width: 36px; height: 36px; border: 0; border-radius: 8px; background: transparent; color: {{c.muted}}; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M4 20h16"></path></svg></button></sc-if>
+</div>
+</sc-for>
+</div>
+</section>
+<div style="margin-top: 10px; min-height: 20px; font-size: 13px; color: {{c.muted}}">{{note}}</div>
+<div style="font-size: 13px; color: {{c.muted}}">鍵盤：↑ ↓ 移動，→ 展開，← 收合或回到上一層，Enter 打開。</div>
+</div>
+
+</div>
+</div>
+
+<section style="margin-top: 24px; padding: 14px 18px; border: 1px dashed #aca49a; border-radius: 8px; font-size: 13px; color: #6d645a">
+<span style="color: #171512; font-weight: 700">目前設定</span>　{{summary}}
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":4600}}'>
+
+const PAL = (dark) => dark
+  ? { page: '#2f2a25', card: '#393530', chrome: '#35302c', ink: '#f6f5f4', muted: '#b3aba2', line: '#4c4844', lineStrong: '#8c8073', sub: '#443f3b', zebra: '#3e3a35', input: '#26221e', accentSoft: '#2d344c', accentText: '#819ee7', danger: '#f08a80', dangerSolid: '#e5544d', success: '#5cc98a', shadow: '0 1px 2px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.55)', overlay: '0 2px 6px rgba(0,0,0,.5), 0 16px 40px rgba(0,0,0,.55)' }
+  : { page: '#fcfbfb', card: '#ffffff', chrome: '#ffffff', ink: '#171512', muted: '#6d645a', line: '#e2dfdc', lineStrong: '#8c8073', sub: '#f6f5f4', zebra: '#f9f8f7', input: '#ffffff', accentSoft: '#e5ebfa', accentText: '#2457d6', danger: '#c4322b', dangerSolid: '#cd2823', success: '#1b7f4b', shadow: '0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.1)', overlay: '0 2px 6px rgba(16,24,40,.08), 0 16px 40px rgba(16,24,40,.16)' };
+const MK = (self, st, onPick) => {
+  const on = (k, id) => String(st[k]) === String(id);
+  const M = (o) => Object.assign({ t: '', w: '20px', h: '20px', r: '4px', bg: 'transparent', bd: '0', fg: '#171512', sh: 'none' }, o);
+  const mk = (k, list) => list.map((o) => Object.assign({ marks: [], imgs: [], hasText: !!o.text, text: o.text || '' }, o, { pressed: on(k, o.id) ? 'true' : 'false', border: on(k, o.id) ? '1px solid #171512' : '1px solid #e2dfdc', ring: on(k, o.id) ? '0 0 0 2px #171512' : 'none', pick: () => { const ns = { [k]: o.id }; if (onPick) Object.assign(ns, onPick(k, o.id)); self.setState(ns); } }));
+  return { M, mk };
+};
+const THEMEBTNS = (self, st) => [['淺色', false], ['深色', true]].map(([t, d]) => ({ t, pressed: st.dark === d ? 'true' : 'false', bg: st.dark === d ? '#171512' : '#ffffff', fg: st.dark === d ? '#ffffff' : '#171512', bd: st.dark === d ? '#171512' : '#cfcac4', pick: () => self.setState({ dark: d }) }));
+
+
+const NOW = new Date(2026, 10, 5, 14, 31);
+const IC = {"video": "M4 5h12v14H4zM16 10l4-3v10l-4-3", "pdf": "M14 3H6v18h12V7zM14 3v4h4M8 13h8M8 17h5", "ppt": "M14 3H6v18h12V7zM14 3v4h4M9 17v-5h2.5a1.5 1.5 0 0 1 0 3H9", "doc": "M14 3H6v18h12V7zM14 3v4h4M8 13h8M8 17h8", "zip": "M14 3H6v18h12V7zM14 3v4h4M11 9h2M11 12h2M11 15h2", "folder": "M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z", "folderOpen": "M3 6a1 1 0 0 1 1-1h5l2 2h8a1 1 0 0 1 1 1v2H7l-3 9H4a1 1 0 0 1-1-1zM7 10h15l-3 9H4z"};
+const D = (m, d, h, mi) => new Date(2026, m - 1, d, h || 9, mi || 0);
+const TREE = [
+  { id: 'rec', name: '上課錄影', kind: 'folder', date: D(11, 5, 1, 16), children: [
+    { id: 'r1', name: 'SDNFV_20260917_Lab1說明.mp4', type: 'video', date: D(10, 3), size: 42.2, dur: '28:14' },
+    { id: 'r2', name: 'SDNFV_20261008_1.mp4', type: 'video', date: D(10, 9), size: 82.2, dur: '1:12:40' },
+    { id: 'r3', name: 'SDNFV_20261022_Lab3說明.mp4', type: 'video', date: D(10, 23), size: 54.9, dur: '41:05' },
+    { id: 'r4', name: 'SDNFV_20261029_1.mp4', type: 'video', date: D(11, 5, 1, 16), size: 137.6, dur: '1:48:22', isNew: true },
+    { id: 'r5', name: 'SDNFV_20261029_2.mp4', type: 'video', date: D(11, 5, 1, 12), size: 107.7, dur: '1:31:07', isNew: true }
+  ] },
+  { id: 'lec', name: '上課講義', kind: 'folder', date: D(11, 1), children: [
+    { id: 'l0', name: 'Lecture00 - Syllabus.pdf', type: 'pdf', date: D(9, 22), size: .67 },
+    { id: 'l1', name: 'Lecture01 - Foundations The Packets Journey.pdf', type: 'pdf', date: D(10, 1), size: 3.7 },
+    { id: 'l3', name: 'Lecture03 - Software-Defined Networking.pdf', type: 'pdf', date: D(10, 22), size: 3.2 },
+    { id: 'l4', name: 'Lecture04 - Kernel Datapath Tuning.pdf', type: 'pdf', date: D(11, 1), size: 1.8, isNew: true }
+  ] },
+  { id: 'lab', name: 'Lab', kind: 'folder', date: D(10, 23), children: [
+    { id: 'lab1', name: 'Lab 1', kind: 'folder', date: D(9, 17), children: [{ id: 'lab1a', name: 'lab1-SDN-controller.pptx', type: 'ppt', date: D(9, 17), size: .186 }] },
+    { id: 'lab2', name: 'Lab 2', kind: 'folder', date: D(10, 19), children: [{ id: 'lab2a', name: 'lab2-measure-intro.pdf', type: 'pdf', date: D(10, 19), size: .496 }, { id: 'lab2b', name: 'lab2-template.zip', type: 'zip', date: D(10, 19), size: 2.4 }] },
+    { id: 'lab3', name: 'Lab 3', kind: 'folder', date: D(10, 23), children: [{ id: 'lab3a', name: 'lab3-vrouter-intro.pdf', type: 'pdf', date: D(10, 23), size: .491 }] }
+  ] },
+  { id: 'f1', name: '課程評分方式.docx', type: 'doc', date: D(9, 22), size: .052 }
+];
+const TYPE = { video: ['影片', 'MP4', '#7a4fd6', '#efe9fb'], pdf: ['PDF', 'PDF', '#cd2823', '#fbe7e5'], ppt: ['簡報', 'PPT', '#c4600f', '#fbeedf'], doc: ['文件', 'DOC', '#2457d6', '#e5ebfa'], zip: ['壓縮檔', 'ZIP', '#6d645a', '#f0eeec'] };
+const pad = (n) => String(n).padStart(2, '0');
+const WD = ['日', '一', '二', '三', '四', '五', '六'];
+const fdate = (d) => d.getFullYear() + '/' + pad(d.getMonth() + 1) + '/' + pad(d.getDate()) + '（' + WD[d.getDay()] + '）';
+const rel = (d) => { const s = (NOW - d) / 1000; if (s < 3600) return Math.max(1, Math.floor(s / 60)) + ' 分鐘前'; if (s < 86400) return Math.floor(s / 3600) + ' 小時前'; if (s < 172800) return '昨天'; if (s < 604800) return Math.floor(s / 86400) + ' 天前'; return fdate(d); };
+const size = (mb) => mb >= 1 ? mb.toFixed(1) + ' MB' : Math.round(mb * 1024) + ' KB';
+const countFiles = (n) => n.children ? n.children.reduce((a, c) => a + countFiles(c), 0) : 1;
+const hasNew = (n) => n.children ? n.children.some(hasNew) : !!n.isNew;
+const UNSEEN0 = { r4: 1, r5: 1, l4: 1, lab3a: 1, lab2b: 1 };
+const THB = ['linear-gradient(135deg,#4b5d84,#262d40)', 'linear-gradient(135deg,#6a5a8c,#2f2840)', 'linear-gradient(135deg,#3f6f6a,#1f3532)', 'linear-gradient(135deg,#7a5e45,#3a2b20)', 'linear-gradient(135deg,#55606b,#22282e)'];
+const filesOf = (n) => n.children ? n.children.reduce((a, c) => a.concat(filesOf(c)), []) : [n];
+const find = (id, list, path) => { for (const n of list) { const p = path.concat([n]); if (n.id === id) return p; if (n.children) { const r = find(id, n.children, p); if (r) return r; } } return null; };
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { struct: 'guide', expand: 'click', anim: 'grow', folderInfo: 'both', icon: 'doc', newMark: 'date', act: 'always', nest: 'tree', sort: 'date', dark: false, open: { rec: true, lec: true }, justOpened: {}, animN: 0, cwd: null, focusKey: 'rec', note: '', newRule: 'unseen', folderNew: 'count', select: 'hover', selFolder: 'all', sel: {}, seen: {}, hoverKey: null, focused: null, pvW: 'full', meta: 'auto' };
+  }
+  componentDidUpdate() { if (this.wantFocus) { const k = this.wantFocus; this.wantFocus = null; try { const el = document.querySelector('[data-rk="' + k + '"]'); if (el) el.focus(); } catch (e) {} } }
+  toggle(id) {
+    const st = this.state, open = Object.assign({}, st.open);
+    const willOpen = !open[id];
+    if (st.expand === 'accordion' && willOpen) { const path = find(id, TREE, []); const sib = path.length > 1 ? path[path.length - 2].children : TREE; sib.forEach((n) => { if (n.id !== id) open[n.id] = false; }); }
+    open[id] = willOpen;
+    this.setState({ open, justOpened: willOpen ? { [id]: true } : {}, animN: st.animN + 1 });
+  }
+  renderVals() {
+    const st = this.state;
+    const C = PAL(st.dark);
+    const A = st.dark ? '#819ee7' : '#2457d6';
+    const { M, mk } = MK(this, st, (k, v) => ({ cwd: null, justOpened: {}, open: k === 'expand' && v === 'always' ? {} : this.state.open, sel: k === 'select' || k === 'selFolder' ? {} : this.state.sel, seen: k === 'newRule' ? {} : this.state.seen }));
+    const sections = [
+      { title: '結構', groups: [
+        { no: 'H1', label: '層級的呈現', desc: '子項目怎麼表示它屬於哪個資料夾。', opts: mk('struct', [
+          { id: 'guide', name: '縮排加左側線', note: '附圖的做法，層級最清楚', text: '▸ 資料夾\n┃ 檔案\n┃ 檔案' },
+          { id: 'indent', name: '只有縮排', note: '比較乾淨', text: '▸ 資料夾\n　檔案\n　檔案' },
+          { id: 'section', name: '第一層當區塊標題', note: '資料夾之間用分隔線隔開，像附圖的大分區', text: '━ 資料夾 ━\n檔案\n━ 資料夾 ━' }
+        ]) },
+        { no: 'H2', label: '子資料夾', desc: '「Lab」裡面還有 Lab 1、Lab 2、Lab 3。', opts: mk('nest', [
+          { id: 'tree', name: '巢狀展開', note: '在同一個清單裡一層層展開', text: '▾ Lab\n　▸ Lab 1\n　▸ Lab 2' },
+          { id: 'crumb', name: '點進下一層', note: '像檔案總管，上方有路徑可以回去', text: '教材 › Lab\n▸ Lab 1' }
+        ]) },
+        { no: 'H3', label: '排序', desc: '看情況選。資料夾一律排在檔案前面。', opts: mk('sort', [
+          { id: 'date', name: '新到舊', note: '最新的教材在最上面', text: '11/05\n10/23\n10/09' },
+          { id: 'old', name: '舊到新', note: '照上課順序', text: '10/09\n10/23\n11/05' },
+          { id: 'name', name: '名稱', note: '依檔名排序', text: 'A\nB\nC' }
+        ]) }
+      ] },
+      { title: '展開', groups: [
+        { no: 'E1', label: '展開方式', desc: '看情況：需要一次看到全部時用「點資料夾展開或收合」，資料夾又多又雜時用「一次只開一個」。只對巢狀展開有效。', opts: mk('expand', [
+          { id: 'click', name: '點資料夾展開或收合', note: '可以同時開好幾個；上方有「全部展開」', text: '▾ A\n▾ B' },
+          { id: 'accordion', name: '一次只開一個', note: '打開一個，同層的其他資料夾自動收合', text: '▾ A\n▸ B' },
+          { id: 'always', name: '一直展開', note: '沒有收合，資料少時用', text: 'A\n　▬\nB\n　▬' }
+        ]) },
+        { no: 'E2', label: '展開動畫', desc: '', opts: mk('anim', [
+          { id: 'grow', name: '往下長出', note: '子項目從資料夾下方滑出，260 ms', text: '▾\n↓ ▬\n↓ ▬' },
+          { id: 'fade', name: '淡入', note: '200 ms', text: '▾\n░ ▬' },
+          { id: 'none', name: '直接出現', note: '', text: '▾\n▬' }
+        ]) }
+      ] },
+      { title: '每一列', groups: [
+        { no: 'R1', label: '檔案圖示', desc: '', opts: mk('icon', [
+          { id: 'color', name: '依類型上色', note: 'PDF 紅、影片紫、簡報橘，附圖的做法', marks: [M({ w: '22px', h: '22px', r: '5px', bg: '#fbe7e5', fg: '#cd2823', t: '▤' }), M({ w: '22px', h: '22px', r: '5px', bg: '#efe9fb', fg: '#7a4fd6', t: '▶' })] },
+          { id: 'mono', name: '單色圖示', note: '全部灰色，靠形狀區分', marks: [M({ w: '22px', h: '22px', r: '5px', fg: '#6d645a', t: '▤' }), M({ w: '22px', h: '22px', r: '5px', fg: '#6d645a', t: '▶' })] },
+          { id: 'ext', name: '副檔名標籤', note: '小方塊裡寫 PDF、MP4', marks: [M({ w: '30px', h: '22px', r: '5px', bg: '#fbe7e5', fg: '#cd2823', t: 'PDF' })] },
+          { id: 'doc', name: '文件形狀加副檔名', note: '像電腦的檔案總管：形狀說「這是檔案」，色塊和字說是哪種', marks: [M({ w: '22px', h: '28px', r: '3px', bg: '#ffffff', fg: '#cd2823', t: 'PDF' })] },
+          { id: 'thumb', name: '縮圖', note: '影片顯示畫面和長度，文件顯示第一頁，最好認', marks: [M({ w: '40px', h: '24px', r: '4px', bg: '#3b4660', fg: '#ffffff', t: '▶' })] }
+        ]) },
+        { no: 'R2', label: '日期與大小', desc: '日期照格式規則：一週內寫「13 小時前」，之後寫完整日期。', opts: mk('meta', [
+          { id: 'auto', name: '依寬度切換', note: '清單寬度 640 px 以上排成欄，窄的時候放名稱下方。用上方「預覽寬度」切換看看', text: '寬：檔名　日期　大小\n窄：檔名\n　　日期 · 大小' },
+          { id: 'below', name: '名稱下方', note: '附圖的做法，「10/23 · 54.9 MB」', text: '檔名\n日期 · 大小' },
+          { id: 'cols', name: '右側對齊成欄', note: '像表格，方便比較', text: '檔名　日期　大小' }
+        ]) },
+        { no: 'R3', label: '資料夾的資訊', desc: '有資料才顯示，位置在資料夾那一列的右邊或名稱旁。', opts: mk('folderInfo', [
+          { id: 'date', name: '最近更新時間', note: '附圖的做法', text: '資料夾　　11/1' },
+          { id: 'count', name: '檔案數', note: '名稱旁寫「5 個檔案」', text: '資料夾 5 個' },
+          { id: 'both', name: '兩者都有', note: '', text: '資料夾 5 個　11/1' }
+        ]) },
+        { no: 'R4', label: '新檔案標示', desc: '新檔案怎麼標示。', opts: mk('newMark', [
+          { id: 'chip', name: '「新」小標籤', note: '附圖的做法，最明顯', marks: [M({ w: '26px', h: '18px', r: '99px', bg: '#e5ebfa', fg: '#2457d6', t: '新' })] },
+          { id: 'dot', name: '強調色圓點', note: '和未讀通知一致', marks: [M({ w: '8px', h: '8px', r: '99px', bg: '#2457d6' })] },
+          { id: 'date', name: '日期變強調色', note: '不多加東西，「13 小時前」直接變藍、變粗', text: '檔名\n13 小時前' },
+          { id: 'bold', name: '未讀粗體', note: '像信箱，看過就恢復一般字重', text: '粗體檔名' },
+          { id: 'none', name: '不標示', note: '', text: '（無）' }
+        ]) },
+        { no: 'R6', label: '什麼算新', desc: '', opts: mk('newRule', [
+          { id: 'days', name: '7 天內新增', note: '每個人看到的都一樣', text: '≤ 7 天' },
+          { id: 'unseen', name: '你還沒打開過', note: '打開或下載後就不再標示，比較貼近「我還沒看」', text: '未看過' }
+        ]) },
+        { no: 'R7', label: '資料夾裡有新檔案', desc: '', opts: mk('folderNew', [
+          { id: 'mark', name: '收合時同樣標示', note: '展開後由檔案自己標示', text: '▸ 資料夾 ●' },
+          { id: 'count', name: '寫出數量', note: '資料夾旁寫「2 個新」，展開時也看得到', text: '▸ 資料夾 2 個新' }
+        ]) },
+        { no: 'R5', label: '下載按鈕', desc: '', opts: mk('act', [
+          { id: 'always', name: '一直顯示', note: '附圖的做法', text: '檔名　　⤓' },
+          { id: 'hover', name: '滑過才顯示', note: '和表格的單筆操作一致', text: '檔名　　（⤓）' },
+          { id: 'row', name: '整列可點', note: '點檔案列就下載，不另外放按鈕', text: '［檔名　　］' }
+        ]) }
+      ] },
+      { title: '勾選', groups: [
+        { no: 'C1', label: '勾選框', desc: '勾選後標題列換成「已選 3 個檔案」，可以一起下載，和表格的批次操作一致。空白鍵也能勾。', opts: mk('select', [
+          { id: 'none', name: '不需要', note: '只能一個一個下載', text: '（無）' },
+          { id: 'hover', name: '滑過才顯示', note: '和表格一致；勾了一個之後全部顯示', text: '（☐）檔名' },
+          { id: 'always', name: '一直顯示', note: '', text: '☐ 檔名' }
+        ]) },
+        { no: 'C2', label: '資料夾能不能勾', desc: '', opts: mk('selFolder', [
+          { id: 'all', name: '勾資料夾等於全選裡面', note: '只勾一部分時，資料夾顯示橫線', text: '▣ 資料夾\n☑ ☐' },
+          { id: 'files', name: '只有檔案能勾', note: '', text: '　資料夾\n☑ ☐' }
+        ]) }
+      ] }
+    ];
+    sections[1].groups[1].desc = '資料夾打開時，子項目怎麼出現。';
+    sections[2].groups[0].desc = '每個檔案前面的圖示。';
+    sections[2].groups[0].opts[2].note = '小方塊裡寫 PDF、MP4，不靠顏色';
+    const sorter = (a, b) => { const fa = !!a.children, fb = !!b.children; if (fa !== fb) return fa ? -1 : 1; if (st.sort === 'name') return a.name.localeCompare(b.name, 'zh-Hant', { numeric: true }); return st.sort === 'date' ? b.date - a.date : a.date - b.date; };
+    const always = st.expand === 'always';
+    const crumb = st.nest === 'crumb';
+    const rows = [];
+    const ind = 28;
+    const isNewF = (f) => st.newRule === 'unseen' ? !!UNSEEN0[f.id] && !st.seen[f.id] : !!f.isNew;
+    const countNew = (n) => n.children ? n.children.reduce((a, c) => a + countNew(c), 0) : (isNewF(n) ? 1 : 0);
+    const selOn = st.select !== 'none';
+    const onA = st.dark ? '#1b1a19' : '#ffffff';
+    const seeIt = (id) => Object.assign({}, this.state.seen, { [id]: true });
+    const walk = (list, depth, guides, fresh) => {
+      list.slice().sort(sorter).forEach((n, i) => {
+        const isF = !!n.children;
+        const open = isF && (always || !!st.open[n.id]) && !(crumb && depth >= 0 && false);
+        const t = TYPE[n.type] || null;
+        const top = depth === 0;
+        const icPath = isF ? (open ? IC.folderOpen : IC.folder) : IC[n.type];
+        const nNew = isF ? countNew(n) : 0;
+        const marking = st.newMark !== 'none';
+        const nw = marking && (isF ? st.folderNew === 'mark' && nNew > 0 && !open : isNewF(n));
+        const fl = filesOf(n); const kSel = fl.filter((f) => st.sel[f.id]).length;
+        const ckOn = kSel > 0 && kSel === fl.length, ckMix = kSel > 0 && !ckOn;
+        const files = isF ? countFiles(n) : 0;
+        const base = 16 + (selOn ? 36 : 0) + depth * ind;
+        const g = st.struct === 'guide' ? guides : [];
+        const sectionTop = st.struct === 'section' && top && isF;
+        rows.push({ key: n.id, level: String(depth + 1), name: n.name, isFolder: isF, ariaExp: isF && !always ? String(open) : null,
+          caret: open ? 'rotate(90deg)' : 'none', caretVis: always || (crumb && isF) ? 'hidden' : 'visible',
+          pad: base + 'px', guides: g.map((x) => x + 'px'), h: sectionTop ? '56px' : '52px', bt: sectionTop && rows.length ? '8px solid ' + C.page : (rows.length ? '1px solid ' + (st.struct === 'section' ? 'transparent' : 'transparent') : '0'),
+          bg: ckOn && !isF ? C.accentSoft : (ckOn ? C.accentSoft : (sectionTop ? C.card : 'transparent')), onCls: ckOn ? 'on' : '', fw: isF ? 700 : (nw && st.newMark === 'bold' ? 700 : 400),
+          icSvg: isF || st.icon !== 'ext', icText: !isF && st.icon === 'ext', ext: t ? t[1] : '', icPath, icW: !isF && st.icon === 'ext' ? '36px' : '28px',
+          icBg: isF ? 'transparent' : (st.icon === 'mono' ? 'transparent' : t[3]), icC: isF ? C.muted : (st.icon === 'mono' ? C.muted : t[2]),
+          icStd: isF || ['color', 'mono', 'ext'].indexOf(st.icon) >= 0, icDoc: !isF && st.icon === 'doc', icThumbV: !isF && st.icon === 'thumb' && n.type === 'video', icThumbP: !isF && st.icon === 'thumb' && n.type !== 'video',
+          thBg: THB[(n.id.charCodeAt(1) || 0) % THB.length], dur: n.dur || '', pgW: n.type === 'ppt' ? '38px' : '28px', pgH: n.type === 'ppt' ? '28px' : '36px',
+          newChip: nw && st.newMark === 'chip', newDot: nw && (st.newMark === 'dot' || (isF && st.newMark === 'bold')),
+          newCount: marking && isF && st.folderNew === 'count' && nNew > 0, newCountText: nNew + ' 個新',
+          dateC: nw && st.newMark === 'date' ? C.accentText : C.muted, dateW: nw && st.newMark === 'date' ? 700 : 400,
+          countInline: isF && (st.folderInfo === 'count' || st.folderInfo === 'both'), count: files + ' 個檔案',
+          metaBelow: !isF && st.meta !== 'cols', meta: !isF ? rel(n.date) + ' · ' + size(n.size) : '',
+          colsRight: !isF && st.meta !== 'below', date: !isF ? rel(n.date) : '', size: !isF ? size(n.size) : '',
+          folderRight: isF && (st.folderInfo === 'date' || st.folderInfo === 'both'), right: isF ? rel(n.date) : '',
+          showAct: !isF && st.act !== 'row', dlLabel: '下載 ' + n.name,
+          an: fresh && st.anim !== 'none' ? 'an-' + st.anim + (st.animN % 2) : '', tab: n.id === st.focusKey ? '0' : '-1',
+          click: () => { if (isF) { if (crumb) this.setState({ cwd: n.id, focusKey: n.id }); else if (!always) this.toggle(n.id); } else if (this.state.act === 'row') this.setState({ note: '開始下載「' + n.name + '」', seen: seeIt(n.id) }); this.setState({ focusKey: n.id }); },
+          focus: () => { if (this.state.focusKey !== n.id || this.state.focused !== n.id) this.setState({ focusKey: n.id, focused: n.id }); },
+          download: (e) => { e && e.stopPropagation && e.stopPropagation(); this.setState({ note: '開始下載「' + n.name + '」', seen: seeIt(n.id) }); },
+          ckShow: selOn && (!isF || st.selFolder === 'all'), ckOn, ckMix, ckAria: ckMix ? 'mixed' : String(ckOn), ckLabel: '選取 ' + n.name,
+          ckBd: ckOn || ckMix ? A : C.lineStrong, ckBg: ckOn || ckMix ? A : 'transparent',
+          ckOp: st.select === 'hover' && !Object.keys(st.sel).length && st.hoverKey !== n.id && st.focused !== n.id ? 0 : 1,
+          enter: () => { if (this.state.hoverKey !== n.id) this.setState({ hoverKey: n.id }); },
+          leave: () => { if (this.state.hoverKey === n.id) this.setState({ hoverKey: null }); },
+          blur: () => { if (this.state.focused === n.id) this.setState({ focused: null }); },
+          ckClick: (e) => { e && e.stopPropagation && e.stopPropagation(); const sel = Object.assign({}, this.state.sel); const on = !ckOn; fl.forEach((f) => { if (on) sel[f.id] = true; else delete sel[f.id]; }); this.setState({ sel }); },
+          _node: n, _depth: depth, _open: open });
+        if (isF && open && !crumb) walk(n.children, depth + 1, guides.concat([base + 14]), fresh || !!st.justOpened[n.id]);
+      });
+    };
+    let crumbs = [];
+    if (crumb) {
+      const path = st.cwd ? find(st.cwd, TREE, []) : [];
+      const list = path.length ? path[path.length - 1].children : TREE;
+      walk(list, 0, [], false);
+      crumbs = [{ t: '課程教材', id: null }].concat(path.map((n) => ({ t: n.name, id: n.id }))).map((c2, i, arr) => ({ t: c2.t, sep: i > 0, last: i === arr.length - 1, link: i < arr.length - 1, go: () => this.setState({ cwd: c2.id }) }));
+    } else walk(TREE, 0, [], false);
+    if (!rows.some((r) => r.tab === '0') && rows[0]) rows[0].tab = '0';
+    const anyClosed = TREE.some((n) => n.children && !st.open[n.id]);
+    const N = { struct: { guide: '縮排加左側線', indent: '只有縮排', section: '第一層當區塊標題' }, nest: { tree: '巢狀展開', crumb: '點進下一層' }, sort: { date: '新到舊', old: '舊到新', name: '名稱' }, expand: { click: '點資料夾展開收合', accordion: '一次只開一個', always: '一直展開' }, anim: { grow: '往下長出', fade: '淡入', none: '直接出現' }, icon: { color: '依類型上色', mono: '單色圖示', ext: '副檔名標籤', doc: '文件形狀加副檔名', thumb: '縮圖' }, meta: { auto: '日期大小依寬度切換', below: '日期大小在名稱下方', cols: '日期大小右側成欄' }, folderInfo: { date: '資料夾顯示更新時間', count: '資料夾顯示檔案數', both: '資料夾顯示兩者' }, newMark: { chip: '「新」小標籤', dot: '強調色圓點', date: '新檔案日期變強調色', bold: '新檔案粗體', none: '不標示新檔案' }, newRule: { days: '7 天內算新', unseen: '沒打開過算新' }, folderNew: { mark: '資料夾收合時標示', count: '資料夾寫新檔案數' }, select: { none: '不能勾選', hover: '勾選框滑過才顯示', always: '勾選框一直顯示' }, selFolder: { all: '勾資料夾全選裡面', files: '只有檔案能勾' }, act: { always: '下載鈕一直顯示', hover: '下載鈕滑過才顯示', row: '整列可點下載' } };
+    const onKey = (e) => {
+      const i = rows.findIndex((r) => r.key === this.state.focusKey); if (i < 0) return;
+      const r = rows[i];
+      const go = (j) => { if (rows[j]) { e.preventDefault(); this.wantFocus = rows[j].key; this.setState({ focusKey: rows[j].key }); } };
+      if (e.key === 'ArrowDown') go(i + 1);
+      else if (e.key === 'ArrowUp') go(i - 1);
+      else if (e.key === 'ArrowRight' && r.isFolder) { e.preventDefault(); if (crumb) this.setState({ cwd: r.key }); else if (!r._open) this.toggle(r.key); else go(i + 1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); if (crumb) { const path = this.state.cwd ? find(this.state.cwd, TREE, []) : []; if (path.length) this.setState({ cwd: path.length > 1 ? path[path.length - 2].id : null }); } else if (r.isFolder && r._open && !always) this.toggle(r.key); else { for (let j = i - 1; j >= 0; j--) if (rows[j]._depth < r._depth) { go(j); break; } } }
+      else if (e.key === ' ' && r.ckShow) { e.preventDefault(); r.ckClick(); }
+      else if (e.key === 'Enter') { e.preventDefault(); r.click(); }
+    };
+    return {
+      sections, c: C, accent: A, dkCls: st.dark ? 'dk' : '', themeBtns: THEMEBTNS(this, st), actCls: st.act === 'hover' ? 'acthover' : '', onAccent: onA,
+      metaCls: st.meta === 'auto' ? 'mauto' : '', pvMax: st.pvW === 'narrow' ? '390px' : 'none',
+      wBtns: [['手機 390 px', 'narrow'], ['完整', 'full']].map(([t, v]) => ({ t, pressed: st.pvW === v ? 'true' : 'false', bg: st.pvW === v ? '#171512' : '#ffffff', fg: st.pvW === v ? '#ffffff' : '#171512', bd: st.pvW === v ? '#171512' : '#cfcac4', pick: () => this.setState({ pvW: v }) })),
+      noSel: !Object.keys(st.sel).length, hasSel: Object.keys(st.sel).length > 0,
+      selText: '已選 ' + Object.keys(st.sel).length + ' 個檔案', selSize: '共 ' + size(filesOf({ children: TREE }).filter((f) => st.sel[f.id]).reduce((a, f) => a + f.size, 0)),
+      clearSel: () => this.setState({ sel: {} }),
+      dlSel: () => { const ids = Object.keys(this.state.sel); const seen = Object.assign({}, this.state.seen); ids.forEach((k) => { seen[k] = true; }); this.setState({ note: '開始打包下載 ' + ids.length + ' 個檔案', sel: {}, seen }); },
+      rows: rows.map((r) => { const o = Object.assign({}, r); delete o._node; return o; }), onKey, note: st.note,
+      crumbMode: crumb, crumbs, showToggleAll: st.expand === 'click' && !crumb, toggleAllText: anyClosed ? '全部展開' : '全部收合',
+      toggleAll: () => { const open = {}; const set = (list) => list.forEach((n) => { if (n.children) { open[n.id] = anyClosed; set(n.children); } }); set(TREE); this.setState({ open, justOpened: anyClosed ? Object.fromEntries(Object.keys(open).map((k) => [k, true])) : {}, animN: this.state.animN + 1 }); },
+      summary: [N.struct[st.struct], N.nest[st.nest], '排序 ' + N.sort[st.sort], N.expand[st.expand], '動畫 ' + N.anim[st.anim], N.icon[st.icon], N.meta[st.meta], N.folderInfo[st.folderInfo], N.newMark[st.newMark], N.newRule[st.newRule], N.folderNew[st.folderNew], N.act[st.act], N.select[st.select], N.selFolder[st.selFolder]].join(' · ')
+    };
+  }
+}
+
+</script>
+</body>
+</html>

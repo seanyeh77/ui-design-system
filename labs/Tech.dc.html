@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>C 深色科技</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=Noto+Sans+TC:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0b0d10}
+a{color:#b6f36a}a:hover{color:#d6ff9e}
+.cell{transition:border-color .25s ease,transform .25s ease}
+.cell:hover{border-color:rgba(182,243,106,.55);transform:translateY(-2px)}
+.btn{cursor:pointer;transition:box-shadow .2s ease,transform .1s ease}
+.btn:hover{box-shadow:0 0 0 4px rgba(182,243,106,.18),0 0 24px rgba(182,243,106,.35)}
+.btn:active{transform:scale(.97)}
+.ghost{cursor:pointer;transition:border-color .2s ease,color .2s ease}
+.ghost:hover{border-color:#b6f36a;color:#ffffff}
+@keyframes blink{50%{opacity:0}}
+.caret{animation:blink 1s steps(1) infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(182,243,106,.6)}100%{box-shadow:0 0 0 10px rgba(182,243,106,0)}}
+.pulse{animation:pulse 1.6s ease-out infinite}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.marquee{animation:marquee 18s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.orbit{animation:spin 8s linear infinite}
+.orbit2{animation:spin 14s linear infinite reverse}
+.cmd{cursor:pointer;transition:background .15s ease}.cmd:hover{background:rgba(182,243,106,.1)}
+</style>
+</helmet>
+<div style="position: relative; min-height: 100vh; background: #0b0d10; color: #e8eaed; font-family: 'Space Grotesk', 'Noto Sans TC', sans-serif; font-size: 16px; line-height: 1.55; overflow: hidden">
+<header style="max-width: 1160px; margin: 0 auto; padding: 20px 32px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between">
+<div style="display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px">
+<span class="pulse" style="width: 10px; height: 10px; border-radius: 99px; background: #b6f36a; display: inline-block"></span>
+<span>[專案名稱]</span>
+</div>
+<div style="display: flex; gap: 10px; flex-wrap: wrap">
+<button class="ghost" type="button" onClick="{{openCmd}}" style="height: 44px; padding: 0 14px; border: 1px solid #2a2f37; background: transparent; color: #a6adb8; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px">搜尋指令　Ctrl K</button>
+<button class="btn" type="button" style="height: 44px; padding: 0 18px; border: 0; background: #b6f36a; color: #0b0d10; border-radius: 8px; font: inherit; font-weight: 700">開始部署</button>
+</div>
+</header>
+
+<main style="max-width: 1160px; margin: 0 auto; padding: 32px 32px 56px">
+<p style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #b6f36a">深色科技 · Bento 格狀架構</p>
+<h1 style="margin: 12px 0 0; font-size: 56px; line-height: 1.1; font-weight: 700; letter-spacing: -.03em; max-width: 760px">高對比、等寬字、會發光的回饋</h1>
+<p style="margin: 16px 0 0; color: #a6adb8; max-width: 600px">適合開發者工具、監控面板、技術社群網站。把滑鼠移到下面的格子上，光暈會跟著游標。</p>
+
+<div onMouseMove="{{move}}" style="position: relative; margin-top: 40px">
+<div aria-hidden="true" style="position: absolute; inset: -40px; pointer-events: none; background: {{spot}}; transition: background .08s linear"></div>
+<div style="position: relative; display: flex; flex-wrap: wrap; gap: 14px">
+
+<div class="cell" style="flex: 2 1 540px; min-width: 0; min-height: 220px; box-sizing: border-box; border: 1px solid #22262d; border-radius: 14px; background: rgba(18,21,26,.82); padding: 22px; font-family: 'JetBrains Mono', monospace; font-size: 14px">
+<div style="display: flex; gap: 6px; margin-bottom: 16px"><span style="width: 10px; height: 10px; border-radius: 99px; background: #3a3f47"></span><span style="width: 10px; height: 10px; border-radius: 99px; background: #3a3f47"></span><span style="width: 10px; height: 10px; border-radius: 99px; background: #3a3f47"></span></div>
+<div style="color: #6b7380">$ deploy --env production</div>
+<div style="margin-top: 8px; color: #e8eaed; white-space: pre-wrap">{{typed}}<span class="caret" style="color: #b6f36a">▍</span></div>
+<button class="ghost" type="button" onClick="{{retype}}" style="margin-top: 18px; height: 40px; padding: 0 12px; border: 1px solid #2a2f37; background: transparent; color: #a6adb8; border-radius: 6px; font: inherit; font-size: 12px">重打一次</button>
+</div>
+
+<div class="cell" style="flex: 1 1 260px; min-width: 0; min-height: 220px; box-sizing: border-box; border: 1px solid #22262d; border-radius: 14px; background: rgba(18,21,26,.82); padding: 22px; display: flex; flex-direction: column; justify-content: space-between">
+<div style="font-size: 14px; color: #a6adb8">循環動畫</div>
+<div style="position: relative; width: 120px; height: 120px; align-self: center">
+<div class="orbit" style="position: absolute; inset: 0; border: 1px dashed #3a3f47; border-radius: 99px"><span style="position: absolute; top: -5px; left: 55px; width: 10px; height: 10px; border-radius: 99px; background: #b6f36a"></span></div>
+<div class="orbit2" style="position: absolute; inset: 26px; border: 1px solid #2a2f37; border-radius: 99px"><span style="position: absolute; bottom: -4px; left: 30px; width: 8px; height: 8px; border-radius: 99px; background: #7dd3fc"></span></div>
+</div>
+<div style="font-size: 13px; color: #6b7380">用於載入、連線中、背景裝飾</div>
+</div>
+
+<div class="cell" style="flex: 1 1 260px; min-width: 0; min-height: 180px; box-sizing: border-box; border: 1px solid #22262d; border-radius: 14px; background: rgba(18,21,26,.82); padding: 22px">
+<div style="font-size: 14px; color: #a6adb8">狀態</div>
+<div style="margin-top: 14px; display: flex; flex-direction: column; gap: 10px; font-family: 'JetBrains Mono', monospace; font-size: 13px">
+<div style="display: flex; align-items: center; gap: 10px"><span class="pulse" style="width: 8px; height: 8px; border-radius: 99px; background: #b6f36a"></span>[服務一] 運作中</div>
+<div style="display: flex; align-items: center; gap: 10px"><span style="width: 8px; height: 8px; border-radius: 99px; background: #fbbf24"></span>[服務二] 降級</div>
+<div style="display: flex; align-items: center; gap: 10px"><span style="width: 8px; height: 8px; border-radius: 99px; background: #4b5260"></span>[服務三] 離線</div>
+</div>
+</div>
+
+<div class="cell" style="flex: 2 1 540px; min-width: 0; min-height: 180px; box-sizing: border-box; border: 1px solid #22262d; border-radius: 14px; background: rgba(18,21,26,.82); padding: 22px; overflow: hidden">
+<div style="font-size: 14px; color: #a6adb8">跑馬燈標籤</div>
+<div style="margin-top: 22px; overflow: hidden">
+<div class="marquee" style="display: flex; gap: 12px; width: max-content">
+<sc-for list="{{tags}}" as="t" hint-placeholder-count="12"><span style="padding: 8px 14px; border: 1px solid #2a2f37; border-radius: 99px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #c9ced6; white-space: nowrap">{{t}}</span></sc-for>
+</div>
+</div>
+<div style="margin-top: 22px; font-size: 13px; color: #6b7380">無限循環，適合放技術棧、合作夥伴、功能關鍵字</div>
+</div>
+</div>
+</div>
+</main>
+
+<sc-if value="{{cmdOpen}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; background: rgba(5,6,8,.6); display: flex; justify-content: center; padding-top: 140px">
+<div role="dialog" aria-label="指令面板" style="width: 560px; max-width: calc(100% - 32px); height: fit-content; background: #12151a; border: 1px solid #2a2f37; border-radius: 14px; box-shadow: 0 24px 64px rgba(0,0,0,.5); overflow: hidden; transform: {{cmdScale}}; opacity: {{cmdOp}}; transition: transform .22s cubic-bezier(.2,.9,.3,1.1), opacity .18s ease">
+<label for="c-q" style="position: absolute; left: -9999px">搜尋指令</label>
+<input id="c-q" type="text" placeholder="輸入指令..." style="box-sizing: border-box; width: 100%; padding: 18px 20px; border: 0; border-bottom: 1px solid #22262d; background: transparent; color: #e8eaed; font-family: 'JetBrains Mono', monospace; font-size: 15px; outline: none">
+<div style="padding: 8px">
+<button class="cmd" type="button" style="display: flex; justify-content: space-between; width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: #e8eaed; font: inherit; font-size: 15px; align-items: center"><span>部署到正式環境</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #6b7380">D</span></button>
+<button class="cmd" type="button" style="display: flex; justify-content: space-between; width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: #e8eaed; font: inherit; font-size: 15px; align-items: center"><span>查看紀錄</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #6b7380">L</span></button>
+<button class="cmd" type="button" onClick="{{closeCmd}}" style="display: flex; justify-content: space-between; width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: #a6adb8; font: inherit; font-size: 15px; align-items: center"><span>關閉面板</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #6b7380">Esc</span></button>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1180}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { n: 0, mx: 300, my: 200, cmd: false, cmdIn: false }; }
+  componentDidMount() { this.type(); }
+  componentWillUnmount() { clearInterval(this.iv); clearTimeout(this.t); }
+  type() {
+    clearInterval(this.iv);
+    this.setState({ n: 0 });
+    this.iv = setInterval(() => {
+      const total = this.text().length;
+      if (this.state.n >= total) { clearInterval(this.iv); return; }
+      this.setState({ n: this.state.n + 1 });
+    }, 28);
+  }
+  text() { return '> 建置映像檔 ......... 完成\n> 推送到 registry .... 完成\n> 滾動更新 3 個節點 .. 完成\n✓ 部署成功'; }
+  renderVals() {
+    const s = this.state;
+    const tags = ['Docker', 'Kubernetes', 'Slurm', 'CUDA', 'Grafana', 'Prometheus'];
+    return {
+      typed: this.text().slice(0, s.n),
+      retype: () => this.type(),
+      move: (e) => { const r = e.currentTarget.getBoundingClientRect(); this.setState({ mx: e.clientX - r.left + 40, my: e.clientY - r.top + 40 }); },
+      spot: 'radial-gradient(420px circle at ' + s.mx + 'px ' + s.my + 'px, rgba(182,243,106,.16), transparent 60%)',
+      tags: tags.concat(tags),
+      cmdOpen: s.cmd,
+      cmdScale: s.cmdIn ? 'scale(1)' : 'scale(.96)',
+      cmdOp: s.cmdIn ? 1 : 0,
+      openCmd: () => { this.setState({ cmd: true, cmdIn: false }); clearTimeout(this.t); this.t = setTimeout(() => this.setState({ cmdIn: true }), 20); },
+      closeCmd: () => { this.setState({ cmdIn: false }); clearTimeout(this.t); this.t = setTimeout(() => this.setState({ cmd: false }), 180); }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!-- @dsCard group="Forms" height=240 -->
+<!doctype html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><title>TextArea — preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div id="root"></div>
+<script>
+  var U = window.UI, h = React.createElement;
+  var S=React.useState; function D(){var v=S('這段文字會隨內容自動長高。'); return h('div',{style:{padding:20,maxWidth:480}}, h(U.TextArea,{label:'備註',hint:'寫給審核者看的說明',value:v[0],onChange:v[1]}));}
+  ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+</script>
+</body>
+</html>

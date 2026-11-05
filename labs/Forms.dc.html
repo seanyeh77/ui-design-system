@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>表單控制項實驗室</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit;opacity:.8}
+.opt{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.opt:hover{transform:translateY(-2px)}
+.pv,.pv *{transition:background-color .2s ease,border-color .2s ease,color .2s ease}
+.ctl{cursor:pointer}
+.inp{outline:none}
+.inp:focus{border-color:#2457d6 !important;box-shadow:0 0 0 3px rgba(36,87,214,.3)}
+@keyframes drawA{from{stroke-dashoffset:24}to{stroke-dashoffset:0}}
+.draw{stroke-dasharray:24;animation:drawA .2s ease-out both}
+@keyframes popA{0%{transform:scale(.3)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+.pop{animation:popA .25s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes fadeA{from{opacity:0}to{opacity:1}}
+.fadein{animation:fadeA .15s ease both}
+@keyframes menuDown{from{opacity:0;transform:scaleY(.6)}to{opacity:1;transform:none}}
+@keyframes menuFade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@keyframes menuDrop{0%{opacity:0;clip-path:inset(0 30% 100% 30% round 10px)}60%{opacity:1;clip-path:inset(0 0 8% 0 round 10px)}100%{opacity:1;clip-path:inset(0 0 0 0 round 10px)}}
+.m-down{transform-origin:top;animation:menuDown .2s cubic-bezier(.2,.8,.2,1) both}
+.m-fade{animation:menuFade .15s ease both}
+.m-drop{animation:menuDrop .32s cubic-bezier(.34,1.3,.64,1) both}
+input[type="search"]::-webkit-search-cancel-button,input[type="search"]::-webkit-search-decoration{-webkit-appearance:none;appearance:none;display:none}
+input[type="search"]::-ms-clear{display:none}
+.mi:hover{background:#f6f5f4}
+.dk .mi:hover{background:#443f3b}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #f6f5f4; color: #171512; font-family: Inter, 'Noto Sans TC', sans-serif; font-size: 15px; line-height: 1.55">
+<main style="max-width: 1400px; margin: 0 auto; padding: 40px 32px 56px">
+<div style="font-family: 'Geist Mono', 'Noto Sans TC', monospace; font-size: 13px; font-weight: 600; color: #6d645a">深入 7 · 表單控制項</div>
+<h1 style="margin: 6px 0 0; font-size: 39px; line-height: 1.2; font-weight: 700; letter-spacing: -.01em">表單控制項實驗室</h1>
+<p style="margin: 8px 0 0; color: #6d645a; max-width: 900px">已確定的規則：外框輸入框、高度 40 px、focus 外光暈、錯誤用紅框加圖示、停用為灰底灰字。這裡決定其他控制項的樣子。右邊的表單每個元件都可以操作。選好後把最下方的設定給我。</p>
+
+<div style="margin-top: 28px; display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start">
+
+<div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{sections}}" as="sec" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 18px; font-weight: 700; padding-top: 6px">{{sec.title}}</div>
+<sc-for list="{{sec.groups}}" as="g" hint-placeholder-count="2">
+<section style="padding: 16px; background: #ffffff; border: 1px solid #e2dfdc; border-radius: 10px">
+<div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; color: #ffffff; background: #171512; padding: 1px 7px; border-radius: 4px">{{g.no}}</span>
+<span style="font-size: 16px; font-weight: 700">{{g.label}}</span>
+</div>
+<p style="margin: 6px 0 0; font-size: 13px; color: #6d645a">{{g.desc}}</p>
+<div style="margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px">
+<sc-for list="{{g.opts}}" as="o" hint-placeholder-count="3">
+<button class="opt" type="button" onClick="{{o.pick}}" aria-pressed="{{o.pressed}}" style="display: flex; flex-direction: column; gap: 8px; padding: 10px; min-height: 44px; text-align: left; background: #ffffff; border: {{o.border}}; border-radius: 8px; font: inherit; color: #171512; box-shadow: {{o.ring}}">
+<span aria-hidden="true" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; box-sizing: border-box; padding: 6px; border-radius: 4px; background: #f6f5f4; font-size: 12px; color: #6d645a; text-align: center">
+<sc-for list="{{o.marks}}" as="mk" hint-placeholder-count="2"><span style="display: inline-flex; align-items: center; justify-content: center; width: {{mk.w}}; height: {{mk.h}}; box-sizing: border-box; border-radius: {{mk.r}}; background: {{mk.bg}}; border: {{mk.bd}}; color: {{mk.fg}}; font-size: 11px; font-weight: 700; box-shadow: {{mk.sh}}">{{mk.t}}</span></sc-for>
+<sc-if value="{{o.hasText}}" hint-placeholder-val="{{ false }}"><span style="white-space: pre-line; line-height: 1.4">{{o.text}}</span></sc-if>
+</span>
+<span style="font-size: 13px; font-weight: 700">{{o.name}}</span>
+<span style="font-size: 12px; color: #6d645a; line-height: 1.4">{{o.note}}</span>
+</button>
+</sc-for>
+</div>
+</section>
+</sc-for>
+</div>
+</sc-for>
+</div>
+
+<div style="flex: 1 1 720px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<span style="font-size: 13px; font-weight: 700">預覽主題</span>
+<sc-for list="{{themeBtns}}" as="tb" hint-placeholder-count="2">
+<button type="button" onClick="{{tb.pick}}" aria-pressed="{{tb.pressed}}" style="min-height: 44px; padding: 0 14px; border: 1px solid {{tb.bd}}; background: {{tb.bg}}; color: {{tb.fg}}; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{tb.t}}</button>
+</sc-for>
+</div>
+
+<div class="pv {{dkCls}}" style="background: {{c.page}}; color: {{c.ink}}; border: 1px solid #cfcac4; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 20px; font-size: 16px; line-height: 1.6">
+
+<section style="padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}">
+<div style="font-size: 20px; font-weight: 700">建立專案</div>
+<div style="margin-top: 16px; display: grid; grid-template-columns: {{formCols}}; gap: 16px 20px">
+<sc-for list="{{fields}}" as="f" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: {{lbl.dir}}; align-items: {{lbl.align}}; gap: {{lbl.gap}}; position: relative">
+<sc-if value="{{lbl.outside}}" hint-placeholder-val="{{ true }}"><label for="{{f.id}}" style="flex: 0 0 {{lbl.w}}; font-size: 14px; font-weight: 600; padding-top: {{lbl.pt}}">{{f.label}}<sc-if value="{{f.star}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="color: #cd2823"> *</span></sc-if><sc-if value="{{f.tag}}" hint-placeholder-val="{{ false }}"><span style="margin-left: 6px; font-size: 12px; font-weight: 500; color: {{c.muted}}">{{f.tagText}}</span></sc-if></label></sc-if>
+<div style="flex: 1 1 auto; min-width: 0; position: relative">
+<input id="{{f.id}}" class="inp" type="text" placeholder="{{f.ph}}" value="{{f.value}}" onChange="{{f.change}}" onFocus="{{f.focus}}" onBlur="{{f.blur}}" aria-required="{{f.req}}" style="box-sizing: border-box; width: 100%; height: {{lbl.inH}}; padding: {{lbl.inPad}}; font: inherit; font-size: 15px; color: {{c.ink}}; background: {{c.input}}; border: 1px solid {{c.lineStrong}}; border-radius: 10px">
+<sc-if value="{{lbl.floating}}" hint-placeholder-val="{{ false }}"><label for="{{f.id}}" style="position: absolute; left: 13px; top: {{f.flTop}}; font-size: {{f.flFs}}; font-weight: 500; color: {{f.flColor}}; pointer-events: none; transition: top .15s ease, font-size .15s ease, color .15s ease">{{f.label}}<sc-if value="{{f.star}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="color: #cd2823"> *</span></sc-if><sc-if value="{{f.tag}}" hint-placeholder-val="{{ false }}"><span style="margin-left: 6px; font-size: 11px; color: {{c.muted}}">{{f.tagText}}</span></sc-if></label></sc-if>
+</div>
+</div>
+</sc-for>
+</div>
+
+<div style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 28px">
+<div style="flex: 1 1 260px; min-width: 0">
+<div style="font-size: 14px; font-weight: 600">通知方式（勾選框）</div>
+<div style="margin-top: 8px; display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{checks}}" as="ck" hint-placeholder-count="3">
+<button class="ctl" type="button" role="checkbox" aria-checked="{{ck.aria}}" onClick="{{ck.toggle}}" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0; border: 0; background: transparent; font: inherit; font-size: 15px; color: {{c.ink}}; text-align: left">
+<span style="flex: 0 0 22px; width: 22px; height: 22px; box-sizing: border-box; border-radius: {{cbR}}; border: {{ck.bd}}; background: {{ck.bg}}; display: flex; align-items: center; justify-content: center">
+<sc-if value="{{ck.on}}" hint-placeholder-val="{{ false }}"><svg class="{{ckAnim}}" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{ck.mark}}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg></sc-if>
+<sc-if value="{{ck.mixed}}" hint-placeholder-val="{{ false }}"><span style="width: 10px; height: 3px; border-radius: 2px; background: {{ck.mark}}"></span></sc-if>
+</span>{{ck.label}}</button>
+</sc-for>
+</div>
+</div>
+<div style="flex: 1 1 220px; min-width: 0">
+<div role="radiogroup" aria-label="專案可見範圍" style="font-size: 14px; font-weight: 600">可見範圍（單選）</div>
+<div style="margin-top: 8px; display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{radios}}" as="rd" hint-placeholder-count="3">
+<button class="ctl" type="button" role="radio" aria-checked="{{rd.aria}}" onClick="{{rd.pick}}" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0; border: 0; background: transparent; font: inherit; font-size: 15px; color: {{c.ink}}; text-align: left">
+<span style="flex: 0 0 22px; width: 22px; height: 22px; box-sizing: border-box; border-radius: 99px; border: {{rd.bd}}; background: {{rd.bg}}; display: flex; align-items: center; justify-content: center; transition: border-width .15s ease">
+<sc-if value="{{rd.dot}}" hint-placeholder-val="{{ false }}"><span class="{{ckAnim2}}" style="width: 10px; height: 10px; border-radius: 99px; background: {{rd.dotC}}"></span></sc-if>
+<sc-if value="{{rd.check}}" hint-placeholder-val="{{ false }}"><svg class="{{ckAnim}}" width="13" height="13" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg></sc-if>
+</span>{{rd.label}}</button>
+</sc-for>
+</div>
+</div>
+<div style="flex: 1 1 220px; min-width: 0">
+<div style="font-size: 14px; font-weight: 600">設定（開關）</div>
+<div style="margin-top: 8px; display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{switches}}" as="sw" hint-placeholder-count="2">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px">
+<span style="font-size: 15px">{{sw.label}}</span>
+<button class="ctl" type="button" role="switch" aria-checked="{{sw.aria}}" aria-label="{{sw.label}}" onClick="{{sw.toggle}}" onMouseDown="{{sw.press}}" onMouseUp="{{sw.release}}" onMouseLeave="{{sw.release}}" style="position: relative; flex: 0 0 {{swW}}; width: {{swW}}; height: {{swH}}; padding: 0; box-sizing: border-box; border-radius: 99px; border: {{sw.trackBd}}; background: {{sw.track}}; transition: background-color .2s ease, border-color .2s ease">
+<span style="position: absolute; top: 50%; left: {{sw.left}}; right: {{sw.right}}; height: {{sw.th}}; margin-top: {{sw.tm}}; border-radius: 99px; background: {{sw.thumb}}; box-shadow: {{swSh}}; display: flex; align-items: center; justify-content: center; transition: {{sw.tr}}">
+<sc-if value="{{sw.icon}}" hint-placeholder-val="{{ false }}"><svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{sw.iconC}}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="{{sw.iconP}}"></path></svg></sc-if>
+</span>
+</button>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<div style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+<div style="flex: 1 1 260px; min-width: 0; position: relative">
+<span id="sel-l" style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px">負責人（下拉選單）</span>
+<sc-if value="{{notNative}}" hint-placeholder-val="{{ true }}"><button class="ctl" type="button" aria-haspopup="listbox" aria-expanded="{{menuAria}}" aria-labelledby="sel-l" onClick="{{toggleMenu}}" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; height: 40px; padding: 0 12px; box-sizing: border-box; border-radius: 10px; border: 1px solid {{selBd}}; box-shadow: {{selSh}}; background: {{c.input}}; color: {{c.ink}}; font: inherit; font-size: 15px; text-align: left">
+<span>{{selValue}}</span>
+<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{c.muted}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: {{chevTf}}; transition: transform .2s ease"><path d="M6 9l6 6 6-6"></path></svg>
+</button></sc-if>
+<sc-if value="{{isNative}}" hint-placeholder-val="{{ false }}"><select class="inp" aria-labelledby="sel-l" onChange="{{nativePick}}" style="width: 100%; height: 40px; padding: 0 12px; box-sizing: border-box; border-radius: 10px; border: 1px solid {{c.lineStrong}}; background: {{c.input}}; color: {{c.ink}}; font: inherit; font-size: 15px"><sc-for list="{{menuItems}}" as="mi" hint-placeholder-count="4"><option value="{{mi.idx}}" selected="{{mi.check}}">{{mi.t}}</option></sc-for></select></sc-if>
+<sc-if value="{{menuOpen}}" hint-placeholder-val="{{ false }}">
+<div class="{{menuCls}}" role="listbox" aria-labelledby="sel-l" style="position: absolute; z-index: 5; left: 0; right: 0; top: 76px; padding: 6px; border-radius: 10px; background: {{c.card}}; border: 1px solid {{c.line}}; box-shadow: 0 12px 32px rgba(0,0,0,.18)">
+<sc-if value="{{menuSearch}}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px; margin-bottom: 4px; border-radius: 8px; background: {{c.sub}}; color: {{c.muted}}; font-size: 14px"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM20 20l-4-4"></path></svg>搜尋成員</div></sc-if>
+<sc-for list="{{menuItems}}" as="mi" hint-placeholder-count="4">
+<button class="mi" type="button" role="option" aria-selected="{{mi.aria}}" onClick="{{mi.pick}}" style="display: flex; align-items: center; gap: 10px; width: 100%; height: 40px; padding: 0 10px; border: 0; border-radius: 8px; background: {{mi.bg}}; color: {{mi.fg}}; font: inherit; font-size: 15px; font-weight: {{mi.fw}}; text-align: left; cursor: pointer">
+<span style="flex: 0 0 24px; width: 24px; height: 24px; border-radius: 99px; background: {{c.sub}}; border: 1px solid {{c.line}}"></span><span style="flex: 1 1 auto">{{mi.t}}</span>
+<sc-if value="{{mi.check}}" hint-placeholder-val="{{ false }}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{c.accentText}}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></sc-if>
+</button>
+</sc-for>
+</div>
+</sc-if>
+</div>
+<div style="flex: 1 1 260px; min-width: 0">
+<label for="f-search" style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px">搜尋欄</label>
+<div style="position: relative">
+<sc-if value="{{srIcon}}" hint-placeholder-val="{{ true }}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{c.muted}}" stroke-width="2" stroke-linecap="round" style="position: absolute; left: 13px; top: 12px"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM20 20l-4-4"></path></svg></sc-if>
+<input id="f-search" class="inp" type="search" placeholder="搜尋專案" value="{{search}}" onChange="{{setSearch}}" style="box-sizing: border-box; width: 100%; height: 40px; padding: 0 40px 0 {{srPadL}}; font: inherit; font-size: 15px; color: {{c.ink}}; background: {{srBg}}; border: {{srBd}}; border-radius: {{srR}}">
+<sc-if value="{{srClear}}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{clearSearch}}" aria-label="清除搜尋" style="position: absolute; right: 6px; top: 6px; width: 28px; height: 28px; border: 0; border-radius: 99px; background: {{c.sub}}; color: {{c.muted}}; cursor: pointer; display: flex; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></sc-if>
+</div>
+<div style="margin-top: 6px; font-size: 13px; color: {{c.muted}}">輸入文字後看清除按鈕</div>
+</div>
+</div>
+
+<div style="margin-top: 20px">
+<label for="f-desc" style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px">專案描述（多行輸入）</label>
+<textarea id="f-desc" class="inp" rows="{{taRows}}" maxlength="200" onChange="{{setDesc}}" placeholder="簡單說明這個專案要做什麼" value="{{desc}}" style="box-sizing: border-box; width: 100%; padding: 10px 12px; font: inherit; font-size: 15px; line-height: 1.6; color: {{c.ink}}; background: {{c.input}}; border: 1px solid {{c.lineStrong}}; border-radius: 10px; resize: {{taResize}}; display: block"></textarea>
+<div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 13px; color: {{c.muted}}"><span>{{taNote}}</span><sc-if value="{{taCount}}" hint-placeholder-val="{{ true }}"><span style="font-family: 'Geist Mono', monospace">{{descLen}} / 200</span></sc-if></div>
+</div>
+</section>
+</div>
+</div>
+</div>
+
+<section style="margin-top: 24px; padding: 14px 18px; border: 1px dashed #aca49a; border-radius: 8px; font-size: 13px; color: #6d645a">
+<span style="color: #171512; font-weight: 700">目前設定</span>　{{summary}}
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":4400}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { cbShape: 'round', cbFill: 'accent', cbAnim: 'draw', rdStyle: 'dot', swStyle: 'm3', swAnim: 'drop', swIcon: 'no', selType: 'menu', menuAnim: 'drop', srStyle: 'icon', taMode: 'count', lblPos: 'top', reqMark: 'star', formCols: 'one',
+      dark: false, checks: [true, false, 'mixed'], radio: 1, sw: [true, false], pressing: -1, menu: false, owner: 1, search: '', desc: '', vals: ['', '', ''], focusIdx: -1, ckN: 0 };
+  }
+  renderVals() {
+    const st = this.state;
+    const A = '#2457d6';
+    const C = st.dark
+      ? { page: '#2f2a25', card: '#393530', ink: '#f6f5f4', muted: '#b3aba2', line: '#4c4844', lineStrong: '#8c8073', sub: '#443f3b', input: '#26221e', accentSoft: '#2d344c', accentText: '#819ee7', shadow: '0 1px 2px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.55)' }
+      : { page: '#fcfbfb', card: '#ffffff', ink: '#171512', muted: '#6d645a', line: '#e2dfdc', lineStrong: '#8c8073', sub: '#f6f5f4', input: '#ffffff', accentSoft: '#e5ebfa', accentText: '#2457d6', shadow: '0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.1)' };
+    const set = (k, v) => () => this.setState({ [k]: v, menu: k === 'selType' || k === 'menuAnim' ? false : this.state.menu });
+    const on = (k, id) => String(st[k]) === String(id);
+    const M = (o) => Object.assign({ t: '', w: '20px', h: '20px', r: '4px', bg: '#ffffff', bd: '2px solid #8c8073', fg: '#ffffff', sh: 'none' }, o);
+    const mk = (k, list) => list.map((o) => Object.assign({ marks: [], hasText: !!o.text, text: o.text || '' }, o, { pressed: on(k, o.id) ? 'true' : 'false', border: on(k, o.id) ? '1px solid #171512' : '1px solid #e2dfdc', ring: on(k, o.id) ? '0 0 0 2px #171512' : 'none', pick: set(k, o.id) }));
+    const sections = [
+      { title: '勾選框', groups: [
+        { no: 'C1', label: '外型', desc: '勾選框的圓角。', opts: mk('cbShape', [
+          { id: 'square', name: '小圓角', note: '4 px，方正', marks: [M({ r: '3px', bg: A, bd: '0', t: '✓' }), M({ r: '3px' })] },
+          { id: 'round', name: '中圓角', note: '6 px，和系統圓角一致', marks: [M({ r: '6px', bg: A, bd: '0', t: '✓' }), M({ r: '6px' })] },
+          { id: 'circle', name: '圓形', note: '像待辦清單', marks: [M({ r: '99px', bg: A, bd: '0', t: '✓' }), M({ r: '99px' })] }
+        ]) },
+        { no: 'C2', label: '選中的顏色', desc: '打勾之後的樣子。', opts: mk('cbFill', [
+          { id: 'accent', name: '強調色實心', note: '藍底白勾', marks: [M({ r: '5px', bg: A, bd: '0', t: '✓' })] },
+          { id: 'ink', name: '深色實心', note: '黑底白勾，最安靜', marks: [M({ r: '5px', bg: '#171512', bd: '0', t: '✓' })] },
+          { id: 'soft', name: '淺色底', note: '淡藍底藍勾', marks: [M({ r: '5px', bg: '#e5ebfa', bd: '2px solid ' + A, fg: A, t: '✓' })] }
+        ]) },
+        { no: 'C3', label: '打勾動畫', desc: '點下去時勾號怎麼出現。', opts: mk('cbAnim', [
+          { id: 'draw', name: '描繪', note: '勾號一筆畫出來', text: '✓ 由左到右畫出' },
+          { id: 'pop', name: '彈出', note: '勾號放大再回彈', text: '✓ 放大回彈' },
+          { id: 'fade', name: '淡入', note: '最安靜', text: '✓ 淡入' }
+        ]) }
+      ] },
+      { title: '單選', groups: [
+        { no: 'R1', label: '選中的樣子', desc: '單選按鈕被選中時。', opts: mk('rdStyle', [
+          { id: 'dot', name: '內圈圓點', note: '外框加中間實心點', marks: [M({ r: '99px', bd: '2px solid ' + A, t: '●', fg: A })] },
+          { id: 'ring', name: '粗外環', note: '外框變粗，中間留白', marks: [M({ r: '99px', bd: '6px solid ' + A })] },
+          { id: 'check', name: '實心加勾', note: '和勾選框類似', marks: [M({ r: '99px', bg: A, bd: '0', t: '✓' })] }
+        ]) }
+      ] },
+      { title: '開關', groups: [
+        { no: 'W1', label: '開關樣式', desc: '軌道與圓鈕的比例。', opts: mk('swStyle', [
+          { id: 'm3', name: 'Material 3', note: '52 × 32 px，關閉時圓鈕較小', marks: [M({ w: '40px', h: '24px', r: '99px', bg: A, bd: '0', t: '　●' })] },
+          { id: 'ios', name: 'iOS', note: '51 × 31 px，白色大圓鈕', marks: [M({ w: '40px', h: '24px', r: '99px', bg: '#1ca655', bd: '0', t: '　●' })] },
+          { id: 'small', name: '小型', note: '36 × 20 px，適合密集列表', marks: [M({ w: '30px', h: '17px', r: '99px', bg: A, bd: '0', t: '　●' })] }
+        ]) },
+        { no: 'W2', label: '切換動畫', desc: '圓鈕從一邊移到另一邊時。按住開關不放可以看到按壓效果。', opts: mk('swAnim', [
+          { id: 'drop', name: '水滴', note: '圓鈕拉長流過去再收回，和導覽一致', text: '● ━━ ●' },
+          { id: 'smooth', name: '平滑', note: '200 ms 滑過去', text: '● → ●' },
+          { id: 'spring', name: '彈性', note: '滑過頭再彈回', text: '● →↩ ●' }
+        ]) },
+        { no: 'W3', label: '圓鈕圖示', desc: '圓鈕裡要不要放勾或叉。', opts: mk('swIcon', [
+          { id: 'no', name: '不放', note: '只有顏色變化', marks: [M({ w: '40px', h: '24px', r: '99px', bg: A, bd: '0', t: '　●' })] },
+          { id: 'yes', name: '放勾與叉', note: '不靠顏色也看得懂', marks: [M({ w: '40px', h: '24px', r: '99px', bg: A, bd: '0', t: '　✓' })] }
+        ]) }
+      ] },
+      { title: '下拉選單', groups: [
+        { no: 'D1', label: '選單類型', desc: '點開下拉選單後的樣子。點右邊的「負責人」試試。', opts: mk('selType', [
+          { id: 'menu', name: '自訂選單', note: '浮起的選項列表，選中有勾', text: '王小明　✓\n李小華' },
+          { id: 'search', name: '可搜尋選單', note: '上方多一個搜尋框', text: '⌕ 搜尋\n王小明　✓' },
+          { id: 'native', name: '系統原生', note: '用瀏覽器內建的選單', text: '［ 王小明 ⌄ ］' }
+        ]) },
+        { no: 'D2', label: '展開動畫', desc: '選單打開時。', opts: mk('menuAnim', [
+          { id: 'drop', name: '水滴展開', note: '從中間往下流開再撐滿', text: '▽ 流開' },
+          { id: 'down', name: '向下展開', note: '從上緣往下伸展', text: '▼ 伸展' },
+          { id: 'fade', name: '淡入', note: '最安靜', text: '淡入' }
+        ]) }
+      ] },
+      { title: '搜尋與多行輸入', groups: [
+        { no: 'S1', label: '搜尋欄樣式', desc: '頁面內的搜尋欄。', opts: mk('srStyle', [
+          { id: 'icon', name: '外框加圖示', note: '左邊放放大鏡，右邊有清除鈕', text: '⌕ 搜尋專案　　✕' },
+          { id: 'pill', name: '膠囊填色', note: '灰底、全圓角', text: '( ⌕ 搜尋專案 )' },
+          { id: 'plain', name: '一般輸入框', note: '和其他欄位一樣', text: '［ 搜尋專案 ］' }
+        ]) },
+        { no: 'S2', label: '多行輸入', desc: '描述、留言等較長的文字。在右邊輸入試試。', opts: mk('taMode', [
+          { id: 'count', name: '顯示字數', note: '右下角 0 / 200', text: '……\n　　　12 / 200' },
+          { id: 'grow', name: '自動長高', note: '打越多字框越高', text: '…\n……\n………' },
+          { id: 'both', name: '兩者都要', note: '字數加自動長高', text: '……\n　　12 / 200' },
+          { id: 'plain', name: '都不要', note: '固定高度，可手動拉', text: '……' }
+        ]) }
+      ] },
+      { title: '欄位整體', groups: [
+        { no: 'L1', label: '標籤位置', desc: '欄位名稱放在哪裡。點進上方的欄位看浮動標籤的效果。', opts: mk('lblPos', [
+          { id: 'top', name: '上方', note: '最清楚，掃讀快', text: '名稱\n［　　　　］' },
+          { id: 'left', name: '左側', note: '欄位多時比較省高度', text: '名稱 ［　　　］' },
+          { id: 'floating', name: '浮動標籤', note: '標籤在框裡，點進去才往上縮', text: '［名稱　　　］' }
+        ]) },
+        { no: 'L2', label: '必填標示', desc: '怎麼告訴使用者哪些一定要填。', opts: mk('reqMark', [
+          { id: 'star', name: '必填加星號', note: '名稱 *', text: '名稱 *' },
+          { id: 'word', name: '必填寫「必填」', note: '名稱　必填', text: '名稱　必填' },
+          { id: 'optional', name: '選填才標示', note: '大多欄位必填時', text: '備註　選填' }
+        ]) },
+        { no: 'L3', label: '欄位排列', desc: '表單一行放幾個欄位。', opts: mk('formCols', [
+          { id: 'one', name: '單欄', note: '一行一個，最好填', text: '［　　　］\n［　　　］' },
+          { id: 'two', name: '雙欄', note: '一行兩個，畫面較寬時', text: '［　］［　］\n［　］' }
+        ]) }
+      ] }
+    ];
+    // ---------- live controls
+    const cbR = { square: '4px', round: '6px', circle: '99px' }[st.cbShape];
+    const fillOf = { accent: [A, '#ffffff', 'transparent'], ink: [st.dark ? '#f6f5f4' : '#171512', st.dark ? '#171512' : '#ffffff', 'transparent'], soft: [C.accentSoft, C.accentText, A] }[st.cbFill];
+    const checks = ['Email', '站內通知', '每週摘要'].map((label, i) => {
+      const v = st.checks[i], onv = v === true, mixed = v === 'mixed';
+      return { label, on: onv, mixed, aria: mixed ? 'mixed' : String(onv),
+        bg: onv || mixed ? fillOf[0] : 'transparent', bd: onv || mixed ? (st.cbFill === 'soft' ? '2px solid ' + fillOf[2] : '2px solid ' + fillOf[0]) : '2px solid ' + C.lineStrong, mark: fillOf[1],
+        toggle: () => { const a = this.state.checks.slice(); a[i] = a[i] === true ? false : true; this.setState({ checks: a, ckN: this.state.ckN + 1 }); } };
+    });
+    const ckAnim = { draw: 'draw', pop: 'pop', fade: 'fadein' }[st.cbAnim];
+    const radios = ['只有我', '團隊成員', '所有人'].map((label, i) => {
+      const s = st.radio === i;
+      const R = st.rdStyle;
+      return { label, aria: String(s), dot: s && R === 'dot', check: s && R === 'check', dotC: A,
+        bd: !s ? '2px solid ' + C.lineStrong : (R === 'ring' ? '7px solid ' + A : (R === 'check' ? '0' : '2px solid ' + A)),
+        bg: s && R === 'check' ? A : 'transparent', pick: () => this.setState({ radio: i }) };
+    });
+    const SW = { m3: { w: 52, h: 32, on: 24, off: 16, pad: 4 }, ios: { w: 51, h: 31, on: 27, off: 27, pad: 2 }, small: { w: 36, h: 20, on: 14, off: 14, pad: 3 } }[st.swStyle];
+    const dur = 200;
+    const lead = (dur * .6) + 'ms cubic-bezier(.2,.8,.2,1)', follow = (dur * 2.2) + 'ms cubic-bezier(.65,0,.25,1.15)';
+    const switches = ['公開專案', '允許留言'].map((label, i) => {
+      const v = st.sw[i];
+      const pressing = st.pressing === i;
+      const m3s = st.swStyle === 'm3';
+      const bw = m3s ? 2 : 0;
+      const innerW = SW.w - 2 * bw, innerH = SW.h - 2 * bw;
+      const th0 = v || !m3s ? SW.on : SW.off;
+      const thH = pressing && m3s ? 28 : th0;
+      const gapX = m3s ? (innerH - thH) / 2 : SW.pad;
+      const stretch = pressing ? 6 : 0;
+      let left, right;
+      if (v) { right = gapX; left = innerW - gapX - thH - stretch; } else { left = gapX; right = innerW - gapX - thH - stretch; }
+      const tr = st.swAnim === 'drop' ? 'left ' + (v ? follow : lead) + ', right ' + (v ? lead : follow) + ', height 150ms ease, margin-top 150ms ease, background-color .2s ease'
+        : st.swAnim === 'spring' ? 'left .35s cubic-bezier(.34,1.7,.5,1), right .35s cubic-bezier(.34,1.7,.5,1), height 150ms ease, margin-top 150ms ease, background-color .2s ease'
+        : 'left .2s ease, right .2s ease, height 150ms ease, margin-top 150ms ease, background-color .2s ease';
+      const m3 = st.swStyle === 'm3';
+      return { label, aria: String(v), left: left + 'px', right: right + 'px', th: thH + 'px', tm: (-thH / 2) + 'px', tr,
+        track: v ? (st.swStyle === 'ios' ? '#1ca655' : A) : (m3 ? C.sub : (st.dark ? '#514a43' : '#e1dedb')),
+        trackBd: m3 && !v ? '2px solid ' + C.lineStrong : (m3 ? '2px solid ' + A : '0'),
+        thumb: m3 ? (v ? '#ffffff' : C.lineStrong) : '#ffffff',
+        icon: st.swIcon === 'yes' && thH >= 16, iconC: v ? A : (m3 ? (st.dark ? '#2f2a25' : '#ffffff') : C.muted), iconP: v ? 'M5 12.5l4.5 4.5L19 7' : 'M7 7l10 10M17 7L7 17',
+        toggle: () => { const a = this.state.sw.slice(); a[i] = !a[i]; this.setState({ sw: a }); },
+        press: () => this.setState({ pressing: i }), release: () => { if (this.state.pressing === i) this.setState({ pressing: -1 }); } };
+    });
+    const swSh = st.swStyle === 'ios' ? '0 2px 6px rgba(0,0,0,.25)' : 'none';
+    const owners = ['王小明', '李小華', '陳大同', '林美玲'];
+    const menuItems = owners.map((t, i) => ({ idx: String(i), t, aria: String(st.owner === i), check: st.owner === i, bg: st.owner === i ? C.accentSoft : 'transparent', fg: st.owner === i ? C.accentText : C.ink, fw: st.owner === i ? 600 : 400, pick: () => this.setState({ owner: i, menu: false }) }));
+    const native = st.selType === 'native';
+    // fields
+    const reqOf = [true, true, false];
+    const labels = ['專案名稱', '代號', '備註'];
+    const phs = ['例如 叢集監控', '例如 hpc-mon', '其他補充'];
+    const floating = st.lblPos === 'floating';
+    const fields = labels.map((label, i) => {
+      const req = reqOf[i];
+      const hasVal = st.vals[i] !== '';
+      const up = st.focusIdx === i || hasVal;
+      return { id: 'fld-' + i, label, req: String(req), ph: floating ? '' : phs[i], value: st.vals[i],
+        star: st.reqMark === 'star' && req, tag: (st.reqMark === 'word' && req) || (st.reqMark === 'optional' && !req), tagText: st.reqMark === 'word' ? '必填' : '選填',
+        flTop: up ? '6px' : '15px', flFs: up ? '12px' : '15px', flColor: st.focusIdx === i ? C.accentText : C.muted,
+        change: (e) => { const a = this.state.vals.slice(); a[i] = e.target.value; this.setState({ vals: a }); },
+        focus: () => this.setState({ focusIdx: i }), blur: () => this.setState({ focusIdx: -1 }) };
+    });
+    const lbl = st.lblPos === 'left' ? { dir: 'row', align: 'flex-start', gap: '16px', w: '96px', pt: '9px', outside: true, floating: false, inH: '40px', inPad: '0 12px' }
+      : floating ? { dir: 'column', align: 'stretch', gap: '0', w: 'auto', pt: '0', outside: false, floating: true, inH: '48px', inPad: '18px 12px 0' }
+      : { dir: 'column', align: 'stretch', gap: '6px', w: 'auto', pt: '0', outside: true, floating: false, inH: '40px', inPad: '0 12px' };
+    const descLines = (st.desc.match(/\n/g) || []).length + 1 + Math.floor(st.desc.length / 48);
+    const grow = st.taMode === 'grow' || st.taMode === 'both';
+    const N = { cbShape: { square: '小圓角', round: '中圓角', circle: '圓形' }, cbFill: { accent: '強調色實心', ink: '深色實心', soft: '淺色底' }, cbAnim: { draw: '描繪', pop: '彈出', fade: '淡入' }, rdStyle: { dot: '內圈圓點', ring: '粗外環', check: '實心加勾' }, swStyle: { m3: 'Material 3', ios: 'iOS', small: '小型' }, swAnim: { drop: '水滴', smooth: '平滑', spring: '彈性' }, swIcon: { no: '不放', yes: '放勾與叉' }, selType: { menu: '自訂選單', search: '可搜尋選單', native: '系統原生' }, menuAnim: { drop: '水滴展開', down: '向下展開', fade: '淡入' }, srStyle: { icon: '外框加圖示', pill: '膠囊填色', plain: '一般輸入框' }, taMode: { count: '顯示字數', grow: '自動長高', both: '字數加自動長高', plain: '都不要' }, lblPos: { top: '上方', left: '左側', floating: '浮動標籤' }, reqMark: { star: '必填加星號', word: '必填寫「必填」', optional: '選填才標示' }, formCols: { one: '單欄', two: '雙欄' } };
+    return {
+      sections, c: C, dkCls: st.dark ? 'dk' : '',
+      themeBtns: [['淺色', false], ['深色', true]].map(([t, d]) => ({ t, pressed: st.dark === d ? 'true' : 'false', bg: st.dark === d ? '#171512' : '#ffffff', fg: st.dark === d ? '#ffffff' : '#171512', bd: st.dark === d ? '#171512' : '#cfcac4', pick: () => this.setState({ dark: d }) })),
+      checks, cbR, ckAnim: st.ckN ? ckAnim : '', ckAnim2: st.cbAnim === 'pop' ? 'pop' : (st.cbAnim === 'fade' ? 'fadein' : 'pop'),
+      radios, switches, swW: SW.w + 'px', swH: SW.h + 'px', swSh,
+      menuOpen: st.menu && !native, menuAria: String(st.menu && !native), toggleMenu: () => this.setState({ menu: native ? false : !this.state.menu }),
+      menuCls: { drop: 'm-drop', down: 'm-down', fade: 'm-fade' }[st.menuAnim], menuSearch: st.selType === 'search', menuItems,
+      selValue: owners[st.owner], notNative: !native, isNative: native, nativePick: (e) => this.setState({ owner: Number(e.target.value) }), selBd: st.menu && !native ? A : C.lineStrong, selSh: st.menu && !native ? '0 0 0 3px rgba(36,87,214,.3)' : 'none', chevTf: st.menu && !native ? 'rotate(180deg)' : 'none',
+      search: st.search, setSearch: (e) => this.setState({ search: e.target.value }), clearSearch: () => this.setState({ search: '' }),
+      srIcon: st.srStyle !== 'plain', srClear: st.srStyle !== 'plain' && st.search !== '', srPadL: st.srStyle === 'plain' ? '12px' : '38px',
+      srBg: st.srStyle === 'pill' ? C.sub : C.input, srBd: st.srStyle === 'pill' ? '1px solid transparent' : '1px solid ' + C.lineStrong, srR: st.srStyle === 'pill' ? '99px' : '10px',
+      desc: st.desc, setDesc: (e) => this.setState({ desc: e.target.value }), descLen: st.desc.length,
+      taRows: grow ? Math.max(2, Math.min(8, descLines)) : 3, taResize: grow ? 'none' : 'vertical', taCount: st.taMode === 'count' || st.taMode === 'both',
+      taNote: grow ? '輸入越多，框會跟著長高（最多 8 行）' : '固定 3 行，可以拖右下角調整',
+      fields, lbl, formCols: st.formCols === 'two' ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)',
+      summary: ['勾選框 ' + N.cbShape[st.cbShape] + '／' + N.cbFill[st.cbFill] + '／' + N.cbAnim[st.cbAnim], '單選 ' + N.rdStyle[st.rdStyle], '開關 ' + N.swStyle[st.swStyle] + '／' + N.swAnim[st.swAnim] + '／圖示' + N.swIcon[st.swIcon], '下拉 ' + N.selType[st.selType] + '／' + N.menuAnim[st.menuAnim], '搜尋欄 ' + N.srStyle[st.srStyle], '多行輸入 ' + N.taMode[st.taMode], '標籤 ' + N.lblPos[st.lblPos], '必填 ' + N.reqMark[st.reqMark], '排列 ' + N.formCols[st.formCols]].join(' · ')
+    };
+  }
+}
+</script>
+</body>
+</html>

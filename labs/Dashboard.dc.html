@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>B 應用介面</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500&amp;family=Noto+Sans+TC:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#5b4bdb}a:hover{color:#3f31b0}
+.nav{cursor:pointer;transition:background .15s ease,color .15s ease}
+.nav:hover{background:#eceef3}
+.btn{cursor:pointer;transition:background .15s ease,transform .1s ease}
+.btn:hover{background:#4a3bc7}.btn:active{transform:scale(.97)}
+.ghost{cursor:pointer;transition:background .15s ease}.ghost:hover{background:#f1f2f6}
+.kpi{transition:box-shadow .2s ease}.kpi:hover{box-shadow:0 8px 24px rgba(20,22,40,.08)}
+.bar{transition:transform .7s cubic-bezier(.2,.8,.2,1),background .15s ease;transform-origin:bottom}
+.bar:hover{background:#3f31b0}
+.item{transition:background .15s ease}.item:hover{background:#f7f7fb}
+@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+.skel{background:linear-gradient(90deg,#eef0f4 0%,#f8f9fb 50%,#eef0f4 100%);background-size:800px 100%;animation:shimmer 1.2s linear infinite;border-radius:6px}
+</style>
+</helmet>
+<div style="position: relative; min-height: 100vh; display: flex; flex-wrap: wrap; background: #ffffff; color: #16181f; font-family: 'IBM Plex Sans', 'Noto Sans TC', sans-serif; font-size: 15px; line-height: 1.55; overflow: hidden">
+
+<aside style="flex: 0 1 {{sideW}}; box-sizing: border-box; background: #f6f7f9; border-right: 1px solid #e4e6eb; padding: 20px 12px; transition: flex-basis .3s cubic-bezier(.3,.7,.3,1); overflow: hidden">
+<div style="display: flex; align-items: center; gap: 10px; padding: 4px 10px 20px; white-space: nowrap">
+<span style="flex: 0 0 28px; width: 28px; height: 28px; border-radius: 8px; background: #5b4bdb; display: inline-block"></span>
+<sc-if value="{{open}}" hint-placeholder-val="{{ true }}"><span style="font-weight: 700; font-size: 16px">[工作區]</span></sc-if>
+</div>
+<nav style="position: relative; display: flex; flex-direction: column; gap: 4px">
+<span style="position: absolute; left: 0; top: 0; width: 100%; height: 44px; border-radius: 8px; background: #ffffff; box-shadow: 0 1px 3px rgba(20,22,40,.1); transform: {{navY}}; transition: transform .3s cubic-bezier(.3,.7,.3,1)"></span>
+<sc-for list="{{navs}}" as="n" hint-placeholder-count="5">
+<button class="nav" type="button" onClick="{{n.pick}}" aria-label="{{n.label}}" style="position: relative; display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; font: inherit; color: {{n.color}}; font-weight: 500; white-space: nowrap; text-align: left">
+<span style="flex: 0 0 20px; width: 20px; height: 20px; border: 2px solid currentColor; border-radius: {{n.shape}}; box-sizing: border-box"></span>
+<sc-if value="{{open}}" hint-placeholder-val="{{ true }}"><span>{{n.label}}</span></sc-if>
+</button>
+</sc-for>
+</nav>
+<button class="ghost" type="button" onClick="{{toggleSide}}" style="margin-top: 24px; width: 100%; height: 44px; border: 1px solid #e4e6eb; border-radius: 8px; background: #ffffff; font: inherit; color: #555b6e; white-space: nowrap; overflow: hidden">{{sideLabel}}</button>
+</aside>
+
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 36px 48px">
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between">
+<div>
+<div style="font-size: 13px; color: #555b6e">應用介面 · 側邊欄架構 · 範例資料</div>
+<h1 style="margin: 4px 0 0; font-size: 28px; font-weight: 700; letter-spacing: -.01em">{{pageTitle}}</h1>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 10px">
+<button class="ghost" type="button" onClick="{{replay}}" style="height: 44px; padding: 0 16px; border: 1px solid #e4e6eb; border-radius: 8px; background: #ffffff; font: inherit; color: #16181f">重播數字與圖表</button>
+<button class="ghost" type="button" onClick="{{toggleLoad}}" style="height: 44px; padding: 0 16px; border: 1px solid #e4e6eb; border-radius: 8px; background: #ffffff; font: inherit; color: #16181f">{{loadLabel}}</button>
+<button class="btn" type="button" onClick="{{showToast}}" style="height: 44px; padding: 0 18px; border: 0; border-radius: 8px; background: #5b4bdb; font: inherit; font-weight: 600; color: #ffffff">儲存</button>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 28px">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="3">
+<div class="kpi" style="border: 1px solid #e4e6eb; border-radius: 12px; padding: 20px">
+<div style="font-size: 13px; color: #555b6e">{{k.label}}</div>
+<div style="margin-top: 6px; font-family: 'IBM Plex Mono', monospace; font-size: 32px; font-weight: 500">{{k.value}}</div>
+<div style="margin-top: 4px; font-size: 13px; color: #1a7f4b">{{k.delta}}</div>
+</div>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px">
+<section style="flex: 3 1 360px; min-width: 0; border: 1px solid #e4e6eb; border-radius: 12px; padding: 20px">
+<div style="display: flex; justify-content: space-between; align-items: baseline">
+<div style="font-weight: 600">每週活動量</div>
+<div style="font-size: 13px; color: #555b6e">次數</div>
+</div>
+<div style="display: flex; align-items: flex-end; gap: 14px; height: 200px; margin-top: 20px; border-bottom: 1px solid #e4e6eb">
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="7">
+<div style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%">
+<div class="bar" style="width: 100%; max-width: 40px; height: {{b.h}}; background: #5b4bdb; border-radius: 4px 4px 0 0; transform: {{b.scale}}; transition-delay: {{b.delay}}"></div>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; gap: 14px; margin-top: 8px">
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="7"><div style="flex: 1 1 0; text-align: center; font-size: 12px; color: #555b6e">{{b.day}}</div></sc-for>
+</div>
+</section>
+<section style="flex: 2 1 280px; min-width: 0; border: 1px solid #e4e6eb; border-radius: 12px; padding: 20px">
+<div style="font-weight: 600">最近更新</div>
+<div style="margin-top: 12px; display: flex; flex-direction: column">
+<sc-if value="{{loading}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 18px; padding: 10px 0">
+<div class="skel" style="height: 14px; width: 80%"></div>
+<div class="skel" style="height: 14px; width: 60%"></div>
+<div class="skel" style="height: 14px; width: 72%"></div>
+<div class="skel" style="height: 14px; width: 50%"></div>
+</div>
+</sc-if>
+<sc-if value="{{loaded}}" hint-placeholder-val="{{ true }}">
+<div class="item" style="display: flex; justify-content: space-between; gap: 12px; padding: 12px 8px; border-bottom: 1px solid #eef0f3; border-radius: 6px"><span>[項目一] 已更新</span><span style="color: #555b6e; font-size: 13px">[時間]</span></div>
+<div class="item" style="display: flex; justify-content: space-between; gap: 12px; padding: 12px 8px; border-bottom: 1px solid #eef0f3; border-radius: 6px"><span>[項目二] 已建立</span><span style="color: #555b6e; font-size: 13px">[時間]</span></div>
+<div class="item" style="display: flex; justify-content: space-between; gap: 12px; padding: 12px 8px; border-bottom: 1px solid #eef0f3; border-radius: 6px"><span>[項目三] 等待審核</span><span style="color: #555b6e; font-size: 13px">[時間]</span></div>
+<div class="item" style="display: flex; justify-content: space-between; gap: 12px; padding: 12px 8px; border-radius: 6px"><span>[項目四] 已封存</span><span style="color: #555b6e; font-size: 13px">[時間]</span></div>
+</sc-if>
+</div>
+</section>
+</div>
+</main>
+
+<div role="status" style="position: absolute; right: 28px; bottom: 28px; display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: #16181f; color: #ffffff; border-radius: 10px; box-shadow: 0 12px 32px rgba(20,22,40,.25); transform: {{toastPos}}; opacity: {{toastOp}}; transition: transform .35s cubic-bezier(.2,.9,.3,1.2), opacity .25s ease; pointer-events: none">
+<span style="width: 8px; height: 8px; border-radius: 99px; background: #6ee7a8; display: inline-block"></span>
+<span>已儲存變更</span>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1180}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { nav: 0, open: true, p: 0, grown: false, toast: false, loading: false }; }
+  componentDidMount() { this.run(); }
+  componentWillUnmount() { cancelAnimationFrame(this.raf); clearTimeout(this.t1); clearTimeout(this.t2); }
+  run() {
+    cancelAnimationFrame(this.raf);
+    this.setState({ p: 0, grown: false });
+    const start = performance.now();
+    const tick = (now) => {
+      const x = Math.min(1, (now - start) / 1100);
+      this.setState({ p: 1 - Math.pow(1 - x, 3) });
+      if (x < 1) this.raf = requestAnimationFrame(tick);
+    };
+    this.t2 = setTimeout(() => this.setState({ grown: true }), 60);
+    this.raf = requestAnimationFrame(tick);
+  }
+  renderVals() {
+    const labels = ['總覽', '專案', '成員', '報表', '設定'];
+    const shapes = ['4px', '99px', '4px', '0', '99px'];
+    const s = this.state;
+    const fmt = (n) => Math.round(n * s.p).toLocaleString('en-US');
+    const hs = [46, 68, 52, 88, 74, 40, 60];
+    const days = ['一', '二', '三', '四', '五', '六', '日'];
+    return {
+      open: s.open,
+      sideW: s.open ? '240px' : '72px',
+      sideLabel: s.open ? '收合側邊欄' : '展開',
+      toggleSide: () => this.setState({ open: !s.open }),
+      navY: 'translateY(' + (s.nav * 48) + 'px)',
+      pageTitle: labels[s.nav],
+      navs: labels.map((l, i) => ({ label: l, shape: shapes[i], color: i === s.nav ? '#16181f' : '#555b6e', pick: () => this.setState({ nav: i }) })),
+      kpis: [
+        { label: '本週活躍使用者', value: fmt(1284), delta: '範例數值' },
+        { label: '完成任務', value: fmt(372), delta: '範例數值' },
+        { label: '平均回應時間 (ms)', value: fmt(218), delta: '範例數值' }
+      ],
+      bars: hs.map((h, i) => ({ h: h + '%', day: days[i], scale: s.grown ? 'scaleY(1)' : 'scaleY(0)', delay: (i * 60) + 'ms' })),
+      replay: () => this.run(),
+      loading: s.loading,
+      loaded: !s.loading,
+      loadLabel: s.loading ? '顯示內容' : '顯示載入骨架',
+      toggleLoad: () => this.setState({ loading: !s.loading }),
+      toastPos: s.toast ? 'translateY(0)' : 'translateY(24px)',
+      toastOp: s.toast ? 1 : 0,
+      showToast: () => { clearTimeout(this.t1); this.setState({ toast: true }); this.t1 = setTimeout(() => this.setState({ toast: false }), 2400); }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>元件與狀態實驗室</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit;opacity:.8}
+.opt{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.opt:hover{transform:translateY(-2px)}
+.pv,.pv *{transition:background-color .3s ease,border-color .3s ease,color .3s ease}
+.live{cursor:pointer;transition:filter .15s ease,transform .1s ease,background-color .15s ease}
+.live:hover{filter:brightness(1.07)}
+.live:active{transform:translateY(1px)}
+.inp{outline:none;transition:border-color .15s ease,box-shadow .15s ease}
+.f-ring .inp:focus{border-color:#2457d6 !important;box-shadow:0 0 0 3px rgba(36,87,214,.3)}
+.f-outline .inp:focus{outline:2px solid #2457d6;outline-offset:2px}
+.f-border .inp:focus{border-color:#2457d6 !important;box-shadow:inset 0 0 0 1px #2457d6}
+.row{transition:background-color .15s ease}
+.rh:hover{background:rgba(36,87,214,.07) !important}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin .8s linear infinite}
+@keyframes shimmer{0%{background-position:-300px 0}100%{background-position:300px 0}}
+.skel{background-size:600px 100% !important;animation:shimmer 1.2s linear infinite}
+@keyframes prog{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
+.prog{animation:prog 1.1s cubic-bezier(.4,0,.2,1) infinite}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.scrim{animation:fadeIn .2s ease both}
+@keyframes popC{from{opacity:0;transform:translate(-50%,-46%) scale(.97)}to{opacity:1;transform:translate(-50%,-50%)}}
+.m-center{animation:popC .22s cubic-bezier(.2,.9,.3,1.1) both}
+@keyframes slideR{from{transform:translateX(100%)}to{transform:none}}
+.m-side{animation:slideR .28s cubic-bezier(.3,.7,.3,1) both}
+@keyframes slideU{from{transform:translateY(100%)}to{transform:none}}
+.m-sheet{animation:slideU .3s cubic-bezier(.3,.7,.3,1) both}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes toastInTop{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+.t-up{animation:toastIn .32s cubic-bezier(.2,.9,.3,1.2) both}
+.t-down{animation:toastInTop .32s cubic-bezier(.2,.9,.3,1.2) both}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #f6f5f4; color: #171512; font-family: Inter, 'Noto Sans TC', sans-serif; font-size: 15px; line-height: 1.55">
+<main style="max-width: 1400px; margin: 0 auto; padding: 40px 32px 56px">
+<div style="font-family: 'Geist Mono', 'Noto Sans TC', monospace; font-size: 13px; font-weight: 600; color: #6d645a">深入 4 · 元件與狀態</div>
+<h1 style="margin: 6px 0 0; font-size: 39px; line-height: 1.2; font-weight: 700; letter-spacing: -.01em">元件與狀態實驗室</h1>
+<p style="margin: 8px 0 0; color: #6d645a; max-width: 900px">每個元件除了平常的樣子，還有滑過、按下、focus、停用、錯誤、載入中、沒有資料等狀態。左邊選樣式，右邊的元件都可以實際操作。全部選好後，把最下方的設定複製給我。</p>
+
+<div style="margin-top: 28px; display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start">
+
+<div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="13">
+<section style="padding: 16px; background: #ffffff; border: 1px solid #e2dfdc; border-radius: 10px">
+<div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; color: #ffffff; background: #171512; padding: 1px 7px; border-radius: 4px">{{g.no}}</span>
+<span style="font-size: 16px; font-weight: 700">{{g.label}}</span>
+</div>
+<p style="margin: 6px 0 0; font-size: 13px; color: #6d645a">{{g.desc}}</p>
+<div style="margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px">
+<sc-for list="{{g.opts}}" as="o" hint-placeholder-count="4">
+<button class="opt" type="button" onClick="{{o.pick}}" aria-pressed="{{o.pressed}}" style="display: flex; flex-direction: column; gap: 8px; padding: 10px; min-height: 44px; text-align: left; background: #ffffff; border: {{o.border}}; border-radius: 8px; font: inherit; color: #171512; box-shadow: {{o.ring}}">
+<span aria-hidden="true" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 54px; border-radius: 4px; background: #f6f5f4; overflow: hidden; position: relative">
+<sc-if value="{{o.hasChip}}" hint-placeholder-val="{{ true }}"><span style="display: inline-flex; align-items: center; justify-content: center; height: {{o.chip.h}}; min-width: {{o.chip.w}}; padding: 0 12px; box-sizing: border-box; border-radius: {{o.chip.r}}; background: {{o.chip.bg}}; color: {{o.chip.fg}}; border: {{o.chip.bd}}; border-bottom: {{o.chip.bb}}; box-shadow: {{o.chip.sh}}; outline: {{o.chip.ol}}; outline-offset: 2px; opacity: {{o.chip.op}}; font-size: 12px; font-weight: 600; white-space: nowrap">{{o.chip.t}}</span></sc-if>
+<sc-for list="{{o.shapes}}" as="sh" hint-placeholder-count="0"><span style="position: absolute; left: {{sh.x}}; top: {{sh.y}}; width: {{sh.w}}; height: {{sh.h}}; background: {{sh.c}}; border-radius: {{sh.r}}"></span></sc-for>
+</span>
+<span style="font-size: 13px; font-weight: 700">{{o.name}}</span>
+<span style="font-size: 12px; color: #6d645a; line-height: 1.4">{{o.note}}</span>
+</button>
+</sc-for>
+</div>
+</section>
+</sc-for>
+</div>
+
+<div style="flex: 1 1 760px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<span style="font-size: 13px; font-weight: 700">預覽主題</span>
+<sc-for list="{{themeBtns}}" as="tb" hint-placeholder-count="2">
+<button type="button" onClick="{{tb.pick}}" aria-pressed="{{tb.pressed}}" style="min-height: 44px; padding: 0 14px; border: 1px solid {{tb.bd}}; background: {{tb.bg}}; color: {{tb.fg}}; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{tb.t}}</button>
+</sc-for>
+</div>
+
+<div class="pv {{focusCls}}" style="background: {{c.page}}; color: {{c.ink}}; border: 1px solid #cfcac4; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 20px; font-size: 16px; line-height: 1.65">
+
+<section style="padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap"><span style="font-size: 20px; font-weight: 700">按鈕</span><span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: {{c.muted}}">高度 {{btnH}}</span></div>
+<div style="margin-top: 14px; overflow-x: auto">
+<div style="display: grid; grid-template-columns: 84px repeat(5, minmax(96px, 1fr)); gap: 10px 12px; align-items: center; min-width: 600px">
+<span></span>
+<sc-for list="{{stateNames}}" as="sn" hint-placeholder-count="5"><span style="font-family: 'Geist Mono', 'Noto Sans TC', monospace; font-size: 12px; color: {{c.muted}}">{{sn}}</span></sc-for>
+<sc-for list="{{btnRows}}" as="br" hint-placeholder-count="2">
+<span style="font-size: 13px; color: {{c.muted}}">{{br.label}}</span>
+<sc-for list="{{br.cells}}" as="b" hint-placeholder-count="5">
+<span style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: {{b.h}}; padding: 0 {{b.px}}; box-sizing: border-box; border-radius: 10px; background: {{b.bg}}; color: {{b.fg}}; border: {{b.bd}}; box-shadow: {{b.sh}}; transform: {{b.tf}}; opacity: {{b.op}}; font-size: {{b.fs}}; font-weight: 600; white-space: nowrap">
+<sc-if value="{{b.loading}}" hint-placeholder-val="{{ false }}"><svg class="spin" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="{{stroke}}" stroke-linecap="round"><path d="M12 3a9 9 0 1 1-9 9"></path></svg></sc-if>
+{{b.t}}</span>
+</sc-for>
+</sc-for>
+</div>
+</div>
+<div style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center">
+<span style="font-size: 13px; color: {{c.muted}}">實際操作</span>
+<button class="live" type="button" onClick="{{fakeSave}}" style="display: inline-flex; align-items: center; gap: 8px; height: {{live1.h}}; padding: 0 {{live1.px}}; border-radius: 10px; background: {{live1.bg}}; color: {{live1.fg}}; border: {{live1.bd}}; box-shadow: {{live1.sh}}; opacity: {{live1.op}}; font: inherit; font-size: {{live1.fs}}; font-weight: 600">
+<sc-if value="{{saving}}" hint-placeholder-val="{{ false }}"><svg class="spin" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="{{stroke}}" stroke-linecap="round"><path d="M12 3a9 9 0 1 1-9 9"></path></svg></sc-if>
+{{saveLabel}}</button>
+<button class="live" type="button" style="height: {{live2.h}}; padding: 0 {{live2.px}}; border-radius: 10px; background: {{live2.bg}}; color: {{live2.fg}}; border: {{live2.bd}}; box-shadow: {{live2.sh}}; font: inherit; font-size: {{live2.fs}}; font-weight: 600">取消</button>
+<button type="button" disabled style="height: {{live3.h}}; padding: 0 {{live3.px}}; border-radius: 10px; background: {{live3.bg}}; color: {{live3.fg}}; border: {{live3.bd}}; box-shadow: {{live3.sh}}; opacity: {{live3.op}}; font: inherit; font-size: {{live3.fs}}; font-weight: 600; cursor: not-allowed">無法使用</button>
+<button class="live" type="button" aria-label="設定" style="width: {{iconBtn}}; height: {{iconBtn}}; border-radius: 10px; border: {{live2.bd}}; background: {{live2.bg}}; color: {{c.ink}}; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="{{stroke}}" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M14 4v4M8 10v4M16 16v4"></path></svg></button>
+</div>
+</section>
+
+<section style="padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}">
+<div style="font-size: 20px; font-weight: 700">表單</div>
+<sc-if value="{{errSummary}}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: {{c.dangerBg}}; color: {{c.dangerFg}}; border: 1px solid {{c.dangerBd}}; font-size: 14px">
+<div style="font-weight: 700">有 1 個欄位需要修正</div>
+<div>Email 格式不正確</div>
+</div>
+</sc-if>
+<div style="margin-top: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px 20px">
+<div>
+<label for="cp-a" style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px">名稱（點進來看 focus）</label>
+<input id="cp-a" class="inp" type="text" placeholder="輸入名稱" style="box-sizing: border-box; width: 100%; height: {{inpH}}; padding: 0 {{inpPx}}; font: inherit; font-size: 15px; color: {{c.ink}}; background: {{inp.bg}}; border: {{inp.bd}}; border-bottom: {{inp.bb}}; border-radius: {{inp.r}}">
+<div style="margin-top: 6px; font-size: 13px; color: {{c.muted}}">說明文字放在欄位下方</div>
+</div>
+<div>
+<label for="cp-b" style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px">Email（錯誤狀態）</label>
+<div style="position: relative">
+<input id="cp-b" class="inp" type="email" value="name@" aria-invalid="true" aria-describedby="cp-b-err" style="box-sizing: border-box; width: 100%; height: {{inpH}}; padding: 0 {{errPadR}} 0 {{inpPx}}; font: inherit; font-size: 15px; color: {{c.ink}}; background: {{inp.bg}}; border: {{inpErr.bd}}; border-bottom: {{inpErr.bb}}; border-radius: {{inp.r}}">
+<sc-if value="{{errIcon}}" hint-placeholder-val="{{ false }}"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{c.danger}}" stroke-width="{{stroke}}" stroke-linecap="round" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%)"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 8v5M12 16.5v.5"></path></svg></sc-if>
+</div>
+<div id="cp-b-err" style="margin-top: 6px; font-size: 13px; color: {{errMsgColor}}">{{errMsg}}</div>
+</div>
+<div>
+<label for="cp-c" style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: {{c.muted}}">帳號（停用）</label>
+<input id="cp-c" class="inp" type="text" value="seanyeh" disabled style="box-sizing: border-box; width: 100%; height: {{inpH}}; padding: 0 {{inpPx}}; font: inherit; font-size: 15px; color: {{dis.fg}}; background: {{dis.inpBg}}; border: {{dis.inpBd}}; border-bottom: {{dis.inpBb}}; border-radius: {{inp.r}}; opacity: {{dis.op}}; cursor: not-allowed">
+</div>
+<div>
+<span style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px">Focus 狀態（固定顯示）</span>
+<span style="display: flex; align-items: center; box-sizing: border-box; width: 100%; height: {{inpH}}; padding: 0 {{inpPx}}; font-size: 15px; color: {{c.muted}}; background: {{inp.bg}}; border: {{inpFocus.bd}}; border-bottom: {{inpFocus.bb}}; border-radius: {{inp.r}}; box-shadow: {{inpFocus.sh}}; outline: {{inpFocus.ol}}; outline-offset: 2px">輸入中…</span>
+</div>
+</div>
+</section>
+
+<section style="padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+<span style="font-size: 20px; font-weight: 700">表格、載入與空狀態</span>
+<span style="display: flex; gap: 8px; flex-wrap: wrap">
+<button class="live" type="button" onClick="{{reload}}" style="height: {{live2.h}}; padding: 0 {{live2.px}}; border-radius: 10px; background: {{live2.bg}}; color: {{live2.fg}}; border: {{live2.bd}}; box-shadow: {{live2.sh}}; font: inherit; font-size: {{live2.fs}}; font-weight: 600">重新載入</button>
+<button class="live" type="button" onClick="{{toggleEmpty}}" style="height: {{live2.h}}; padding: 0 {{live2.px}}; border-radius: 10px; background: {{live2.bg}}; color: {{live2.fg}}; border: {{live2.bd}}; box-shadow: {{live2.sh}}; font: inherit; font-size: {{live2.fs}}; font-weight: 600">{{emptyLabel}}</button>
+</span>
+</div>
+<div style="margin-top: 14px; position: relative; min-height: 236px">
+<sc-if value="{{loadProgress}}" hint-placeholder-val="{{ false }}"><div style="position: absolute; left: 0; right: 0; top: 0; height: 3px; overflow: hidden; background: {{c.sub}}; border-radius: 99px"><div class="prog" style="width: 40%; height: 100%; background: #2457d6; border-radius: 99px"></div></div></sc-if>
+<sc-if value="{{loadSpinner}}" hint-placeholder-val="{{ false }}"><div style="height: 236px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: {{c.muted}}; font-size: 14px"><svg class="spin" width="28" height="28" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#2457d6" stroke-width="{{stroke}}" stroke-linecap="round"><path d="M12 3a9 9 0 1 1-9 9"></path></svg>載入中</div></sc-if>
+<sc-if value="{{loadSkel}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 14px; padding-top: 8px">
+<sc-for list="{{skelRows}}" as="sk" hint-placeholder-count="5"><div style="display: flex; gap: 16px"><span class="skel" style="height: 16px; width: {{sk.a}}; border-radius: 6px; background: {{skelBg}}"></span><span class="skel" style="height: 16px; width: {{sk.b}}; border-radius: 6px; background: {{skelBg}}"></span><span class="skel" style="height: 16px; width: 12%; border-radius: 6px; background: {{skelBg}}"></span></div></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{showTable}}" hint-placeholder-val="{{ true }}">
+<div style="overflow-x: auto; opacity: {{tableOp}}">
+<div style="min-width: 480px; display: flex; flex-direction: column; gap: {{tbl.gap}}">
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 10px 14px; font-size: 13px; font-weight: 600; color: {{c.muted}}; border-bottom: {{tbl.headBd}}"><span>名稱</span><span>狀態</span><span style="text-align: right">任務 (個)</span><span style="text-align: right">更新</span></div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="4">
+<div class="row rh" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; align-items: center; padding: 12px 14px; background: {{r.bg}}; border-bottom: {{r.bd}}; border-radius: {{tbl.r}}; box-shadow: {{r.sh}}; font-size: 15px">
+<span style="font-weight: 600">{{r.n}}</span>
+<span><span style="padding: 2px 10px; border-radius: 99px; font-size: 12px; font-weight: 700; background: {{r.sBg}}; color: {{r.sFg}}">{{r.s}}</span></span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace; font-size: 14px">{{r.c}}</span>
+<span style="text-align: right; font-family: 'Geist Mono', monospace; font-size: 13px; color: {{c.muted}}">[時間]</span>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{showEmpty}}" hint-placeholder-val="{{ false }}">
+<div style="min-height: 236px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; padding: 12px">
+<sc-if value="{{emptyIllu}}" hint-placeholder-val="{{ true }}">
+<span aria-hidden="true" style="position: relative; width: 96px; height: 72px; margin-bottom: 6px"><span style="position: absolute; left: 8px; top: 14px; width: 80px; height: 56px; border-radius: 10px; background: {{c.sub}}"></span><span style="position: absolute; left: 22px; top: 4px; width: 52px; height: 40px; border-radius: 8px; background: {{c.accentSoft}}; border: 2px solid #2457d6"></span><span style="position: absolute; left: 34px; top: 16px; width: 28px; height: 4px; border-radius: 4px; background: #2457d6"></span><span style="position: absolute; left: 34px; top: 26px; width: 18px; height: 4px; border-radius: 4px; background: #2457d6"></span></span>
+</sc-if>
+<span style="font-size: {{emptyTitleSize}}; font-weight: 700">{{emptyTitle}}</span>
+<sc-if value="{{emptyHasBody}}" hint-placeholder-val="{{ true }}"><span style="font-size: 14px; color: {{c.muted}}; max-width: 360px">建立第一個專案後，成員、任務與進度都會顯示在這裡。</span></sc-if>
+<sc-if value="{{emptySteps}}" hint-placeholder-val="{{ false }}">
+<div style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px; text-align: left">
+<sc-for list="{{steps}}" as="sp" hint-placeholder-count="3"><div style="display: flex; align-items: center; gap: 10px; font-size: 14px"><span style="flex: 0 0 24px; width: 24px; height: 24px; border-radius: 99px; background: {{sp.bg}}; color: {{sp.fg}}; font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{sp.n}}</span><span style="color: {{sp.tc}}">{{sp.t}}</span></div></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{emptyCta}}" hint-placeholder-val="{{ true }}"><span style="margin-top: 8px; display: inline-flex; align-items: center; height: {{live1.h}}; padding: 0 {{live1.px}}; border-radius: 10px; background: #2457d6; color: #ffffff; font-size: {{live1.fs}}; font-weight: 600">新增專案</span></sc-if>
+</div>
+</sc-if>
+</div>
+</section>
+
+<section style="padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+<span style="font-size: 20px; font-weight: 700">對話框與提示訊息</span>
+<span style="display: flex; gap: 8px; flex-wrap: wrap">
+<button class="live" type="button" onClick="{{openModal}}" style="height: {{live1.h}}; padding: 0 {{live1.px}}; border-radius: 10px; background: {{live1.bg}}; color: {{live1.fg}}; border: {{live1.bd}}; box-shadow: {{live1.sh}}; font: inherit; font-size: {{live1.fs}}; font-weight: 600">開啟對話框</button>
+<button class="live" type="button" onClick="{{showToast}}" style="height: {{live2.h}}; padding: 0 {{live2.px}}; border-radius: 10px; background: {{live2.bg}}; color: {{live2.fg}}; border: {{live2.bd}}; box-shadow: {{live2.sh}}; font: inherit; font-size: {{live2.fs}}; font-weight: 600">顯示提示</button>
+</span>
+</div>
+<div style="margin-top: 14px; position: relative; height: 340px; border-radius: 10px; overflow: hidden; background: {{c.page}}; border: 1px solid {{c.line}}">
+<div style="padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<span style="height: 14px; width: 40%; border-radius: 6px; background: {{c.sub}}"></span>
+<span style="height: 14px; width: 70%; border-radius: 6px; background: {{c.sub}}"></span>
+<span style="height: 14px; width: 55%; border-radius: 6px; background: {{c.sub}}"></span>
+<span style="font-size: 13px; color: {{c.muted}}">這個框代表頁面，對話框和提示會出現在框裡。</span>
+</div>
+<sc-if value="{{modal}}" hint-placeholder-val="{{ false }}">
+<div class="scrim" onClick="{{closeModal}}" style="position: absolute; inset: 0; background: rgba(0,0,0,.4)"></div>
+<div class="{{modalCls}}" role="dialog" aria-label="刪除專案" style="position: absolute; left: {{md.left}}; top: {{md.top}}; right: {{md.right}}; bottom: {{md.bottom}}; width: {{md.w}}; max-width: {{md.maxW}}; box-sizing: border-box; padding: 20px; background: {{c.card}}; border-radius: {{md.r}}; box-shadow: 0 20px 48px rgba(0,0,0,.35); display: flex; flex-direction: column; gap: 10px">
+<sc-if value="{{md.handle}}" hint-placeholder-val="{{ false }}"><span style="align-self: center; width: 40px; height: 4px; border-radius: 99px; background: {{c.line}}"></span></sc-if>
+<span style="font-size: 20px; font-weight: 700">刪除這個專案？</span>
+<span style="font-size: 14px; color: {{c.muted}}">專案內的 12 個任務會一起刪除，這個動作無法復原。</span>
+<span style="margin-top: auto; display: flex; justify-content: flex-end; gap: 8px; padding-top: 8px">
+<button class="live" type="button" onClick="{{closeModal}}" style="height: {{live2.h}}; padding: 0 {{live2.px}}; border-radius: 10px; background: {{live2.bg}}; color: {{live2.fg}}; border: {{live2.bd}}; box-shadow: {{live2.sh}}; font: inherit; font-size: {{live2.fs}}; font-weight: 600">取消</button>
+<button class="live" type="button" onClick="{{closeModal}}" style="height: {{live1.h}}; padding: 0 {{live1.px}}; border-radius: 10px; background: {{c.danger}}; color: #ffffff; border: 0; font: inherit; font-size: {{live1.fs}}; font-weight: 600">刪除</button>
+</span>
+</div>
+</sc-if>
+<sc-if value="{{toast}}" hint-placeholder-val="{{ false }}">
+<div class="{{toastCls}}" role="status" style="position: absolute; left: {{tp.left}}; right: {{tp.right}}; top: {{tp.top}}; bottom: {{tp.bottom}}; margin: 0 auto; width: fit-content; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; background: {{c.toastBg}}; color: {{c.toastFg}}; box-shadow: 0 12px 32px rgba(0,0,0,.28); font-size: 14px">
+<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#1ca655" stroke-width="{{stroke}}" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg>已儲存變更<span style="margin-left: 6px; color: {{c.toastLink}}; font-weight: 700">復原</span>
+</div>
+</sc-if>
+</div>
+</section>
+</div>
+</div>
+</div>
+
+<section style="margin-top: 24px; padding: 14px 18px; border: 1px dashed #aca49a; border-radius: 8px; font-size: 13px; color: #6d645a">
+<span style="color: #171512; font-weight: 700">目前設定</span>　{{summary}}
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2500}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { primary: 'solid', secondary: 'outline', size: 'md', input: 'outline', focus: 'ring', error: 'icon', disabled: 'gray', table: 'lines', modal: 'center', toastPos: 'bottomRight', loading: 'skeleton', empty: 'illu', stroke: 2, dark: false, saving: false, isLoading: false, isEmpty: false, modalOpen: false, toast: false, tn: 0 }; }
+  componentWillUnmount() { clearTimeout(this.t1); clearTimeout(this.t2); clearTimeout(this.t3); }
+  mix(a, b, t) { const h = (x) => { const s = x.replace('#', ''); return [0, 2, 4].map((i) => parseInt(s.slice(i, i + 2), 16)); }; const x = h(a), y = h(b); return '#' + x.map((v, i) => Math.round(v * (1 - t) + y[i] * t).toString(16).padStart(2, '0')).join(''); }
+  renderVals() {
+    const st = this.state;
+    const A = '#2457d6';
+    const C = st.dark
+      ? { page: '#2f2a25', card: '#393530', ink: '#f6f5f4', muted: '#aca49a', line: '#4c4844', sub: '#443f3b', accentSoft: '#2d344c', accentText: '#7c9ae6', danger: '#cd2823', dangerFg: '#e48986', dangerBg: '#482a25', dangerBd: '#6a3a33', okBg: '#2c3e2d', okFg: '#82cea2', warnBg: '#4a3922', warnFg: '#e8bd7c', toastBg: '#f6f5f4', toastFg: '#171512', toastLink: '#2457d6', inputBg: '#26221e', shadow: '0 1px 2px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.55)' }
+      : { page: '#fcfbfb', card: '#ffffff', ink: '#171512', muted: '#6d645a', line: '#e2dfdc', sub: '#f6f5f4', accentSoft: '#e5ebfa', accentText: '#2457d6', danger: '#cd2823', dangerFg: '#901c19', dangerBg: '#faeae9', dangerBd: '#f1c4c2', okBg: '#e8f6ee', okFg: '#14743b', warnBg: '#fbf3e7', warnFg: '#965f0b', toastBg: '#171512', toastFg: '#ffffff', toastLink: '#7c9ae6', inputBg: '#ffffff', shadow: '0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.1)' };
+    const lineStrong = st.dark ? '#6a6460' : '#cfcac4';
+    const S = { sm: { h: 32, px: 12, fs: 14 }, md: { h: 40, px: 16, fs: 15 }, lg: { h: 48, px: 20, fs: 16 } }[st.size];
+    const base = { h: S.h + 'px', px: S.px + 'px', fs: S.fs + 'px', tf: 'none', op: 1, loading: false };
+    const disab = (b) => {
+      if (st.disabled === 'opacity') return Object.assign({}, b, { op: .45 });
+      if (st.disabled === 'gray') return Object.assign({}, b, { bg: C.sub, fg: C.muted, bd: '1px solid transparent', sh: 'none', op: 1 });
+      return Object.assign({}, b, { bg: 'transparent', fg: C.muted, bd: '1.5px dashed ' + lineStrong, sh: 'none', op: 1 });
+    };
+    const prim = (state) => {
+      let b = Object.assign({}, base, { bg: A, fg: '#ffffff', bd: '1px solid transparent', sh: 'none' });
+      if (st.primary === 'shadow') b.sh = '0 1px 2px rgba(0,0,0,.15), 0 4px 12px rgba(36,87,214,.35)';
+      if (st.primary === 'raised') b.sh = 'inset 0 -3px 0 rgba(0,0,0,.25)';
+      if (state === 'hover') b.bg = this.mix(A, '#000000', .12);
+      if (state === 'press') { b.bg = this.mix(A, '#000000', .22); b.tf = 'translateY(1px)'; if (st.primary === 'raised') b.sh = 'inset 0 -1px 0 rgba(0,0,0,.25)'; if (st.primary === 'shadow') b.sh = '0 1px 2px rgba(0,0,0,.15)'; }
+      if (state === 'disabled') b = disab(b);
+      if (state === 'loading') { b.loading = true; b.op = .85; }
+      return b;
+    };
+    const sec = (state) => {
+      const V = {
+        outline: { bg: 'transparent', fg: C.ink, bd: '1px solid ' + lineStrong, hov: C.sub },
+        soft: { bg: C.accentSoft, fg: C.accentText, bd: '1px solid transparent', hov: st.dark ? '#36406074' : '#d6e0f8' },
+        gray: { bg: C.sub, fg: C.ink, bd: '1px solid transparent', hov: st.dark ? '#504a45' : '#eeecea' },
+        text: { bg: 'transparent', fg: C.accentText, bd: '1px solid transparent', hov: C.sub }
+      }[st.secondary];
+      let b = Object.assign({}, base, { bg: V.bg, fg: V.fg, bd: V.bd, sh: 'none' });
+      if (state === 'hover' || state === 'press') b.bg = V.hov;
+      if (state === 'press') b.tf = 'translateY(1px)';
+      if (state === 'disabled') b = disab(b);
+      if (state === 'loading') b.loading = true;
+      return b;
+    };
+    const states = ['default', 'hover', 'press', 'disabled', 'loading'];
+    const labels = { default: '按鈕', hover: '按鈕', press: '按鈕', disabled: '按鈕', loading: '處理中' };
+    const inpV = {
+      outline: { bg: C.inputBg, bd: '1px solid ' + lineStrong, bb: '1px solid ' + lineStrong, r: '10px' },
+      underline: { bg: 'transparent', bd: '0', bb: '1.5px solid ' + lineStrong, r: '0' },
+      filled: { bg: C.sub, bd: '1px solid transparent', bb: '1px solid transparent', r: '10px' }
+    }[st.input];
+    const inpErr = st.input === 'underline' ? { bd: '0', bb: '2px solid ' + C.danger } : { bd: '1.5px solid ' + C.danger, bb: '1.5px solid ' + C.danger };
+    const fRing = { bd: st.input === 'underline' ? '0' : '1px solid ' + A, bb: (st.input === 'underline' ? '2px' : '1px') + ' solid ' + A, sh: st.input === 'underline' ? 'none' : '0 0 0 3px rgba(36,87,214,.3)', ol: 'none' };
+    const fOutline = { bd: inpV.bd, bb: inpV.bb, sh: 'none', ol: '2px solid ' + A };
+    const fBorder = { bd: st.input === 'underline' ? '0' : '2px solid ' + A, bb: '2px solid ' + A, sh: 'none', ol: 'none' };
+    const inpFocus = { ring: fRing, outline: fOutline, border: fBorder }[st.focus];
+    const dis = st.disabled === 'opacity' ? { op: .5, fg: C.ink, inpBg: inpV.bg, inpBd: inpV.bd, inpBb: inpV.bb } : (st.disabled === 'gray' ? { op: 1, fg: C.muted, inpBg: C.sub, inpBd: st.input === 'underline' ? '0' : '1px solid transparent', inpBb: '1px solid ' + C.line } : { op: 1, fg: C.muted, inpBg: 'transparent', inpBd: st.input === 'underline' ? '0' : '1.5px dashed ' + lineStrong, inpBb: '1.5px dashed ' + lineStrong });
+    const T = {
+      zebra: { gap: '0', headBd: '1px solid ' + C.line, r: '0', rowBd: '0', alt: C.sub, sh: 'none', bg: 'transparent' },
+      lines: { gap: '0', headBd: '1px solid ' + C.line, r: '0', rowBd: '1px solid ' + C.line, alt: 'transparent', sh: 'none', bg: 'transparent' },
+      cards: { gap: '8px', headBd: '0', r: '10px', rowBd: '0', alt: C.sub, sh: 'none', bg: C.sub }
+    }[st.table];
+    const rowsRaw = [['網站改版', '進行中', 12], ['叢集監控', '完成', 8], ['課程平台', '待審核', 21], ['文件系統', '已封存', 5]];
+    const stColor = { '進行中': [C.accentSoft, C.accentText], '完成': [C.okBg, C.okFg], '待審核': [C.warnBg, C.warnFg], '已封存': [C.sub, C.muted] };
+    const rows = rowsRaw.map(([n, s, c], i) => ({ n, s, c, sBg: st.table === 'cards' && s === '已封存' ? C.card : stColor[s][0], sFg: stColor[s][1], bg: st.table === 'cards' ? T.bg : (i % 2 === 1 ? T.alt : 'transparent'), bd: T.rowBd, sh: T.sh }));
+    const MD = {
+      center: { left: '50%', top: '50%', right: 'auto', bottom: 'auto', w: '400px', maxW: 'calc(100% - 32px)', r: '14px', handle: false },
+      side: { left: 'auto', top: '0', right: '0', bottom: '0', w: '360px', maxW: '100%', r: '14px 0 0 14px', handle: false },
+      sheet: { left: '0', top: 'auto', right: '0', bottom: '0', w: 'auto', maxW: 'none', r: '18px 18px 0 0', handle: true }
+    }[st.modal];
+    const TP = {
+      bottomRight: { left: 'auto', right: '16px', top: 'auto', bottom: '16px' },
+      topCenter: { left: '0', right: '0', top: '16px', bottom: 'auto' },
+      bottomCenter: { left: '0', right: '0', top: 'auto', bottom: '16px' }
+    }[st.toastPos];
+    const set = (k) => (v) => () => this.setState({ [k]: v });
+    const on = (k, id) => String(st[k]) === String(id);
+    const chip = (o) => Object.assign({ h: '28px', w: '64px', r: '8px', bg: '#2457d6', fg: '#ffffff', bd: '1px solid transparent', bb: '1px solid transparent', sh: 'none', ol: 'none', op: 1, t: '按鈕' }, o);
+    const sp = (x, y, w, h, c, r) => ({ x: x + '%', y: y + '%', w: w + '%', h: h + '%', c, r: r || '2px' });
+    const mk = (k, list) => list.map((o) => Object.assign({ hasChip: !!o.chip, chip: o.chip || chip({}), shapes: o.shapes || [] }, o, {
+      pressed: on(k, o.id) ? 'true' : 'false', border: on(k, o.id) ? '1px solid #171512' : '1px solid #e2dfdc', ring: on(k, o.id) ? '0 0 0 2px #171512' : 'none', pick: set(k)(o.id)
+    }));
+    const W = '#ffffff', G = '#cfcac4', D = '#8c8073';
+    const groups = [
+      { no: '01', label: '主要按鈕', desc: '頁面上最重要的動作，例如儲存、送出。', opts: mk('primary', [
+        { id: 'solid', name: '實心', note: '乾淨俐落', chip: chip({}) },
+        { id: 'shadow', name: '實心加光暈', note: '更浮、更醒目', chip: chip({ sh: '0 4px 12px rgba(36,87,214,.4)' }) },
+        { id: 'raised', name: '實心加底邊', note: '有按下去的立體感', chip: chip({ sh: 'inset 0 -3px 0 rgba(0,0,0,.25)' }) }
+      ]) },
+      { no: '02', label: '次要按鈕', desc: '取消、匯出等較不重要的動作。', opts: mk('secondary', [
+        { id: 'outline', name: '外框', note: '最常見', chip: chip({ bg: '#ffffff', fg: '#171512', bd: '1px solid #cfcac4' }) },
+        { id: 'soft', name: '柔和底色', note: '帶一點強調色', chip: chip({ bg: '#e5ebfa', fg: '#2457d6' }) },
+        { id: 'gray', name: '灰底', note: '最低調', chip: chip({ bg: '#eeecea', fg: '#171512' }) },
+        { id: 'text', name: '純文字', note: '只有文字', chip: chip({ bg: 'transparent', fg: '#2457d6' }) }
+      ]) },
+      { no: '03', label: '按鈕與輸入框高度', desc: '桌面滑鼠操作可以小一點；手機上的點擊範圍至少保持 44 px。', opts: mk('size', [
+        { id: 'sm', name: '32 px', note: '資訊密集', chip: chip({ h: '24px' }) },
+        { id: 'md', name: '40 px', note: '標準', chip: chip({ h: '30px' }) },
+        { id: 'lg', name: '48 px', note: '好按、觸控友善', chip: chip({ h: '36px' }) }
+      ]) },
+      { no: '04', label: '輸入框樣式', desc: '文字欄位的外觀。', opts: mk('input', [
+        { id: 'outline', name: '外框', note: '最清楚', chip: chip({ w: '90px', bg: '#ffffff', fg: '#8c8073', bd: '1px solid #cfcac4', t: '輸入' }) },
+        { id: 'underline', name: '底線', note: '極簡', chip: chip({ w: '90px', r: '0', bg: 'transparent', fg: '#8c8073', bd: '0', bb: '1.5px solid #8c8073', t: '輸入' }) },
+        { id: 'filled', name: '填色', note: '柔和，無外框', chip: chip({ w: '90px', bg: '#e1dedb', fg: '#6d645a', t: '輸入' }) }
+      ]) },
+      { no: '05', label: 'Focus 樣式', desc: '用鍵盤 Tab 或點進欄位時的提示。這是無障礙的重要條件，一定要明顯。', opts: mk('focus', [
+        { id: 'ring', name: '外光暈', note: '邊框變色加柔和光暈', chip: chip({ w: '90px', bg: '#ffffff', fg: '#8c8073', bd: '1px solid #2457d6', sh: '0 0 0 3px rgba(36,87,214,.3)', t: '輸入' }) },
+        { id: 'outline', name: '外框線', note: '外面多一圈實線', chip: chip({ w: '90px', bg: '#ffffff', fg: '#8c8073', bd: '1px solid #cfcac4', ol: '2px solid #2457d6', t: '輸入' }) },
+        { id: 'border', name: '邊框加粗', note: '邊框變粗變色', chip: chip({ w: '90px', bg: '#ffffff', fg: '#8c8073', bd: '2px solid #2457d6', t: '輸入' }) }
+      ]) },
+      { no: '06', label: '欄位錯誤顯示', desc: '輸入錯誤時怎麼告訴使用者。顏色之外一定要有文字。', opts: mk('error', [
+        { id: 'below', name: '下方紅字', note: '紅框加下方說明', chip: chip({ w: '90px', bg: '#ffffff', fg: '#8c8073', bd: '1.5px solid #cd2823', t: 'name@' }) },
+        { id: 'icon', name: '紅框加圖示', note: '欄位內多一個警示圖示', chip: chip({ w: '90px', bg: '#ffffff', fg: '#cd2823', bd: '1.5px solid #cd2823', t: 'name@  !' }) },
+        { id: 'summary', name: '上方摘要', note: '表單頂端列出所有錯誤', shapes: [sp(10, 10, 80, 26, '#faeae9', '4px'), sp(10, 50, 80, 16, W, '4px'), sp(10, 74, 80, 16, W, '4px')] }
+      ]) },
+      { no: '07', label: '停用狀態', desc: '暫時不能使用的按鈕和欄位。', opts: mk('disabled', [
+        { id: 'opacity', name: '半透明', note: '保留原本顏色', chip: chip({ op: .45 }) },
+        { id: 'gray', name: '灰底灰字', note: '明確看出不能按', chip: chip({ bg: '#eeecea', fg: '#8c8073' }) },
+        { id: 'dashed', name: '虛線框', note: '比較少見', chip: chip({ bg: 'transparent', fg: '#8c8073', bd: '1.5px dashed #aca49a' }) }
+      ]) },
+      { no: '08', label: '表格樣式', desc: '列與列之間怎麼區分。滑過每一列都會變色。', opts: mk('table', [
+        { id: 'lines', name: '分隔線', note: '乾淨，最常用', shapes: [0, 1, 2, 3].map((i) => sp(8, 14 + i * 20, 84, 2, G)) },
+        { id: 'zebra', name: '斑馬紋', note: '寬表格不易看錯行', shapes: [0, 1].map((i) => sp(8, 20 + i * 36, 84, 18, '#eeecea')) },
+        { id: 'cards', name: '卡片列', note: '每列像一張卡片', shapes: [0, 1, 2].map((i) => sp(8, 10 + i * 28, 84, 22, '#e1dedb', '4px')) }
+      ]) },
+      { no: '09', label: '對話框', desc: '需要使用者確認或填寫時跳出來的視窗。按「開啟對話框」試試。', opts: mk('modal', [
+        { id: 'center', name: '置中', note: '確認、警告', shapes: [sp(0, 0, 100, 100, G), sp(25, 22, 50, 56, W, '4px')] },
+        { id: 'side', name: '右側滑出', note: '編輯、詳細資料', shapes: [sp(0, 0, 100, 100, G), sp(58, 0, 42, 100, W)] },
+        { id: 'sheet', name: '底部抽屜', note: '手機上好操作', shapes: [sp(0, 0, 100, 100, G), sp(0, 50, 100, 50, W, '6px 6px 0 0')] }
+      ]) },
+      { no: '10', label: '提示訊息位置', desc: '儲存成功等短暫提示出現在哪裡。按「顯示提示」試試。', opts: mk('toastPos', [
+        { id: 'bottomRight', name: '右下角', note: '不擋主要內容', shapes: [sp(56, 70, 38, 20, D, '4px')] },
+        { id: 'topCenter', name: '上方置中', note: '最容易被看到', shapes: [sp(30, 10, 40, 20, D, '4px')] },
+        { id: 'bottomCenter', name: '下方置中', note: '手機上常見', shapes: [sp(30, 70, 40, 20, D, '4px')] }
+      ]) },
+      { no: '11', label: '載入狀態', desc: '資料還沒回來時顯示什麼。按「重新載入」試試。', opts: mk('loading', [
+        { id: 'skeleton', name: '骨架', note: '預告版面，感覺較快', shapes: [sp(8, 20, 60, 12, G, '4px'), sp(8, 44, 80, 12, G, '4px'), sp(8, 68, 46, 12, G, '4px')] },
+        { id: 'spinner', name: '轉圈', note: '簡單通用', shapes: [sp(40, 25, 20, 50, 'transparent', '99px')], chip: chip({ w: '28px', h: '28px', r: '99px', bg: 'transparent', bd: '3px solid #2457d6', t: '' }) },
+        { id: 'progress', name: '頂部進度條', note: '保留舊資料，上方顯示進度', shapes: [sp(0, 0, 40, 6, '#2457d6'), sp(8, 30, 84, 12, W, '4px'), sp(8, 56, 84, 12, W, '4px')] }
+      ]) },
+      { no: '12', label: '空狀態', desc: '沒有任何資料時的畫面。按「切換空狀態」試試。', opts: mk('empty', [
+        { id: 'illu', name: '圖示加按鈕', note: '說明加上下一步', shapes: [sp(38, 10, 24, 34, '#c8d5f5', '4px'), sp(30, 54, 40, 10, D, '4px'), sp(36, 72, 28, 16, '#2457d6', '4px')] },
+        { id: 'text', name: '只有文字', note: '最精簡', shapes: [sp(30, 44, 40, 12, D, '4px')] },
+        { id: 'steps', name: '引導步驟', note: '告訴使用者怎麼開始', shapes: [0, 1, 2].map((i) => sp(22, 16 + i * 26, 56, 14, i === 0 ? '#2457d6' : G, '4px')) }
+      ]) },
+      { no: '13', label: '圖示線寬', desc: '所有線條圖示的粗細。', opts: mk('stroke', [1.5, 2, 2.5].map((w) => ({ id: w, name: w + ' px', note: w === 1.5 ? '細緻' : (w === 2 ? '標準' : '粗，搭配大字'), chip: chip({ w: '28px', h: '28px', r: '99px', bg: 'transparent', bd: w + 'px solid #171512', t: '' }) }))) }
+    ];
+    groups.forEach((g) => g.opts.forEach((o) => { if (o.id === 'spinner') o.shapes = []; }));
+    const loading = st.isLoading;
+    const names = { primary: { solid: '實心', shadow: '實心加光暈', raised: '實心加底邊' }, secondary: { outline: '外框', soft: '柔和底色', gray: '灰底', text: '純文字' }, size: { sm: '32 px', md: '40 px', lg: '48 px' }, input: { outline: '外框', underline: '底線', filled: '填色' }, focus: { ring: '外光暈', outline: '外框線', border: '邊框加粗' }, error: { below: '下方紅字', icon: '紅框加圖示', summary: '上方摘要' }, disabled: { opacity: '半透明', gray: '灰底灰字', dashed: '虛線框' }, table: { lines: '分隔線', zebra: '斑馬紋', cards: '卡片列' }, modal: { center: '置中', side: '右側滑出', sheet: '底部抽屜' }, toastPos: { bottomRight: '右下角', topCenter: '上方置中', bottomCenter: '下方置中' }, loading: { skeleton: '骨架', spinner: '轉圈', progress: '頂部進度條' }, empty: { illu: '圖示加按鈕', text: '只有文字', steps: '引導步驟' } };
+    return {
+      groups, c: C, stroke: st.stroke,
+      themeBtns: [['淺色', false], ['深色', true]].map(([t, d]) => ({ t, pressed: st.dark === d ? 'true' : 'false', bg: st.dark === d ? '#171512' : '#ffffff', fg: st.dark === d ? '#ffffff' : '#171512', bd: st.dark === d ? '#171512' : '#cfcac4', pick: () => this.setState({ dark: d }) })),
+      focusCls: 'f-' + st.focus,
+      btnH: S.h + ' px',
+      stateNames: ['預設', '滑過', '按下', '停用', '載入中'],
+      btnRows: [
+        { label: '主要', cells: states.map((s) => Object.assign(prim(s), { t: labels[s] })) },
+        { label: '次要', cells: states.map((s) => Object.assign(sec(s), { t: labels[s] })) }
+      ],
+      live1: prim(st.saving ? 'loading' : 'default'), live2: sec('default'), live3: disab(prim('default')),
+      iconBtn: S.h + 'px',
+      saving: st.saving, saveLabel: st.saving ? '儲存中' : '儲存',
+      fakeSave: () => { if (this.state.saving) return; this.setState({ saving: true }); clearTimeout(this.t1); this.t1 = setTimeout(() => this.setState({ saving: false, toast: true, tn: this.state.tn + 1 }), 1400); clearTimeout(this.t3); this.t3 = setTimeout(() => this.setState({ toast: false }), 3800); },
+      inpH: S.h + 'px', inpPx: st.input === 'underline' ? '2px' : '12px', inp: inpV, inpErr, inpFocus, dis,
+      errIcon: st.error === 'icon', errSummary: st.error === 'summary',
+      errPadR: st.error === 'icon' ? '40px' : (st.input === 'underline' ? '2px' : '12px'),
+      errMsg: st.error === 'summary' ? '請輸入完整的 Email' : 'Email 格式不正確，例如 name@example.com',
+      errMsgColor: C.dangerFg,
+      tbl: T, rows,
+      reload: () => { this.setState({ isLoading: true, isEmpty: false }); clearTimeout(this.t2); this.t2 = setTimeout(() => this.setState({ isLoading: false }), 1800); },
+      toggleEmpty: () => this.setState({ isEmpty: !st.isEmpty, isLoading: false }),
+      emptyLabel: st.isEmpty ? '顯示資料' : '切換空狀態',
+      loadSkel: loading && st.loading === 'skeleton', loadSpinner: loading && st.loading === 'spinner', loadProgress: loading && st.loading === 'progress',
+      showTable: !st.isEmpty && (!loading || st.loading === 'progress'), tableOp: loading ? .5 : 1,
+      skelBg: 'linear-gradient(90deg, ' + C.sub + ' 0%, ' + (st.dark ? '#504a45' : '#fcfbfb') + ' 50%, ' + C.sub + ' 100%)',
+      skelRows: [['30%', '18%'], ['40%', '14%'], ['26%', '20%'], ['36%', '16%'], ['22%', '18%']].map(([a, b]) => ({ a, b })),
+      showEmpty: st.isEmpty && !loading,
+      emptyIllu: st.empty === 'illu', emptyHasBody: st.empty !== 'text', emptySteps: st.empty === 'steps', emptyCta: st.empty === 'illu',
+      emptyTitle: st.empty === 'text' ? '目前沒有專案' : (st.empty === 'steps' ? '三步驟開始使用' : '還沒有任何專案'),
+      emptyTitleSize: st.empty === 'text' ? '16px' : '20px',
+      steps: ['建立專案', '邀請成員', '新增第一個任務'].map((t, i) => ({ n: i + 1, t, bg: i === 0 ? A : C.sub, fg: i === 0 ? '#ffffff' : C.muted, tc: i === 0 ? C.ink : C.muted })),
+      modal: st.modalOpen, md: MD, modalCls: 'm-' + st.modal,
+      openModal: () => this.setState({ modalOpen: true }), closeModal: () => this.setState({ modalOpen: false }),
+      toast: st.toast, tp: TP, toastCls: st.toastPos === 'topCenter' ? 't-down' : 't-up',
+      showToast: () => { clearTimeout(this.t3); this.setState({ toast: false }); setTimeout(() => this.setState({ toast: true }), 20); this.t3 = setTimeout(() => this.setState({ toast: false }), 2600); },
+      summary: ['主要按鈕 ' + names.primary[st.primary], '次要按鈕 ' + names.secondary[st.secondary], '高度 ' + names.size[st.size], '輸入框 ' + names.input[st.input], 'Focus ' + names.focus[st.focus], '錯誤 ' + names.error[st.error], '停用 ' + names.disabled[st.disabled], '表格 ' + names.table[st.table], '對話框 ' + names.modal[st.modal], '提示 ' + names.toastPos[st.toastPos], '載入 ' + names.loading[st.loading], '空狀態 ' + names.empty[st.empty], '圖示線寬 ' + st.stroke + ' px'].join(' · ')
+    };
+  }
+}
+</script>
+</body>
+</html>

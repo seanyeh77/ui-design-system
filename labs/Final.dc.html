@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>定案風格</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Space+Grotesk:wght@400;500;700&amp;family=Newsreader:opsz,wght@6..72,500;6..72,600&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Noto+Sans+TC:wght@400;500;700;900&amp;family=Noto+Serif+TC:wght@600;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit;opacity:.8}
+.btn{cursor:pointer}
+.btn:hover{filter:brightness(1.08)}
+.ghost:hover{filter:none;opacity:.85}
+.card:hover{transform:translateY(-3px)}
+.s-brutal .btn:hover,.s-brutal .card:hover{transform:translate(-3px,-3px)}
+.s-brutal .btn:active{transform:translate(3px,3px);box-shadow:none !important}
+.btn:active{transform:scale(.97)}
+.s-shadow .card:hover{box-shadow:0 2px 4px rgba(0,0,0,.08),0 16px 36px rgba(0,0,0,.14) !important}
+.field:focus{outline:2px solid currentColor;outline-offset:2px}
+.row:hover{opacity:.75}
+.m1 .btn,.m2 .btn,.m3 .btn{transition:transform .15s ease,box-shadow .15s ease,filter .15s ease,opacity .15s ease}
+.m1 .card,.m2 .card,.m3 .card{transition:transform .22s ease,box-shadow .22s ease,background-color .35s ease}
+@keyframes popIn{from{opacity:0;transform:translateY(-6px) scale(.97)}to{opacity:1;transform:none}}
+.pop{animation:popIn .2s ease both;transform-origin:top right}
+.sw{cursor:pointer;transition:transform .15s ease}.sw:hover{transform:scale(1.08)}
+.mode{cursor:pointer}
+.m1 .row,.m2 .row,.m3 .row{transition:opacity .15s ease}
+@keyframes fadeA{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fadeB{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.fa{animation:fadeA .32s ease both}.fb{animation:fadeB .32s ease both}
+@keyframes enter{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+.li{animation:enter .32s cubic-bezier(.2,.8,.2,1) both}
+@keyframes riseA{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes riseB{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.ra .rise{animation:riseA .7s cubic-bezier(.2,.8,.2,1) backwards}
+.rb .rise{animation:riseB .7s cubic-bezier(.2,.8,.2,1) backwards}
+@keyframes float1{0%,100%{transform:translate(0,0) rotate(0deg)}50%{transform:translate(14px,-18px) rotate(10deg)}}
+@keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-18px,12px)}}
+.f1{animation:float1 6s ease-in-out infinite}.f2{animation:float2 7s ease-in-out infinite}.f3{animation:float1 9s ease-in-out infinite reverse}
+</style>
+</helmet>
+<div class="{{rootCls}}" style="min-height: 100vh; background: {{t.bg}}; color: {{t.ink}}; font-family: {{fBody}}; font-size: 16px; line-height: 1.6; position: relative; overflow: hidden; transition: background-color .35s ease, color .35s ease">
+
+<header style="border-bottom: {{t.headerLine}}; background: {{t.bg}}">
+<div style="max-width: 1200px; margin: 0 auto; padding: {{p.navPad}}; display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: center; justify-content: space-between">
+<div style="display: flex; align-items: center; gap: 10px; font-family: {{fHead}}; font-weight: 700; font-size: 19px">
+<span style="width: 24px; height: 24px; border-radius: {{rSm}}; background: {{accent}}; display: inline-block; border: {{b.mark}}"></span>
+<span>[專案名稱]</span>
+</div>
+<nav style="display: flex; flex-wrap: wrap; gap: 24px; font-size: 15px; color: {{t.muted}}">
+<a class="row" href="#" style="text-decoration: none; color: {{t.ink}}; font-weight: 600">首頁</a>
+<a class="row" href="#" style="text-decoration: none; color: {{t.muted}}">功能</a>
+<a class="row" href="#" style="text-decoration: none; color: {{t.muted}}">文件</a>
+<a class="row" href="#" style="text-decoration: none; color: {{t.muted}}">關於</a>
+</nav>
+<div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center">
+<div role="group" aria-label="主題" style="position: relative; display: flex; padding: 3px; background: {{t.sub}}; border-radius: {{rSm}}; transition: background-color .35s ease">
+<span style="position: absolute; top: 3px; left: 3px; width: 44px; height: 38px; background: {{segBg}}; border-radius: {{rSegIn}}; box-shadow: {{segShadow}}; transform: {{modeX}}; transition: transform .3s cubic-bezier(.3,.7,.3,1), background-color .35s ease"></span>
+<sc-for list="{{modes}}" as="md" hint-placeholder-count="3">
+<button class="mode" type="button" onClick="{{md.pick}}" aria-label="{{md.label}}" aria-pressed="{{md.pressed}}" title="{{md.label}}" style="position: relative; width: 44px; height: 38px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center">
+<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{md.color}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{md.icon}}"></path></svg>
+</button>
+</sc-for>
+</div>
+<div style="position: relative">
+<button class="btn ghost" type="button" onClick="{{togglePick}}" aria-label="選擇強調色" aria-expanded="{{pickAttr}}" style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; font: inherit; font-size: 14px; color: {{t.ink}}; background: {{b.ghostBg}}; border: {{b.ghostBorder}}; border-radius: {{rBtn}}">
+<span style="width: 18px; height: 18px; border-radius: 99px; background: {{accent}}; display: inline-block"></span>
+<span>強調色</span>
+</button>
+<sc-if value="{{pickOpen}}" hint-placeholder-val="{{ false }}">
+<div class="pop" role="dialog" aria-label="強調色" style="position: absolute; right: 0; top: 52px; z-index: 20; width: 232px; padding: 16px; background: {{c.bg}}; border: 1px solid {{t.line}}; border-radius: {{rLg}}; box-shadow: 0 16px 40px rgba(0,0,0,.28)">
+<div style="font-size: 13px; font-weight: 700; color: {{t.muted}}">預設色</div>
+<div style="margin-top: 10px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{swatches}}" as="w" hint-placeholder-count="8">
+<button class="sw" type="button" onClick="{{w.pick}}" aria-label="{{w.hex}}" aria-pressed="{{w.pressed}}" style="width: 44px; height: 44px; border-radius: {{rSm}}; background: {{w.hex}}; border: 0; box-shadow: {{w.ring}}"></button>
+</sc-for>
+</div>
+<label for="fin-custom" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; font-size: 13px; font-weight: 700; color: {{t.muted}}">自訂顏色
+<input id="fin-custom" type="color" value="{{accent}}" onChange="{{custom}}" style="width: 52px; height: 44px; padding: 0; border: 1px solid {{t.line}}; border-radius: {{rSm}}; background: transparent; cursor: pointer">
+</label>
+<button class="btn" type="button" onClick="{{togglePick}}" style="margin-top: 14px; width: 100%; min-height: 44px; font: inherit; font-size: 14px; font-weight: 600; color: {{onAccent}}; background: {{accent}}; border: 0; border-radius: {{rBtn}}">完成</button>
+</div>
+</sc-if>
+</div>
+<button class="btn ghost" type="button" style="min-height: 44px; padding: 0 16px; font: inherit; font-size: 15px; color: {{t.ink}}; background: {{b.ghostBg}}; border: {{b.ghostBorder}}; border-radius: {{rBtn}}; box-shadow: {{b.btnShadow}}">登入</button>
+<button class="btn" type="button" style="min-height: 44px; padding: 0 18px; font: inherit; font-size: 15px; font-weight: 600; color: {{onAccent}}; background: {{accent}}; border: {{b.btnBorder}}; border-radius: {{rBtn}}; box-shadow: {{b.btnShadow}}">開始使用</button>
+</div>
+</div>
+</header>
+
+<main style="max-width: 1200px; margin: 0 auto; padding: {{p.main}}">
+
+<section style="display: flex; flex-wrap: wrap; gap: {{p.gapL}}; align-items: center">
+<div style="flex: 1 1 520px; min-width: 0">
+<div class="rise" style="display: inline-block; padding: 4px 12px; font-size: 13px; font-weight: 600; color: {{accentText}}; background: {{accentSoft}}; border-radius: {{rPill}}; border: {{b.badge}}; animation-delay: 0ms">定案風格 · 等寬字 · 柔和陰影</div>
+<h1 class="rise" style="margin: 18px 0 0; font-family: {{fHead}}; font-size: 54px; line-height: 1.15; font-weight: {{headWeight}}; letter-spacing: {{headTrack}}; animation-delay: 90ms">淺色或深色<br>跟著你切換</h1>
+<p class="rise" style="margin: 18px 0 0; font-size: 18px; color: {{t.muted}}; max-width: 520px; animation-delay: 180ms">右上角可以選主題：自動跟隨系統、淺色或深色；旁邊可以換強調色，從預設色挑選或自訂。</p>
+<div class="rise" style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; animation-delay: 270ms">
+<button class="btn" type="button" onClick="{{showToast}}" style="min-height: 50px; padding: 0 24px; font: inherit; font-weight: 600; color: {{onAccent}}; background: {{accent}}; border: {{b.btnBorder}}; border-radius: {{rBtn}}; box-shadow: {{b.btnShadow}}">主要按鈕</button>
+<button class="btn ghost" type="button" style="min-height: 50px; padding: 0 24px; font: inherit; color: {{t.ink}}; background: {{b.ghostBg}}; border: {{b.ghostBorder}}; border-radius: {{rBtn}}; box-shadow: {{b.btnShadow}}">次要按鈕</button>
+<sc-if value="{{isM3}}" hint-placeholder-val="{{ false }}">
+<button class="btn ghost" type="button" onClick="{{replay}}" style="min-height: 50px; padding: 0 18px; font: inherit; color: {{t.muted}}; background: transparent; border: 1px dashed {{t.line}}; border-radius: {{rBtn}}">重播進場</button>
+</sc-if>
+</div>
+</div>
+<div class="rise" style="flex: 1 1 380px; min-width: 0; position: relative; height: 300px; box-sizing: border-box; background: {{c.bg}}; border: {{c.border}}; border-radius: {{rLg}}; box-shadow: {{c.shadow}}; overflow: hidden; animation-delay: 360ms">
+<div aria-hidden="true" class="{{float1}}" style="position: absolute; left: 44px; top: 40px; width: 110px; height: 110px; border-radius: {{rLg}}; background: {{accent}}; border: {{b.mark}}"></div>
+<div aria-hidden="true" class="{{float2}}" style="position: absolute; right: 56px; top: 70px; width: 70px; height: 70px; border-radius: 999px; background: {{t.ink}}"></div>
+<div aria-hidden="true" class="{{float3}}" style="position: absolute; left: 150px; bottom: 44px; width: 150px; height: 56px; border-radius: {{rSm}}; background: {{accentSoft}}; border: {{b.mark}}"></div>
+<div aria-hidden="true" style="position: absolute; right: 36px; bottom: 36px; display: flex; align-items: flex-end; gap: 8px; height: 90px">
+<span style="width: 14px; height: 40%; background: {{t.line}}; border-radius: {{rXs}}"></span>
+<span style="width: 14px; height: 70%; background: {{t.line}}; border-radius: {{rXs}}"></span>
+<span style="width: 14px; height: 55%; background: {{t.line}}; border-radius: {{rXs}}"></span>
+<span style="width: 14px; height: 100%; background: {{accent}}; border-radius: {{rXs}}"></span>
+</div>
+</div>
+</section>
+
+<section style="margin-top: {{p.sec}}; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: {{p.gap}}">
+<sc-for list="{{cards}}" as="k" hint-placeholder-count="3">
+<a class="card rise" href="#" style="display: block; text-decoration: none; color: inherit; padding: {{p.card}}; background: {{c.bg}}; border: {{c.border}}; border-radius: {{rLg}}; box-shadow: {{c.shadow}}; animation-delay: {{k.d}}">
+<div style="width: 40px; height: 40px; border-radius: {{rSm}}; background: {{accentSoft}}; display: flex; align-items: center; justify-content: center; border: {{b.badge}}">
+<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{accentText}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{k.icon}}"></path></svg>
+</div>
+<div style="margin-top: 14px; font-family: {{fHead}}; font-size: 20px; font-weight: 700">{{k.title}}</div>
+<p style="margin: 6px 0 0; font-size: 15px; color: {{t.muted}}">{{k.body}}</p>
+<div style="margin-top: 14px; font-size: 15px; font-weight: 600; color: {{accentText}}">了解更多 →</div>
+</a>
+</sc-for>
+</section>
+
+<section style="margin-top: {{p.gap}}; display: flex; flex-wrap: wrap; gap: {{p.gap}}">
+<div class="rise" style="flex: 1 1 340px; min-width: 0; padding: {{p.card}}; background: {{c.bg}}; border: {{c.border}}; border-radius: {{rLg}}; box-shadow: {{c.shadow}}; animation-delay: 300ms">
+<div style="font-family: {{fHead}}; font-size: 20px; font-weight: 700">表單</div>
+<div style="margin-top: 16px; display: flex; flex-direction: column; gap: {{p.field}}">
+<div>
+<label for="pg-name" style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px">名稱</label>
+<input id="pg-name" class="field" type="text" placeholder="輸入名稱" style="box-sizing: border-box; width: 100%; min-height: 46px; padding: 0 14px; font: inherit; color: {{t.ink}}; background: {{t.input}}; border: {{b.input}}; border-radius: {{rSm}}">
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+<span style="font-size: 15px">接收通知</span>
+<button type="button" onClick="{{toggle}}" aria-label="切換通知" aria-pressed="{{onAttr}}" style="flex: 0 0 52px; width: 52px; height: 30px; padding: 3px; cursor: pointer; border: {{b.toggle}}; border-radius: {{rToggle}}; background: {{trackBg}}; box-sizing: border-box; transition: background {{dToggle}}">
+<span style="display: block; width: 22px; height: 22px; border-radius: {{rKnob}}; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transform: {{knob}}; transition: transform {{dToggleSpring}}"></span>
+</button>
+</div>
+<button type="button" onClick="{{check}}" aria-pressed="{{chkAttr}}" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0; border: 0; background: transparent; font: inherit; color: {{t.ink}}; cursor: pointer; text-align: left">
+<span style="flex: 0 0 22px; width: 22px; height: 22px; box-sizing: border-box; border-radius: {{rXs}}; border: {{chkBorder}}; background: {{chkBg}}; display: flex; align-items: center; justify-content: center; transition: background {{dToggle}}">
+<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="{{onAccent}}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" style="transform: {{chkMark}}; transition: transform {{dToggleSpring}}"><path d="M4 12.5l5 5L20 6.5"></path></svg>
+</span>
+<span>我同意條款</span>
+</button>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<span style="padding: 4px 12px; font-size: 13px; font-weight: 600; border-radius: {{rPill}}; background: {{accentSoft}}; color: {{accentText}}; border: {{b.badge}}">標籤</span>
+<span style="padding: 4px 12px; font-size: 13px; font-weight: 600; border-radius: {{rPill}}; background: {{t.sub}}; color: {{t.muted}}; border: {{b.badge}}">草稿</span>
+<span style="padding: 4px 12px; font-size: 13px; font-weight: 600; border-radius: {{rPill}}; background: {{t.okBg}}; color: {{t.ok}}; border: {{b.badge}}">完成</span>
+</div>
+</div>
+</div>
+
+<div class="rise" style="flex: 2 1 480px; min-width: 0; padding: {{p.card}}; background: {{c.bg}}; border: {{c.border}}; border-radius: {{rLg}}; box-shadow: {{c.shadow}}; animation-delay: 380ms">
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between">
+<div style="position: relative; display: flex; padding: 4px; background: {{t.sub}}; border-radius: {{rSeg}}; border: {{b.badge}}">
+<span style="position: absolute; top: 4px; left: 4px; width: 96px; height: 38px; background: {{segBg}}; border-radius: {{rSegIn}}; box-shadow: {{segShadow}}; border: {{b.segIn}}; box-sizing: border-box; transform: {{segX}}; transition: transform {{dSeg}}"></span>
+<sc-for list="{{tabs}}" as="g" hint-placeholder-count="3">
+<button type="button" onClick="{{g.pick}}" style="position: relative; width: 96px; height: 38px; border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 600; color: {{g.color}}; cursor: pointer">{{g.label}}</button>
+</sc-for>
+</div>
+<button class="btn ghost" type="button" onClick="{{add}}" style="min-height: 44px; padding: 0 16px; font: inherit; font-size: 14px; color: {{t.ink}}; background: {{b.ghostBg}}; border: {{b.ghostBorder}}; border-radius: {{rBtn}}; box-shadow: {{b.btnShadow}}">新增一列</button>
+</div>
+<div class="{{tabCls}}" style="margin-top: 14px; overflow-x: auto">
+<div style="min-width: 440px">
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr; padding: {{p.cell}}; font-size: 13px; font-weight: 600; color: {{t.muted}}; border-bottom: 1px solid {{t.line}}">
+<span>{{tabHead}}</span><span>狀態</span><span>更新</span>
+</div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="3">
+<div class="row {{liCls}}" style="display: grid; grid-template-columns: 2fr 1fr 1fr; padding: {{p.cell}}; font-size: 15px; border-bottom: 1px solid {{t.line}}">
+<span>{{r.name}}</span><span style="color: {{r.color}}">● {{r.status}}</span><span style="color: {{t.muted}}">[時間]</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</section>
+
+<section style="margin-top: {{p.sec}}">
+<div style="display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: baseline; justify-content: space-between">
+<h2 style="margin: 0; font-family: {{fHead}}; font-size: 28px; font-weight: 700">設計規格</h2>
+<span style="font-size: 14px; color: {{t.muted}}">{{modeNote}}</span>
+</div>
+<div style="margin-top: {{p.gap}}; display: flex; flex-wrap: wrap; gap: {{p.gap}}">
+<div style="flex: 2 1 480px; min-width: 0; padding: {{p.card}}; background: {{c.bg}}; border: {{c.border}}; border-radius: {{rLg}}; box-shadow: {{c.shadow}}; transition: background-color .35s ease">
+<div style="font-size: 14px; font-weight: 700">配色</div>
+<div style="margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px">
+<sc-for list="{{colorTokens}}" as="ct" hint-placeholder-count="8">
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="flex: 0 0 36px; width: 36px; height: 36px; border-radius: {{rSm}}; background: {{ct.v}}; box-shadow: inset 0 0 0 1px {{t.line}}"></span>
+<span style="font-size: 13px; line-height: 1.35"><span style="display: block; font-weight: 700">{{ct.name}}</span><span style="color: {{t.muted}}">{{ct.v}}</span></span>
+</div>
+</sc-for>
+</div>
+</div>
+<div style="flex: 1 1 320px; min-width: 0; padding: {{p.card}}; background: {{c.bg}}; border: {{c.border}}; border-radius: {{rLg}}; box-shadow: {{c.shadow}}; transition: background-color .35s ease">
+<div style="font-size: 14px; font-weight: 700">字級 (px)</div>
+<div style="margin-top: 10px; display: flex; flex-direction: column; gap: 6px">
+<sc-for list="{{typeScale}}" as="ty" hint-placeholder-count="5">
+<div style="display: flex; align-items: baseline; gap: 12px; border-bottom: 1px solid {{t.line}}; padding-bottom: 6px">
+<span style="flex: 0 0 64px; font-size: 13px; color: {{t.muted}}">{{ty.size}} / {{ty.w}}</span>
+<span style="font-size: {{ty.px}}; font-weight: {{ty.w}}; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ty.name}}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+<div style="margin-top: {{p.gap}}; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: {{p.gap}}">
+<sc-for list="{{specCards}}" as="sc" hint-placeholder-count="3">
+<div style="padding: {{p.card}}; background: {{c.bg}}; border: {{c.border}}; border-radius: {{rLg}}; box-shadow: {{c.shadow}}; transition: background-color .35s ease">
+<div style="font-size: 14px; font-weight: 700">{{sc.title}}</div>
+<div style="margin-top: 8px; display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{sc.rows}}" as="sr" hint-placeholder-count="3">
+<div style="display: flex; justify-content: space-between; gap: 12px; font-size: 13px"><span style="color: {{t.muted}}">{{sr.k}}</span><span>{{sr.v}}</span></div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</section>
+</main>
+
+<div role="status" style="position: absolute; right: 28px; bottom: 28px; display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: {{t.toastBg}}; color: {{t.toastInk}}; border-radius: {{rSm}}; border: {{b.toast}}; box-shadow: {{toastShadow}}; transform: {{toastPos}}; opacity: {{toastOp}}; transition: {{dToast}}; pointer-events: none">
+<span style="width: 8px; height: 8px; border-radius: 99px; background: {{accent}}; display: inline-block"></span>
+<span>已送出</span>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { mode: 'auto', sysDark: false, acc: '#2457d6', pick: false, o: {}, tab: 0, on: true, chk: false, toast: false, extra: 0, r: 0, tabN: 0 }; }
+  componentDidMount() {
+    try {
+      this.mq = window.matchMedia('(prefers-color-scheme: dark)');
+      this.onMq = (e) => this.setState({ sysDark: e.matches });
+      this.setState({ sysDark: this.mq.matches });
+      this.mq.addEventListener('change', this.onMq);
+    } catch (e) {}
+  }
+  componentWillUnmount() { clearTimeout(this.t1); try { this.mq.removeEventListener('change', this.onMq); } catch (e) {} }
+  hex(h) { const s = h.replace('#', ''); const f = s.length === 3 ? s.split('').map((x) => x + x).join('') : s; return [0, 2, 4].map((i) => parseInt(f.slice(i, i + 2), 16)); }
+  mix(h, w, a) { const x = this.hex(h), y = this.hex(w); return '#' + x.map((v, i) => Math.round(v * (1 - a) + y[i] * a).toString(16).padStart(2, '0')).join(''); }
+  lum(h) { const c = this.hex(h).map((v) => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; }
+  renderVals() {
+    const P = this.props, s = this.state;
+    const theme = s.mode === 'auto' ? (s.sysDark ? '深色' : '淺色') : s.mode;
+    const accent = s.acc;
+    const radius = '中圓角';
+    const font = '等寬';
+    const surface = '柔和陰影';
+    const density = '緊密';
+    const motion = 'Level 3 吸睛';
+    const m = ['無動畫', 'Level 1 細緻回饋', 'Level 2 轉場', 'Level 3 吸睛'].indexOf(motion);
+    const lvl = m < 0 ? 2 : m;
+    const dark = theme === '深色';
+    const T = {
+      '淺色': { bg: '#ffffff', ink: '#111418', muted: '#5b6470', line: '#e3e6ea', sub: '#f3f4f6', input: '#ffffff', okBg: '#e3f5ea', ok: '#17663d', toastBg: '#111418', toastInk: '#ffffff' },
+      '深色': { bg: '#0d0f12', ink: '#eceef1', muted: '#9aa3ae', line: '#2a2f37', sub: '#1c2026', input: '#12151a', okBg: '#163323', ok: '#7ee2a8', toastBg: '#eceef1', toastInk: '#0d0f12' },
+      '柔和灰': { bg: '#eef0f2', ink: '#1c1f24', muted: '#566070', line: '#d8dce1', sub: '#e3e6ea', input: '#ffffff', okBg: '#dcefe3', ok: '#17663d', toastBg: '#1c1f24', toastInk: '#ffffff' }
+    }[theme] || {};
+    const cardBg = theme === '柔和灰' ? '#ffffff' : (dark ? '#15181d' : '#ffffff');
+    const brutal = surface === '粗框硬陰影';
+    const R = { '直角': [0, 0, 0, 0], '小圓角': [4, 6, 8, 6], '中圓角': [6, 10, 14, 10], '大圓角': [8, 14, 24, 14], '膠囊': [8, 14, 28, 999] }[radius] || [6, 10, 14, 10];
+    const px = (n) => n + 'px';
+    const F = {
+      '無襯線': ["Inter, 'Noto Sans TC', sans-serif", "Inter, 'Noto Sans TC', sans-serif", 800, '-.02em'],
+      '幾何': ["'Space Grotesk', 'Noto Sans TC', sans-serif", "'Space Grotesk', 'Noto Sans TC', sans-serif", 700, '-.03em'],
+      '襯線標題': ["Newsreader, 'Noto Serif TC', serif", "Inter, 'Noto Sans TC', sans-serif", 900, '0'],
+      '等寬': ["'JetBrains Mono', 'Noto Sans TC', monospace", "'JetBrains Mono', 'Noto Sans TC', monospace", 700, '-.02em']
+    }[font] || [];
+    const D = { '緊密': .72, '標準': 1, '寬鬆': 1.35 }[density] || 1;
+    const sp = (n) => Math.round(n * D) + 'px';
+    const ink = T.ink;
+    const onAccent = this.lum(accent) > .45 ? '#111418' : '#ffffff';
+    const accentText = dark ? this.mix(accent, '#ffffff', .4) : accent;
+    const accentSoft = dark ? this.mix(accent, '#0d0f12', .75) : this.mix(accent, '#ffffff', .88);
+    let C, B;
+    if (surface === '柔和陰影') {
+      C = { bg: cardBg, border: '1px solid transparent', shadow: dark ? '0 1px 2px rgba(0,0,0,.4), 0 10px 28px rgba(0,0,0,.45)' : '0 1px 2px rgba(16,24,40,.06), 0 10px 28px rgba(16,24,40,.09)' };
+      B = { btnBorder: '0', btnShadow: dark ? 'none' : '0 1px 2px rgba(16,24,40,.12)', ghostBg: cardBg, ghostBorder: '1px solid ' + T.line, input: '1px solid ' + T.line, badge: '0', mark: '0', toggle: '0', segIn: '0', toast: '0' };
+    } else if (brutal) {
+      C = { bg: cardBg, border: '2.5px solid ' + ink, shadow: '6px 6px 0 ' + ink };
+      B = { btnBorder: '2.5px solid ' + ink, btnShadow: '4px 4px 0 ' + ink, ghostBg: cardBg, ghostBorder: '2.5px solid ' + ink, input: '2.5px solid ' + ink, badge: '2px solid ' + ink, mark: '2.5px solid ' + ink, toggle: '2.5px solid ' + ink, segIn: '2px solid ' + ink, toast: '2.5px solid ' + ink };
+    } else if (surface === '填色無框') {
+      C = { bg: T.sub, border: '0', shadow: 'none' };
+      B = { btnBorder: '0', btnShadow: 'none', ghostBg: T.sub, ghostBorder: '0', input: '1px solid transparent', badge: '0', mark: '0', toggle: '0', segIn: '0', toast: '0' };
+    } else {
+      C = { bg: cardBg, border: '1px solid ' + T.line, shadow: 'none' };
+      B = { btnBorder: '0', btnShadow: 'none', ghostBg: 'transparent', ghostBorder: '1px solid ' + T.line, input: '1px solid ' + T.line, badge: '0', mark: '0', toggle: '0', segIn: '0', toast: '0' };
+    }
+    const inputBg = surface === '填色無框' ? (dark ? '#12151a' : '#ffffff') : T.input;
+    const Tt = Object.assign({}, T, { input: inputBg, headerLine: brutal ? '2.5px solid ' + ink : '1px solid ' + T.line });
+    const spring = 'cubic-bezier(.34,1.56,.64,1)', ease = 'cubic-bezier(.3,.7,.3,1)';
+    const statuses = [['啟用', T.ok], ['等待中', dark ? '#f5c26b' : '#9a5b00'], ['停用', T.muted]];
+    const tabNames = ['專案', '成員', '紀錄'];
+    const baseRows = [0, 1, 2].map((i) => ({ name: '[' + tabNames[s.tab] + (i + 1) + ']', status: statuses[i][0], color: statuses[i][1] }));
+    const extraRows = [];
+    for (let i = 0; i < s.extra; i++) extraRows.push({ name: '[新項目 ' + (i + 1) + ']', status: '啟用', color: T.ok });
+    const icons = ['M4 6h16M4 12h16M4 18h10', 'M12 3l8 4.5v9L12 21l-8-4.5v-9z', 'M5 12l4 4L19 6'];
+    return {
+      modes: [
+        { k: 'auto', label: '自動（跟隨系統）', icon: 'M3 5h18v11H3zM8 20h8M12 16v4' },
+        { k: '淺色', label: '淺色', icon: 'M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4' },
+        { k: '深色', label: '深色', icon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z' }
+      ].map((md) => Object.assign({}, md, { pressed: s.mode === md.k ? 'true' : 'false', color: s.mode === md.k ? T.ink : T.muted, pick: () => this.setState({ mode: md.k }) })),
+      modeX: 'translateX(' + (['auto', '淺色', '深色'].indexOf(s.mode) * 44) + 'px)',
+      modeNote: '目前主題：' + theme + (s.mode === 'auto' ? '（自動，跟隨系統）' : '（手動選擇）') + ' · 強調色 ' + accent,
+      pickOpen: s.pick,
+      pickAttr: s.pick ? 'true' : 'false',
+      togglePick: () => this.setState({ pick: !this.state.pick }),
+      swatches: ['#2457d6', '#0f766e', '#5b4bdb', '#c2410c', '#be185d', '#15803d', '#0369a1', '#111418'].map((h) => ({ hex: h, pressed: h === accent ? 'true' : 'false', ring: h === accent ? '0 0 0 2px ' + cardBg + ', 0 0 0 4px ' + T.ink : 'none', pick: () => this.setState({ acc: h }) })),
+      custom: (e) => this.setState({ acc: e.target.value }),
+      colorTokens: [
+        { name: 'background', v: T.bg }, { name: 'surface', v: cardBg }, { name: 'surface-sub', v: T.sub }, { name: 'text', v: T.ink },
+        { name: 'text-muted', v: T.muted }, { name: 'border', v: T.line }, { name: 'accent', v: accent }, { name: 'accent-text', v: accentText },
+        { name: 'accent-soft', v: accentSoft }, { name: 'on-accent', v: onAccent }, { name: 'success', v: T.ok }, { name: 'success-soft', v: T.okBg }
+      ],
+      typeScale: [
+        { name: 'Display 標題', size: '54', w: 700, px: '34px' },
+        { name: 'H2 區塊標題', size: '28', w: 700, px: '28px' },
+        { name: 'H3 卡片標題', size: '20', w: 700, px: '20px' },
+        { name: 'Body 內文', size: '16', w: 400, px: '16px' },
+        { name: 'Small 輔助文字', size: '13', w: 600, px: '13px' }
+      ],
+      specCards: [
+        { title: '圓角 (px)', rows: [{ k: '小：勾選框、長條', v: '6' }, { k: '中：按鈕、輸入框', v: '10' }, { k: '大：卡片、面板', v: '14' }, { k: '標籤、開關', v: '999' }] },
+        { title: '間距 (px，緊密)', rows: [{ k: '區塊之間', v: sp(56) }, { k: '卡片內距', v: sp(24) }, { k: '元件間距', v: sp(20) }, { k: '表格列內距', v: sp(12) }] },
+        { title: '動畫時間 (ms)', rows: [{ k: 'hover、按下', v: '150' }, { k: '分頁、開關、提示', v: '300' }, { k: '主題切換', v: '350' }, { k: '進場（逐項間隔 90）', v: '700' }] }
+      ],
+      rootCls: 'pg m' + lvl + (brutal ? ' s-brutal' : '') + (surface === '柔和陰影' ? ' s-shadow' : '') + (lvl === 3 ? (s.r % 2 ? ' rb' : ' ra') : ''),
+      t: Tt, c: C, b: B,
+      fHead: F[0], fBody: F[1], headWeight: F[2], headTrack: F[3],
+      accent, onAccent, accentText, accentSoft,
+      rXs: px(R[0]), rSm: px(R[1]), rLg: px(R[2]), rBtn: px(R[3]), rPill: radius === '直角' ? '0' : '999px',
+      rToggle: radius === '直角' ? '0' : '999px', rKnob: radius === '直角' ? '0' : '999px',
+      rSeg: px(R[1]), rSegIn: px(Math.max(0, R[1] - 3)),
+      p: { navPad: sp(18) + ' 32px', main: sp(64) + ' 32px ' + sp(64), gapL: sp(48), gap: sp(20), sec: sp(56), card: sp(24), field: sp(16), cell: sp(12) + ' ' + sp(8) },
+      isM3: lvl === 3,
+      replay: () => this.setState({ r: s.r + 1 }),
+      float1: lvl === 3 ? 'f1' : '', float2: lvl === 3 ? 'f2' : '', float3: lvl === 3 ? 'f3' : '',
+      cards: [
+        { title: '清楚的層級', body: '標題、內文、輔助文字三層，靠大小與灰階區分。', icon: icons[0], d: '300ms' },
+        { title: '一致的元件', body: '按鈕、卡片、輸入框共用同一組圓角與邊框規則。', icon: icons[1], d: '380ms' },
+        { title: '適量的動畫', body: '只在回饋與轉場使用，不搶內容的注意力。', icon: icons[2], d: '460ms' }
+      ],
+      onAttr: s.on ? 'true' : 'false',
+      toggle: () => this.setState({ on: !s.on }),
+      trackBg: s.on ? accent : (dark ? '#3a3f47' : '#c9ced6'),
+      knob: s.on ? 'translateX(22px)' : 'translateX(0)',
+      dToggle: lvl === 0 ? '0s' : '.15s ease',
+      dToggleSpring: lvl === 0 ? '0s' : (lvl === 1 ? '.15s ease' : '.3s ' + spring),
+      chkAttr: s.chk ? 'true' : 'false',
+      check: () => this.setState({ chk: !s.chk }),
+      chkBorder: brutal ? '2.5px solid ' + ink : '1.5px solid ' + (s.chk ? accent : T.muted),
+      chkBg: s.chk ? accent : 'transparent',
+      chkMark: s.chk ? 'scale(1)' : 'scale(0)',
+      tabs: tabNames.map((l, i) => ({ label: l, color: i === s.tab ? ink : T.muted, pick: () => this.setState({ tab: i, tabN: s.tabN + 1 }) })),
+      segX: 'translateX(' + (s.tab * 96) + 'px)',
+      segBg: dark ? '#2a2f37' : '#ffffff',
+      segShadow: brutal || dark ? 'none' : '0 1px 3px rgba(0,0,0,.12)',
+      dSeg: lvl >= 2 ? '.3s ' + ease : (lvl === 1 ? '.12s ease' : '0s'),
+      tabCls: lvl >= 2 ? (s.tabN % 2 ? 'fa' : 'fb') : '',
+      tabHead: tabNames[s.tab] + '名稱',
+      rows: baseRows.concat(extraRows),
+      liCls: lvl >= 2 ? 'li' : '',
+      add: () => this.setState({ extra: Math.min(4, s.extra + 1) }),
+      showToast: () => { clearTimeout(this.t1); this.setState({ toast: true }); this.t1 = setTimeout(() => this.setState({ toast: false }), 2200); },
+      toastPos: s.toast ? 'translateY(0)' : 'translateY(20px)',
+      toastOp: s.toast ? 1 : 0,
+      toastShadow: brutal ? '4px 4px 0 ' + ink : '0 12px 32px rgba(0,0,0,.25)',
+      dToast: lvl >= 2 ? 'transform .35s ' + spring + ', opacity .25s ease' : (lvl === 1 ? 'opacity .15s ease' : 'none'),
+      summary: ''
+    };
+  }
+}
+</script>
+</body>
+</html>

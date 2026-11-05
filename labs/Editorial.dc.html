@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>E 雜誌編輯</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&amp;family=Noto+Serif+TC:wght@400;600;900&amp;family=Noto+Sans+TC:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#b3261e}a:hover{color:#7d1a15}
+.ul{color:#1b1b1b;text-decoration:underline;text-decoration-color:#b3261e;text-underline-offset:4px;text-decoration-thickness:1px;transition:text-underline-offset .2s ease,text-decoration-thickness .2s ease}
+.ul:hover{color:#1b1b1b;text-underline-offset:7px;text-decoration-thickness:2px}
+.zoom{overflow:hidden}
+.zoom .inner{transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+.zoom:hover .inner{transform:scale(1.06)}
+.rev{transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #f4f4f2; color: #1b1b1b; font-family: Newsreader, 'Noto Serif TC', serif; font-size: 18px; line-height: 1.75">
+<header style="border-bottom: 1px solid #1b1b1b">
+<div style="max-width: 1120px; margin: 0 auto; padding: 16px 32px; display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: baseline; justify-content: space-between; font-family: 'Noto Sans TC', sans-serif; font-size: 14px">
+<span style="font-family: 'Noto Serif TC', serif; font-weight: 900; font-size: 26px; letter-spacing: .02em">[刊物名稱]</span>
+<nav style="display: flex; flex-wrap: wrap; gap: 24px">
+<a class="ul" href="#">專題</a><a class="ul" href="#">訪談</a><a class="ul" href="#">筆記</a><a class="ul" href="#">關於</a>
+</nav>
+</div>
+</header>
+
+<main style="max-width: 1120px; margin: 0 auto; padding: 48px 32px 64px">
+<div style="display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-end">
+<div style="flex: 3 1 520px; min-width: 0">
+<div style="font-family: 'Noto Sans TC', sans-serif; font-size: 13px; letter-spacing: .12em; color: #b3261e">雜誌編輯 · 長捲動敘事架構</div>
+<h1 style="margin: 14px 0 0; font-family: 'Noto Serif TC', serif; font-weight: 900; font-size: 64px; line-height: 1.15">文字是主角，<br>版面像一本刊物</h1>
+</div>
+<p style="flex: 2 1 300px; min-width: 0; margin: 0; color: #4a4a4a">襯線大標、窄欄內文、紅色只用在重點。內容隨捲動逐段浮現，閱讀進度條在頂端。適合部落格、作品集、專題報導、課程講義。</p>
+</div>
+
+<div class="zoom" style="margin-top: 40px; height: 260px; border: 1px solid #1b1b1b">
+<div class="inner" style="width: 100%; height: 100%; background: #d9d9d4; display: flex; align-items: center; justify-content: center; font-family: 'Noto Sans TC', sans-serif; font-size: 14px; color: #5a5a5a">[主視覺圖片] hover 時緩慢放大</div>
+</div>
+
+<section style="margin-top: 48px; display: flex; flex-wrap: wrap; gap: 32px">
+<div style="flex: 1 1 220px; min-width: 0; font-family: 'Noto Sans TC', sans-serif; font-size: 14px; color: #4a4a4a">
+<div style="font-weight: 500; color: #1b1b1b">捲動示範</div>
+<p style="margin: 8px 0 0">在右邊的框裡捲動：頂端進度條會前進、段落依序浮現、色塊以較慢的速度移動形成視差。</p>
+<div style="margin-top: 16px; font-family: Newsreader, serif; font-size: 48px; line-height: 1; color: #b3261e">{{pct}}</div>
+<div style="font-size: 13px">閱讀進度 (%)</div>
+</div>
+<div style="flex: 3 1 560px; min-width: 0; position: relative; border: 1px solid #1b1b1b; background: #fbfbfa">
+<div style="position: absolute; left: 0; top: 0; z-index: 2; height: 3px; width: {{bar}}; background: #b3261e"></div>
+<div onScroll="{{scroll}}" style="height: 440px; overflow-y: auto; padding: 0 40px">
+<div style="height: 40px"></div>
+<sc-for list="{{paras}}" as="p" hint-placeholder-count="5">
+<div class="rev" style="opacity: {{p.op}}; transform: {{p.tf}}; margin-bottom: 56px">
+<div style="font-family: 'Noto Sans TC', sans-serif; font-size: 12px; letter-spacing: .14em; color: #b3261e">{{p.kicker}}</div>
+<div style="margin-top: 6px; font-family: 'Noto Serif TC', serif; font-weight: 600; font-size: 28px; line-height: 1.35">{{p.title}}</div>
+<p style="margin: 10px 0 0; max-width: 560px; color: #333333">{{p.body}}</p>
+</div>
+</sc-for>
+<div style="position: relative; height: 220px; margin-bottom: 56px; border-top: 1px solid #1b1b1b; border-bottom: 1px solid #1b1b1b; overflow: hidden">
+<div style="position: absolute; left: 10%; top: 30px; width: 140px; height: 140px; background: #b3261e; transform: {{par1}}"></div>
+<div style="position: absolute; left: 45%; top: 70px; width: 200px; height: 90px; background: #1b1b1b; transform: {{par2}}"></div>
+<div style="position: absolute; right: 8%; top: 20px; width: 90px; height: 170px; border: 1px solid #1b1b1b; transform: {{par3}}"></div>
+</div>
+<blockquote style="margin: 0 0 80px; padding-left: 24px; border-left: 3px solid #b3261e; font-family: 'Noto Serif TC', serif; font-size: 26px; line-height: 1.5">[一句引言，放大成為版面的視覺重點]</blockquote>
+</div>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1180}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { y: 0, max: 1 }; }
+  renderVals() {
+    const s = this.state;
+    const ratio = Math.max(0, Math.min(1, s.y / s.max));
+    const items = [
+      { kicker: '第一章', title: '先讀標題，再讀細節', body: '大標用重襯線，內文行高拉到 1.75，一行控制在三十五字左右，讀起來不累。' },
+      { kicker: '第二章', title: '捲動帶出內容', body: '每一段進入視線時從下方淡入，節奏放慢，讓讀者一次只注意一件事。' },
+      { kicker: '第三章', title: '只用一個強調色', body: '紅色只出現在章節標籤、引言線和進度條，其餘全部是黑白灰。' },
+      { kicker: '第四章', title: '圖片要有呼吸空間', body: '圖片滿版或對齊欄線，hover 時緩慢放大，提示可以點進去。' }
+    ];
+    const paras = items.map((it, i) => {
+      const shown = s.y + 380 > 40 + i * 200;
+      return Object.assign({}, it, { op: shown ? 1 : 0, tf: shown ? 'translateY(0)' : 'translateY(28px)' });
+    });
+    return {
+      paras,
+      scroll: (e) => { const el = e.currentTarget; this.setState({ y: el.scrollTop, max: Math.max(1, el.scrollHeight - el.clientHeight) }); },
+      bar: Math.round(ratio * 100) + '%',
+      pct: String(Math.round(ratio * 100)),
+      par1: 'translateY(' + Math.round(40 - ratio * 120) + 'px)',
+      par2: 'translateY(' + Math.round(-20 + ratio * 60) + 'px)',
+      par3: 'translateY(' + Math.round(30 - ratio * 60) + 'px)'
+    };
+  }
+}
+</script>
+</body>
+</html>

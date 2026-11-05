@@ -1,0 +1,16 @@
+<!-- @dsCard group="Pages" height=540 -->
+<!doctype html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><title>LoginCard — preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div id="root"></div>
+<script>
+  var U = window.UI, h = React.createElement;
+  function D(){var e=React.useState(null),ok=React.useState(false); return h('div',{style:{height:520}}, h(U.LoginCard,{brand:h(React.Fragment,null,h('span',{style:{width:24,height:24,borderRadius:6,background:'var(--accent)'}}),'專案名稱'),forgotHref:'#',error:e[0],onSubmit:function(v){if(v.account==='sean'&&v.password==='1234'){e[1](null);ok[1](true);}else{ok[1](false);e[1]({password:'帳號或密碼不正確，請再試一次。'});}}}), ok[0]?h('div',{style:{textAlign:'center',marginTop:-40,fontSize:13}},'登入成功（示範帳號 sean／1234）'):null);}
+  ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+</script>
+</body>
+</html>

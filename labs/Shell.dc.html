@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>主題與通知實驗室</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.opt{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.opt:hover{transform:translateY(-2px)}
+.hv:hover{background:#f6f5f4 !important}
+.dk .hv:hover{background:#443f3b !important}
+.seg{transition:background-color .15s ease,color .15s ease}
+.fadeT,.fadeT section,.fadeT header,.fadeT .tc{transition:background-color .3s ease,color .3s ease,border-color .3s ease}
+@keyframes popIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.pop{animation:popIn .15s ease both}
+@keyframes rvA{from{clip-path:circle(0px at 92% 30px)}to{clip-path:circle(160% at 92% 30px)}}
+@keyframes rvB{from{clip-path:circle(0px at 50% 50%)}to{clip-path:circle(160% at 50% 50%)}}
+.rvA{animation:rvA .55s cubic-bezier(.4,0,.2,1) both}
+.rvB{animation:rvB .55s cubic-bezier(.4,0,.2,1) both}
+@keyframes drIn{from{transform:translateX(105%)}to{transform:none}}
+.drin{animation:drIn .45s cubic-bezier(.34,1.4,.64,1) both}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+.bump0,.bump1{animation:bump .35s cubic-bezier(.34,1.56,.64,1)}
+.nrow:hover{background:#f6f5f4 !important}
+.dk .nrow:hover{background:#443f3b !important}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #f6f5f4; color: #171512; font-family: Inter, 'Noto Sans TC', sans-serif; font-size: 15px; line-height: 1.55">
+<main style="max-width: 1400px; margin: 0 auto; padding: 40px 32px 56px">
+<div style="font-family: 'Geist Mono', 'Noto Sans TC', monospace; font-size: 13px; font-weight: 600; color: #6d645a">深入 12 · 主題與通知</div>
+<h1 style="margin: 6px 0 0; font-size: 39px; line-height: 1.2; font-weight: 700; letter-spacing: -.01em">主題與通知實驗室</h1>
+<p style="margin: 8px 0 0; color: #6d645a; max-width: 900px">頂部列右側的三個入口：外觀、通知、帳號。右上角的「預覽主題」也可以直接切換。按「模擬一則新通知」看角標，點鈴鐺打開通知中心。選好後把最下方的設定給我。</p>
+
+<div style="margin-top: 28px; display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start">
+
+<div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{sections}}" as="sec" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 18px; font-weight: 700; padding-top: 6px">{{sec.title}}</div>
+<sc-for list="{{sec.groups}}" as="g" hint-placeholder-count="2">
+<section style="padding: 16px; background: #ffffff; border: 1px solid #e2dfdc; border-radius: 10px">
+<div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; color: #ffffff; background: #171512; padding: 1px 7px; border-radius: 4px">{{g.no}}</span>
+<span style="font-size: 16px; font-weight: 700">{{g.label}}</span>
+</div>
+<p style="margin: 6px 0 0; font-size: 13px; color: #6d645a">{{g.desc}}</p>
+<div style="margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px">
+<sc-for list="{{g.opts}}" as="o" hint-placeholder-count="3">
+<button class="opt" type="button" onClick="{{o.pick}}" aria-pressed="{{o.pressed}}" style="display: flex; flex-direction: column; gap: 8px; padding: 10px; min-height: 44px; text-align: left; background: #ffffff; border: {{o.border}}; border-radius: 8px; font: inherit; color: #171512; box-shadow: {{o.ring}}">
+<span aria-hidden="true" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; box-sizing: border-box; padding: 6px; border-radius: 4px; background: #f6f5f4; font-size: 12px; color: #6d645a; text-align: center">
+<sc-for list="{{o.marks}}" as="mk" hint-placeholder-count="2"><span style="display: inline-flex; align-items: center; justify-content: center; width: {{mk.w}}; height: {{mk.h}}; box-sizing: border-box; border-radius: {{mk.r}}; background: {{mk.bg}}; border: {{mk.bd}}; color: {{mk.fg}}; font-size: 11px; font-weight: 700; box-shadow: {{mk.sh}}">{{mk.t}}</span></sc-for>
+<sc-for list="{{o.imgs}}" as="im" hint-placeholder-count="0"><img src="{{im}}" width="22" height="22" alt="" style="display: block"></sc-for>
+<sc-if value="{{o.hasText}}" hint-placeholder-val="{{ false }}"><span style="white-space: pre-line; line-height: 1.4">{{o.text}}</span></sc-if>
+</span>
+<span style="font-size: 13px; font-weight: 700">{{o.name}}</span>
+<span style="font-size: 12px; color: #6d645a; line-height: 1.4">{{o.note}}</span>
+</button>
+</sc-for>
+</div>
+</section>
+</sc-for>
+</div>
+</sc-for>
+</div>
+
+<div style="flex: 1 1 720px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<span style="font-size: 13px; font-weight: 700">預覽主題</span>
+<sc-for list="{{themeBtns}}" as="tb" hint-placeholder-count="2">
+<button type="button" onClick="{{tb.pick}}" aria-pressed="{{tb.pressed}}" style="min-height: 44px; padding: 0 14px; border: 1px solid {{tb.bd}}; background: {{tb.bg}}; color: {{tb.fg}}; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{tb.t}}</button>
+</sc-for>
+</div>
+
+<div class="pv {{dkCls}} {{fadeCls}}" style="position: relative; overflow: hidden; background: {{c.page}}; color: {{c.ink}}; border: 1px solid #cfcac4; border-radius: 12px; min-height: 660px; font-size: 15px; line-height: 1.5" onClick="{{closeAll}}">
+<header class="tc" style="display: flex; align-items: center; gap: 10px; height: 64px; padding: 0 20px; background: {{c.chrome}}; border-bottom: 1px solid {{c.line}}">
+<div style="flex: 1 1 auto; font-size: 20px; font-weight: 700">總覽</div>
+<div style="display: flex; align-items: center; gap: 8px; height: 40px; width: 200px; padding: 0 12px; box-sizing: border-box; border-radius: 10px; background: {{c.sub}}; color: {{c.muted}}; font-size: 14px"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM20 20l-4-4"></path></svg>搜尋</div>
+<sc-if value="{{posTop}}" hint-placeholder-val="{{ true }}">
+<div style="position: relative" onClick="{{stop}}">
+<button type="button" class="hv" onClick="{{toggleLook}}" aria-label="外觀" aria-expanded="{{lookAria}}" style="width: 40px; height: 40px; border: 0; border-radius: 10px; background: {{lookBg}}; color: {{c.ink}}; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1 0 1.5-.8 1.5-1.5 0-.9-.7-1.2-.7-2s.6-1.5 1.5-1.5H16a5 5 0 0 0 5-5c0-4.4-4-8-9-8zM7.5 11.5h.01M10 7.5h.01M15 7.5h.01"></path></svg></button>
+<sc-if value="{{lookOpen}}" hint-placeholder-val="{{ false }}"><div class="pop" role="dialog" aria-label="外觀" style="position: absolute; z-index: 30; top: calc(100% + 8px); right: 0; width: 300px; padding: 16px; border-radius: 14px; background: {{c.card}}; border: 1px solid {{c.line}}; box-shadow: {{c.overlay}}"><div style="font-size: 14px; font-weight: 700; margin-bottom: 8px">主題</div>
+<sc-if value="{{tSeg}}" hint-placeholder-val="{{ true }}"><div role="radiogroup" aria-label="主題" style="display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: {{c.sub}}"><sc-for list="{{themeOpts}}" as="to" hint-placeholder-count="3"><button type="button" class="seg" role="radio" aria-checked="{{to.aria}}" onClick="{{to.pick}}" style="flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: 6px; height: 34px; border: 0; border-radius: 8px; background: {{to.bg}}; color: {{to.fg}}; font: inherit; font-size: 14px; font-weight: {{to.fw}}; box-shadow: {{to.sh}}; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{to.icon}}"></path></svg>{{to.t}}</button></sc-for></div></sc-if>
+<sc-if value="{{tCards}}" hint-placeholder-val="{{ false }}"><div role="radiogroup" aria-label="主題" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px"><sc-for list="{{themeOpts}}" as="to" hint-placeholder-count="3"><button type="button" role="radio" aria-checked="{{to.aria}}" onClick="{{to.pick}}" style="display: flex; flex-direction: column; gap: 6px; padding: 6px; border: {{to.cbd}}; border-radius: 10px; background: transparent; color: {{c.ink}}; font: inherit; font-size: 13px; font-weight: {{to.fw}}; cursor: pointer"><span style="display: block; height: 44px; border-radius: 6px; background: {{to.mini}}; border: 1px solid {{c.line}}"></span>{{to.t}}</button></sc-for></div></sc-if>
+<sc-if value="{{tIcon}}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 10px"><button type="button" class="hv" onClick="{{cycleTheme}}" aria-label="{{cycleLabel}}" style="width: 40px; height: 40px; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: transparent; color: {{c.ink}}; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{curIcon}}"></path></svg></button><span style="font-size: 14px; color: {{c.muted}}">目前：{{curThemeName}}（點一下換下一個）</span></div></sc-if>
+<div style="font-size: 14px; font-weight: 700; margin: 16px 0 8px">強調色</div>
+<sc-if value="{{showSwatches}}" hint-placeholder-val="{{ true }}"><div role="radiogroup" aria-label="強調色" style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{swatches}}" as="sw" hint-placeholder-count="8"><button type="button" role="radio" aria-checked="{{sw.aria}}" aria-label="{{sw.name}}" title="{{sw.name}}" onClick="{{sw.pick}}" style="width: 28px; height: 28px; padding: 0; border: 0; border-radius: 99px; background: {{sw.c}}; box-shadow: {{sw.ring}}; color: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer"><sc-if value="{{sw.on}}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></sc-if></button></sc-for></div></sc-if>
+<sc-if value="{{showHex}}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 8px; margin-top: 10px"><span style="width: 28px; height: 28px; border-radius: 8px; background: {{hexPreview}}; border: 1px solid {{c.line}}"></span><input aria-label="自訂強調色（色碼）" value="{{hexVal}}" onChange="{{setHex}}" placeholder="#2457d6" style="width: 120px; height: 36px; padding: 0 10px; box-sizing: border-box; border: 1px solid {{hexBd}}; border-radius: 8px; background: {{c.input}}; color: {{c.ink}}; font-family: 'Geist Mono', monospace; font-size: 14px; outline: none"><span style="font-size: 12px; color: {{hexMsgC}}">{{hexMsg}}</span></div></sc-if></div></sc-if>
+</div>
+</sc-if>
+<div style="position: relative" onClick="{{stop}}">
+<button type="button" class="hv" onClick="{{toggleBell}}" aria-label="{{bellLabel}}" aria-expanded="{{bellAria}}" style="position: relative; width: 40px; height: 40px; border: 0; border-radius: 10px; background: {{bellBg}}; color: {{c.ink}}; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"></path></svg>
+<sc-if value="{{badgeDot}}" hint-placeholder-val="{{ false }}"><span class="{{bumpCls}}" style="position: absolute; top: 8px; right: 9px; width: 9px; height: 9px; border-radius: 99px; background: {{badgeBg}}; box-shadow: 0 0 0 2px {{c.chrome}}"></span></sc-if>
+<sc-if value="{{badgeNum}}" hint-placeholder-val="{{ true }}"><span class="{{bumpCls}}" style="position: absolute; top: 3px; left: 21px; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 99px; background: {{badgeBg}}; color: #ffffff; font-size: 11px; font-weight: 700; line-height: 18px; text-align: center; font-family: 'Geist Mono', monospace; box-shadow: 0 0 0 2px {{c.chrome}}">{{badgeText}}</span></sc-if>
+</button>
+<sc-if value="{{centerPop}}" hint-placeholder-val="{{ false }}"><div class="pop" role="dialog" aria-label="通知" style="position: absolute; z-index: 30; top: calc(100% + 8px); right: -52px; width: 360px; max-height: 480px; display: flex; flex-direction: column; border-radius: 14px; background: {{c.card}}; border: 1px solid {{c.line}}; box-shadow: {{c.overlay}}; overflow: hidden"><div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid {{c.line}}"><div style="font-size: 17px; font-weight: 700">通知</div><div style="display: flex; align-items: center; gap: 4px"><sc-if value="{{readTop}}" hint-placeholder-val="{{ true }}"><button type="button" class="hv" onClick="{{readAll}}" style="height: 32px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: {{accentText}}; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">全部標為已讀</button></sc-if><sc-if value="{{centerDrawer}}" hint-placeholder-val="{{ false }}"><button type="button" class="hv" onClick="{{closeBell}}" aria-label="關閉" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: {{c.muted}}; cursor: pointer; font-size: 18px">×</button></sc-if></div></div>
+<div style="flex: 1 1 auto; overflow-y: auto">
+<sc-for list="{{groups}}" as="gr" hint-placeholder-count="2">
+<sc-if value="{{gr.title}}" hint-placeholder-val="{{ true }}"><div style="padding: 10px 16px 4px; font-size: 12px; font-weight: 700; color: {{c.muted}}">{{gr.title}}</div></sc-if>
+<sc-for list="{{gr.items}}" as="it" hint-placeholder-count="3"><div class="nrow" role="button" tabindex="0" onClick="{{it.read}}" style="position: relative; display: flex; gap: 10px; padding: 10px 16px 10px 26px; background: {{it.bg}}; cursor: pointer">
+<sc-if value="{{it.dot}}" hint-placeholder-val="{{ false }}"><span aria-label="未讀" style="position: absolute; left: 10px; top: 17px; width: 8px; height: 8px; border-radius: 99px; background: {{accent}}"></span></sc-if>
+<div style="min-width: 0"><div style="font-size: 14px; font-weight: {{it.fw}}">{{it.t}}</div><div style="font-size: 13px; color: {{c.muted}}">{{it.d}}</div><div style="margin-top: 2px; font-size: 12px; color: {{c.muted}}; font-family: 'Geist Mono', 'Noto Sans TC', monospace">{{it.time}}</div></div></div></sc-for>
+</sc-for>
+<sc-if value="{{noNoti}}" hint-placeholder-val="{{ false }}"><div style="padding: 28px 16px; text-align: center; color: {{c.muted}}">沒有通知</div></sc-if>
+</div>
+<sc-if value="{{readBottom}}" hint-placeholder-val="{{ false }}"><div style="padding: 10px 16px; border-top: 1px solid {{c.line}}; text-align: center"><button type="button" class="hv" onClick="{{readAll}}" style="height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: {{accentText}}; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">全部標為已讀</button></div></sc-if></div></sc-if>
+</div>
+<div style="position: relative" onClick="{{stop}}">
+<button type="button" onClick="{{toggleUser}}" aria-label="帳號選單" aria-expanded="{{userAria}}" style="width: 36px; height: 36px; border: 0; border-radius: 99px; background: {{accent}}; color: {{onAccent}}; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer">S</button>
+<sc-if value="{{userOpen}}" hint-placeholder-val="{{ false }}"><div class="pop" role="menu" style="position: absolute; z-index: 30; top: calc(100% + 8px); right: 0; width: 280px; padding: 6px; border-radius: 12px; background: {{c.card}}; border: 1px solid {{c.line}}; box-shadow: {{c.overlay}}">
+<div style="padding: 10px 10px 8px"><div style="font-weight: 700">SeanYeh</div><div style="font-size: 13px; color: {{c.muted}}">個人帳號</div></div>
+<div style="height: 1px; margin: 4px; background: {{c.line}}"></div>
+<sc-if value="{{posUser}}" hint-placeholder-val="{{ false }}"><div style="padding: 10px"><div style="font-size: 14px; font-weight: 700; margin-bottom: 8px">主題</div>
+<sc-if value="{{tSeg}}" hint-placeholder-val="{{ true }}"><div role="radiogroup" aria-label="主題" style="display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: {{c.sub}}"><sc-for list="{{themeOpts}}" as="to" hint-placeholder-count="3"><button type="button" class="seg" role="radio" aria-checked="{{to.aria}}" onClick="{{to.pick}}" style="flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: 6px; height: 34px; border: 0; border-radius: 8px; background: {{to.bg}}; color: {{to.fg}}; font: inherit; font-size: 14px; font-weight: {{to.fw}}; box-shadow: {{to.sh}}; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{to.icon}}"></path></svg>{{to.t}}</button></sc-for></div></sc-if>
+<sc-if value="{{tCards}}" hint-placeholder-val="{{ false }}"><div role="radiogroup" aria-label="主題" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px"><sc-for list="{{themeOpts}}" as="to" hint-placeholder-count="3"><button type="button" role="radio" aria-checked="{{to.aria}}" onClick="{{to.pick}}" style="display: flex; flex-direction: column; gap: 6px; padding: 6px; border: {{to.cbd}}; border-radius: 10px; background: transparent; color: {{c.ink}}; font: inherit; font-size: 13px; font-weight: {{to.fw}}; cursor: pointer"><span style="display: block; height: 44px; border-radius: 6px; background: {{to.mini}}; border: 1px solid {{c.line}}"></span>{{to.t}}</button></sc-for></div></sc-if>
+<sc-if value="{{tIcon}}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 10px"><button type="button" class="hv" onClick="{{cycleTheme}}" aria-label="{{cycleLabel}}" style="width: 40px; height: 40px; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: transparent; color: {{c.ink}}; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{curIcon}}"></path></svg></button><span style="font-size: 14px; color: {{c.muted}}">目前：{{curThemeName}}（點一下換下一個）</span></div></sc-if>
+<div style="font-size: 14px; font-weight: 700; margin: 16px 0 8px">強調色</div>
+<sc-if value="{{showSwatches}}" hint-placeholder-val="{{ true }}"><div role="radiogroup" aria-label="強調色" style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{swatches}}" as="sw" hint-placeholder-count="8"><button type="button" role="radio" aria-checked="{{sw.aria}}" aria-label="{{sw.name}}" title="{{sw.name}}" onClick="{{sw.pick}}" style="width: 28px; height: 28px; padding: 0; border: 0; border-radius: 99px; background: {{sw.c}}; box-shadow: {{sw.ring}}; color: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer"><sc-if value="{{sw.on}}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></sc-if></button></sc-for></div></sc-if>
+<sc-if value="{{showHex}}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 8px; margin-top: 10px"><span style="width: 28px; height: 28px; border-radius: 8px; background: {{hexPreview}}; border: 1px solid {{c.line}}"></span><input aria-label="自訂強調色（色碼）" value="{{hexVal}}" onChange="{{setHex}}" placeholder="#2457d6" style="width: 120px; height: 36px; padding: 0 10px; box-sizing: border-box; border: 1px solid {{hexBd}}; border-radius: 8px; background: {{c.input}}; color: {{c.ink}}; font-family: 'Geist Mono', monospace; font-size: 14px; outline: none"><span style="font-size: 12px; color: {{hexMsgC}}">{{hexMsg}}</span></div></sc-if></div><div style="height: 1px; margin: 4px; background: {{c.line}}"></div></sc-if>
+<div class="hv" role="menuitem" style="padding: 9px 10px; border-radius: 6px; font-size: 14px">帳號設定</div><div class="hv" role="menuitem" style="padding: 9px 10px; border-radius: 6px; font-size: 14px">登出</div>
+</div></sc-if>
+</div>
+</header>
+
+<div style="padding: 20px; display: flex; flex-direction: column; gap: 16px">
+<sc-if value="{{posSettings}}" hint-placeholder-val="{{ false }}"><section style="padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}"><div style="font-size: 18px; font-weight: 700; margin-bottom: 14px">設定 › 外觀</div><div style="max-width: 360px"><div style="font-size: 14px; font-weight: 700; margin-bottom: 8px">主題</div>
+<sc-if value="{{tSeg}}" hint-placeholder-val="{{ true }}"><div role="radiogroup" aria-label="主題" style="display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: {{c.sub}}"><sc-for list="{{themeOpts}}" as="to" hint-placeholder-count="3"><button type="button" class="seg" role="radio" aria-checked="{{to.aria}}" onClick="{{to.pick}}" style="flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: 6px; height: 34px; border: 0; border-radius: 8px; background: {{to.bg}}; color: {{to.fg}}; font: inherit; font-size: 14px; font-weight: {{to.fw}}; box-shadow: {{to.sh}}; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{to.icon}}"></path></svg>{{to.t}}</button></sc-for></div></sc-if>
+<sc-if value="{{tCards}}" hint-placeholder-val="{{ false }}"><div role="radiogroup" aria-label="主題" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px"><sc-for list="{{themeOpts}}" as="to" hint-placeholder-count="3"><button type="button" role="radio" aria-checked="{{to.aria}}" onClick="{{to.pick}}" style="display: flex; flex-direction: column; gap: 6px; padding: 6px; border: {{to.cbd}}; border-radius: 10px; background: transparent; color: {{c.ink}}; font: inherit; font-size: 13px; font-weight: {{to.fw}}; cursor: pointer"><span style="display: block; height: 44px; border-radius: 6px; background: {{to.mini}}; border: 1px solid {{c.line}}"></span>{{to.t}}</button></sc-for></div></sc-if>
+<sc-if value="{{tIcon}}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 10px"><button type="button" class="hv" onClick="{{cycleTheme}}" aria-label="{{cycleLabel}}" style="width: 40px; height: 40px; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: transparent; color: {{c.ink}}; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{curIcon}}"></path></svg></button><span style="font-size: 14px; color: {{c.muted}}">目前：{{curThemeName}}（點一下換下一個）</span></div></sc-if>
+<div style="font-size: 14px; font-weight: 700; margin: 16px 0 8px">強調色</div>
+<sc-if value="{{showSwatches}}" hint-placeholder-val="{{ true }}"><div role="radiogroup" aria-label="強調色" style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{swatches}}" as="sw" hint-placeholder-count="8"><button type="button" role="radio" aria-checked="{{sw.aria}}" aria-label="{{sw.name}}" title="{{sw.name}}" onClick="{{sw.pick}}" style="width: 28px; height: 28px; padding: 0; border: 0; border-radius: 99px; background: {{sw.c}}; box-shadow: {{sw.ring}}; color: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer"><sc-if value="{{sw.on}}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></sc-if></button></sc-for></div></sc-if>
+<sc-if value="{{showHex}}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 8px; margin-top: 10px"><span style="width: 28px; height: 28px; border-radius: 8px; background: {{hexPreview}}; border: 1px solid {{c.line}}"></span><input aria-label="自訂強調色（色碼）" value="{{hexVal}}" onChange="{{setHex}}" placeholder="#2457d6" style="width: 120px; height: 36px; padding: 0 10px; box-sizing: border-box; border: 1px solid {{hexBd}}; border-radius: 8px; background: {{c.input}}; color: {{c.ink}}; font-family: 'Geist Mono', monospace; font-size: 14px; outline: none"><span style="font-size: 12px; color: {{hexMsgC}}">{{hexMsg}}</span></div></sc-if></div></section></sc-if>
+<section style="padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap"><div style="font-size: 18px; font-weight: 700">叢集監控</div><button type="button" style="height: 40px; padding: 0 16px; border: 0; border-radius: 10px; background: {{accent}}; color: {{onAccent}}; font: inherit; font-size: 14px; font-weight: 600">新增節點</button></div>
+<p style="margin: 10px 0 0; color: {{c.muted}}">強調色會用在主要按鈕、連結、選取狀態。<a href="#" style="color: {{accentText}}; font-weight: 600">查看說明</a></p>
+<div style="margin-top: 14px; display: flex; gap: 6px; padding: 4px; border-radius: 10px; background: {{c.sub}}; width: fit-content"><span style="padding: 6px 14px; border-radius: 8px; background: {{c.card}}; color: {{accentText}}; font-weight: 700; font-size: 14px">今日</span><span style="padding: 6px 14px; font-size: 14px; color: {{c.muted}}">本週</span><span style="padding: 6px 14px; font-size: 14px; color: {{c.muted}}">本月</span></div>
+<div style="margin-top: 14px; height: 8px; border-radius: 99px; background: {{c.sub}}; overflow: hidden"><div style="width: 64%; height: 100%; border-radius: 99px; background: {{accent}}"></div></div>
+</section>
+<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center"><button type="button" onClick="{{addNoti}}" style="height: 36px; padding: 0 14px; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: transparent; color: {{c.ink}}; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">模擬一則新通知</button><button type="button" onClick="{{addMany}}" style="height: 36px; padding: 0 14px; border: 1px solid {{c.lineStrong}}; border-radius: 10px; background: transparent; color: {{c.ink}}; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">模擬 120 則未讀</button><span style="font-size: 13px; color: {{c.muted}}">點鈴鐺開通知中心</span></div>
+</div>
+
+<sc-if value="{{centerDrawer}}" hint-placeholder-val="{{ false }}">
+<div onClick="{{stop}}" style="position: absolute; inset: 0; z-index: 40"><div onClick="{{closeBell}}" style="position: absolute; inset: 0; background: rgba(0,0,0,.2); backdrop-filter: blur(4px)"></div>
+<aside class="drin" role="dialog" aria-label="通知" style="position: absolute; top: 0; right: 0; bottom: 0; width: 400px; max-width: 100%; display: flex; flex-direction: column; background: {{c.card}}; box-shadow: {{c.overlay}}"><div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid {{c.line}}"><div style="font-size: 17px; font-weight: 700">通知</div><div style="display: flex; align-items: center; gap: 4px"><sc-if value="{{readTop}}" hint-placeholder-val="{{ true }}"><button type="button" class="hv" onClick="{{readAll}}" style="height: 32px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: {{accentText}}; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">全部標為已讀</button></sc-if><sc-if value="{{centerDrawer}}" hint-placeholder-val="{{ false }}"><button type="button" class="hv" onClick="{{closeBell}}" aria-label="關閉" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: {{c.muted}}; cursor: pointer; font-size: 18px">×</button></sc-if></div></div>
+<div style="flex: 1 1 auto; overflow-y: auto">
+<sc-for list="{{groups}}" as="gr" hint-placeholder-count="2">
+<sc-if value="{{gr.title}}" hint-placeholder-val="{{ true }}"><div style="padding: 10px 16px 4px; font-size: 12px; font-weight: 700; color: {{c.muted}}">{{gr.title}}</div></sc-if>
+<sc-for list="{{gr.items}}" as="it" hint-placeholder-count="3"><div class="nrow" role="button" tabindex="0" onClick="{{it.read}}" style="position: relative; display: flex; gap: 10px; padding: 10px 16px 10px 26px; background: {{it.bg}}; cursor: pointer">
+<sc-if value="{{it.dot}}" hint-placeholder-val="{{ false }}"><span aria-label="未讀" style="position: absolute; left: 10px; top: 17px; width: 8px; height: 8px; border-radius: 99px; background: {{accent}}"></span></sc-if>
+<div style="min-width: 0"><div style="font-size: 14px; font-weight: {{it.fw}}">{{it.t}}</div><div style="font-size: 13px; color: {{c.muted}}">{{it.d}}</div><div style="margin-top: 2px; font-size: 12px; color: {{c.muted}}; font-family: 'Geist Mono', 'Noto Sans TC', monospace">{{it.time}}</div></div></div></sc-for>
+</sc-for>
+<sc-if value="{{noNoti}}" hint-placeholder-val="{{ false }}"><div style="padding: 28px 16px; text-align: center; color: {{c.muted}}">沒有通知</div></sc-if>
+</div>
+<sc-if value="{{readBottom}}" hint-placeholder-val="{{ false }}"><div style="padding: 10px 16px; border-top: 1px solid {{c.line}}; text-align: center"><button type="button" class="hv" onClick="{{readAll}}" style="height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: {{accentText}}; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">全部標為已讀</button></div></sc-if></aside></div>
+</sc-if>
+
+<sc-if value="{{revealOn}}" hint-placeholder-val="{{ false }}"><div class="{{revealCls}}" style="position: absolute; inset: 0; z-index: 60; background: {{revealBg}}; pointer-events: none"></div></sc-if>
+</div>
+
+</div>
+</div>
+
+<section style="margin-top: 24px; padding: 14px 18px; border: 1px dashed #aca49a; border-radius: 8px; font-size: 13px; color: #6d645a">
+<span style="color: #171512; font-weight: 700">目前設定</span>　{{summary}}
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":3600}}'>
+
+const PAL = (dark) => dark
+  ? { page: '#2f2a25', card: '#393530', chrome: '#35302c', ink: '#f6f5f4', muted: '#b3aba2', line: '#4c4844', lineStrong: '#8c8073', sub: '#443f3b', zebra: '#3e3a35', input: '#26221e', accentSoft: '#2d344c', accentText: '#819ee7', danger: '#f08a80', dangerSolid: '#e5544d', success: '#5cc98a', shadow: '0 1px 2px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.55)', overlay: '0 2px 6px rgba(0,0,0,.5), 0 16px 40px rgba(0,0,0,.55)' }
+  : { page: '#fcfbfb', card: '#ffffff', chrome: '#ffffff', ink: '#171512', muted: '#6d645a', line: '#e2dfdc', lineStrong: '#8c8073', sub: '#f6f5f4', zebra: '#f9f8f7', input: '#ffffff', accentSoft: '#e5ebfa', accentText: '#2457d6', danger: '#c4322b', dangerSolid: '#cd2823', success: '#1b7f4b', shadow: '0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.1)', overlay: '0 2px 6px rgba(16,24,40,.08), 0 16px 40px rgba(16,24,40,.16)' };
+const MK = (self, st, onPick) => {
+  const on = (k, id) => String(st[k]) === String(id);
+  const M = (o) => Object.assign({ t: '', w: '20px', h: '20px', r: '4px', bg: 'transparent', bd: '0', fg: '#171512', sh: 'none' }, o);
+  const mk = (k, list) => list.map((o) => Object.assign({ marks: [], imgs: [], hasText: !!o.text, text: o.text || '' }, o, { pressed: on(k, o.id) ? 'true' : 'false', border: on(k, o.id) ? '1px solid #171512' : '1px solid #e2dfdc', ring: on(k, o.id) ? '0 0 0 2px #171512' : 'none', pick: () => { const ns = { [k]: o.id }; if (onPick) Object.assign(ns, onPick(k, o.id)); self.setState(ns); } }));
+  return { M, mk };
+};
+const THEMEBTNS = (self, st) => [['淺色', false], ['深色', true]].map(([t, d]) => ({ t, pressed: st.dark === d ? 'true' : 'false', bg: st.dark === d ? '#171512' : '#ffffff', fg: st.dark === d ? '#ffffff' : '#171512', bd: st.dark === d ? '#171512' : '#cfcac4', pick: () => self.setState({ dark: d }) }));
+
+
+const SW = [['藍', '#2457d6'], ['靛', '#5b4fd6'], ['紫', '#8a4fd6'], ['桃紅', '#c2407a'], ['紅', '#cd3a2f'], ['橘', '#c4600f'], ['綠', '#1b8a4d'], ['青', '#0f8a85']];
+const IC = { auto: 'M3 5h18v12H3zM8 21h8M12 17v4', light: 'M12 4V2M12 22v-2M4.9 4.9 3.5 3.5M20.5 20.5l-1.4-1.4M4 12H2M22 12h-2M4.9 19.1l-1.4 1.4M20.5 3.5l-1.4 1.4M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z', dark: 'M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z' };
+const NOTI = [
+  { t: '節點 node-3 離線', d: '叢集監控：超過 5 分鐘沒有回應', time: '10 分鐘前', g: '今天' },
+  { t: '李小華 提到了你', d: '「部署腳本請幫忙看一下」', time: '1 小時前', g: '今天' },
+  { t: '備份完成', d: '資料備份：共 128 GB', time: '3 小時前', g: '今天' },
+  { t: '帳號整合 已審核通過', d: '王小明 核准了變更', time: '昨天 18:20', g: '更早' },
+  { t: '本月用量達 80%', d: '成本報表：已用 8,000 / 10,000 元', time: '11/02 09:00', g: '更早' }
+];
+function mix(hex, other, t) { const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)); const a = p(hex), b = p(other); return '#' + a.map((v, i) => Math.round(v + (b[i] - v) * t).toString(16).padStart(2, '0')).join(''); }
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { pos: 'top', tCtl: 'seg', accentUI: 'both', anim: 'fade', badge: 'count', badgeColor: 'danger', center: 'pop', unread: 'dot', group: 'time', readAll: 'top',
+      dark: false, theme: 'auto', accent: '#2457d6', hex: '', look: false, user: false, bell: false, read: {}, extra: 0, bumpN: 0, reveal: false, revealBg: '#fcfbfb', revealN: 0 };
+  }
+  componentDidMount() {
+    try { this.mq = window.matchMedia('(prefers-color-scheme: dark)'); this.sys = this.mq.matches; this.onMq = (e) => { this.sys = e.matches; if (this.state.theme === 'auto') this.forceUpdate(); }; this.mq.addEventListener('change', this.onMq); } catch (e) { this.sys = false; }
+    this.onKey = (e) => { if (e.key === 'Escape') this.setState({ look: false, user: false, bell: false }); };
+    document.addEventListener('keydown', this.onKey);
+  }
+  componentWillUnmount() { try { this.mq.removeEventListener('change', this.onMq); } catch (e) {} document.removeEventListener('keydown', this.onKey); clearTimeout(this.rT); }
+  isDark(theme) { return theme === 'auto' ? !!this.sys : theme === 'dark'; }
+  setTheme(theme) {
+    const st = this.state;
+    if (st.anim === 'circle' && this.isDark(theme) !== this.isDark(st.theme)) {
+      clearTimeout(this.rT);
+      this.setState({ reveal: true, revealBg: PAL(this.isDark(theme)).page, revealN: st.revealN + 1 });
+      this.rT = setTimeout(() => { this.setState({ theme, reveal: false }); }, 520);
+    } else this.setState({ theme });
+  }
+  renderVals() {
+    const st = this.state;
+    const dk = this.isDark(st.theme);
+    const C = PAL(dk);
+    const accent = st.accent;
+    const accentText = dk ? mix(accent, '#ffffff', .45) : accent;
+    const { M, mk } = MK(this, st, (k) => ({ look: false, user: false, bell: false }));
+    const sections = [
+      { title: '主題與強調色', groups: [
+        { no: 'A1', label: '放在哪裡', desc: '切換主題與強調色的入口。', opts: mk('pos', [
+          { id: 'top', name: '頂部列的「外觀」按鈕', note: '調色盤圖示，點開彈出面板', text: '… 🎨 🔔 S' },
+          { id: 'user', name: '帳號選單裡', note: '點右上角頭像，選單中間一區', text: 'S ▾\n［外觀］' },
+          { id: 'settings', name: '設定頁', note: '設定 › 外觀，不常改就放這裡', text: '設定 › 外觀' }
+        ]) },
+        { no: 'A2', label: '主題的控制方式', desc: '自動是跟著系統的淺色或深色。', opts: mk('tCtl', [
+          { id: 'seg', name: '分段控制', note: '自動、淺色、深色三選一', text: '［自動｜淺色｜深色］' },
+          { id: 'cards', name: '預覽卡片', note: '每個選項有一張小縮圖', text: '▢ ▢ ▢' },
+          { id: 'icon', name: '單一圖示按鈕', note: '點一下換下一個，最省空間', text: '☀ → ☾ → 🖥' }
+        ]) },
+        { no: 'A3', label: '強調色的選擇方式', desc: '', opts: mk('accentUI', [
+          { id: 'swatch', name: '只有色票', note: '8 個預設顏色', marks: SW.slice(0, 4).map(([n, c]) => M({ r: '99px', bg: c })) },
+          { id: 'both', name: '色票加色碼', note: '色票下方可以輸入自訂色碼', marks: SW.slice(0, 3).map(([n, c]) => M({ r: '99px', bg: c })).concat([M({ w: '36px', r: '4px', bd: '1px solid #8c8073', t: '#' })]) },
+          { id: 'hex', name: '只有色碼', note: '完全自訂', text: '［#2457d6］' }
+        ]) },
+        { no: 'A4', label: '切換主題的動畫', desc: '在淺色和深色之間切換時。', opts: mk('anim', [
+          { id: 'fade', name: '顏色漸變', note: '300 ms 平順轉換', text: '☀ ⇢ ☾' },
+          { id: 'circle', name: '圓形擴散', note: '新主題從按鈕位置擴散開', text: '◯ → ⬤' },
+          { id: 'none', name: '直接切換', note: '沒有動畫', text: '☀ ☾' }
+        ]) }
+      ] },
+      { title: '通知', groups: [
+        { no: 'N1', label: '鈴鐺上的角標', desc: '有未讀通知時。按「模擬 120 則未讀」看數字很大時。', opts: mk('badge', [
+          { id: 'dot', name: '紅點', note: '只表示有未讀，不顯示數量', text: '🔔•' },
+          { id: 'count', name: '數字', note: '超過 99 顯示 99+', text: '🔔 3' },
+          { id: 'none', name: '不顯示', note: '只在通知中心裡看', text: '🔔' }
+        ]) },
+        { no: 'N2', label: '角標顏色', desc: '', opts: mk('badgeColor', [
+          { id: 'danger', name: '紅色', note: '最醒目', marks: [M({ r: '99px', bg: '#cd2823', fg: '#ffffff', t: '3' })] },
+          { id: 'accent', name: '強調色', note: '跟著使用者選的顏色', marks: [M({ r: '99px', bg: '#2457d6', fg: '#ffffff', t: '3' })] }
+        ]) },
+        { no: 'N3', label: '通知中心', desc: '點鈴鐺之後。', opts: mk('center', [
+          { id: 'pop', name: '彈出面板', note: '從鈴鐺下方彈出，360 px', text: '🔔\n［通知　］' },
+          { id: 'drawer', name: '右側抽屜', note: '和編輯抽屜一樣從右邊滑出', text: '▕通知▏' }
+        ]) },
+        { no: 'N4', label: '未讀的樣子', desc: '點一則通知會變成已讀。', opts: mk('unread', [
+          { id: 'dot', name: '左側圓點', note: '強調色小圓點', text: '• 節點離線' },
+          { id: 'soft', name: '淺色底', note: '整列強調淺底', text: '▒ 節點離線' },
+          { id: 'bold', name: '粗體標題', note: '已讀變一般字重', text: '𝐁 節點離線' }
+        ]) },
+        { no: 'N5', label: '分組', desc: '', opts: mk('group', [
+          { id: 'time', name: '依時間分組', note: '「今天」、「更早」', text: '今天\n▬\n更早\n▬' },
+          { id: 'none', name: '不分組', note: '直接由新到舊', text: '▬\n▬\n▬' }
+        ]) },
+        { no: 'N6', label: '「全部標為已讀」', desc: '', opts: mk('readAll', [
+          { id: 'top', name: '標題列右側', note: '和「通知」標題同一列', text: '通知　全部已讀' },
+          { id: 'bottom', name: '面板底部', note: '看完再按', text: '▬▬\n全部已讀' }
+        ]) }
+      ] }
+    ];
+    sections[0].groups[2].desc = '只有「色碼」可以選任何顏色；色票是推薦的顏色。';
+    sections[1].groups[1].desc = '角標的底色。';
+    sections[1].groups[4].desc = '通知多的時候比較好找。';
+    sections[1].groups[5].desc = '一次清掉所有未讀。';
+    // theme options
+    const TH = [['auto', '自動'], ['light', '淺色'], ['dark', '深色']];
+    const themeOpts = TH.map(([id, t]) => { const o = st.theme === id; return { t, icon: IC[id], aria: String(o), bg: o ? C.card : 'transparent', fg: o ? C.ink : C.muted, fw: o ? 700 : 400, sh: o ? '0 1px 2px rgba(0,0,0,.12)' : 'none', cbd: o ? '2px solid ' + accent : '1px solid ' + C.line, mini: id === 'dark' ? 'linear-gradient(135deg,#2f2a25 50%,#393530 50%)' : id === 'light' ? 'linear-gradient(135deg,#fcfbfb 50%,#ffffff 50%)' : 'linear-gradient(135deg,#fcfbfb 50%,#2f2a25 50%)', pick: () => this.setTheme(id) }; });
+    const order = ['auto', 'light', 'dark'];
+    const next = order[(order.indexOf(st.theme) + 1) % 3];
+    const hexOk = /^#[0-9a-fA-F]{6}$/.test(st.hex);
+    const swatches = SW.map(([name, c]) => { const o = accent.toLowerCase() === c; return { name, c, on: o, aria: String(o), ring: o ? '0 0 0 2px ' + C.card + ', 0 0 0 4px ' + c : 'none', pick: () => this.setState({ accent: c, hex: '' }) }; });
+    // notifications
+    const list = [];
+    for (let i = 0; i < st.extra; i++) list.push({ t: '新通知 ' + (st.extra - i), d: '模擬的通知內容', time: '剛剛', g: '今天', id: 'x' + i });
+    NOTI.forEach((n, i) => list.push(Object.assign({ id: 'n' + i }, n)));
+    const unreadN = list.filter((n) => !st.read[n.id]).length + (st.extra > 50 ? 0 : 0);
+    const mkItem = (n) => { const ur = !st.read[n.id]; return { t: n.t, d: n.d, time: n.time, dot: ur && st.unread === 'dot', bg: ur && st.unread === 'soft' ? C.accentSoft : 'transparent', fw: ur && st.unread === 'bold' ? 700 : (st.unread === 'bold' ? 400 : 600), read: () => { const r = Object.assign({}, this.state.read); r[n.id] = true; this.setState({ read: r }); } }; };
+    const shown = list.slice(0, 30);
+    const groups = st.group === 'time' ? ['今天', '更早'].map((g) => ({ title: g, items: shown.filter((n) => n.g === g).map(mkItem) })).filter((g) => g.items.length) : [{ title: '', items: shown.map(mkItem) }];
+    const badgeBg = st.badgeColor === 'danger' ? C.dangerSolid : accent;
+    const N = { pos: { top: '頂部列按鈕', user: '帳號選單', settings: '設定頁' }, tCtl: { seg: '分段控制', cards: '預覽卡片', icon: '單一圖示按鈕' }, accentUI: { swatch: '只有色票', both: '色票加色碼', hex: '只有色碼' }, anim: { fade: '顏色漸變', circle: '圓形擴散', none: '直接切換' }, badge: { dot: '紅點', count: '數字', none: '不顯示' }, badgeColor: { danger: '紅色', accent: '強調色' }, center: { pop: '彈出面板', drawer: '右側抽屜' }, unread: { dot: '左側圓點', soft: '淺色底', bold: '粗體標題' }, group: { time: '依時間分組', none: '不分組' }, readAll: { top: '標題列右側', bottom: '面板底部' } };
+    return {
+      sections, c: C, dkCls: dk ? 'dk' : '', fadeCls: st.anim === 'fade' ? 'fadeT' : '',
+      themeBtns: [['自動', 'auto'], ['淺色', 'light'], ['深色', 'dark']].map(([t, id]) => ({ t, pressed: String(st.theme === id), bg: st.theme === id ? '#171512' : '#ffffff', fg: st.theme === id ? '#ffffff' : '#171512', bd: st.theme === id ? '#171512' : '#cfcac4', pick: () => this.setTheme(id) })),
+      accent, accentText, onAccent: '#ffffff',
+      stop: (e) => { e && e.stopPropagation && e.stopPropagation(); },
+      closeAll: () => { if (this.state.look || this.state.user || (this.state.bell && this.state.center === 'pop')) this.setState({ look: false, user: false, bell: false }); },
+      posTop: st.pos === 'top', posUser: st.pos === 'user', posSettings: st.pos === 'settings',
+      lookOpen: st.look, lookAria: String(st.look), lookBg: st.look ? C.sub : 'transparent', toggleLook: () => this.setState({ look: !this.state.look, user: false, bell: false }),
+      userOpen: st.user, userAria: String(st.user), toggleUser: () => this.setState({ user: !this.state.user, look: false, bell: false }),
+      tSeg: st.tCtl === 'seg', tCards: st.tCtl === 'cards', tIcon: st.tCtl === 'icon', themeOpts,
+      cycleTheme: () => this.setTheme(next), cycleLabel: '主題：' + { auto: '自動', light: '淺色', dark: '深色' }[st.theme] + '，點一下換成' + { auto: '自動', light: '淺色', dark: '深色' }[next], curIcon: IC[st.theme], curThemeName: { auto: '自動', light: '淺色', dark: '深色' }[st.theme],
+      showSwatches: st.accentUI !== 'hex', showHex: st.accentUI !== 'swatch', swatches,
+      hexVal: st.hex, setHex: (e) => { const v = e.target.value.trim(); const ns = { hex: v }; if (/^#[0-9a-fA-F]{6}$/.test(v)) ns.accent = v.toLowerCase(); this.setState(ns); },
+      hexPreview: hexOk ? st.hex : accent, hexBd: st.hex && !hexOk ? C.danger : C.lineStrong, hexMsg: st.hex && !hexOk ? '色碼格式不正確，例如 #2457d6' : '輸入 # 加 6 碼', hexMsgC: st.hex && !hexOk ? C.danger : C.muted,
+      bellLabel: '通知' + (unreadN ? '，' + unreadN + ' 則未讀' : ''), bellAria: String(st.bell), bellBg: st.bell ? C.sub : 'transparent',
+      toggleBell: () => this.setState({ bell: !this.state.bell, look: false, user: false }), closeBell: () => this.setState({ bell: false }),
+      badgeDot: unreadN > 0 && st.badge === 'dot', badgeNum: unreadN > 0 && st.badge === 'count', badgeText: unreadN > 99 ? '99+' : String(unreadN), badgeBg, bumpCls: 'bump' + (st.bumpN % 2),
+      centerPop: st.bell && st.center === 'pop', centerDrawer: st.bell && st.center === 'drawer',
+      readTop: st.readAll === 'top', readBottom: st.readAll === 'bottom', readAll: () => { const r = {}; list.forEach((n) => { r[n.id] = true; }); this.setState({ read: r }); },
+      groups, noNoti: list.length === 0,
+      addNoti: () => this.setState({ extra: this.state.extra + 1, bumpN: this.state.bumpN + 1 }), addMany: () => this.setState({ extra: 120, read: {}, bumpN: this.state.bumpN + 1 }),
+      revealOn: st.reveal, revealBg: st.revealBg, revealCls: (st.pos === 'top' ? 'rvA' : 'rvB'),
+      summary: ['外觀 ' + N.pos[st.pos] + '／' + N.tCtl[st.tCtl] + '／' + N.accentUI[st.accentUI] + '／' + N.anim[st.anim], '角標 ' + N.badge[st.badge] + '／' + N.badgeColor[st.badgeColor], '通知中心 ' + N.center[st.center] + '／未讀' + N.unread[st.unread] + '／' + N.group[st.group] + '／全部已讀在' + N.readAll[st.readAll]].join(' · ')
+    };
+  }
+}
+
+</script>
+</body>
+</html>

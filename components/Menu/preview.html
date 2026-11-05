@@ -1,0 +1,16 @@
+<!-- @dsCard group="Overlays" height=280 -->
+<!doctype html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><title>Menu — preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div id="root"></div>
+<script>
+  var U = window.UI, h = React.createElement;
+  var I={edit:U.icons['pencil'],copy:U.icons['copy'],arch:U.icons['archive'],del:U.icons['trash-2']}; function D(){var n=React.useState(''); var items=[{label:'編輯',icon:I.edit,shortcut:'E',onSelect:function(){n[1]('編輯');}},{label:'刪除',icon:I.del,shortcut:'⌫',danger:true,onSelect:function(){n[1]('刪除（先跳確認對話框）');}},{label:'複製',icon:I.copy,shortcut:'D',onSelect:function(){n[1]('複製');}},{label:'封存',icon:I.arch,shortcut:'A',onSelect:function(){n[1]('封存');}}]; return h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',padding:20,minHeight:240}}, h(U.Menu,{label:'叢集監控 的更多操作',items:items}), h('span',{style:{fontSize:13,color:'var(--ink-muted)'}},n[0]?'選了：'+n[0]:'左邊的選單會改成左緣對齊，右邊的維持右緣對齊'), h(U.Menu,{label:'帳號整合 的更多操作',items:items}));}
+  ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+</script>
+</body>
+</html>

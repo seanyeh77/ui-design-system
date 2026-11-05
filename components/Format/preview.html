@@ -1,0 +1,24 @@
+<!-- @dsCard group="Foundations" height=460 -->
+<!doctype html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><title>Format — preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div id="root"></div>
+<script>
+  var U = window.UI, h = React.createElement;
+  var LOCS=[['zh-TW','繁體中文（台灣）','TWD'],['en-US','English (US)','USD'],['ja-JP','日本語','JPY']];
+  var NOW=new Date(2026,10,4,15,57);
+  function D(){var l=React.useState('zh-TW'),loc=l[0]; var cur=LOCS.filter(function(x){return x[0]===loc;})[0]; U.setLocale(loc,{currency:cur[2]}); var F=U.format;
+    var rows=[['日期',F.date(NOW)],['時間',F.time(NOW)],['2 小時前',F.relative(new Date(2026,10,4,13,40),NOW)],['昨天',F.relative(new Date(2026,10,3,9,0),NOW)],['超過一週',F.relative(new Date(2026,9,1,9,0),NOW)],['數字',F.number(1284000)],['KPI 縮寫',F.compact(12840000)],['金額',F.money(486000)],['負數金額',F.money(-1280)],['百分比',F.percent(64.23)],['容量',F.number(3480.25,'size')+' GB']];
+    var res=h('div',{style:{padding:20,display:'flex',flexDirection:'column',gap:14}},
+      h('div',{role:'radiogroup','aria-label':'語系',style:{display:'flex',gap:6}},LOCS.map(function(x){return h(U.Button,{key:x[0],variant:x[0]===loc?'primary':'secondary',onClick:function(){l[1](x[0]);}},x[1]);})),
+      h('div',{style:{display:'grid',gridTemplateColumns:'120px 1fr',gap:'6px 16px',fontSize:14}},rows.map(function(r){return [h('span',{key:r[0]+'k',style:{color:'var(--ink-muted)'}},r[0]),h('span',{key:r[0]+'v',style:{fontFamily:'var(--font-mono)'}},r[1])];})),
+      h('div',{style:{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}},h(U.Badge,{status:'review'}),h(U.Badge,{status:'done'}),h(U.Button,{variant:'secondary'},U.t('清除')),h('span',{style:{fontSize:13,color:'var(--ink-muted)'}},U.t('已選 {n} 筆',{n:3}))));
+    return res;}
+  ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+</script>
+</body>
+</html>

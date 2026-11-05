@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>版面架構實驗室</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit;opacity:.8}
+.opt{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.opt:hover{transform:translateY(-2px)}
+.nv{cursor:pointer;transition:background-color .15s ease}
+.mk,.mk *{transition:background-color .3s ease,border-color .3s ease,color .3s ease}
+@keyframes drawerIn{from{transform:translateX(-100%)}to{transform:none}}
+.drawer{animation:drawerIn .28s cubic-bezier(.3,.7,.3,1) both}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.scrim{animation:fadeIn .2s ease both}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #f6f5f4; color: #171512; font-family: Inter, 'Noto Sans TC', sans-serif; font-size: 15px; line-height: 1.55">
+<main style="max-width: 1400px; margin: 0 auto; padding: 40px 32px 56px">
+<div style="font-family: 'Geist Mono', 'Noto Sans TC', monospace; font-size: 13px; font-weight: 600; color: #6d645a">深入 3 · 版面架構</div>
+<h1 style="margin: 6px 0 0; font-size: 39px; line-height: 1.2; font-weight: 700; letter-spacing: -.01em">版面架構實驗室</h1>
+<p style="margin: 8px 0 0; color: #6d645a; max-width: 880px">配色與字體已套用前兩輪的選擇：Inter 與思源黑體，Geist Mono 用在標籤與數字。左邊選細節，右邊的桌面版和手機版會同時更新，兩個預覽都可以捲動、點選單。全部選好後，把最下方的設定複製給我。</p>
+
+<div style="margin-top: 28px; display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start">
+
+<div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="9">
+<section style="padding: 16px; background: #ffffff; border: 1px solid #e2dfdc; border-radius: 10px; opacity: {{g.op}}">
+<div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; color: #ffffff; background: #171512; padding: 1px 7px; border-radius: 4px">{{g.no}}</span>
+<span style="font-size: 16px; font-weight: 700">{{g.label}}</span>
+<span style="font-size: 12px; color: #965f0b">{{g.flag}}</span>
+</div>
+<p style="margin: 6px 0 0; font-size: 13px; color: #6d645a">{{g.desc}}</p>
+<div style="margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px">
+<sc-for list="{{g.opts}}" as="o" hint-placeholder-count="4">
+<button class="opt" type="button" onClick="{{o.pick}}" aria-pressed="{{o.pressed}}" style="display: flex; flex-direction: column; gap: 8px; padding: 10px; min-height: 44px; text-align: left; background: #ffffff; border: {{o.border}}; border-radius: 8px; font: inherit; color: #171512; box-shadow: {{o.ring}}">
+<span aria-hidden="true" style="position: relative; display: block; width: 100%; height: 54px; border-radius: 4px; background: #f6f5f4; overflow: hidden">
+<sc-for list="{{o.shapes}}" as="sh" hint-placeholder-count="3"><span style="position: absolute; left: {{sh.x}}; top: {{sh.y}}; width: {{sh.w}}; height: {{sh.h}}; background: {{sh.c}}; border-radius: 2px"></span></sc-for>
+</span>
+<span style="font-size: 13px; font-weight: 700">{{o.name}}</span>
+<span style="font-size: 12px; color: #6d645a; line-height: 1.4">{{o.note}}</span>
+</button>
+</sc-for>
+</div>
+</section>
+</sc-for>
+</div>
+
+<div style="flex: 1 1 800px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<span style="font-size: 13px; font-weight: 700">預覽</span>
+<sc-for list="{{tools}}" as="tl" hint-placeholder-count="3">
+<button type="button" onClick="{{tl.pick}}" aria-pressed="{{tl.pressed}}" style="min-height: 44px; padding: 0 14px; border: 1px solid {{tl.bd}}; background: {{tl.bg}}; color: {{tl.fg}}; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{tl.t}}</button>
+</sc-for>
+<span style="font-size: 12px; color: #6d645a">桌面版以 1280 px 寬繪製，縮小 62% 顯示</span>
+</div>
+
+<div style="width: 794px; max-width: 100%; height: 496px; overflow: hidden; border: 1px solid #cfcac4; border-radius: 10px; background: {{c.page}}">
+<div class="mk" style="position: relative; width: 1280px; height: 800px; transform: scale(.62); transform-origin: top left; display: flex; background: {{c.page}}; color: {{c.ink}}; font-family: Inter, 'Noto Sans TC', sans-serif; font-size: 16px; line-height: 1.65; overflow: hidden">
+
+<sc-if value="{{hasSide}}" hint-placeholder-val="{{ false }}">
+<aside style="flex: 0 0 {{sideW}}; width: {{sideW}}; box-sizing: border-box; height: 800px; padding: 18px 12px; background: {{c.side}}; border-right: 1px solid {{c.line}}; display: flex; flex-direction: column; gap: 4px; transition: flex-basis .3s cubic-bezier(.3,.7,.3,1), width .3s cubic-bezier(.3,.7,.3,1); overflow: hidden">
+<div style="display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 10px; margin-bottom: 12px; white-space: nowrap">
+<span style="flex: 0 0 26px; width: 26px; height: 26px; border-radius: 6px; background: #2457d6"></span>
+<sc-if value="{{sideLabels}}" hint-placeholder-val="{{ true }}"><span style="font-weight: 700">[專案名稱]</span></sc-if>
+</div>
+<sc-for list="{{navs}}" as="n" hint-placeholder-count="5">
+<span class="nv" title="{{n.t}}" style="display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 12px; border-radius: 10px; background: {{n.bg}}; color: {{n.fg}}; font-weight: {{n.fw}}; white-space: nowrap">
+<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: 0 0 20px"><path d="{{n.icon}}"></path></svg>
+<sc-if value="{{sideLabels}}" hint-placeholder-val="{{ true }}"><span>{{n.t}}</span></sc-if>
+</span>
+</sc-for>
+<sc-if value="{{sideCollapsible}}" hint-placeholder-val="{{ false }}">
+<button type="button" onClick="{{toggleSide}}" aria-label="{{sideBtn}}" title="{{sideBtn}}" style="margin-top: auto; align-self: flex-start; width: 44px; height: 44px; margin-left: 2px; border: 0; border-radius: 10px; background: transparent; color: {{c.muted}}; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: {{sideBtnRot}}; transition: transform .3s cubic-bezier(.3,.7,.3,1)"><path d="M4 4h16v16H4zM9 4v16M15 10l-2 2 2 2"></path></svg>
+</button>
+</sc-if>
+</aside>
+</sc-if>
+
+<div onScroll="{{onScroll}}" style="flex: 1 1 auto; min-width: 0; height: 800px; overflow-y: auto; position: relative">
+<sc-if value="{{hasTop}}" hint-placeholder-val="{{ true }}">
+<header style="position: {{hdrPos}}; top: 0; z-index: 5; height: 64px; box-sizing: border-box; background: {{c.hdr}}; border-bottom: 1px solid {{c.line}}; transform: {{hdrTf}}; transition: transform .28s cubic-bezier(.3,.7,.3,1)">
+<div style="max-width: {{maxW}}; height: 100%; margin: 0 auto; padding: 0 32px; display: flex; align-items: center; gap: 28px">
+<sc-if value="{{isHamb}}" hint-placeholder-val="{{ false }}">
+<button type="button" onClick="{{openDrawer}}" aria-label="開啟選單" style="width: 44px; height: 44px; border: 1px solid {{c.line}}; border-radius: 10px; background: {{c.card}}; color: {{c.ink}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+</button>
+</sc-if>
+<sc-if value="{{topLogo}}" hint-placeholder-val="{{ true }}">
+<span style="display: flex; align-items: center; gap: 10px; font-weight: 700"><span style="width: 24px; height: 24px; border-radius: 6px; background: #2457d6"></span>[專案名稱]</span>
+</sc-if>
+<sc-if value="{{topLinks}}" hint-placeholder-val="{{ true }}">
+<nav style="display: flex; gap: 24px; font-size: 15px">
+<sc-for list="{{navs}}" as="n" hint-placeholder-count="5"><span style="color: {{n.topFg}}; font-weight: {{n.fw}}">{{n.t}}</span></sc-for>
+</nav>
+</sc-if>
+<span style="margin-left: auto; display: flex; align-items: center; gap: 10px; width: 260px; height: 40px; padding: 0 14px; box-sizing: border-box; border-radius: 10px; background: {{c.sub}}; color: {{c.muted}}; font-size: 14px">搜尋<span style="margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 12px">Ctrl K</span></span>
+<span style="width: 36px; height: 36px; border-radius: 99px; background: {{c.sub}}; border: 1px solid {{c.line}}"></span>
+</div>
+</header>
+</sc-if>
+
+<div style="position: relative; max-width: {{maxW}}; margin: 0 auto; padding: 32px 32px 0; box-sizing: border-box">
+<sc-if value="{{showGrid}}" hint-placeholder-val="{{ false }}">
+<div aria-hidden="true" style="position: absolute; top: 0; bottom: 0; left: 32px; right: 32px; z-index: 4; pointer-events: none; display: grid; grid-template-columns: repeat({{cols}}, minmax(0, 1fr)); column-gap: 24px">
+<sc-for list="{{colList}}" as="cl" hint-placeholder-count="12"><span style="background: rgba(36,87,214,.10); border-left: 1px solid rgba(36,87,214,.25); border-right: 1px solid rgba(36,87,214,.25)"></span></sc-for>
+</div>
+</sc-if>
+<div style="font-family: 'Geist Mono', 'Noto Sans TC', monospace; font-size: 13px; color: {{c.muted}}">首頁 / 專案</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 6px">
+<h2 style="margin: 0; font-size: 31px; line-height: 1.2; font-weight: 700">專案總覽</h2>
+<span style="display: flex; gap: 10px"><span style="display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border-radius: 10px; background: {{c.card}}; box-shadow: {{c.shadowSm}}; font-size: 14px">匯出</span><span style="display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border-radius: 10px; background: #2457d6; color: #ffffff; font-size: 14px; font-weight: 600">新增專案</span></span>
+</div>
+
+<div style="margin-top: {{secGap}}; display: grid; grid-template-columns: {{cardCols}}; grid-auto-rows: {{cardRows}}; gap: 24px">
+<sc-for list="{{cards}}" as="k" hint-placeholder-count="6">
+<div style="grid-column: {{k.gc}}; grid-row: {{k.gr}}; box-sizing: border-box; padding: 20px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}; display: flex; flex-direction: {{k.dir}}; gap: 12px; align-items: {{k.align}}">
+<span style="flex: 0 0 40px; width: 40px; height: 40px; border-radius: 10px; background: {{c.accentSoft}}"></span>
+<span style="flex: 1 1 auto; min-width: 0">
+<span style="display: block; font-size: 20px; font-weight: 700; line-height: 1.3">{{k.t}}</span>
+<span style="display: block; font-size: 14px; color: {{c.muted}}">[專案描述]</span>
+</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 13px; color: {{c.muted}}">{{k.n}} 個任務</span>
+</div>
+</sc-for>
+</div>
+
+<h3 style="margin: {{secGap}} 0 0; font-size: 20px; font-weight: 700">最近活動</h3>
+<div style="margin-top: 12px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}">
+<sc-for list="{{acts}}" as="a" hint-placeholder-count="8">
+<div style="display: flex; justify-content: space-between; gap: 16px; padding: 14px 20px; border-bottom: 1px solid {{c.line}}"><span>{{a.t}}</span><span style="font-family: 'Geist Mono', monospace; font-size: 13px; color: {{c.muted}}">[時間]</span></div>
+</sc-for>
+</div>
+<div style="height: {{secGap}}"></div>
+</div>
+
+<sc-if value="{{footMulti}}" hint-placeholder-val="{{ false }}">
+<footer style="border-top: 1px solid {{c.line}}; background: {{c.side}}">
+<div style="max-width: {{maxW}}; margin: 0 auto; padding: 40px 32px; box-sizing: border-box; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 24px; font-size: 14px">
+<span style="font-weight: 700">[專案名稱]<span style="display: block; font-weight: 400; color: {{c.muted}}">[一句話介紹]</span></span>
+<span style="display: flex; flex-direction: column; gap: 6px; color: {{c.muted}}"><span style="color: {{c.ink}}; font-weight: 600">產品</span><span>功能</span><span>更新紀錄</span></span>
+<span style="display: flex; flex-direction: column; gap: 6px; color: {{c.muted}}"><span style="color: {{c.ink}}; font-weight: 600">資源</span><span>文件</span><span>教學</span></span>
+<span style="display: flex; flex-direction: column; gap: 6px; color: {{c.muted}}"><span style="color: {{c.ink}}; font-weight: 600">關於</span><span>團隊</span><span>聯絡</span></span>
+</div>
+</footer>
+</sc-if>
+<sc-if value="{{footMini}}" hint-placeholder-val="{{ true }}">
+<footer style="border-top: 1px solid {{c.line}}">
+<div style="max-width: {{maxW}}; margin: 0 auto; padding: 20px 32px; box-sizing: border-box; display: flex; justify-content: space-between; font-size: 13px; color: {{c.muted}}"><span>[專案名稱]</span><span style="display: flex; gap: 20px"><span>文件</span><span>隱私</span><span>聯絡</span></span></div>
+</footer>
+</sc-if>
+</div>
+
+<sc-if value="{{drawer}}" hint-placeholder-val="{{ false }}">
+<div class="scrim" onClick="{{closeDrawer}}" style="position: absolute; inset: 0; z-index: 10; background: rgba(0,0,0,.35)"></div>
+<div class="drawer" style="position: absolute; left: 0; top: 0; bottom: 0; z-index: 11; width: 280px; box-sizing: border-box; padding: 18px 12px; background: {{c.card}}; box-shadow: 0 16px 40px rgba(0,0,0,.3); display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; justify-content: space-between; height: 44px; padding: 0 10px; margin-bottom: 12px"><span style="font-weight: 700">[專案名稱]</span>
+<button type="button" onClick="{{closeDrawer}}" aria-label="關閉選單" style="width: 44px; height: 44px; border: 0; background: transparent; color: {{c.ink}}; cursor: pointer; font: inherit; font-size: 22px">×</button></div>
+<sc-for list="{{navs}}" as="n" hint-placeholder-count="5"><span style="display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 12px; border-radius: 10px; background: {{n.bg}}; color: {{n.fg}}; font-weight: {{n.fw}}"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{n.icon}}"></path></svg>{{n.t}}</span></sc-for>
+</div>
+</sc-if>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+<div style="flex: 0 0 auto; width: 300px; height: 600px; border: 1px solid #cfcac4; border-radius: 28px; overflow: hidden; background: {{c.page}}">
+<div class="mk" style="position: relative; width: 390px; height: 780px; transform: scale(.769); transform-origin: top left; background: {{c.page}}; color: {{c.ink}}; font-family: Inter, 'Noto Sans TC', sans-serif; font-size: 16px; line-height: 1.65; display: flex; flex-direction: column; overflow: hidden">
+<div style="flex: 0 0 auto; height: 60px; display: flex; align-items: center; gap: 12px; padding: 0 16px; background: {{c.hdr}}; border-bottom: 1px solid {{c.line}}">
+<sc-if value="{{mDrawerBtn}}" hint-placeholder-val="{{ true }}">
+<button type="button" onClick="{{openMDrawer}}" aria-label="開啟選單" style="width: 44px; height: 44px; border: 0; background: transparent; color: {{c.ink}}; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></button>
+</sc-if>
+<span style="display: flex; align-items: center; gap: 8px; font-weight: 700"><span style="width: 22px; height: 22px; border-radius: 6px; background: #2457d6"></span>[專案名稱]</span>
+</div>
+<sc-if value="{{mScrollTabs}}" hint-placeholder-val="{{ false }}">
+<div style="flex: 0 0 auto; display: flex; gap: 8px; padding: 10px 16px; overflow-x: auto; border-bottom: 1px solid {{c.line}}; white-space: nowrap">
+<sc-for list="{{navs}}" as="n" hint-placeholder-count="5"><span style="padding: 6px 14px; border-radius: 999px; font-size: 14px; background: {{n.chipBg}}; color: {{n.chipFg}}; font-weight: 600">{{n.t}}</span></sc-for>
+</div>
+</sc-if>
+<div style="flex: 1 1 auto; overflow-y: auto; padding: 20px 16px">
+<div style="font-family: 'Geist Mono', 'Noto Sans TC', monospace; font-size: 12px; color: {{c.muted}}">首頁 / 專案</div>
+<div style="margin-top: 4px; font-size: 25px; font-weight: 700; line-height: 1.25">專案總覽</div>
+<div style="margin-top: 16px; display: grid; grid-template-columns: {{mCols}}; gap: 12px">
+<sc-for list="{{cards}}" as="k" hint-placeholder-count="6">
+<div style="padding: 14px; background: {{c.card}}; border-radius: 14px; box-shadow: {{c.shadow}}; display: flex; flex-direction: {{mDir}}; gap: 10px; align-items: {{mAlign}}">
+<span style="flex: 0 0 32px; width: 32px; height: 32px; border-radius: 8px; background: {{c.accentSoft}}"></span>
+<span style="flex: 1 1 auto; min-width: 0; font-weight: 700; font-size: 16px; line-height: 1.3">{{k.t}}</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: {{c.muted}}">{{k.n}}</span>
+</div>
+</sc-for>
+</div>
+</div>
+<sc-if value="{{mTabs}}" hint-placeholder-val="{{ true }}">
+<nav style="flex: 0 0 auto; height: 68px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1px solid {{c.line}}; background: {{c.hdr}}">
+<sc-for list="{{navs}}" as="n" hint-placeholder-count="5"><span style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; color: {{n.tabFg}}; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{n.icon}}"></path></svg>{{n.t}}</span></sc-for>
+</nav>
+</sc-if>
+<sc-if value="{{mDrawer}}" hint-placeholder-val="{{ false }}">
+<div class="scrim" onClick="{{closeMDrawer}}" style="position: absolute; inset: 0; z-index: 10; background: rgba(0,0,0,.35)"></div>
+<div class="drawer" style="position: absolute; left: 0; top: 0; bottom: 0; z-index: 11; width: 290px; box-sizing: border-box; padding: 16px 12px; background: {{c.card}}; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; justify-content: space-between; height: 44px; padding: 0 8px; margin-bottom: 8px"><span style="font-weight: 700">[專案名稱]</span><button type="button" onClick="{{closeMDrawer}}" aria-label="關閉選單" style="width: 44px; height: 44px; border: 0; background: transparent; color: {{c.ink}}; cursor: pointer; font: inherit; font-size: 22px">×</button></div>
+<sc-for list="{{navs}}" as="n" hint-placeholder-count="5"><span style="display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 12px; border-radius: 10px; background: {{n.bg}}; color: {{n.fg}}; font-weight: {{n.fw}}"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{n.icon}}"></path></svg>{{n.t}}</span></sc-for>
+</div>
+</sc-if>
+</div>
+</div>
+<div style="flex: 1 1 260px; min-width: 0; padding: 16px; background: #ffffff; border: 1px solid #e2dfdc; border-radius: 10px; font-size: 13px; color: #6d645a">
+<div style="font-size: 15px; font-weight: 700; color: #171512">手機版 390 px</div>
+<p style="margin: 6px 0 0">桌面版的導覽在手機上會改成「手機導覽」選的樣式。卡片排列會自動變成一欄或兩欄。</p>
+<p style="margin: 10px 0 0">桌面版可以捲動，觀察頁首行為；選了漢堡選單或抽屜時，點選單按鈕會從左側滑出。</p>
+<p style="margin: 10px 0 0">{{breakNote}}</p>
+</div>
+</div>
+</div>
+</div>
+
+<section style="margin-top: 24px; padding: 14px 18px; border: 1px dashed #aca49a; border-radius: 8px; font-size: 13px; color: #6d645a">
+<span style="color: #171512; font-weight: 700">目前設定</span>　{{summary}}
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2200}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { nav: 'topSide', maxW: '1280', cols: 12, side: 'collapsible', mnav: 'tabs', hdr: 'hide', cards: 'grid', gap: 'std', foot: 'mini', dark: false, grid: false, sideOpen: true, drawer: false, mDrawer: false, y: 0, hidden: false }; }
+  renderVals() {
+    const st = this.state;
+    const set = (k, v) => () => this.setState({ [k]: v });
+    const on = (k, id) => String(st[k]) === String(id);
+    const A = '#2457d6', G = '#cfcac4', D = '#8c8073', W = '#ffffff';
+    const sh = (x, y, w, h, c) => ({ x: x + '%', y: y + '%', w: w + '%', h: h + '%', c });
+    const mk = (k, list) => list.map((o) => Object.assign({}, o, {
+      pressed: on(k, o.id) ? 'true' : 'false',
+      border: on(k, o.id) ? '1px solid #171512' : '1px solid #e2dfdc',
+      ring: on(k, o.id) ? '0 0 0 2px #171512' : 'none',
+      pick: () => this.setState({ [k]: o.id, drawer: false, mDrawer: false, hidden: false })
+    }));
+    const hasSide = st.nav === 'side' || st.nav === 'topSide';
+    const hasTop = st.nav !== 'side';
+    const groups = [
+      { no: '01', label: '桌面導覽方式', desc: '主要選單放在哪裡。項目多、功能多的應用適合側邊欄；內容型網站適合頂部。', opts: mk('nav', [
+        { id: 'top', name: '頂部導覽', note: '內容站、官網', shapes: [sh(0, 0, 100, 18, D), sh(8, 30, 84, 60, W)] },
+        { id: 'side', name: '側邊欄', note: '後台、工具', shapes: [sh(0, 0, 24, 100, D), sh(30, 10, 64, 80, W)] },
+        { id: 'topSide', name: '側邊欄＋頂部列', note: '大型應用', shapes: [sh(0, 0, 24, 100, D), sh(24, 0, 76, 18, G), sh(30, 30, 64, 60, W)] },
+        { id: 'hamb', name: '只用漢堡選單', note: '極簡，選單收起來', shapes: [sh(0, 0, 100, 18, G), sh(4, 4, 10, 10, D), sh(8, 30, 84, 60, W)] }
+      ]) },
+      { no: '02', label: '內容最大寬度', desc: '大螢幕上內容區最寬到多少。太寬時一行字太長，不好讀。', opts: mk('maxW', [
+        { id: '960', name: '960 px', note: '文章、文件', shapes: [sh(25, 10, 50, 80, W)] },
+        { id: '1120', name: '1120 px', note: '一般網站', shapes: [sh(18, 10, 64, 80, W)] },
+        { id: '1280', name: '1280 px', note: '應用、儀表板', shapes: [sh(10, 10, 80, 80, W)] },
+        { id: 'full', name: '滿版', note: '跟著視窗寬度', shapes: [sh(3, 10, 94, 80, W)] }
+      ]) },
+      { no: '03', label: '格線欄數', desc: '把內容寬度切成幾欄來對齊。打開右上「顯示格線」可以看到欄位。', opts: mk('cols', [
+        { id: 4, name: '4 欄', note: '簡單，適合手機', shapes: [0, 1, 2, 3].map((i) => sh(6 + i * 23, 10, 19, 80, '#c8d5f5')) },
+        { id: 8, name: '8 欄', note: '平板、中型版面', shapes: [0, 1, 2, 3, 4, 5, 6, 7].map((i) => sh(5 + i * 11.4, 10, 9, 80, '#c8d5f5')) },
+        { id: 12, name: '12 欄', note: '最彈性，可切 2、3、4 等分', shapes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((i) => sh(4 + i * 7.8, 10, 6, 80, '#c8d5f5')) }
+      ]) },
+      { no: '04', label: '側邊欄行為', desc: '側邊欄要一直展開，還是可以收合，或只顯示圖示。', flag: hasSide ? '' : '目前沒有側邊欄', op: hasSide ? 1 : .55, opts: mk('side', [
+        { id: 'fixed', name: '固定展開', note: '240 px，文字一直在', shapes: [sh(0, 0, 30, 100, D), sh(36, 10, 58, 80, W)] },
+        { id: 'collapsible', name: '可收合', note: '按鈕切換 240 與 72 px', shapes: [sh(0, 0, 30, 100, D), sh(30, 40, 6, 20, A), sh(42, 10, 52, 80, W)] },
+        { id: 'icons', name: '只有圖示', note: '72 px，滑過顯示名稱', shapes: [sh(0, 0, 12, 100, D), sh(18, 10, 76, 80, W)] }
+      ]) },
+      { no: '05', label: '手機導覽', desc: '螢幕寬度小於 768 px 時，選單變成什麼樣子。', opts: mk('mnav', [
+        { id: 'tabs', name: '底部分頁列', note: '常用功能一按就到', shapes: [sh(25, 0, 50, 100, W), sh(25, 82, 50, 18, D)] },
+        { id: 'drawer', name: '抽屜選單', note: '項目多時使用', shapes: [sh(25, 0, 50, 100, W), sh(25, 0, 34, 100, D)] },
+        { id: 'scroll', name: '頂部捲動分頁', note: '橫向滑動切換', shapes: [sh(25, 0, 50, 100, W), sh(25, 14, 50, 14, G), sh(28, 17, 12, 8, A)] }
+      ]) },
+      { no: '06', label: '頁首行為', desc: '往下捲動時，頂部列怎麼處理。在桌面版預覽裡捲動看看。', flag: hasTop ? '' : '目前沒有頂部列', op: hasTop ? 1 : .55, opts: mk('hdr', [
+        { id: 'sticky', name: '固定在頂端', note: '隨時可以用選單', shapes: [sh(0, 0, 100, 18, D), sh(8, 26, 84, 70, W)] },
+        { id: 'static', name: '跟著捲走', note: '內容空間最大', shapes: [sh(0, -10, 100, 18, G), sh(8, 14, 84, 80, W)] },
+        { id: 'hide', name: '下捲隱藏、上捲出現', note: '兼顧兩者', shapes: [sh(0, 0, 100, 18, D), sh(44, 24, 12, 10, A), sh(8, 40, 84, 56, W)] }
+      ]) },
+      { no: '07', label: '卡片排列', desc: '一組項目怎麼排。', opts: mk('cards', [
+        { id: 'grid', name: '均等格線', note: '每張一樣大', shapes: [sh(6, 10, 26, 36, W), sh(37, 10, 26, 36, W), sh(68, 10, 26, 36, W), sh(6, 54, 26, 36, W), sh(37, 54, 26, 36, W), sh(68, 54, 26, 36, W)] },
+        { id: 'bento', name: 'Bento 拼貼', note: '重點項目放大', shapes: [sh(6, 10, 42, 80, W), sh(52, 10, 42, 36, W), sh(52, 54, 19, 36, W), sh(75, 54, 19, 36, W)] },
+        { id: 'list', name: '清單列', note: '資訊多、要比較時', shapes: [sh(6, 10, 88, 20, W), sh(6, 40, 88, 20, W), sh(6, 70, 88, 20, W)] }
+      ]) },
+      { no: '08', label: '區塊間距', desc: '大區塊之間的垂直距離。前面選了緊密密度，這裡可以再調。', opts: mk('gap', [
+        { id: 'tight', name: '緊密 32 px', note: '一屏看到更多', shapes: [sh(8, 10, 84, 22, W), sh(8, 40, 84, 22, W), sh(8, 70, 84, 22, W)] },
+        { id: 'std', name: '標準 48 px', note: '均衡', shapes: [sh(8, 6, 84, 22, W), sh(8, 42, 84, 22, W)] },
+        { id: 'loose', name: '寬鬆 72 px', note: '有呼吸感', shapes: [sh(8, 4, 84, 22, W), sh(8, 60, 84, 22, W)] }
+      ]) },
+      { no: '09', label: '頁尾', desc: '頁面最底部放什麼。', opts: mk('foot', [
+        { id: 'mini', name: '精簡一行', note: '名稱加幾個連結', shapes: [sh(8, 8, 84, 60, W), sh(0, 82, 100, 18, G)] },
+        { id: 'multi', name: '多欄連結', note: '官網、內容站', shapes: [sh(8, 6, 84, 40, W), sh(0, 56, 100, 44, D)] },
+        { id: 'none', name: '不放', note: '應用介面常見', shapes: [sh(8, 8, 84, 84, W)] }
+      ]) }
+    ];
+    groups.forEach((g) => { if (g.op === undefined) g.op = 1; if (!g.flag) g.flag = ''; });
+    const C = st.dark
+      ? { page: '#2f2a25', card: '#393530', ink: '#f6f5f4', muted: '#aca49a', line: '#4c4844', sub: '#443f3b', side: '#35302c', hdr: '#35302c', accentSoft: '#2d344c', accentText: '#7c9ae6', active: '#443f3b', shadow: '0 1px 2px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.55)', shadowSm: '0 1px 2px rgba(0,0,0,.5)' }
+      : { page: '#fcfbfb', card: '#ffffff', ink: '#171512', muted: '#6d645a', line: '#e2dfdc', sub: '#f6f5f4', side: '#f6f5f4', hdr: '#ffffff', accentSoft: '#e5ebfa', accentText: '#2457d6', active: '#e5ebfa', shadow: '0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.1)', shadowSm: '0 1px 2px rgba(16,24,40,.12)' };
+    const icons = ['M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z', 'M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z', 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M17 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-4-6.3', 'M4 20V10M10 20V4M16 20v-7M2 20h20', 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M14 4v4M8 10v4M16 16v4'];
+    const navs = ['首頁', '專案', '成員', '報表', '設定'].map((t, i) => ({
+      t, icon: icons[i],
+      bg: i === 1 ? C.active : 'transparent', fg: i === 1 ? C.accentText : C.muted, fw: i === 1 ? 700 : 500,
+      topFg: i === 1 ? C.ink : C.muted,
+      chipBg: i === 1 ? '#2457d6' : C.sub, chipFg: i === 1 ? '#ffffff' : C.muted,
+      tabFg: i === 1 ? C.accentText : C.muted
+    }));
+    const sideW = st.side === 'icons' ? '72px' : (st.side === 'collapsible' && !st.sideOpen ? '72px' : '240px');
+    const sideLabels = sideW === '240px';
+    const secGap = { tight: '32px', std: '48px', loose: '72px' }[st.gap];
+    const cardNames = ['網站改版', '叢集監控', '課程平台', '文件系統', '行動 App', '資料分析'];
+    const counts = [12, 8, 21, 5, 14, 9];
+    const bento = st.cards === 'bento', list = st.cards === 'list';
+    const cards = cardNames.map((t, i) => ({
+      t, n: counts[i],
+      gc: bento ? (i === 0 ? 'span 2' : (i === 3 ? 'span 2' : 'span 1')) : 'auto',
+      gr: bento ? (i === 0 ? 'span 2' : 'span 1') : 'auto',
+      dir: list ? 'row' : 'column', align: list ? 'center' : 'flex-start'
+    }));
+    const maxW = st.maxW === 'full' ? 'none' : st.maxW + 'px';
+    const colList = []; for (let i = 0; i < st.cols; i++) colList.push(i);
+    const hidden = st.hdr === 'hide' && st.hidden;
+    const names = { nav: { top: '頂部導覽', side: '側邊欄', topSide: '側邊欄＋頂部列', hamb: '只用漢堡選單' }, side: { fixed: '固定展開', collapsible: '可收合', icons: '只有圖示' }, mnav: { tabs: '底部分頁列', drawer: '抽屜選單', scroll: '頂部捲動分頁' }, hdr: { sticky: '固定在頂端', static: '跟著捲走', hide: '下捲隱藏上捲出現' }, cards: { grid: '均等格線', bento: 'Bento 拼貼', list: '清單列' }, gap: { tight: '緊密 32 px', std: '標準 48 px', loose: '寬鬆 72 px' }, foot: { mini: '精簡一行', multi: '多欄連結', none: '不放' } };
+    return {
+      groups, c: C, navs,
+      tools: [
+        { t: '淺色', pressed: !st.dark ? 'true' : 'false', on: !st.dark, pick: () => this.setState({ dark: false }) },
+        { t: '深色', pressed: st.dark ? 'true' : 'false', on: st.dark, pick: () => this.setState({ dark: true }) },
+        { t: '顯示格線', pressed: st.grid ? 'true' : 'false', on: st.grid, pick: () => this.setState({ grid: !st.grid }) }
+      ].map((x) => Object.assign(x, { bg: x.on ? '#171512' : '#ffffff', fg: x.on ? '#ffffff' : '#171512', bd: x.on ? '#171512' : '#cfcac4' })),
+      hasSide, hasTop, isHamb: st.nav === 'hamb',
+      topLogo: st.nav === 'top' || st.nav === 'hamb', topLinks: st.nav === 'top',
+      sideW, sideLabels, sideCollapsible: st.side === 'collapsible',
+      sideBtn: st.sideOpen ? '收合側邊欄' : '展開側邊欄',
+      sideBtnRot: st.sideOpen ? 'scaleX(1)' : 'scaleX(-1)',
+      toggleSide: () => this.setState({ sideOpen: !st.sideOpen }),
+      hdrPos: st.hdr === 'static' ? 'relative' : 'sticky',
+      hdrTf: hidden ? 'translateY(-100%)' : 'translateY(0)',
+      onScroll: (e) => { const y = e.currentTarget.scrollTop; const down = y > this.state.y; this.setState({ y, hidden: down && y > 64 }); },
+      maxW, cols: st.cols, colList, showGrid: st.grid,
+      secGap,
+      cardCols: list ? 'minmax(0, 1fr)' : (bento ? 'repeat(4, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))'),
+      cardRows: bento ? '150px' : 'auto',
+      cards,
+      acts: ['[成員] 更新了 網站改版', '[成員] 完成 3 個任務', '[成員] 新增 叢集監控 告警', '[成員] 上傳 2 個檔案', '[成員] 留言於 課程平台', '[成員] 封存 舊版文件', '[成員] 邀請 1 位成員', '[成員] 調整 權限設定'].map((t) => ({ t })),
+      footMulti: st.foot === 'multi', footMini: st.foot === 'mini',
+      drawer: st.drawer && st.nav === 'hamb',
+      openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      mTabs: st.mnav === 'tabs', mScrollTabs: st.mnav === 'scroll', mDrawerBtn: st.mnav === 'drawer', mDrawer: st.mDrawer && st.mnav === 'drawer',
+      openMDrawer: () => this.setState({ mDrawer: true }), closeMDrawer: () => this.setState({ mDrawer: false }),
+      mCols: bento ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)',
+      mDir: list || !bento ? 'row' : 'column', mAlign: list || !bento ? 'center' : 'flex-start',
+      breakNote: '建議斷點：手機 0 到 767 px，平板 768 到 1023 px，桌面 1024 px 以上。平板時側邊欄自動變成只有圖示。',
+      summary: ['桌面導覽 ' + names.nav[st.nav], '最大寬度 ' + (st.maxW === 'full' ? '滿版' : st.maxW + ' px'), '格線 ' + st.cols + ' 欄', '側邊欄 ' + names.side[st.side], '手機導覽 ' + names.mnav[st.mnav], '頁首 ' + names.hdr[st.hdr], '卡片 ' + names.cards[st.cards], '區塊間距 ' + names.gap[st.gap], '頁尾 ' + names.foot[st.foot]].join(' · ')
+    };
+  }
+}
+</script>
+</body>
+</html>

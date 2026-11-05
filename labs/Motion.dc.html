@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>動畫程度比較</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Noto+Sans+TC:wght@400;500;700;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2457d6}a:hover{color:#163a99}
+.l1btn{cursor:pointer;transition:transform .15s ease,background .15s ease,box-shadow .15s ease}
+.l1btn:hover{background:#1d47b3;box-shadow:0 6px 14px rgba(36,87,214,.25);transform:translateY(-1px)}
+.l1btn:active{transform:scale(.97)}
+.l1card{transition:border-color .2s ease,box-shadow .2s ease}
+.l1card:hover{border-color:#2457d6;box-shadow:0 0 0 3px rgba(36,87,214,.12)}
+.l1field{outline:none;transition:border-color .15s ease,box-shadow .15s ease}
+.l1field:focus{border-color:#2457d6;box-shadow:0 0 0 3px rgba(36,87,214,.15)}
+.ctl{cursor:pointer;transition:background .15s ease}.ctl:hover{background:#eef1f5}
+@keyframes enter{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
+.li{animation:enter .35s cubic-bezier(.2,.8,.2,1) both}
+@keyframes fadeA{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes fadeB{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.fa{animation:fadeA .35s ease both}.fb{animation:fadeB .35s ease both}
+@keyframes wordA{from{opacity:0;transform:translateY(60%) rotate(4deg)}to{opacity:1;transform:none}}
+@keyframes wordB{from{opacity:0;transform:translateY(60%) rotate(4deg)}to{opacity:1;transform:none}}
+.wa .w{animation:wordA .7s cubic-bezier(.2,.8,.2,1) both}
+.wb .w{animation:wordB .7s cubic-bezier(.2,.8,.2,1) both}
+@keyframes float1{0%,100%{transform:translate(0,0) rotate(0deg)}50%{transform:translate(18px,-22px) rotate(12deg)}}
+@keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-24px,16px)}}
+.f1{animation:float1 6s ease-in-out infinite}.f2{animation:float2 7s ease-in-out infinite}.f3{animation:float1 9s ease-in-out infinite reverse}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #ffffff; color: #111418; font-family: Inter, 'Noto Sans TC', sans-serif; font-size: 16px; line-height: 1.6">
+<main style="max-width: 1160px; margin: 0 auto; padding: 48px 32px 64px">
+<div style="font-size: 14px; font-weight: 600; color: #2457d6">動畫程度比較</div>
+<h1 style="margin: 8px 0 0; font-size: 40px; line-height: 1.2; font-weight: 800; letter-spacing: -.02em">三種動畫程度，可以混搭使用</h1>
+<p style="margin: 10px 0 0; color: #5b6470; max-width: 720px">程度越高越吸睛，但也越花時間做、越容易干擾閱讀。多數網站是 Level 1 全站使用，Level 2 用在切換畫面，Level 3 只放在首頁的第一屏。</p>
+
+<section style="margin-top: 40px; display: flex; flex-wrap: wrap; gap: 24px; padding: 28px; border: 1px solid #e6e8eb; border-radius: 14px">
+<div style="flex: 1 1 240px; min-width: 0">
+<div style="font-size: 13px; font-weight: 700; color: #5b6470">LEVEL 1</div>
+<div style="font-size: 22px; font-weight: 700">細緻回饋</div>
+<p style="margin: 6px 0 0; font-size: 15px; color: #5b6470">hover、按下、focus 的即時回應。時間 150 到 200 ms，使用者幾乎不會注意到，但少了會覺得「卡卡的」。</p>
+</div>
+<div style="flex: 2 1 520px; min-width: 0; display: flex; flex-wrap: wrap; gap: 16px; align-items: center">
+<button class="l1btn" type="button" style="min-height: 48px; padding: 0 22px; border: 0; border-radius: 8px; background: #2457d6; color: #ffffff; font: inherit; font-weight: 600">hover 與按下</button>
+<div class="l1card" style="padding: 14px 18px; border: 1px solid #e6e8eb; border-radius: 10px; font-size: 15px">hover 卡片出現外框</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<label for="m-in" style="font-size: 13px; font-weight: 600">點進輸入框</label>
+<input id="m-in" class="l1field" type="text" placeholder="focus 外框" style="font: inherit; padding: 10px 12px; border: 1px solid #dfe3e8; border-radius: 8px; width: 200px">
+</div>
+</div>
+</section>
+
+<section style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 24px; padding: 28px; border: 1px solid #e6e8eb; border-radius: 14px">
+<div style="flex: 1 1 240px; min-width: 0">
+<div style="font-size: 13px; font-weight: 700; color: #5b6470">LEVEL 2</div>
+<div style="font-size: 22px; font-weight: 700">轉場與狀態變化</div>
+<p style="margin: 6px 0 0; font-size: 15px; color: #5b6470">切換分頁、新增項目、開關面板時，讓使用者看懂「東西從哪來、到哪去」。時間 250 到 400 ms。</p>
+</div>
+<div style="flex: 2 1 520px; min-width: 0; display: flex; flex-wrap: wrap; gap: 24px">
+<div style="flex: 1 1 240px; min-width: 0">
+<div style="display: flex; gap: 6px; padding: 4px; background: #f1f3f6; border-radius: 10px; position: relative">
+<span style="position: absolute; top: 4px; left: 4px; width: calc((100% - 8px) / 3); height: 40px; background: #ffffff; border-radius: 7px; box-shadow: 0 1px 3px rgba(0,0,0,.12); transform: {{segX}}; transition: transform .3s cubic-bezier(.3,.7,.3,1)"></span>
+<sc-for list="{{segs}}" as="g" hint-placeholder-count="3">
+<button type="button" onClick="{{g.pick}}" style="position: relative; flex: 1 1 0; height: 40px; border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 600; color: {{g.color}}; cursor: pointer">{{g.label}}</button>
+</sc-for>
+</div>
+<div class="{{segCls}}" style="margin-top: 14px; padding: 16px; border: 1px solid #e6e8eb; border-radius: 10px; font-size: 15px; min-height: 60px">{{segBody}}</div>
+</div>
+<div style="flex: 1 1 220px; min-width: 0">
+<div style="display: flex; gap: 8px">
+<button class="ctl" type="button" onClick="{{add}}" style="min-height: 44px; padding: 0 14px; border: 1px solid #dfe3e8; border-radius: 8px; background: #ffffff; font: inherit; font-size: 14px">新增項目</button>
+<button class="ctl" type="button" onClick="{{reset}}" style="min-height: 44px; padding: 0 14px; border: 1px solid #dfe3e8; border-radius: 8px; background: #ffffff; font: inherit; font-size: 14px">清空</button>
+</div>
+<div style="margin-top: 12px; display: flex; flex-direction: column; gap: 6px">
+<sc-for list="{{list}}" as="it" hint-placeholder-count="2">
+<div class="li" style="padding: 10px 12px; background: #f7f8fa; border-radius: 8px; font-size: 14px">{{it}}</div>
+</sc-for>
+</div>
+</div>
+</div>
+</section>
+
+<section style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 24px; padding: 28px; border: 1px solid #e6e8eb; border-radius: 14px">
+<div style="flex: 1 1 240px; min-width: 0">
+<div style="font-size: 13px; font-weight: 700; color: #5b6470">LEVEL 3</div>
+<div style="font-size: 22px; font-weight: 700">吸睛的動態效果</div>
+<p style="margin: 6px 0 0; font-size: 15px; color: #5b6470">首頁第一屏的逐字進場、漂浮背景、循環動畫。時間 600 ms 以上，只出現一次或緩慢循環。</p>
+<button class="ctl" type="button" onClick="{{replayWords}}" style="margin-top: 14px; min-height: 44px; padding: 0 14px; border: 1px solid #dfe3e8; border-radius: 8px; background: #ffffff; font: inherit; font-size: 14px">重播標題</button>
+</div>
+<div style="flex: 2 1 520px; min-width: 0; position: relative; height: 220px; background: #111418; border-radius: 12px; overflow: hidden; display: flex; align-items: center; padding: 0 40px; box-sizing: border-box">
+<div aria-hidden="true" class="f1" style="position: absolute; right: 60px; top: 30px; width: 90px; height: 90px; border-radius: 22px; background: #2457d6"></div>
+<div aria-hidden="true" class="f2" style="position: absolute; right: 180px; bottom: 26px; width: 56px; height: 56px; border-radius: 99px; background: #ffd84d"></div>
+<div aria-hidden="true" class="f3" style="position: absolute; right: 24px; bottom: 40px; width: 40px; height: 40px; border: 3px solid #8ef0b0; box-sizing: border-box"></div>
+<div class="{{wordCls}}" style="position: relative; display: flex; flex-wrap: wrap; gap: 0 14px; color: #ffffff; font-size: 44px; font-weight: 900; line-height: 1.25; max-width: 460px">
+<sc-for list="{{words}}" as="w" hint-placeholder-count="4">
+<span style="display: inline-block; overflow: hidden"><span class="w" style="display: inline-block; animation-delay: {{w.d}}">{{w.t}}</span></span>
+</sc-for>
+</div>
+</div>
+</section>
+
+<section style="margin-top: 20px; padding: 28px; border: 1px solid #e6e8eb; border-radius: 14px">
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between">
+<div>
+<div style="font-size: 22px; font-weight: 700">緩動曲線 (easing)</div>
+<p style="margin: 4px 0 0; font-size: 15px; color: #5b6470">同樣的距離和時間，曲線不同，感覺完全不同。按播放比較。</p>
+</div>
+<button class="l1btn" type="button" onClick="{{play}}" style="min-height: 48px; padding: 0 22px; border: 0; border-radius: 8px; background: #2457d6; color: #ffffff; font: inherit; font-weight: 600">播放</button>
+</div>
+<div style="margin-top: 20px; display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{eases}}" as="e" hint-placeholder-count="4">
+<div style="display: flex; align-items: center; gap: 16px">
+<div style="flex: 0 0 150px; font-size: 14px"><div style="font-weight: 600">{{e.name}}</div><div style="color: #5b6470; font-size: 13px">{{e.note}}</div></div>
+<div style="flex: 1 1 auto; position: relative; height: 32px; background: #f1f3f6; border-radius: 99px">
+<span style="position: absolute; top: 2px; left: {{e.left}}; width: 28px; height: 28px; border-radius: 99px; background: {{e.color}}; transition: left .9s {{e.curve}}"></span>
+</div>
+</div>
+</sc-for>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1180}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { seg: 0, segN: 0, items: ['項目 1', '項目 2'], n: 2, w: 0, at: false }; }
+  renderVals() {
+    const s = this.state;
+    const segLabels = ['日', '週', '月'];
+    const bodies = ['切換時內容從下方淡入，告訴使用者畫面換了。', '滑塊跟著移動，比直接跳色更容易看懂選到哪裡。', '整段內容 350 ms 內完成，不會讓人等。'];
+    const words = ['讓', '第一眼', '就', '記住你'];
+    const eases = [
+      { name: 'linear', note: '機械、生硬', curve: 'linear', color: '#9aa3ae' },
+      { name: 'ease-out', note: '自然、最常用', curve: 'cubic-bezier(.2,.8,.2,1)', color: '#2457d6' },
+      { name: 'ease-in-out', note: '平穩、適合大位移', curve: 'cubic-bezier(.65,0,.35,1)', color: '#0f766e' },
+      { name: 'spring', note: '超過再彈回，活潑', curve: 'cubic-bezier(.34,1.56,.64,1)', color: '#d9480f' }
+    ];
+    return {
+      segX: 'translateX(calc(' + s.seg + ' * (100% + 6px)))',
+      segs: segLabels.map((l, i) => ({ label: l, color: i === s.seg ? '#111418' : '#5b6470', pick: () => this.setState({ seg: i, segN: s.segN + 1 }) })),
+      segCls: s.segN % 2 ? 'fa' : 'fb',
+      segBody: bodies[s.seg],
+      list: s.items,
+      add: () => this.setState({ items: s.items.concat(['項目 ' + (s.n + 1)]), n: s.n + 1 }),
+      reset: () => this.setState({ items: [], n: 0 }),
+      wordCls: s.w % 2 ? 'wb' : 'wa',
+      replayWords: () => this.setState({ w: s.w + 1 }),
+      words: words.map((t, i) => ({ t, d: (i * 120) + 'ms' })),
+      play: () => this.setState({ at: !s.at }),
+      eases: eases.map((e) => Object.assign({}, e, { left: s.at ? 'calc(100% - 30px)' : '2px' }))
+    };
+  }
+}
+</script>
+</body>
+</html>
