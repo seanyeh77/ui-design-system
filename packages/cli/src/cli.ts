@@ -56,7 +56,8 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
   });
   const stems = new Map<string, number>();
   const jobs = targets.map((target) => {
-    const url = target.includes('://') ? target : pathToFileURL(resolve(target)).href;
+    // Chromium normalizes URLs (trailing slash, case, escapes); compare against the same form.
+    const url = target.includes('://') ? new URL(target).href : pathToFileURL(resolve(target)).href;
     // Screenshot names come from the file name; a second target with the same name gets -2, -3, …
     const base = (url.replace(/\/$/, '').split('/').pop() || 'page').replace(/\.[^.]*$/, '');
     const n = (stems.get(base) ?? 0) + 1;
@@ -183,6 +184,9 @@ if (cmd === 'check') {
   for (const t of positionals)
     if (!t.includes('://') && !existsSync(t)) {
       console.error(`${t}: no such file. Pass a file path or a URL.`);
+      process.exit(2);
+    } else if (t.includes('://') && !URL.canParse(t)) {
+      console.error(`${t}: not a valid URL. Write it in full, e.g. http://localhost:5173/.`);
       process.exit(2);
     }
   const wait = Number(values.wait);
