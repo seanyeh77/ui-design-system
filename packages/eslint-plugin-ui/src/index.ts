@@ -78,7 +78,8 @@ const noRawColor: Rule.RuleModule = {
           const m = p as unknown as { type: string; computed?: boolean; property?: unknown; test?: unknown };
           if (m.type === 'MemberExpression' && m.computed && m.property === c) return;
           const passes =
-            (m.type === 'ConditionalExpression' && m.test !== c) || ['LogicalExpression', 'TSAsExpression', 'TSSatisfiesExpression'].includes(m.type);
+            (m.type === 'ConditionalExpression' && m.test !== c) ||
+            ['LogicalExpression', 'TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression'].includes(m.type);
           if (!passes) isValue = false;
         }
         if (!p) return;

@@ -14,7 +14,7 @@ const HELP = `ui check <file or URL>... [--shots DIR] [--strict] [--wait MS]
   Opens each page at 390 px and 1280 px, light and dark, and fails (exit 1) on:
   console errors, horizontal overflow at 390 px, touch targets under 48 px, a card inside a card,
   raw Markdown, native controls the design system replaces, and wrapped buttons, tabs, headers or headings.
-  Exits 2 when a page cannot be loaded at all.
+  Exits 2 when a page cannot be checked at all: it does not load, or the check itself crashes.
 ui docs [Name]   prints the README of a component (Button, DataTable…) or a guide (guidelines, layout, motion)
 ui list          lists every component`;
 
@@ -93,12 +93,27 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
             throw new Unreachable(String(e).split('\n')[0]);
           });
           if (resp && !resp.ok()) throw new Unreachable(`HTTP ${resp.status()}`);
-          await page.evaluate((t) => {
-            const r = document.documentElement;
-            if (r.hasAttribute('data-theme') || 'UI' in window) r.setAttribute('data-theme', t);
-          }, theme);
+          // A redirect after load (an auth guard, a meta refresh) replaces the document: wait and measure the page it lands on.
+          const run = async <T>(evaluate: () => Promise<T>): Promise<T> => {
+            for (let tries = 0; ; tries++) {
+              try {
+                return await evaluate();
+              } catch (e) {
+                if (tries >= 2 || !String(e).includes('Execution context was destroyed')) throw e;
+                await page.waitForLoadState('load');
+              }
+            }
+          };
+          await run(() =>
+            page.evaluate((t) => {
+              const r = document.documentElement;
+              if (r.hasAttribute('data-theme') || 'UI' in window) r.setAttribute('data-theme', t);
+            }, theme),
+          );
           await page.waitForTimeout(opts.wait);
-          const res = await page.evaluate(measure);
+          await page.waitForLoadState('load');
+          const res = await run(() => page.evaluate(measure));
+          if (page.url() !== url && width === 390 && theme === 'light') out.push(`  (redirected to ${page.url()})`);
           const problems: string[] = [];
           if (errors.length) problems.push('console errors: ' + errors.slice(0, 5).join(' | '));
           if (res.nested.length) problems.push('card inside a card (two shadows): ' + res.nested.join('; '));
@@ -130,14 +145,14 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
 
   if (opts.shots) mkdirSync(opts.shots, { recursive: true });
   // 4 lanes; reports print in the order the targets were given. A page that cannot load becomes a report line.
-  let unreachable = false;
+  let unchecked = false;
   const lanes: Promise<unknown>[] = Array(4).fill(Promise.resolve());
   const results = jobs.map((job, i) => {
     const r = lanes[i % 4]
       .then(() => checkOne(job))
       .catch((e: unknown) => {
+        unchecked = true;
         if (!(e instanceof Unreachable)) return { out: [job.url, `  check crashed: ${String(e).split('\n')[0]}`], bad: true };
-        unreachable = true;
         return { out: [job.url, `  could not load: ${e.message}. Check the path, or start the server first.`], bad: true };
       });
     lanes[i % 4] = r;
@@ -150,8 +165,8 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
     failed ||= bad;
   }
   await browser.close();
-  // 2: a page could not be checked at all; 1: checks found problems.
-  process.exit(unreachable ? 2 : failed ? 1 : 0);
+  // 2: a page could not be checked at all (not loaded, or the check crashed); 1: checks found problems.
+  process.exit(unchecked ? 2 : failed ? 1 : 0);
 }
 
 const [cmd, ...rest] = process.argv.slice(2);
