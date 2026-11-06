@@ -31,6 +31,21 @@ Use it for any web page, dashboard, frontend or tool UI unless the user asks for
 5. Rules that are easy to miss: no native `<select>`; one primary button per section; button labels are verbs only; dates `2026/11/04（三）` with relative time inside a week; amounts `NT$ 1,280`; numbers right-aligned with tabular figures; danger actions confirm in a Dialog; error messages give the cause and the fix.
 6. Items marked 看情況 ("situational") in the docs are not fixed rules: choose per context and say which way you chose.
 
+### Before you finish
+
+Check the page against this list, at 390 px and 1280 px wide, in light and dark. Take a screenshot if you can.
+
+- Components: wherever `window.UI` has a component for the job, it is used and its README was read. Nothing is hand-built that a component already covers.
+- Fonts: Geist Mono only on numbers, code, file paths and IDs, never on a Chinese sentence or a whole meta line.
+- Sizes: body text is one size; secondary text is one step smaller. No ad-hoc sizes for a single row.
+- Wrapping: no label, heading, table header, tab or button text wraps. Widen it, shorten it, or truncate with an ellipsis and a tooltip.
+- Markdown: rendered, never shown raw. No visible backticks, asterisks or `#`; code inside a sentence uses the inline code style.
+- Titles: the page title appears once, in the top bar or as the page heading, not both.
+- Links: file paths, line references, IDs and anything else that points somewhere are links.
+- Status: shown with `UI.Badge` or the component's own status style, never by color alone.
+- Long lists of results: items that need attention (errors, to confirm) come first or can be filtered from the summary.
+- Phones: nothing overflows the screen; long text is left-aligned; touch targets are at least 48 px.
+
 Scope: this system covers web UI and the tokens of SeanYeh's Slidev decks. Slidev decks use the `teaching` preset (`data-theme="teaching"` in `tokens.css`, defined under `presets` in `tokens/tokens.json`): warm-gray neutrals and Inter / Geist Mono from this system, plus teal `#0f766e`, 0 px radius, no shadows and 1.5 px borders, light only. Deck CSS reads token names only. Slide layout and rules, Notion documents and teaching diagrams follow SeanYeh's separate `teaching-materials-style` skill.
 
 ## Changing the design system
