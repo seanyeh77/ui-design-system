@@ -5,7 +5,7 @@ import { MobileTabBar, type MobileTab } from '../MobileTabBar/MobileTabBar';
 import { Drawer } from '../Drawer/Drawer';
 import { tr } from '../../i18n';
 import type { BreadcrumbItem } from '../Breadcrumb/Breadcrumb';
-import { cx, store, useMedia } from '../../internal/util';
+import { cx, store, useMedia, useNarrow } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 
 export interface AppShellProps {
@@ -34,7 +34,7 @@ const MORE = '\u0000more';
 /** The dashboard frame: sidebar (240 px, 72 px collapsed and on tablets), top bar, and bottom tabs on phones.
  *  The top bar hides while scrolling down and returns when scrolling up. */
 export function AppShell({ nav, value, onNavigate, brand, title, breadcrumb, onSearch, actions, children, className }: AppShellProps) {
-  const phone = useMedia('(max-width: 599px)');
+  const phone = useNarrow();
   const tablet = useMedia('(min-width: 600px) and (max-width: 959px)');
   const [userCollapsed, setUserCollapsed] = React.useState(() => store(COLLAPSE_KEY) === '1');
   const collapsed = tablet || userCollapsed;

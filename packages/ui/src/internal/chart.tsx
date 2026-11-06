@@ -22,8 +22,6 @@ export function useCountUp(target: unknown, ms: number): number {
   return t;
 }
 
-export const fmtNum = (v: number, dec?: number): string => format.number(v, dec);
-
 /** Decimals the axis labels need so that ticks a step apart read differently (0.5, 1, 1.5). */
 export const tickDecimals = (top: number): number => Math.min(3, (String(+(top / 4).toPrecision(6)).split('.')[1] ?? '').length);
 
@@ -59,8 +57,7 @@ export function kpiText(v: number, p: KpiCardProps, dec?: number): string {
 }
 
 /** Shrinks the KPI number (31 px down to 20 px) when the final value is wider than the card. */
-export function useFitText(ref: React.RefObject<HTMLElement | null>, deps: React.DependencyList): number | null {
-  const [size, setSize] = React.useState<number | null>(null);
+export function useFitText(ref: React.RefObject<HTMLElement | null>, deps: React.DependencyList): void {
   React.useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -73,7 +70,6 @@ export function useFitText(ref: React.RefObject<HTMLElement | null>, deps: React
       const have = el.clientWidth;
       const next = need > have && have > 0 ? Math.max(20, Math.floor((base * have) / need)) : null;
       el.style.fontSize = next ? next + 'px' : '';
-      setSize(next);
     };
     fit();
     const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(fit) : null;
@@ -81,7 +77,6 @@ export function useFitText(ref: React.RefObject<HTMLElement | null>, deps: React
     return () => ro?.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the caller lists what changes the text
   }, deps);
-  return size;
 }
 
 interface ChartTipRow {

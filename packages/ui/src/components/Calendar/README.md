@@ -11,5 +11,5 @@ const [day, setDay] = useState<Date | null>(null);
 
 <Card>
   <Calendar focus={day} onPick={setDay} dayState={(d) => ({ selected: d.toDateString() === day?.toDateString() })} />
-</Card>
+</Card>;
 ```

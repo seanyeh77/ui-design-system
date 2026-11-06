@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { ChartTip, TICKS, fmtNum, tickDecimals, niceMax, seriesColor, smoothPath } from '../../internal/chart';
+import { ChartTip, TICKS, tickDecimals, niceMax, seriesColor, smoothPath } from '../../internal/chart';
 import { cx, digits } from '../../internal/util';
+import { format } from '../../format';
 
 export interface LineSeries {
   name: string;
@@ -59,7 +60,7 @@ export function LineChart({ series, labels, label, unit, decimals, max, labelEve
             <g key={i}>
               <line x1={L} x2={R} y1={Y(v)} y2={Y(v)} className={i ? 'ui-chart-grid' : 'ui-chart-axis'} />
               <text x={L - 8} y={Y(v) + 4} textAnchor="end" className="ui-chart-tick">
-                {fmtNum(v, tickDecimals(top))}
+                {format.number(v, tickDecimals(top))}
               </text>
             </g>
           ))}
@@ -91,7 +92,7 @@ export function LineChart({ series, labels, label, unit, decimals, max, labelEve
           <ChartTip
             title={labels[hi]}
             style={{ left: (X(hi) / 640) * 100 + '%', transform: hi > n * 0.65 ? 'translateX(calc(-100% - 12px))' : 'translateX(12px)' }}
-            rows={series.map((s, i) => ({ color: seriesColor(i), name: s.name, value: fmtNum(s.values[hi], decimals) + suffix }))}
+            rows={series.map((s, i) => ({ color: seriesColor(i), name: s.name, value: format.number(s.values[hi], decimals) + suffix }))}
           />
         ) : null}
       </div>

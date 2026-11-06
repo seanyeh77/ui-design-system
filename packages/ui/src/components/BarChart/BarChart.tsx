@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { ChartTip, TICKS, fmtNum, tickDecimals, niceMax } from '../../internal/chart';
+import { ChartTip, TICKS, tickDecimals, niceMax } from '../../internal/chart';
 import { cx, digits } from '../../internal/util';
+import { format } from '../../format';
 
 export interface BarDatum {
   label: string;
@@ -30,7 +31,7 @@ export function BarChart({ data, label, unit, decimals, max, className }: BarCha
       <div className="ui-bars" role="img" aria-label={label} onMouseLeave={() => setHi(-1)}>
         {TICKS.map((f, i) => (
           <div key={'g' + i} className={cx('ui-bars-grid', !i && 'is-axis')} style={{ bottom: f * 100 + '%' }}>
-            <span className="ui-chart-tick">{fmtNum(f * top, tickDecimals(top))}</span>
+            <span className="ui-chart-tick">{format.number(f * top, tickDecimals(top))}</span>
           </div>
         ))}
         <div className="ui-bars-row">
@@ -42,7 +43,7 @@ export function BarChart({ data, label, unit, decimals, max, className }: BarCha
                 {hi === i ? (
                   <ChartTip
                     style={{ bottom: `calc(${ht} + 8px)`, left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap' }}
-                    rows={[{ name: d.label, value: fmtNum(d.value, decimals) + suffix }]}
+                    rows={[{ name: d.label, value: format.number(d.value, decimals) + suffix }]}
                   />
                 ) : null}
               </div>

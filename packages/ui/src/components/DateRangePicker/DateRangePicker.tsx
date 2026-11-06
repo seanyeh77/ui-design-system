@@ -3,6 +3,7 @@ import { dayAdd, fmtDate, sameDay } from '../../format';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
+import { FieldLabel } from '../../internal/Field';
 import { FloatingPanel } from '../../internal/FloatingPanel';
 import { Calendar } from '../Calendar/Calendar';
 
@@ -45,7 +46,7 @@ export function DateRangePicker({ label, value, onChange, placeholder, className
   const hi = a && b && b < a ? a : b;
   return (
     <div className={cx('ui-field', className)}>
-      {label ? <span className="ui-field-label">{label}</span> : null}
+      {label ? <FieldLabel>{label}</FieldLabel> : null}
       <FloatingPanel
         open={open}
         onOpenChange={toggle}

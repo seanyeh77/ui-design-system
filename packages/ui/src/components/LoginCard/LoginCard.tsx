@@ -4,6 +4,7 @@ import { TextField } from '../TextField/TextField';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
+import { FieldLabel } from '../../internal/Field';
 
 export interface LoginCardProps {
   /** Logo or product name above the title. */
@@ -51,9 +52,7 @@ export function LoginCard(p: LoginCardProps) {
         />
         <div className="ui-field">
           <div className="ui-login-pwlabel">
-            <label htmlFor={pwId} className="ui-field-label">
-              {tr('密碼')}
-            </label>
+            <FieldLabel htmlFor={pwId}>{tr('密碼')}</FieldLabel>
             {p.forgotHref ? (
               <a href={p.forgotHref} className="ui-link">
                 {tr('忘記密碼？')}

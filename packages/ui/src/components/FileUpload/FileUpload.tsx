@@ -2,6 +2,7 @@ import * as React from 'react';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
+import { FieldLabel } from '../../internal/Field';
 import { ProgressBar } from '../ProgressBar/ProgressBar';
 
 export interface UploadFile {
@@ -40,7 +41,7 @@ export function FileUpload({ label, files = [], onAdd, onRemove, onRetry, limitT
   };
   return (
     <div className={cx('ui-upload', className)}>
-      {label ? <span className="ui-field-label">{label}</span> : null}
+      {label ? <FieldLabel>{label}</FieldLabel> : null}
       <div
         className={cx('ui-dropline', drag && 'is-drag')}
         onDragOver={(e) => {

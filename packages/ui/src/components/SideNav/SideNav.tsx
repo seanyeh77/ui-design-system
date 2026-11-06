@@ -57,6 +57,7 @@ export function SideNav({ sections, value, onChange, collapsed = false, onToggle
     const top = Math.round(y) + 8;
     const bottom = Math.round(box.clientHeight - y - el.offsetHeight) + 8;
     const prev = last.current;
+    if (prev && prev.top === top && prev.bottom === bottom) return;
     if (prev && prev.top !== top) bump();
     last.current = { top, bottom };
     setBar({ top, bottom, show: true, down: !prev || top >= prev.top });

@@ -3,6 +3,7 @@ import { Combobox } from '@base-ui/react/combobox';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
+import { FieldLabel } from '../../internal/Field';
 
 export interface MultiSelectOption {
   value: string;
@@ -40,11 +41,7 @@ export function MultiSelect({ label, options, value, onChange, creatable, maxChi
   const more = value.length - shown.length;
   return (
     <div className={cx('ui-field', className)}>
-      {label ? (
-        <label htmlFor={id} className="ui-field-label">
-          {label}
-        </label>
-      ) : null}
+      {label ? <FieldLabel htmlFor={id}>{label}</FieldLabel> : null}
       <Combobox.Root
         multiple
         autoHighlight
