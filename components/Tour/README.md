@@ -14,9 +14,9 @@ const tour = UI.useTour('codemap-flow');
 h(UI.Tour, {
   open: tour.open, onClose: tour.close,
   steps: [
-    { target: '.ui-search, .ui-search-icon', title: '搜尋', text: '從這裡找函式、檔案、元件和環境變數。電腦上也可以按 Ctrl K。' },
-    { target: '#flow-tree', title: '流程樹', text: '名稱旁的小字說明這條關係是怎麼找到的，點一下看原因。' },
-    { target: '#notes', title: '檢查筆記', text: '寫錯的位置會附上修正建議，可以一鍵複製。' }
+    { target: '.ui-search, .ui-search-icon', title: '搜尋', text: '搜尋函式、檔案、元件與環境變數。快捷鍵 Ctrl K。' },
+    { target: '#flow-tree', title: '流程樹', text: '名稱旁的標籤是關係的來源，點選問號查看依據。' },
+    { target: '#notes', title: '檢查筆記', text: '錯誤的位置附有修正建議，可直接複製。' }
   ]
 }),
 h('button', { className: 'ui-link-btn', onClick: tour.start }, '重看導覽')
