@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"UI","components":[{"name":"Button"},{"name":"IconButton"},{"name":"TextField"},{"name":"Checkbox"},{"name":"RadioGroup"},{"name":"Switch"},{"name":"Select"},{"name":"SearchField"},{"name":"TextArea"},{"name":"FormGrid"},{"name":"KpiCard"},{"name":"LineChart"},{"name":"BarChart"},{"name":"ProgressBar"},{"name":"LoadingBar"},{"name":"ProgressRing"},{"name":"Tooltip"},{"name":"Menu"},{"name":"Popover"},{"name":"Drawer"},{"name":"ThemePicker"},{"name":"AccentPicker"},{"name":"NotificationBell"},{"name":"DatePicker"},{"name":"DateRangePicker"},{"name":"FileUpload"},{"name":"MultiSelect"},{"name":"ErrorPage"},{"name":"LoginCard"},{"name":"SettingsLayout"},{"name":"DangerZone"},{"name":"Badge"},{"name":"Alert"},{"name":"DataTable"},{"name":"Skeleton"},{"name":"EmptyState"},{"name":"Toast"},{"name":"Dialog"},{"name":"SideNav"},{"name":"TopBar"},{"name":"Breadcrumb"},{"name":"Tabs"},{"name":"MobileTabBar"},{"name":"TreeList"}]} */
+/* @ds-bundle: {"format":4,"namespace":"UI","components":[{"name":"Button"},{"name":"IconButton"},{"name":"TextField"},{"name":"Checkbox"},{"name":"RadioGroup"},{"name":"Switch"},{"name":"Select"},{"name":"SearchField"},{"name":"TextArea"},{"name":"FormGrid"},{"name":"KpiCard"},{"name":"LineChart"},{"name":"BarChart"},{"name":"ProgressBar"},{"name":"LoadingBar"},{"name":"ProgressRing"},{"name":"Tooltip"},{"name":"Menu"},{"name":"Popover"},{"name":"Drawer"},{"name":"ThemePicker"},{"name":"AccentPicker"},{"name":"NotificationBell"},{"name":"DatePicker"},{"name":"DateRangePicker"},{"name":"FileUpload"},{"name":"MultiSelect"},{"name":"ErrorPage"},{"name":"LoginCard"},{"name":"SettingsLayout"},{"name":"DangerZone"},{"name":"Badge"},{"name":"Alert"},{"name":"DataTable"},{"name":"Skeleton"},{"name":"EmptyState"},{"name":"Toast"},{"name":"Dialog"},{"name":"SideNav"},{"name":"TopBar"},{"name":"Breadcrumb"},{"name":"Tabs"},{"name":"MobileTabBar"},{"name":"TreeList"},{"name":"InlineCode"},{"name":"CodeText"}]} */
 (function () {
   var React = window.React;
   var h = React.createElement;
@@ -9,7 +9,7 @@
      Every built-in string is the zh-TW text passed through tr(); other languages come from UI.addMessages().
      Dates and numbers go through UI.format, which uses Intl for the current locale. The zh-TW rules are the
      ones the design system chose; other locales use their own conventions from Intl. */
-  var I18N = { locale: 'zh-TW', currency: 'TWD', messages: { en: {"Email 或帳號": "Email or username", "{label}：{a} 到 {b}": "{label}: {a} to {b}", "{n} 個百分點": "{n} pts", "上一頁": "Previous page", "上個月": "Previous month", "上傳失敗，請再試一次。": "Upload failed. Try again.", "下一頁": "Next page", "下個月": "Next month", "主要導覽": "Main navigation", "主題": "Theme", "今天": "Today", "全選": "Select all", "全部": "All", "全部標為已讀": "Mark all as read", "共 0 筆": "0 items", "分頁": "Pagination", "刪除": "Delete", "危險操作": "Danger zone", "取消選取": "Clear selection", "可以直接輸入，例如 2026/11/14": "Type a date, e.g. 2026/11/14", "回上一頁": "Go back", "回首頁": "Go home", "完成 ✓": "Done ✓", "密碼": "Password", "展開側邊欄": "Expand sidebar", "已選 {n} 筆": "{n} selected", "帳號": "Username", "強調色": "Accent color", "忘記密碼？": "Forgot password?", "找不到符合的選項": "No matching options", "拖放檔案，或 ": "Drop files here, or ", "搜尋": "Search", "操作": "Actions", "收合側邊欄": "Collapse sidebar", "放棄": "Discard", "放棄未儲存的變更？": "Discard unsaved changes?", "新增「{q}」": "Add “{q}”", "日期格式不正確，請寫成 2026/11/14": "Invalid date. Use 2026/11/14.", "更多操作": "More actions", "最近 30 天": "Last 30 days", "最近 7 天": "Last 7 days", "期間": "Period", "未讀": "Unread", "本月": "This month", "沒有符合的資料": "No matching data", "沒有通知": "No notifications", "清除": "Clear", "清除搜尋": "Clear search", "登入": "Sign in", "發生錯誤": "Something went wrong", "移除 {name}": "Remove {name}", "第 {a}–{b} 筆，共 {n} 筆": "{a}–{b} of {n}", "繼續編輯": "Keep editing", "自訂強調色（色碼）": "Custom accent color (hex)", "色碼格式不正確，例如 #2457d6": "Invalid hex, e.g. #2457d6", "設定分類": "Settings sections", "請輸入密碼": "Enter your password", "請輸入帳號": "Enter your username", "請選擇": "Select", "路徑": "Breadcrumb", "較上週": "vs last week", "載入中": "Loading", "輸入 # 加 6 碼": "Enter # and 6 digits", "通知": "Notifications", "通知，{n} 則未讀": "Notifications, {n} unread", "選取第 {n} 筆": "Select row {n}", "選擇日期": "Choose date", "選擇期間": "Choose period", "選擇檔案": "choose files", "重試": "Retry", "開啟日曆": "Open calendar", "關閉": "Close", "關閉後，剛才的修改不會保留。": "If you close now, your changes will be lost.", "關閉提示": "Dismiss", "隱藏密碼": "Hide password", "顯示密碼": "Show password", "（今天）": " (today)", "伺服器暫時無法回應": "The server is not responding", "找不到這個頁面": "Page not found", "沒有權限查看這個頁面": "You do not have access to this page", "網址可能打錯了，或這個頁面已經移除。": "The address may be wrong, or the page has been removed.", "這個問題已經記錄下來，請稍後重新整理再試。": "The problem has been logged. Refresh the page later.", "請向管理員申請權限，或切換成有權限的帳號。": "Ask an admin for access, or switch to an account that has it.", "自動": "Auto", "淺色": "Light", "深色": "Dark", "藍": "Blue", "靛": "Indigo", "紫": "Purple", "桃紅": "Pink", "紅": "Red", "橘": "Orange", "綠": "Green", "青": "Teal", "草稿": "Draft", "進行中": "In progress", "審核中": "In review", "完成": "Done", "失敗": "Failed", "已儲存": "Saved", "檢視": "Views", "{n} / {total} 筆": "{n} / {total}", "欄位": "Columns", "顯示的欄位": "Visible columns", "清除篩選": "Clear filters", "清除全部": "Clear all", "篩選": "Filter", "最低": "Min", "最高": "Max", "合計 {n} 筆": "Total: {n}", "平均": "Avg", "選取 {name}": "Select {name}", "{n} 個新": "{n} new", "{n} 個檔案": "{n} files", "下載 {name}": "Download {name}", "已選 {n} 個檔案": "{n} files selected", "共 {size}": "{size} total", "清除選取": "Clear selection", "下載": "Download", "全部展開": "Expand all", "全部收合": "Collapse all", "這裡還沒有檔案": "No files here yet"} } };
+  var I18N = { locale: 'zh-TW', currency: 'TWD', messages: { en: {"Email 或帳號": "Email or username", "{label}：{a} 到 {b}": "{label}: {a} to {b}", "{n} 個百分點": "{n} pts", "上一頁": "Previous page", "上個月": "Previous month", "上傳失敗，請再試一次。": "Upload failed. Try again.", "下一頁": "Next page", "下個月": "Next month", "主要導覽": "Main navigation", "主題": "Theme", "今天": "Today", "全選": "Select all", "全部": "All", "全部標為已讀": "Mark all as read", "共 0 筆": "0 items", "分頁": "Pagination", "刪除": "Delete", "危險操作": "Danger zone", "取消選取": "Clear selection", "可以直接輸入，例如 2026/11/14": "Type a date, e.g. 2026/11/14", "回上一頁": "Go back", "回首頁": "Go home", "完成 ✓": "Done ✓", "密碼": "Password", "展開側邊欄": "Expand sidebar", "已選 {n} 筆": "{n} selected", "帳號": "Username", "強調色": "Accent color", "忘記密碼？": "Forgot password?", "找不到符合的選項": "No matching options", "拖放檔案，或 ": "Drop files here, or ", "搜尋": "Search", "操作": "Actions", "收合側邊欄": "Collapse sidebar", "放棄": "Discard", "放棄未儲存的變更？": "Discard unsaved changes?", "新增「{q}」": "Add “{q}”", "日期格式不正確，請寫成 2026/11/14": "Invalid date. Use 2026/11/14.", "更多操作": "More actions", "最近 30 天": "Last 30 days", "最近 7 天": "Last 7 days", "期間": "Period", "未讀": "Unread", "本月": "This month", "沒有符合的資料": "No matching data", "沒有通知": "No notifications", "清除": "Clear", "清除搜尋": "Clear search", "登入": "Sign in", "發生錯誤": "Something went wrong", "移除 {name}": "Remove {name}", "第 {a}–{b} 筆，共 {n} 筆": "{a}–{b} of {n}", "繼續編輯": "Keep editing", "自訂強調色（色碼）": "Custom accent color (hex)", "色碼格式不正確，例如 #2457d6": "Invalid hex, e.g. #2457d6", "設定分類": "Settings sections", "請輸入密碼": "Enter your password", "請輸入帳號": "Enter your username", "請選擇": "Select", "路徑": "Breadcrumb", "較上週": "vs last week", "載入中": "Loading", "輸入 # 加 6 碼": "Enter # and 6 digits", "通知": "Notifications", "通知，{n} 則未讀": "Notifications, {n} unread", "選取第 {n} 筆": "Select row {n}", "選擇日期": "Choose date", "選擇期間": "Choose period", "選擇檔案": "choose files", "重試": "Retry", "開啟日曆": "Open calendar", "關閉": "Close", "關閉後，剛才的修改不會保留。": "If you close now, your changes will be lost.", "關閉提示": "Dismiss", "隱藏密碼": "Hide password", "顯示密碼": "Show password", "（今天）": " (today)", "伺服器暫時無法回應": "The server is not responding", "找不到這個頁面": "Page not found", "沒有權限查看這個頁面": "You do not have access to this page", "網址可能打錯了，或這個頁面已經移除。": "The address may be wrong, or the page has been removed.", "這個問題已經記錄下來，請稍後重新整理再試。": "The problem has been logged. Refresh the page later.", "請向管理員申請權限，或切換成有權限的帳號。": "Ask an admin for access, or switch to an account that has it.", "自動": "Auto", "淺色": "Light", "深色": "Dark", "藍": "Blue", "靛": "Indigo", "紫": "Purple", "桃紅": "Pink", "紅": "Red", "橘": "Orange", "綠": "Green", "青": "Teal", "草稿": "Draft", "進行中": "In progress", "審核中": "In review", "完成": "Done", "失敗": "Failed", "已儲存": "Saved", "檢視": "Views", "{n} / {total} 筆": "{n} / {total}", "欄位": "Columns", "顯示的欄位": "Visible columns", "清除篩選": "Clear filters", "清除全部": "Clear all", "篩選": "Filter", "最低": "Min", "最高": "Max", "合計 {n} 筆": "Total: {n}", "平均": "Avg", "選取 {name}": "Select {name}", "{n} 個新": "{n} new", "{n} 個檔案": "{n} files", "下載 {name}": "Download {name}", "已選 {n} 個檔案": "{n} files selected", "共 {size}": "{size} total", "清除選取": "Clear selection", "下載": "Download", "全部展開": "Expand all", "全部收合": "Collapse all", "這裡還沒有檔案": "No files here yet", "顯示全部": "Show all", "收合": "Show less", "依狀態篩選": "Filter by status"} } };
   function msgsFor(loc) { return I18N.messages[loc] || I18N.messages[String(loc).split('-')[0]] || null; }
   function tr(key, vars) {
     var m = I18N.locale.indexOf('zh') === 0 ? null : msgsFor(I18N.locale);
@@ -147,7 +147,7 @@
   };
   function Badge(p) {
     var st = STATUS[p.status] ? p.status : 'draft';
-    return h('span', { className: cx('ui-badge', 'ui-badge-' + st, p.className) },
+    return h('span', { className: cx('ui-badge', 'ui-badge-' + st, p.variant === 'dot' && 'is-dot', p.className) },
       h('svg', { className: 'ui-badge-mark', width: 15, height: 15, viewBox: '0 0 24 24', 'aria-hidden': 'true' },
         h('circle', { cx: 12, cy: 12, r: 8, fill: 'none', stroke: 'currentColor', strokeWidth: 2.5 }),
         STATUS[st].fill ? h('path', { d: STATUS[st].fill, fill: 'currentColor' }) : null),
@@ -291,6 +291,40 @@
         })))) : null);
   }
   var TABLE_MOVE = { dur: 320, stagger: 25, ease: 'cubic-bezier(.2,.8,.2,1)' };
+  // Long text in a table cell: on phone cards it shows at most 2 lines with 「顯示全部」.
+  function DtLong(p) {
+    var ref = React.useRef(null), o = React.useState(false), open = o[0], setOpen = o[1], ov = React.useState(false), over = ov[0], setOver = ov[1];
+    React.useLayoutEffect(function () {
+      var el = ref.current; if (!el || open) return;
+      function check() { setOver(el.scrollHeight > el.clientHeight + 1); }
+      check(); window.addEventListener('resize', check);
+      return function () { window.removeEventListener('resize', check); };
+    });
+    return h('span', { className: 'ui-dt-long' },
+      h('span', { ref: ref, className: cx('ui-dt-long-text', !open && 'is-clamped') }, p.children),
+      over || open ? h('button', { type: 'button', className: 'ui-dt-more', onClick: function (e) { e.stopPropagation(); setOpen(!open); } }, open ? tr('收合') : tr('顯示全部')) : null);
+  }
+
+  /* Inline code: monospace on a light gray chip. A code span that points somewhere (a file and line) is a link. */
+  function InlineCode(p) {
+    var cls = cx('ui-code', (p.href || p.onClick) && 'is-link', p.className);
+    if (p.href) return h('a', { className: cls, href: p.href, onClick: p.onClick }, p.children);
+    if (p.onClick) return h('button', { type: 'button', className: cls, onClick: p.onClick }, p.children);
+    return h('code', { className: cls }, p.children);
+  }
+  // Text with `backtick` spans: renders them as InlineCode; spans like file.c:86 become links through refHref / onRef.
+  var CODE_REF = /^[\w.\/-]+\.[A-Za-z0-9]+:\d+(-\d+)?$/;
+  function CodeText(p) {
+    var parts = String(p.text || '').split(/(`[^`]+`)/);
+    var isRef = p.isRef || function (t) { return CODE_REF.test(t); };
+    return h(p.as || 'span', { className: p.className }, parts.map(function (t, i) {
+      if (!t) return null;
+      if (t.charAt(0) !== '`' || t.length < 2) return t;
+      var v = t.slice(1, -1), link = (p.refHref || p.onRef) && isRef(v);
+      return h(InlineCode, { key: i, href: link && p.refHref ? p.refHref(v) : undefined, onClick: link && p.onRef ? function (e) { if (!p.refHref) e.preventDefault(); p.onRef(v, e); } : undefined }, v);
+    }));
+  }
+
   function DataTable(p) {
     var cols = p.columns || [];
     var pageSize = p.pageSize || 10;
@@ -302,6 +336,7 @@
     var vw = React.useState(p.views && p.views[0] ? p.views[0].id : null), view = vw[0], setView = vw[1];
     var hd = React.useState({}), hidden = hd[0], setHidden = hd[1];
     var sl = React.useState({}), sel = sl[0], setSel = sl[1];
+    var sm = React.useState('all'), sumVal = sm[0], setSumVal = sm[1];
     React.useEffect(function () { if (p.urlSync !== false && filters.length) dtWriteUrl(p, filters, fvals, q); }, [JSON.stringify(fvals), q]);
     var shownCols = cols.filter(function (c, i) { return i === 0 || !hidden[c.key]; });
     var bodyRef = React.useRef(null), rowEls = React.useRef({}), snap = React.useRef(null), ver = React.useState(0), bump = ver[1];
@@ -309,6 +344,8 @@
     var all = (p.rows || []).map(function (r, i) { return { r: r, i: i }; });
     var viewObj = p.views ? p.views.filter(function (v) { return v.id === view; })[0] : null;
     if (viewObj && viewObj.filter) all = all.filter(function (x) { return viewObj.filter(x.r); });
+    var sumAll = all;
+    if (p.summary && sumVal !== 'all') all = all.filter(function (x) { return x.r[p.summary.key] === sumVal; });
     var baseCount = all.length;
     function passes(r, skip) {
       if (q && p.search !== false && !dtSearchHit(r, cols, filters, q, p.search)) return false;
@@ -387,6 +424,8 @@
     function clear() { setSel({}); }
 
     var selectable = !!p.selectable, hasAct = !!p.rowActions, sticky = !!p.stickyFirst;
+    var hasTitle = shownCols.some(function (c) { return c.mobile === 'title'; });
+    function mcls(c, ci) { var m = c.mobile || (!hasTitle && ci === 0 ? 'title' : null); return m ? 'is-m-' + m : null; }
     var tpl = [selectable ? '46px' : null].concat(shownCols.map(function (c) { return c.width ? 'minmax(' + c.width + 'px, ' + (c.grow || 1) + 'fr)' : (c.numeric ? 'minmax(96px, .8fr)' : 'minmax(120px, 1fr)'); })).concat([hasAct ? (p.actionsWidth || 88) + 'px' : null]).filter(Boolean).join(' ');
     var minW = (selectable ? 46 : 0) + shownCols.reduce(function (a, c) { return a + (c.width || (c.numeric ? 96 : 120)); }, 0) + (hasAct ? (p.actionsWidth || 88) : 0);
     var gridStyle = { gridTemplateColumns: tpl, minWidth: minW };
@@ -419,6 +458,7 @@
         var on = v.id === view, n = (p.rows || []).filter(function (r) { return !v.filter || v.filter(r); }).length;
         return h('button', { key: v.id, type: 'button', role: 'tab', 'aria-selected': String(on), className: cx('ui-dt-view', on && 'is-on'), onClick: function () { setView(v.id); setPage(0); } }, v.label, h('span', { className: 'ui-dt-view-n' }, fmt.number(n)));
       })) : null,
+      p.summary ? h(Tabs, { className: 'ui-dt-summary', label: p.summary.label || tr('依狀態篩選'), value: sumVal, onChange: function (v) { capture('sort'); setSumVal(v); setPage(0); }, items: [{ id: 'all', label: tr('全部'), count: sumAll.length }].concat((p.summary.items || []).map(function (it) { return { id: it.value, label: it.label, count: sumAll.filter(function (x) { return x.r[p.summary.key] === it.value; }).length }; })) }) : null,
       h('div', { className: 'ui-dt-tools' },
         p.search !== false ? h(SearchField, { value: q, onChange: function (v) { setQ(v); setPage(0); }, placeholder: (p.search && p.search.placeholder) || tr('搜尋'), label: (p.search && p.search.placeholder) || tr('搜尋'), className: 'ui-dt-search' }) : null,
         filters.length ? h(DtFilterButton, { filters: filters, values: fvals, activeN: activeN, count: function (f, v) { return all.filter(function (x) { return passes(x.r, f.key) && dtMatch(f, x.r, f.type === 'list' ? [v] : undefined); }).length; },
@@ -431,9 +471,9 @@
           h('div', { ref: bodyRef, className: 'ui-dt-body', role: 'rowgroup' },
             vis.length ? vis.map(function (r, i) {
               var id = idOf(r, i), on = !!sel[id];
-              return h('div', { key: id, 'data-rid': id, ref: function (el) { if (el) rowEls.current[id] = el; else delete rowEls.current[id]; }, role: 'row', className: cx('ui-dt-row', i % 2 && 'is-even', on && 'is-selected'), style: gridStyle },
+              return h('div', { key: id, 'data-rid': id, ref: function (el) { if (el) rowEls.current[id] = el; else delete rowEls.current[id]; }, role: 'row', className: cx('ui-dt-row', i % 2 && 'is-even', on && 'is-selected', selectable && 'has-sel'), style: gridStyle },
                 selectable ? h('div', { className: 'ui-dt-cell ui-dt-sel', role: 'cell' }, h(Check, { v: on, label: tr('選取第 {n} 筆', { n: start + i + 1 }), onClick: function () { toggle([id], !on); } })) : null,
-                shownCols.map(function (c, ci) { var v = c.render ? c.render(r) : dtMark(cellText(c, r[c.key]), p.search !== false ? q : ''); return h('div', { key: c.key, role: 'cell', 'data-label': c.label, className: cx('ui-dt-cell', (c.numeric || c.format === 'money' || c.format === 'percent') && 'is-num', ci === 0 && sticky && 'is-sticky'), style: ci === 0 && sticky ? { left: selectable ? 46 : 0 } : undefined }, v); }),
+                shownCols.map(function (c, ci) { var v = c.render ? c.render(r) : dtMark(cellText(c, r[c.key]), p.search !== false ? q : ''); if (c.long) v = h(DtLong, null, v); return h('div', { key: c.key, role: 'cell', 'data-label': c.label, className: cx('ui-dt-cell', (c.numeric || c.format === 'money' || c.format === 'percent') && 'is-num', ci === 0 && sticky && 'is-sticky', c.long && 'is-long', mcls(c, ci)), style: ci === 0 && sticky ? { left: selectable ? 46 : 0 } : undefined }, v); }),
                 hasAct ? h('div', { className: 'ui-dt-cell ui-dt-acts', role: 'cell' }, p.rowActions(r)) : null);
             }) : h('div', { className: 'ui-dt-empty' }, p.emptyText || tr('沒有符合的資料'), (q || activeN) ? h('div', null, h(Button, { variant: 'secondary', onClick: clearFilters }, tr('清除篩選'))) : null)),
           p.totals && list.length ? h('div', { className: 'ui-dt-row ui-dt-total', role: 'row', style: gridStyle },
@@ -1261,7 +1301,7 @@
       box ? h('span', { className: 'ui-tabs-ind', 'aria-hidden': 'true', style: { left: box.left, right: box.right, transform: moving ? 'scaleY(.82)' : 'none', transition: dropTransition('left', 'right', dir.current > 0) } }) : null,
       (p.items || []).map(function (t, i) {
         return h('button', { key: t.id, ref: function (n) { refs.current[i] = n; }, type: 'button', role: 'tab', 'aria-selected': i === idx ? 'true' : 'false', className: cx('ui-tab', i === idx && 'is-selected'),
-          onClick: function () { if (i === idx) return; dir.current = i > idx ? 1 : -1; bump(); if (p.onChange) p.onChange(t.id); } }, t.label);
+          onClick: function () { if (i === idx) return; dir.current = i > idx ? 1 : -1; bump(); if (p.onChange) p.onChange(t.id); } }, t.label, t.count != null ? h('span', { className: 'ui-tab-count' }, fmt.number(t.count)) : null);
       }));
   }
 
@@ -1471,5 +1511,5 @@
         : h('p', { className: 'ui-tree-empty' }, p.emptyText || tr('這裡還沒有檔案')));
   }
 
-  window.UI = Object.assign(window.UI || {}, { Button: Button, IconButton: IconButton, TextField: TextField, Checkbox: Checkbox, RadioGroup: RadioGroup, Switch: Switch, Select: Select, SearchField: SearchField, TextArea: TextArea, FormGrid: FormGrid, t: tr, setLocale: setLocale, addMessages: addMessages, format: fmt, ThemePicker: ThemePicker, AccentPicker: AccentPicker, setTheme: setTheme, setAccent: setAccent, initTheme: initTheme, NotificationBell: NotificationBell, DatePicker: DatePicker, DateRangePicker: DateRangePicker, Calendar: Calendar, FileUpload: FileUpload, MultiSelect: MultiSelect, ErrorPage: ErrorPage, LoginCard: LoginCard, SettingsLayout: SettingsLayout, SettingsSection: SettingsSection, DangerZone: DangerZone, Tooltip: Tooltip, Menu: Menu, Popover: Popover, Drawer: Drawer, KpiCard: KpiCard, LineChart: LineChart, BarChart: BarChart, ProgressBar: ProgressBar, LoadingBar: LoadingBar, ProgressRing: ProgressRing, Badge: Badge, Alert: Alert, DataTable: DataTable, Skeleton: Skeleton, EmptyState: EmptyState, Toast: Toast, Dialog: Dialog, SideNav: SideNav, TopBar: TopBar, Breadcrumb: Breadcrumb, Tabs: Tabs, MobileTabBar: MobileTabBar, TreeList: TreeList, MOTION: MOTION, Icon: Icon, icons: Object.assign({}, ICONS, PATHS) });
+  window.UI = Object.assign(window.UI || {}, { Button: Button, IconButton: IconButton, TextField: TextField, Checkbox: Checkbox, RadioGroup: RadioGroup, Switch: Switch, Select: Select, SearchField: SearchField, TextArea: TextArea, FormGrid: FormGrid, t: tr, setLocale: setLocale, addMessages: addMessages, format: fmt, ThemePicker: ThemePicker, AccentPicker: AccentPicker, setTheme: setTheme, setAccent: setAccent, initTheme: initTheme, NotificationBell: NotificationBell, DatePicker: DatePicker, DateRangePicker: DateRangePicker, Calendar: Calendar, FileUpload: FileUpload, MultiSelect: MultiSelect, ErrorPage: ErrorPage, LoginCard: LoginCard, SettingsLayout: SettingsLayout, SettingsSection: SettingsSection, DangerZone: DangerZone, Tooltip: Tooltip, Menu: Menu, Popover: Popover, Drawer: Drawer, KpiCard: KpiCard, LineChart: LineChart, BarChart: BarChart, ProgressBar: ProgressBar, LoadingBar: LoadingBar, ProgressRing: ProgressRing, Badge: Badge, Alert: Alert, DataTable: DataTable, Skeleton: Skeleton, EmptyState: EmptyState, Toast: Toast, Dialog: Dialog, SideNav: SideNav, TopBar: TopBar, Breadcrumb: Breadcrumb, Tabs: Tabs, MobileTabBar: MobileTabBar, TreeList: TreeList, InlineCode: InlineCode, CodeText: CodeText, MOTION: MOTION, Icon: Icon, icons: Object.assign({}, ICONS, PATHS) });
 })();
