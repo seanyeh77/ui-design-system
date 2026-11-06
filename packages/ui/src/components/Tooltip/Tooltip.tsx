@@ -12,9 +12,14 @@ export interface TooltipProps {
 
 /** Dark label above the element (below when there is no room), with an arrow. Appears at once on hover and focus. */
 export function Tooltip({ label, side = 'top', children }: TooltipProps) {
+  // Base UI tooltips are visual only; a hidden copy gives screen readers the description.
+  const id = React.useId();
   return (
     <Base.Root>
-      <Base.Trigger delay={0} render={children} />
+      <Base.Trigger delay={0} render={children} aria-describedby={id} />
+      <span id={id} hidden>
+        {label}
+      </span>
       <Base.Portal>
         <Base.Positioner side={side} sideOffset={8} className="ui-tooltip-positioner">
           <Base.Popup className="ui-tooltip">

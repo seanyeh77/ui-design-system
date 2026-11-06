@@ -1,16 +1,25 @@
 <!-- @dsCard group="Forms" height=460 -->
 <!doctype html>
 <html lang="zh-Hant">
-<head><meta charset="utf-8"><title>DatePicker — preview</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-<div id="root"></div>
-<script>
-  var U = window.UI, h = React.createElement;
-  function D(){var v=React.useState(new Date(2026,10,14)); return h('div',{style:{padding:20,minHeight:420}}, h(U.DatePicker,{label:'截止日期',value:v[0],onChange:v[1]}));}
-  ReactDOM.createRoot(document.getElementById('root')).render(h(D));
-</script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>DatePicker — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      function D() {
+        var v = React.useState(new Date(2026, 10, 14));
+        return h('div', { style: { padding: 20, minHeight: 420 } }, h(U.DatePicker, { label: '截止日期', value: v[0], onChange: v[1] }));
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+    </script>
+  </body>
 </html>

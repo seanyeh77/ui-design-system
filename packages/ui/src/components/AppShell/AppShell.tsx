@@ -1,13 +1,15 @@
 import * as React from 'react';
 import { SideNav, type NavItem, type NavSection } from '../SideNav/SideNav';
 import { TopBar } from '../TopBar/TopBar';
-import { MobileTabBar } from '../MobileTabBar/MobileTabBar';
+import { MobileTabBar, type MobileTab } from '../MobileTabBar/MobileTabBar';
+import { Drawer } from '../Drawer/Drawer';
+import { tr } from '../../i18n';
 import type { BreadcrumbItem } from '../Breadcrumb/Breadcrumb';
 import { cx, store, useMedia } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 
 export interface AppShellProps {
-  /** Sidebar groups. Top-level items with an icon also become the phone's bottom tabs (the first 5). */
+  /** Sidebar groups. On phones, top-level items with an icon become bottom tabs; pages they cannot reach go under 「更多」. */
   nav: NavSection[];
   /** Id of the current page. */
   value: string;
@@ -27,6 +29,7 @@ export interface AppShellProps {
 }
 
 const COLLAPSE_KEY = 'ui-nav-collapsed';
+const MORE = '\u0000more';
 
 /** The dashboard frame: sidebar (240 px, 72 px collapsed and on tablets), top bar, and bottom tabs on phones.
  *  The top bar hides while scrolling down and returns when scrolling up. */
@@ -35,13 +38,23 @@ export function AppShell({ nav, value, onNavigate, brand, title, breadcrumb, onS
   const tablet = useMedia('(min-width: 600px) and (max-width: 959px)');
   const [userCollapsed, setUserCollapsed] = React.useState(() => store(COLLAPSE_KEY) === '1');
   const collapsed = tablet || userCollapsed;
-  const tabs = nav
-    .flatMap((s) => s.items)
-    .filter((it): it is NavItem & { icon: NonNullable<NavItem['icon']> } => !!it.icon)
-    .slice(0, 5)
-    .map((it) => ({ id: it.id, label: it.label, icon: it.icon }));
-  devWarn(phone && tabs.length < 2, 'AppShell', 'phones show the top-level nav items as bottom tabs; give at least 2 of them an icon.');
-  const tabValue = tabs.some((t) => t.id === value) ? value : (nav.flatMap((s) => s.items).find((it) => it.children?.some((c) => c.id === value))?.id ?? value);
+  const top = nav.flatMap((s) => s.items);
+  const parentOf = (id: string) => top.find((it) => it.children?.some((c) => c.id === id));
+  // Phones: top-level items with an icon become tabs (a group opens its first page).
+  // When some page is not reachable that way, the last tab becomes 「更多」 and opens the whole nav.
+  const withIcon = top.filter((it): it is NavItem & { icon: NonNullable<NavItem['icon']> } => !!it.icon);
+  const unreachable = top.some((it) => !it.icon || (it.children?.length ?? 0) > 1) || withIcon.length > 5;
+  const tabs: MobileTab[] = withIcon.slice(0, unreachable ? 4 : 5).map((it) => ({ id: it.id, label: it.label, icon: it.icon }));
+  if (unreachable) tabs.push({ id: MORE, label: tr('更多'), icon: 'dots-three' });
+  const [moreOpen, setMoreOpen] = React.useState(false);
+  devWarn(phone && withIcon.length < 2, 'AppShell', 'phones show the top-level nav items as bottom tabs; give at least 2 of them an icon.');
+  const current = parentOf(value)?.id ?? value;
+  const tabValue = tabs.some((t) => t.id === current) ? current : MORE;
+  const onTab = (id: string) => {
+    if (id === MORE) return setMoreOpen(true);
+    const item = top.find((it) => it.id === id);
+    onNavigate(item?.children?.[0]?.id ?? id);
+  };
 
   // Hide the top bar while scrolling down, show it again on the way up.
   const main = React.useRef<HTMLElement>(null);
@@ -86,7 +99,20 @@ export function AppShell({ nav, value, onNavigate, brand, title, breadcrumb, onS
         <main ref={main} className="ui-shell-main">
           {children}
         </main>
-        {phone && tabs.length ? <MobileTabBar items={tabs} value={tabValue} onChange={onNavigate} /> : null}
+        {phone && tabs.length ? <MobileTabBar items={tabs} value={tabValue} onChange={onTab} /> : null}
+        {phone ? (
+          <Drawer open={moreOpen} onClose={() => setMoreOpen(false)} title={tr('全部頁面')}>
+            <SideNav
+              className="ui-shell-allnav"
+              sections={nav}
+              value={value}
+              onChange={(id) => {
+                setMoreOpen(false);
+                onNavigate(id);
+              }}
+            />
+          </Drawer>
+        ) : null}
       </div>
     </div>
   );

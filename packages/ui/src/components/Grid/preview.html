@@ -1,16 +1,30 @@
 <!-- @dsCard group="Pages" height=360 -->
 <!doctype html>
 <html lang="zh-Hant">
-<head><meta charset="utf-8"><title>Grid — preview</title></head>
-<body>
-<div id="root"></div>
-<script>
-  var U = window.UI, h = React.createElement;
-  ReactDOM.createRoot(document.getElementById('root')).render(h(U.Page, null,
-    h(U.Grid, { columns: 4 },
-      h(U.KpiCard, { label: '使用者', value: 1284, unit: '人' }), h(U.KpiCard, { label: '轉換率', value: 3.4, format: 'percent', unit: '%' }),
-      h(U.KpiCard, { label: '錯誤率', value: 0.8, format: 'percent', unit: '%', delta: 0.2, deltaUnit: 'pt', good: false }), h(U.KpiCard, { label: '費用', value: 1280, format: 'money' })),
-    h(U.Card, { title: '說明' }, '區塊之間 32 px，卡片之間 24 px。')));
-</script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Grid — preview</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      ReactDOM.createRoot(document.getElementById('root')).render(
+        h(
+          U.Page,
+          null,
+          h(
+            U.Grid,
+            { columns: 4 },
+            h(U.KpiCard, { label: '使用者', value: 1284, unit: '人' }),
+            h(U.KpiCard, { label: '轉換率', value: 3.4, format: 'percent', unit: '%' }),
+            h(U.KpiCard, { label: '錯誤率', value: 0.8, format: 'percent', unit: '%', delta: 0.2, deltaUnit: 'pt', good: false }),
+            h(U.KpiCard, { label: '費用', value: 1280, format: 'money' }),
+          ),
+          h(U.Card, { title: '說明' }, '區塊之間 32 px，卡片之間 24 px。'),
+        ),
+      );
+    </script>
+  </body>
 </html>

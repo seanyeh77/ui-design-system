@@ -4,9 +4,10 @@ import { SearchField } from '../SearchField/SearchField';
 import { Tabs } from '../Tabs/Tabs';
 import { format } from '../../format';
 import { tr } from '../../i18n';
-import { CHECK, Icon, type CustomIcon } from '../../icons/Icon';
+import { Icon, type CustomIcon } from '../../icons/Icon';
 import { cx, monoNums, reduced } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
+import { CheckMark } from '../../internal/Field';
 import { cellText, isActive, matches, readUrl, resolveFilters, searchHit, writeUrl } from './filters';
 import { ColumnMenu, FilterButton, LongText, markMatch } from './parts';
 import type { DataTableColumn, DataTableFilter, DataTableView, FilterOption, FilterValue, ResolvedFilter, Row, RowKey, Total } from './types';
@@ -48,7 +49,7 @@ export interface DataTableProps<R extends Row = Record<string, unknown>> {
   /** Saved views shown as tabs above the table. */
   views?: DataTableView<R>[];
   /** Totals row: 'sum', 'avg' or a function per column key. */
-  totals?: Partial<Record<RowKey<R>, Total<R>>>;
+  totals?: Partial<Record<string, Total<R>>>;
   /** Keep the first column visible while scrolling sideways. */
   stickyFirst?: boolean;
   /** 「欄位」 menu to hide columns. Default true. */
@@ -71,29 +72,13 @@ function RowCheck({ v, label, onClick }: { v: boolean | 'mixed'; label: string; 
       role="checkbox"
       aria-checked={v}
       aria-label={label}
-      className={cx('ui-dt-check', v && 'is-on')}
+      className={cx('ui-check-box', 'ui-dt-check', v && 'is-on')}
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
     >
-      {v === true ? (
-        <svg
-          width={14}
-          height={14}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={3.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d={CHECK} />
-        </svg>
-      ) : v === 'mixed' ? (
-        <span className="ui-check-dash" />
-      ) : null}
+      <CheckMark v={v} />
     </button>
   );
 }
@@ -410,7 +395,11 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
           }}
           items={[
             { id: 'all', label: tr('全部'), count: sumAll.length },
-            ...summary.items.map((it) => ({ id: it.value, label: it.label, count: sumAll.filter((x) => String(get(x.r, summary.key)) === it.value).length })),
+            ...summary.items.map((it) => ({
+              id: String(it.value),
+              label: it.label,
+              count: sumAll.filter((x) => String(get(x.r, summary.key)) === String(it.value)).length,
+            })),
           ]}
         />
       ) : null}
@@ -517,16 +506,14 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
           ) : null}
         </div>
       </div>
-      {pages > 1 || list.length > 0 ? (
+      {list.length > 0 ? (
         <div className="ui-dt-foot">
           <span className="ui-dt-range">
-            {list.length
-              ? monoNums(tr('第 {a}–{b} 筆，共 {n} 筆', { a: '\u0001', b: '\u0002', n: '\u0003' }), [
-                  start + 1,
-                  Math.min(list.length, start + pageSize),
-                  format.number(list.length),
-                ])
-              : monoNums(tr('共 {n} 筆', { n: '\u0001' }), [0])}
+            {monoNums(tr('第 {a}–{b} 筆，共 {n} 筆', { a: '\u0001', b: '\u0002', n: '\u0003' }), [
+              start + 1,
+              Math.min(list.length, start + pageSize),
+              format.number(list.length),
+            ])}
           </span>
           {pages > 1 ? (
             <nav className="ui-dt-pages" aria-label={tr('分頁')}>

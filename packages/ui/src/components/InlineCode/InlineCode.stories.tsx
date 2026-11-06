@@ -25,7 +25,7 @@ const rows: { id: number; loc: string; st: 'done' | 'review' | 'fail'; note: str
 const L = { done: '正確', review: '要確認', fail: '錯誤' } as const;
 function Demo() {
   const [note, setNote] = React.useState('');
-  const open = function (ref: string) {
+  const open = (ref: string) => {
     setNote('開啟 ' + ref);
   };
   return (
@@ -56,7 +56,7 @@ function Demo() {
             render(r) {
               return (
                 <UI.InlineCode
-                  onClick={function () {
+                  onClick={() => {
                     open(r.loc);
                   }}
                 >

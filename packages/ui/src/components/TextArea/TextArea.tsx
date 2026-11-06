@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { cx } from '../../internal/util';
+import { FieldLabel } from '../../internal/Field';
 
 export interface TextAreaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange' | 'value'> {
   label?: string;
@@ -25,14 +26,9 @@ export function TextArea({ label, hint, value, onChange, maxLength = 200, classN
   return (
     <div className={cx('ui-field', className)}>
       {label ? (
-        <label htmlFor={fieldId} className="ui-field-label">
+        <FieldLabel htmlFor={fieldId} required={required}>
           {label}
-          {required ? (
-            <span className="ui-req" aria-hidden="true">
-              {' *'}
-            </span>
-          ) : null}
-        </label>
+        </FieldLabel>
       ) : null}
       <textarea
         rows={3}

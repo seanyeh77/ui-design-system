@@ -77,7 +77,7 @@ const twValues = [
 const tailwind = `${HEADER}/* Use after @import "tailwindcss"; also load tokens.css. */\n@theme inline {\n${twVars.join('\n')}\n}\n@theme {\n${twValues.join('\n')}\n}\n`;
 
 const union = (names: string[]) => names.map((n) => `'${n}'`).join(' | ');
-const dts = `${HEADER.replace('/*', '/**').replace(' */', ' */')}
+const dts = `${HEADER.replace('/*', '/**')}
 export type ColorToken = ${union(groups.color)};
 export type SpaceToken = ${union(groups.spacing)};
 export type RadiusToken = ${union(groups.radius)};

@@ -54,7 +54,7 @@ export function Button(props: ButtonProps) {
     'Button',
     'a danger button needs confirm={{ title }} (or confirmed when it is the button inside the confirm Dialog).',
   );
-  const ownEvent = React.useRef<React.MouseEvent<HTMLButtonElement> | null>(null);
+  const ownEvent = React.useRef<{ event: React.MouseEvent<HTMLButtonElement>; button: HTMLButtonElement } | null>(null);
   const button = (
     <button
       type="button"
@@ -64,8 +64,9 @@ export function Button(props: ButtonProps) {
       aria-busy={loading || undefined}
       onClick={(e) => {
         if (confirm) {
-          e.persist?.();
-          ownEvent.current = e;
+          // A submit button must not submit before the person confirms.
+          e.preventDefault();
+          ownEvent.current = { event: e, button: e.currentTarget };
           setAsking(true);
         } else onClick?.(e);
       }}
@@ -86,7 +87,10 @@ export function Button(props: ButtonProps) {
         confirmLabel={confirm.confirmLabel ?? (typeof children === 'string' ? children : tr('刪除'))}
         onConfirm={() => {
           setAsking(false);
-          if (ownEvent.current) onClick?.(ownEvent.current);
+          const own = ownEvent.current;
+          if (!own) return;
+          onClick?.(own.event);
+          if (own.button.type === 'submit') own.button.form?.requestSubmit(own.button);
         }}
       >
         {confirm.body}

@@ -4,7 +4,7 @@ import * as UI from '../../index';
 export default { title: 'Forms/FileUpload', component: UI.FileUpload };
 
 function D() {
-  const s = React.useState<UI.UploadFile[]>([]);
+  const [s, setS] = React.useState<UI.UploadFile[]>([]);
   function add(list: { name: string; size: number }[]) {
     const fs = list.map((f, i): UI.UploadFile & { id: number; progress: number } => {
       return {
@@ -16,13 +16,11 @@ function D() {
         error: f.size > 104857600 ? '超過 100 MB 上限，請壓縮後再試。' : undefined,
       };
     });
-    s[1]((o) => {
-      return o.concat(fs);
-    });
+    setS((o) => [...o, ...fs]);
     fs.forEach((f) => {
       if (f.status === 'error') return;
       const t = setInterval(() => {
-        s[1]((o) => {
+        setS((o) => {
           return o.map((x) => {
             if (x.id !== f.id) return x;
             const p = Math.min(100, (x.progress ?? 0) + 7);
@@ -33,7 +31,7 @@ function D() {
       }, 120);
     });
   }
-  const demo = function () {
+  const demo = () => {
     add([
       { name: 'report-2026-q3.pdf', size: 2516582 },
       { name: 'cluster-photo.jpg', size: 5347737 },
@@ -45,22 +43,10 @@ function D() {
       <UI.FileUpload
         label="附件"
         limitText="每個最大 100 MB"
-        files={s[0]}
+        files={s}
         onAdd={add}
-        onRemove={function (f) {
-          s[1](
-            s[0].filter((x) => {
-              return x.id !== f.id;
-            }),
-          );
-        }}
-        onRetry={function (f) {
-          s[1](
-            s[0].filter((x) => {
-              return x.id !== f.id;
-            }),
-          );
-        }}
+        onRemove={(f) => setS((o) => o.filter((x) => x.id !== f.id))}
+        onRetry={(f) => setS((o) => o.map((x) => (x.id === f.id ? { ...x, progress: 0, status: 'uploading', error: undefined } : x)))}
       />
       <div>
         <UI.Button variant="secondary" onClick={demo}>

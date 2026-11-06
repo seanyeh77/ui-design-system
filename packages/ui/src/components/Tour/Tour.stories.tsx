@@ -8,7 +8,7 @@ function App() {
   const [open, setOpen] = React.useState(true);
   return (
     <div>
-      <UI.TopBar title="流程" onSearch={function () {}} />
+      <UI.TopBar title="流程" onSearch={() => {}} />
       <div style={{ padding: 16, maxWidth: 560 }}>
         <section data-tour="tree" style={card}>
           <strong>trace_post_send</strong>
@@ -21,7 +21,7 @@ function App() {
           <button
             type="button"
             className="ui-link-btn"
-            onClick={function () {
+            onClick={() => {
               setOpen(true);
             }}
           >
@@ -31,7 +31,7 @@ function App() {
       </div>
       <UI.Tour
         open={open}
-        onClose={function () {
+        onClose={() => {
           setOpen(false);
         }}
         steps={[

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Menu } from '@base-ui/react/menu';
 import { tr } from '../../i18n';
 import { Icon, IconOf, type IconSource } from '../../icons/Icon';
 import { dropTransition, useMoving } from '../../motion';
@@ -38,6 +39,7 @@ export function SideNav({ sections, value, onChange, collapsed = false, onToggle
   const refs = React.useRef<Record<string, HTMLButtonElement | null>>({});
   const wrap = React.useRef<HTMLDivElement>(null);
   const [bar, setBar] = React.useState({ top: 0, bottom: 0, show: false, down: true });
+  const last = React.useRef<{ top: number; bottom: number } | null>(null);
   const [moving, bump] = useMoving();
   const [closed, setClosed] = React.useState<Record<string, boolean>>({});
   const closedKey = Object.keys(closed)
@@ -54,10 +56,10 @@ export function SideNav({ sections, value, onChange, collapsed = false, onToggle
     const y = el.getBoundingClientRect().top - box.getBoundingClientRect().top;
     const top = Math.round(y) + 8;
     const bottom = Math.round(box.clientHeight - y - el.offsetHeight) + 8;
-    setBar((b) => {
-      if (b.show && b.top !== top) bump();
-      return { top, bottom, show: true, down: !b.show || top >= b.top };
-    });
+    const prev = last.current;
+    if (prev && prev.top !== top) bump();
+    last.current = { top, bottom };
+    setBar({ top, bottom, show: true, down: !prev || top >= prev.top });
   }, [value, collapsed, closedKey, sections, bump]);
 
   const row = (it: NavItem, sub: boolean): React.ReactNode[] => {
@@ -65,24 +67,52 @@ export function SideNav({ sections, value, onChange, collapsed = false, onToggle
     const hasKids = kids.length > 0 && !collapsed;
     const isOpen = !closed[it.id];
     const selected = value === it.id || ((!hasKids || !isOpen) && kids.some((c) => c.id === value));
+    const flyout = collapsed && kids.length > 0 && !sub;
+    const inner = (
+      <>
+        {it.icon && !sub ? <IconOf icon={it.icon} size={22} filled={selected} className="ui-nav-icon" /> : null}
+        {collapsed ? null : <span className="ui-nav-label">{it.label}</span>}
+        {hasKids ? <Icon name="caret-right" size={16} className={cx('ui-nav-chev', isOpen && 'is-open')} /> : null}
+      </>
+    );
+    const ref = (n: HTMLButtonElement | null) => {
+      refs.current[it.id] = n;
+    };
+    const itemClass = cx('ui-nav-item', sub && 'is-sub', selected && 'is-selected');
     const out: React.ReactNode[] = [
       <div key={it.id} className="ui-nav-row">
-        <button
-          type="button"
-          ref={(n) => {
-            refs.current[it.id] = n;
-          }}
-          className={cx('ui-nav-item', sub && 'is-sub', selected && 'is-selected')}
-          aria-current={selected ? 'page' : undefined}
-          aria-expanded={hasKids ? isOpen : undefined}
-          aria-label={collapsed ? it.label : undefined}
-          onClick={() => (hasKids ? setClosed({ ...closed, [it.id]: isOpen }) : onChange?.(it.id))}
-        >
-          {it.icon && !sub ? <IconOf icon={it.icon} size={22} filled={selected} className="ui-nav-icon" /> : null}
-          {collapsed ? null : <span className="ui-nav-label">{it.label}</span>}
-          {hasKids ? <Icon name="caret-right" size={16} className={cx('ui-nav-chev', isOpen && 'is-open')} /> : null}
-        </button>
-        {collapsed ? (
+        {flyout ? (
+          // Collapsed: a parent opens its second level beside the bar.
+          <Menu.Root>
+            <Menu.Trigger ref={ref} className={itemClass} aria-current={selected ? 'page' : undefined} aria-label={it.label}>
+              {inner}
+            </Menu.Trigger>
+            <Menu.Portal>
+              <Menu.Positioner className="ui-float" side="right" align="start" sideOffset={8}>
+                <Menu.Popup className="ui-menu" aria-label={it.label}>
+                  {kids.map((c) => (
+                    <Menu.Item key={c.id} className={cx('ui-menu-item', c.id === value && 'is-on')} onClick={() => onChange?.(c.id)}>
+                      <span className="ui-menu-label">{c.label}</span>
+                    </Menu.Item>
+                  ))}
+                </Menu.Popup>
+              </Menu.Positioner>
+            </Menu.Portal>
+          </Menu.Root>
+        ) : (
+          <button
+            type="button"
+            ref={ref}
+            className={itemClass}
+            aria-current={selected ? 'page' : undefined}
+            aria-expanded={hasKids ? isOpen : undefined}
+            aria-label={collapsed ? it.label : undefined}
+            onClick={() => (hasKids ? setClosed({ ...closed, [it.id]: isOpen }) : onChange?.(it.id))}
+          >
+            {inner}
+          </button>
+        )}
+        {collapsed && !flyout ? (
           <span className="ui-nav-tip" role="tooltip">
             {it.label}
           </span>

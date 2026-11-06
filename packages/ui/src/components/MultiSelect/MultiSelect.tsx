@@ -47,6 +47,7 @@ export function MultiSelect({ label, options, value, onChange, creatable, maxChi
       ) : null}
       <Combobox.Root
         multiple
+        autoHighlight
         items={items}
         value={value}
         inputValue={query}
@@ -72,7 +73,18 @@ export function MultiSelect({ label, options, value, onChange, creatable, maxChi
                 {'+' + more}
               </span>
             ) : null}
-            <Combobox.Input id={id} className="ui-ms-input" placeholder={value.length ? '' : placeholder || tr('搜尋')} />
+            <Combobox.Input
+              id={id}
+              className="ui-ms-input"
+              placeholder={value.length ? '' : placeholder || tr('搜尋')}
+              onKeyDown={(e) => {
+                // Hidden chips (+n) still count: Backspace removes the last value, not the last visible chip.
+                if (e.key === 'Backspace' && !query && value.length) {
+                  e.preventBaseUIHandler();
+                  onChange(value.slice(0, -1));
+                }
+              }}
+            />
           </Combobox.Chips>
         </Combobox.InputGroup>
         <Combobox.Portal>

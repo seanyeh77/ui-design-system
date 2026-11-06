@@ -11,13 +11,20 @@
 - 同一頁同一個詞出現很多次時，每次都可以加；說明要短，長篇的解釋改連到文件。
 
 ```js
-h('p', null, '起點經過 2 個 ',
-  h(UI.Term, { text: '一個 `.c` 檔加上它 include 的標頭檔，編譯器一次處理的單位。' }, 'translation unit'), '。')
+h('p', null, '起點經過 2 個 ', h(UI.Term, { text: '一個 `.c` 檔加上它 include 的標頭檔，編譯器一次處理的單位。' }, 'translation unit'), '。');
 
-h(UI.Tag, null, h(UI.Term, {
-  title: '推測（規則）',
-  text: '經由 `h->post_send` 呼叫，由規則推得，編譯器無法確認。',
-  code: ' 74 │ ret = h->post_send(qp, wr, bad_wr);',
-  action: { label: '看這一行', onClick: () => openLine('ops.c', 74) }
-}, '推測（規則）'))
+h(
+  UI.Tag,
+  null,
+  h(
+    UI.Term,
+    {
+      title: '推測（規則）',
+      text: '經由 `h->post_send` 呼叫，由規則推得，編譯器無法確認。',
+      code: ' 74 │ ret = h->post_send(qp, wr, bad_wr);',
+      action: { label: '看這一行', onClick: () => openLine('ops.c', 74) },
+    },
+    '推測（規則）',
+  ),
+);
 ```

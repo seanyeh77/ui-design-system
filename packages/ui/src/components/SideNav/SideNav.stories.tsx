@@ -20,7 +20,7 @@ function Demo() {
         value={val}
         onChange={setVal}
         collapsed={col}
-        onToggle={function () {
+        onToggle={() => {
           setCol(!col);
         }}
         brand={React.createElement(

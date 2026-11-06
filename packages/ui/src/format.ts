@@ -7,7 +7,7 @@ export type Decimals = number | 'money' | 'percent' | 'size' | 'count';
 
 const DECIMALS = { money: 0, percent: 1, size: 1, count: 0 } as const;
 
-export const pad2 = (n: number): string => String(n).padStart(2, '0');
+const pad2 = (n: number): string => String(n).padStart(2, '0');
 
 function locale(): string {
   return I18N.locale;
@@ -18,8 +18,7 @@ function date(d: Date | null | undefined, o: { weekday?: boolean; long?: boolean
   if (!d) return '';
   const wd = o.weekday !== false;
   if (o.long) return new Intl.DateTimeFormat(I18N.locale, { year: 'numeric', month: 'long', day: 'numeric', weekday: wd ? 'long' : undefined }).format(d);
-  if (isZhTW())
-    return `${d.getFullYear()}/${pad2(d.getMonth() + 1)}/${pad2(d.getDate())}${wd ? `（${new Intl.DateTimeFormat('zh-TW', { weekday: 'narrow' }).format(d)}）` : ''}`;
+  if (isZhTW()) return fmtDate(d) + (wd ? `（${new Intl.DateTimeFormat('zh-TW', { weekday: 'narrow' }).format(d)}）` : '');
   return new Intl.DateTimeFormat(I18N.locale, { year: 'numeric', month: '2-digit', day: '2-digit', weekday: wd ? 'short' : undefined }).format(d);
 }
 

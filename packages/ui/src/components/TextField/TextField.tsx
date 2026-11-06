@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
+import { FieldLabel } from '../../internal/Field';
 
 export interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   /** Above the field, always visible. Never only a placeholder. */
@@ -21,14 +22,9 @@ export function TextField({ label, hint, error, id, className, required, disable
   const desc = error || hint ? fieldId + '-desc' : undefined;
   return (
     <div className={cx('ui-field', error && 'has-error', disabled && 'is-disabled', className)}>
-      <label htmlFor={fieldId} className="ui-field-label">
+      <FieldLabel htmlFor={fieldId} required={required}>
         {label}
-        {required ? (
-          <span className="ui-req" aria-hidden="true">
-            {' *'}
-          </span>
-        ) : null}
-      </label>
+      </FieldLabel>
       <div className="ui-field-box">
         <input
           type="text"

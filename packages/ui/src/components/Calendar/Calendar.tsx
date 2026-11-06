@@ -46,9 +46,9 @@ export function Calendar({ focus, onPick, onHover, dayState }: CalendarProps) {
           <Icon name="caret-right" size={16} />
         </button>
       </div>
-      <div className="ui-cal-grid" role="grid">
+      <div className="ui-cal-grid" role="group" aria-label={format.month(month)}>
         {format.weekdays().map((w, i) => (
-          <span key={'w' + i} className="ui-cal-wk" role="columnheader">
+          <span key={'w' + i} className="ui-cal-wk" aria-hidden="true">
             {w}
           </span>
         ))}

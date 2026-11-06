@@ -3,12 +3,13 @@ import { Button } from '../Button/Button';
 import { IconButton } from '../IconButton/IconButton';
 import { Skeleton } from '../Skeleton/Skeleton';
 import { Tag } from '../Tag/Tag';
-import { DOC_SHAPE, FILE_KIND, fileExt, filesOf, findNode, foldersOf, latest, pathTo, sortNodes, toDate, type TreeSort } from './helpers';
+import { DOC_SHAPE, FILE_KIND, fileExt, findNode, foldersOf, latest, pathTo, sortNodes, toDate, type TreeSort } from './helpers';
 import { fileSize, format } from '../../format';
 import { tr } from '../../i18n';
-import { CHECK, Icon, IconOf, type IconSource } from '../../icons/Icon';
-import { cx, reduced } from '../../internal/util';
+import { Icon, IconOf, type IconSource } from '../../icons/Icon';
+import { cx, digits, reduced } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
+import { CheckMark } from '../../internal/Field';
 
 export interface TreeNode {
   id: string;
@@ -66,6 +67,8 @@ export interface TreeListProps {
   /** Controlled open ids; update them in onToggle. */
   open?: string[];
   onToggle?: (node: TreeNode, isOpen: boolean, openIds: string[]) => void;
+  /** Controlled mode: 「全部展開／全部收合」 reports every open id here. */
+  onToggleAll?: (isOpen: boolean, openIds: string[]) => void;
   /** Loads the children of a node with hasChildren the first time it opens. */
   loadChildren?: (node: TreeNode) => TreeNode[] | Promise<TreeNode[]>;
   /** Files kind: checkboxes on hover; a folder's checkbox selects every file inside. */
@@ -154,6 +157,12 @@ export function TreeList(p: TreeListProps) {
   }, [openKey]);
   // Folders just opened: their rows slide in.
   const [fresh, setFresh] = React.useState<Record<string, boolean>>({});
+  // The slide-in runs once: forget the folders after the animation so rows mounted later do not replay it.
+  React.useEffect(() => {
+    if (!Object.keys(fresh).length) return;
+    const t = setTimeout(() => setFresh({}), 400);
+    return () => clearTimeout(t);
+  }, [fresh]);
   const [ownSel, setOwnSel] = React.useState<string[]>([]);
   const sel = p.selected ?? ownSel;
   const setSel = (v: string[]) => {
@@ -170,7 +179,12 @@ export function TreeList(p: TreeListProps) {
     }
   });
   const selSet = new Set(sel);
-  const allFiles = filesOf({ children: items });
+  // Files under a node, loaded children included; an unloaded folder has no known files yet.
+  const filesUnder = (n: TreeNode): TreeNode[] => {
+    const c = kids(n);
+    return c ? c.flatMap(filesUnder) : n.hasChildren ? [] : [n];
+  };
+  const allFiles = items.flatMap(filesUnder);
 
   const toggle = (n: TreeNode) => {
     const o = { ...open };
@@ -191,14 +205,14 @@ export function TreeList(p: TreeListProps) {
     if (!p.open) setOwnOpen(o);
   };
   const checkState = (n: TreeNode): boolean | 'mixed' => {
-    const fl = filesOf(n);
+    const fl = filesUnder(n);
     const k = fl.filter((f) => selSet.has(f.id)).length;
     return k === 0 ? false : k === fl.length ? true : 'mixed';
   };
   const checkToggle = (n: TreeNode) => {
     const on = checkState(n) !== true;
     const m = new Set(selSet);
-    for (const f of filesOf(n)) {
+    for (const f of filesUnder(n)) {
       if (on) m.add(f.id);
       else m.delete(f.id);
     }
@@ -208,7 +222,7 @@ export function TreeList(p: TreeListProps) {
 
   const every: (NodeRow | ExtraRow)[] = [];
   const walk = (list: TreeNode[], depth: number, guides: number[], isFresh: boolean) => {
-    const sorted = sortNodes(list, sort);
+    const sorted = sortNodes(list, sort, plain && !sort);
     sorted.forEach((n, i) => {
       const isF = plain ? expandable(n) : !!(n.children || n.hasChildren);
       const isOpen = isF && !!open[n.id];
@@ -323,21 +337,7 @@ export function TreeList(p: TreeListProps) {
               <Tag key={i}>{t}</Tag>
             ))}
           </div>
-          {meta ? (
-            <div className={cx('ui-tree-pmeta', n.meta == null && 'is-path')}>
-              {n.meta != null
-                ? meta.split(/(\d[\d,.]*)/).map((t, i) =>
-                    i % 2 ? (
-                      <span key={i} className="ui-num">
-                        {t}
-                      </span>
-                    ) : (
-                      t
-                    ),
-                  )
-                : meta}
-            </div>
-          ) : null}
+          {meta ? <div className={cx('ui-tree-pmeta', n.meta == null && 'is-path')}>{n.meta != null ? digits(meta, /(\d[\d,.]*)/) : meta}</div> : null}
         </div>
         {p.rowActions ? (
           <span className="ui-tree-act" onClick={(e) => e.stopPropagation()}>
@@ -387,7 +387,7 @@ export function TreeList(p: TreeListProps) {
     const ck = selectable ? checkState(n) : false;
     const ext = isF ? '' : fileExt(n);
     const kind = FILE_KIND[ext] || 'other';
-    const fl = isF ? filesOf(n) : [];
+    const fl = isF ? filesUnder(n) : [];
     const when = isF ? latest(n) : toDate(n.date);
     const dateTxt = when ? format.relative(when) : '';
     const sizeTxt = !isF ? fileSize(n.size) : '';
@@ -422,21 +422,7 @@ export function TreeList(p: TreeListProps) {
               }}
             >
               <span className="ui-check-box" aria-hidden="true">
-                {ck === true ? (
-                  <svg
-                    width={14}
-                    height={14}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={3.5}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d={CHECK} />
-                  </svg>
-                ) : null}
-                {ck === 'mixed' ? <span className="ui-check-dash" /> : null}
+                <CheckMark v={ck} />
               </span>
             </button>
           </span>
@@ -498,11 +484,17 @@ export function TreeList(p: TreeListProps) {
     );
   };
 
-  const folders = foldersOf(items);
+  // Every folder whose children are known, loaded ones included.
+  const folders = foldersOf(items, kids);
   const anyClosed = folders.some((f) => !open[f.id]);
   const selFiles = allFiles.filter((f) => selSet.has(f.id));
   const total = selFiles.reduce((a, f) => a + (f.size || 0), 0);
-  const showToggleAll = !single && folders.length > 0 && (!plain || !!p.toggleAll);
+  const showToggleAll = !single && folders.length > 0 && (!plain || !!p.toggleAll) && (!p.open || !!p.onToggleAll);
+  devWarn(
+    p.open && (!plain || p.toggleAll) && !single && !p.onToggleAll,
+    'TreeList',
+    'with controlled open ids, 「全部展開」 needs onToggleAll to report the new ids; it is hidden until you pass it.',
+  );
   const head =
     selectable && selFiles.length ? (
       <div className="ui-tree-head ui-tree-bulk">
@@ -543,7 +535,7 @@ export function TreeList(p: TreeListProps) {
               onClick={() => {
                 const o = Object.fromEntries(folders.map((f) => [f.id, anyClosed]));
                 setFresh(anyClosed && !reduced() ? Object.fromEntries(folders.filter((f) => !open[f.id]).map((f) => [f.id, true])) : {});
-                if (p.open) p.onToggle?.(folders[0], anyClosed, anyClosed ? folders.map((f) => f.id) : []);
+                if (p.open) p.onToggleAll?.(anyClosed, anyClosed ? [...new Set([...p.open, ...folders.map((f) => f.id)])] : []);
                 else setOwnOpen(o);
               }}
             >

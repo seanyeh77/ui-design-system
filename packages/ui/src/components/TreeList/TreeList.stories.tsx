@@ -53,7 +53,7 @@ function Demo() {
         items={items}
         defaultOpen={['rec', 'lec']}
         selectable={true}
-        onDownload={function (files) {
+        onDownload={(files) => {
           setNote(
             '下載 ' +
               files.length +

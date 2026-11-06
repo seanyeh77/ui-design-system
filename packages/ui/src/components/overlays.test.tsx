@@ -2,7 +2,22 @@ import * as React from 'react';
 import { describe, expect, test, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { Button, CommandPalette, DatePicker, Dialog, Drawer, Menu, MultiSelect, Popover, Select, Term, Tooltip, Tour } from '../index';
+import {
+  Button,
+  CommandPalette,
+  DatePicker,
+  Dialog,
+  Drawer,
+  Menu,
+  MultiSelect,
+  Popover,
+  ProjectSwitcher,
+  Select,
+  Term,
+  TextField,
+  Tooltip,
+  Tour,
+} from '../index';
 
 const user = userEvent.setup();
 
@@ -19,6 +34,22 @@ describe('danger actions are confirmed', () => {
     const dialog = await screen.findByRole('dialog', { name: '刪除 api？' });
     await user.click(within(dialog).getByRole('button', { name: '刪除' }));
     expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  test('a danger submit button submits only after confirming', async () => {
+    const onSubmit = vi.fn((e: React.FormEvent) => e.preventDefault());
+    render(
+      <form onSubmit={onSubmit}>
+        <Button type="submit" variant="danger" confirm={{ title: '刪除帳號？' }}>
+          刪除
+        </Button>
+      </form>,
+    );
+    await user.click(screen.getByRole('button', { name: '刪除' }));
+    expect(onSubmit).not.toHaveBeenCalled();
+    const dialog = await screen.findByRole('dialog', { name: '刪除帳號？' });
+    await user.click(within(dialog).getByRole('button', { name: '刪除' }));
+    expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 
   test('Menu danger item asks first', async () => {
@@ -144,7 +175,7 @@ test('Tooltip shows on focus', async () => {
     </Tooltip>,
   );
   await user.tab();
-  expect(await screen.findByText('複製連結')).toBeTruthy();
+  expect(await screen.findByText('複製連結', { ignore: '[hidden], script, style' })).toBeTruthy();
 });
 
 test('CommandPalette opens with Ctrl K and picks with Enter', async () => {
@@ -196,4 +227,83 @@ test('Tour steps forward and ends', async () => {
   await screen.findByText('第二步');
   await user.click(screen.getByRole('button', { name: '完成' }));
   expect(onClose).toHaveBeenCalledWith('done');
+});
+
+test('CommandPalette starts empty on every open', async () => {
+  function Demo() {
+    const [open, setOpen] = React.useState(true);
+    return (
+      <>
+        <Button onClick={() => setOpen(true)}>搜尋</Button>
+        <CommandPalette open={open} onOpenChange={setOpen} items={[{ id: 'a', label: 'beta' }]} onSelect={() => setOpen(false)} />
+      </>
+    );
+  }
+  render(<Demo />);
+  await user.type(await screen.findByRole('combobox'), 'bet');
+  await user.keyboard('{Escape}');
+  await waitFor(() => expect(screen.queryByRole('combobox')).toBeNull());
+  await user.click(screen.getByRole('button', { name: '搜尋' }));
+  expect(await screen.findByRole('combobox')).toHaveProperty('value', '');
+});
+
+test('MultiSelect creatable adds the typed value on Enter; Backspace removes the last value', async () => {
+  const onChange = vi.fn();
+  const { rerender } = render(<MultiSelect label="標籤" creatable options={[{ value: 'a', label: 'A' }]} value={[]} onChange={onChange} />);
+  await user.type(screen.getByRole('combobox'), 'zzz{Enter}');
+  expect(onChange).toHaveBeenLastCalledWith(['zzz']);
+  rerender(<MultiSelect label="標籤" options={[]} value={['a', 'b', 'c']} maxChips={2} onChange={onChange} />);
+  await user.click(screen.getByRole('combobox'));
+  await user.keyboard('{Backspace}');
+  expect(onChange).toHaveBeenLastCalledWith(['a', 'b']);
+});
+
+test('ProjectSwitcher closes after picking', async () => {
+  const onChange = vi.fn();
+  render(
+    <ProjectSwitcher
+      project="Alpha"
+      value="a"
+      onChange={onChange}
+      options={[
+        { id: 'a', label: 'Alpha' },
+        { id: 'b', label: 'Beta' },
+      ]}
+    />,
+  );
+  await user.click(screen.getByRole('button'));
+  await user.click(await screen.findByRole('menuitemradio', { name: /Beta/ }));
+  expect(onChange).toHaveBeenCalledWith('b');
+  await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+});
+
+test('Drawer focuses the first field, not the close button', async () => {
+  render(
+    <Drawer open onClose={() => {}} title="編輯">
+      <TextField label="名稱" />
+    </Drawer>,
+  );
+  const field = await screen.findByRole('textbox', { name: '名稱' });
+  await waitFor(() => expect(document.activeElement).toBe(field));
+});
+
+test('Tooltip text describes its trigger', async () => {
+  render(
+    <Tooltip label="沒有權限">
+      <Button>發布</Button>
+    </Tooltip>,
+  );
+  expect(screen.getByRole('button', { name: '發布' }).getAttribute('aria-describedby')).toBeTruthy();
+});
+
+test('a menu inside a dialog is painted above it', async () => {
+  render(
+    <Dialog open onClose={() => {}} title="設定">
+      <Menu items={[{ label: '重新命名' }]} />
+    </Dialog>,
+  );
+  await user.click(await screen.findByRole('button', { name: '更多操作' }));
+  const item = await screen.findByRole('menuitem', { name: '重新命名' });
+  const r = item.getBoundingClientRect();
+  expect(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)?.closest('[role="menuitem"]')).toBe(item);
 });

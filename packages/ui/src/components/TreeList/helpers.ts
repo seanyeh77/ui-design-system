@@ -54,11 +54,12 @@ export function fileExt(n: TreeNode): string {
   return String(n.ext || (m ? m[1] : '')).toLowerCase();
 }
 
-/** Every file under a node (the node itself when it is a file). */
-export const filesOf = (n: Pick<TreeNode, 'children'> & Partial<TreeNode>): TreeNode[] => (n.children ? n.children.flatMap(filesOf) : [n as TreeNode]);
-
 /** Every folder in a list, depth first. */
-export const foldersOf = (list: TreeNode[]): TreeNode[] => list.flatMap((n) => (n.children ? [n, ...foldersOf(n.children)] : []));
+export const foldersOf = (list: TreeNode[], kids: (n: TreeNode) => TreeNode[] | null): TreeNode[] =>
+  list.flatMap((n) => {
+    const c = kids(n);
+    return c ? [n, ...foldersOf(c, kids)] : n.hasChildren ? [n] : [];
+  });
 
 export const toDate = (d: TreeNode['date']): Date | null => (d == null ? null : d instanceof Date ? d : new Date(d));
 
@@ -74,15 +75,16 @@ export function latest(n: TreeNode): Date | null {
 
 export type TreeSort = 'newest' | 'oldest' | 'name' | false;
 
-/** Folders first, then by the sort; ties keep their original order. false keeps the order as given. */
-export function sortNodes(list: TreeNode[], sort: TreeSort): TreeNode[] {
-  if (!sort) return [...list];
+/** Folders first, then by the sort; ties keep their original order. keepOrder (plain trees without a sort) keeps the list as given. */
+export function sortNodes(list: TreeNode[], sort: TreeSort, keepOrder = false): TreeNode[] {
+  if (keepOrder) return [...list];
   return list
     .map((n, i) => [n, i] as const)
     .sort(([a, ia], [b, ib]) => {
       const fa = !!a.children;
       const fb = !!b.children;
       if (fa !== fb) return fa ? -1 : 1;
+      if (!sort) return ia - ib;
       if (sort === 'name') return String(a.name).localeCompare(String(b.name), I18N.locale, { numeric: true }) || ia - ib;
       const da = +(latest(a) || 0);
       const db = +(latest(b) || 0);

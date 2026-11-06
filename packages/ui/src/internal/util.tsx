@@ -83,8 +83,8 @@ export async function copyText(text: string): Promise<void> {
 }
 
 /** Text with every number in Geist Mono and the words in the text font, for labels that mix both (「第 1 週」). */
-export function digits(text: string): React.ReactNode[] {
-  return text.split(/(\d[\d,.:/]*)/).map((t, i) =>
+export function digits(text: string, numbers = /(\d[\d,.:/]*)/): React.ReactNode[] {
+  return text.split(numbers).map((t, i) =>
     i % 2 ? (
       <span key={i} className="ui-num">
         {t}

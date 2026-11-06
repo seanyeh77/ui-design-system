@@ -17,7 +17,7 @@ for (const k of Object.keys(PH) as PhosphorName[]) {
 const isName = (s: string): s is IconName => s in PH || s in PH_ALIAS;
 
 /** The Phosphor name behind a name, an alias or the markup of a built-in icon. */
-export function iconKey(source: string | undefined): PhosphorName | undefined {
+function iconKey(source: string | undefined): PhosphorName | undefined {
   if (!source) return undefined;
   if (isName(source)) return source in PH ? (source as PhosphorName) : PH_ALIAS[source as keyof typeof PH_ALIAS];
   return BY_MARKUP.get(source);
@@ -55,8 +55,25 @@ export function IconOf({ icon, ...rest }: Omit<IconProps, 'name' | 'd'> & { icon
   return isName(icon) ? <Icon name={icon} {...rest} /> : <Icon d={icon} {...rest} />;
 }
 
+/** Names the first bundle used for a few icons; kept so old pages keep working. Pass the Phosphor name instead. */
+const LEGACY: Record<string, PhosphorName> = {
+  close: 'x',
+  edit: 'pencil-simple',
+  more: 'dots-three',
+  spinner: 'circle-notch',
+  alert: 'warning-circle',
+  warn: 'warning',
+  chevronRight: 'caret-right',
+  chevronDown: 'caret-down',
+  panelClose: 'sidebar-simple',
+  panelOpen: 'sidebar-simple',
+  filter: 'funnel',
+  refresh: 'arrows-clockwise',
+};
+
 /** Markup of every built-in icon by name, aliases included. */
 export const icons: Readonly<Record<IconName, string>> = Object.freeze({
+  ...Object.fromEntries(Object.entries(LEGACY).map(([alias, target]) => [alias, PH[target]])),
   ...PH,
   ...Object.fromEntries(Object.entries(PH_ALIAS).map(([alias, target]) => [alias, PH[target as PhosphorName]])),
 } as Record<IconName, string>);

@@ -134,9 +134,10 @@ export function FilterButton<R extends Row>({ filters, values, activeCount, coun
             <fieldset key={f.key} className="ui-dt-facet">
               <legend>{f.label}</legend>
               {f.options.map((o) => {
-                const on = arr.includes(o.value);
-                const n = count(f, o.value);
-                const next = f.multiple ? (on ? arr.filter((x) => x !== o.value) : [...arr, o.value]) : on ? [] : [o.value];
+                const value = String(o.value);
+                const on = arr.includes(value);
+                const n = count(f, value);
+                const next = f.multiple ? (on ? arr.filter((x) => x !== value) : [...arr, value]) : on ? [] : [value];
                 return (
                   <button
                     key={o.value}

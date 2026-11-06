@@ -4,15 +4,15 @@ import * as UI from '../../index';
 export default { title: 'Navigation/ProjectSwitcher', component: UI.ProjectSwitcher };
 
 function Demo() {
-  const s = React.useState('ib-build');
+  const [s, setS] = React.useState('ib-build');
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 4px' }}>
       <strong style={{ fontSize: 17 }}>流程</strong>
       <UI.ProjectSwitcher
         project="ibtrace"
         status="live"
-        value={s[0]}
-        onChange={s[1]}
+        value={s}
+        onChange={setS}
         options={[
           { id: 'ib-build', label: 'ibtrace', detail: 'build 環境' },
           { id: 'ib-rt', label: 'ibtrace', detail: 'runtime 環境' },

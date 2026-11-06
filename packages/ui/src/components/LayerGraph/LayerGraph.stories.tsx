@@ -57,11 +57,11 @@ const edges3 = [
 ];
 const card = { maxWidth: 640, padding: 16, marginBottom: 16, borderRadius: 'var(--radius-lg)', background: 'var(--surface)', boxShadow: 'var(--shadow-card)' };
 function Demo() {
-  const s = React.useState<string | null>('net');
+  const [s, setS] = React.useState<string | null>('net');
   return (
     <div>
       <div style={card}>
-        <UI.LayerGraph nodes={nodes} edges={edges} selected={s[0]} onSelect={s[1]} inferredText="由規則推得，編譯器無法確認。" />
+        <UI.LayerGraph nodes={nodes} edges={edges} selected={s} onSelect={setS} inferredText="由規則推得，編譯器無法確認。" />
       </div>
       <div style={card}>
         <UI.LayerGraph nodes={nodes2} edges={edges2} legend={false} />

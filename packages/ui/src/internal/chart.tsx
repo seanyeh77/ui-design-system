@@ -22,7 +22,10 @@ export function useCountUp(target: unknown, ms: number): number {
   return t;
 }
 
-export const fmtNum = (v: number, dec?: number): string => format.number(v, dec || 0);
+export const fmtNum = (v: number, dec?: number): string => format.number(v, dec);
+
+/** Decimals the axis labels need so that ticks a step apart read differently (0.5, 1, 1.5). */
+export const tickDecimals = (top: number): number => Math.min(3, (String(+(top / 4).toPrecision(6)).split('.')[1] ?? '').length);
 
 export type Point = [number, number];
 
@@ -41,7 +44,11 @@ export function smoothPath(p: Point[]): string {
   return d;
 }
 
-export const CHART = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)'];
+const CHART = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)'];
+/** The color of series i. */
+export const seriesColor = (i: number): string => CHART[i % CHART.length];
+/** Grid lines at these fractions of the axis maximum. */
+export const TICKS = [0, 0.25, 0.5, 0.75, 1];
 
 /** KPI cards are the only place that abbreviates large numbers (format rules). */
 export function kpiText(v: number, p: KpiCardProps, dec?: number): string {
@@ -77,7 +84,7 @@ export function useFitText(ref: React.RefObject<HTMLElement | null>, deps: React
   return size;
 }
 
-export interface ChartTipRow {
+interface ChartTipRow {
   name: React.ReactNode;
   value: React.ReactNode;
   color?: string;

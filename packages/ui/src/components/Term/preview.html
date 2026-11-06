@@ -1,18 +1,49 @@
 <!-- @dsCard group="Data" height=360 -->
 <!doctype html>
 <html lang="zh-Hant">
-<head><meta charset="utf-8"><title>Term — preview</title></head>
-<body>
-<div id="root"></div>
-<script>
-  var U = window.UI, h = React.createElement;
-  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { style: { maxWidth: 560, fontSize: 15 } },
-    h('p', { style: { marginTop: 0 } }, '起點經過 2 個 ',
-      h(U.Term, { text: '一個 `.c` 檔加上它 include 的標頭檔，編譯器一次處理的單位。' }, 'translation unit'),
-      '，其中原本的 post_send 是 ',
-      h(U.Term, { text: '程式啟動時先載入 ibtrace，以同名函式取代原本函式庫的版本。' }, 'LD_PRELOAD 攔截'), ' 來的。'),
-    h('div', { style: { display: 'flex', alignItems: 'center', gap: 8 } }, h('span', { style: { fontWeight: 500 } }, '原本的 post_send'),
-      h(U.Tag, null, h(U.Term, { title: '推測（規則）', text: '經由 `h->post_send` 呼叫，由規則推得，編譯器無法確認。', code: ' 74 │ ret = h->post_send(qp, wr, bad_wr);', action: { label: '看這一行' } }, '推測（規則）')))));
-</script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Term — preview</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      ReactDOM.createRoot(document.getElementById('root')).render(
+        h(
+          'div',
+          { style: { maxWidth: 560, fontSize: 15 } },
+          h(
+            'p',
+            { style: { marginTop: 0 } },
+            '起點經過 2 個 ',
+            h(U.Term, { text: '一個 `.c` 檔加上它 include 的標頭檔，編譯器一次處理的單位。' }, 'translation unit'),
+            '，其中原本的 post_send 是 ',
+            h(U.Term, { text: '程式啟動時先載入 ibtrace，以同名函式取代原本函式庫的版本。' }, 'LD_PRELOAD 攔截'),
+            ' 來的。',
+          ),
+          h(
+            'div',
+            { style: { display: 'flex', alignItems: 'center', gap: 8 } },
+            h('span', { style: { fontWeight: 500 } }, '原本的 post_send'),
+            h(
+              U.Tag,
+              null,
+              h(
+                U.Term,
+                {
+                  title: '推測（規則）',
+                  text: '經由 `h->post_send` 呼叫，由規則推得，編譯器無法確認。',
+                  code: ' 74 │ ret = h->post_send(qp, wr, bad_wr);',
+                  action: { label: '看這一行' },
+                },
+                '推測（規則）',
+              ),
+            ),
+          ),
+        ),
+      );
+    </script>
+  </body>
 </html>

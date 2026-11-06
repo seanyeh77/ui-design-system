@@ -3,6 +3,7 @@ import { fmtDate, parseDate, sameDay } from '../../format';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
+import { FieldLabel } from '../../internal/Field';
 import { FloatingPanel } from '../../internal/FloatingPanel';
 import { Calendar } from '../Calendar/Calendar';
 
@@ -31,14 +32,9 @@ export function DatePicker({ label, value, onChange, hint, required, className }
   return (
     <div className={cx('ui-field', className)}>
       {label ? (
-        <label htmlFor={id} className="ui-field-label">
+        <FieldLabel htmlFor={id} required={required}>
           {label}
-          {required ? (
-            <span className="ui-req" aria-hidden="true">
-              {' *'}
-            </span>
-          ) : null}
-        </label>
+        </FieldLabel>
       ) : null}
       <div ref={field} className={cx('ui-datefield', bad && 'is-invalid')}>
         <input

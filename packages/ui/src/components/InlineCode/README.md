@@ -8,8 +8,8 @@
 - Geist Mono 只用在程式碼本身，周圍的中文句子維持一般字體。
 
 ```js
-h(UI.InlineCode, null, 'IBTRACE_SHM')
-h(UI.InlineCode, { href: '/code/child.c#L86' }, 'child.c:86')
+h(UI.InlineCode, null, 'IBTRACE_SHM');
+h(UI.InlineCode, { href: '/code/child.c#L86' }, 'child.c:86');
 ```
 
 ## CodeText
@@ -19,8 +19,10 @@ h(UI.InlineCode, { href: '/code/child.c#L86' }, 'child.c:86')
 ```js
 h(UI.CodeText, {
   text: '`ibmon_spawn` 在 `child.c:86` 設定 `IBTRACE_SHM`',
-  refHref: function (ref) { return '/code/' + ref; }   // 或 onRef(ref)
-})
+  refHref: function (ref) {
+    return '/code/' + ref;
+  }, // 或 onRef(ref)
+});
 ```
 
 - 看起來像「檔名:行號」或「檔名:起-迄」的片段（`trace.c:321-322`）會變成連結；其他片段是一般的行內程式碼。用 `isRef` 可以改判斷方式。

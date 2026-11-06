@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { CHECK } from '../../icons/Icon';
 import { cx } from '../../internal/util';
+import { CheckMark } from '../../internal/Field';
 
 export interface CheckboxProps {
   /** 'mixed': some of a group are checked (shows a dash). */
@@ -33,22 +33,7 @@ export function Checkbox({ checked, onChange, label, disabled, className, ...ari
       }}
     >
       <span className="ui-check-box" aria-hidden="true">
-        {v === true ? (
-          <svg
-            className={cx(drawn && 'ui-draw')}
-            width={14}
-            height={14}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={3.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d={CHECK} />
-          </svg>
-        ) : null}
-        {v === 'mixed' ? <span className="ui-check-dash" /> : null}
+        <CheckMark v={v} draw={drawn} />
       </span>
       {label ? <span>{label}</span> : null}
     </button>

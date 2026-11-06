@@ -3,7 +3,7 @@ import { cx } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 
 /** True inside a Card: card-styled components drop their own shadow there. */
-export const InCard = React.createContext(false);
+const InCard = React.createContext(false);
 
 export interface CardProps extends Omit<React.HTMLAttributes<HTMLElement>, 'title'> {
   /** Heading at the top left. */

@@ -34,7 +34,13 @@ export function Tabs<V extends string = string>({ items, value, onChange, label,
     const el = refs.current[idx];
     const tr = track.current;
     if (!el || !tr) return;
-    setBox({ left: el.offsetLeft, right: tr.clientWidth - el.offsetLeft - el.offsetWidth });
+    // Counts, fonts and the container change tab widths without changing the selection.
+    const measure = () => setBox({ left: el.offsetLeft, right: tr.clientWidth - el.offsetLeft - el.offsetWidth });
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(tr);
+    for (const t of refs.current) if (t) ro.observe(t);
+    return () => ro.disconnect();
   }, [idx, items.length]);
   const go = (i: number) => {
     if (i === idx || !items[i]) return;

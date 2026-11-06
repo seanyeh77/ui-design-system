@@ -61,9 +61,9 @@ export function CodeView({
   const [ta, tb] = target == null ? [null, null] : Array.isArray(target) ? target : [target, target];
   const narrow = useNarrow();
   const [all, setAll] = React.useState(false);
-  const [shownFor, setShownFor] = React.useState({ code, ta });
-  if (shownFor.code !== code || shownFor.ta !== ta) {
-    setShownFor({ code, ta });
+  const [shownFor, setShownFor] = React.useState({ code, ta, tb });
+  if (shownFor.code !== code || shownFor.ta !== ta || shownFor.tb !== tb) {
+    setShownFor({ code, ta, tb });
     setAll(false);
   }
   const canWindow = ta != null && tb != null && lines.length > tb - ta + 1 + context * 2;

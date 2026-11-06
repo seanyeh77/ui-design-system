@@ -4,7 +4,7 @@
 declare const process: { env: { NODE_ENV?: string } };
 declare const __UI_DEV__: boolean | undefined;
 
-export const DEV = typeof __UI_DEV__ === 'boolean' ? __UI_DEV__ : process.env.NODE_ENV !== 'production';
+const DEV = typeof __UI_DEV__ === 'boolean' ? __UI_DEV__ : process.env.NODE_ENV !== 'production';
 
 const seen = new Set<string>();
 

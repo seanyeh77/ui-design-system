@@ -59,7 +59,7 @@ export function ProjectSwitcher({ project, status = 'live', statusLabel, options
             <div className="ui-projsw-title">{tr('切換專案')}</div>
             <Menu.RadioGroup value={value} onValueChange={(id: string) => id !== value && onChange(id)}>
               {options.map((o) => (
-                <Menu.RadioItem key={o.id} value={o.id} className={cx('ui-projsw-opt', o.id === value && 'is-on')}>
+                <Menu.RadioItem key={o.id} value={o.id} closeOnClick className={cx('ui-projsw-opt', o.id === value && 'is-on')}>
                   <span className="ui-projsw-optlabel">{o.label}</span>
                   {o.detail ? <span className="ui-projsw-optdetail">{o.detail}</span> : null}
                   <Menu.RadioItemIndicator className="ui-projsw-check">

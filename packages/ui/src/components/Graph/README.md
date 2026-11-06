@@ -14,12 +14,18 @@
 - 深色模式的線和外框自動變亮。顏色只用 token：`graph-edge`、`graph-node`、`accent`、`accent-soft`。
 
 ```js
-h('div', { className: 'ui-graph' },
-  h('svg', { viewBox: '0 0 640 300', width: 640, height: 300 },
+h(
+  'div',
+  { className: 'ui-graph' },
+  h(
+    'svg',
+    { viewBox: '0 0 640 300', width: 640, height: 300 },
     h(UI.GraphDefs),
     h('path', { d: 'M320 56 V80 H320 V118', className: 'ui-graph-edge is-inferred is-related', markerEnd: 'url(#ui-arrow-accent)' }),
     h('text', { x: 320, y: 100, textAnchor: 'middle', className: 'ui-graph-label is-related' }, 'LD_PRELOAD'),
     h('rect', { x: 230, y: 120, width: 180, height: 40, rx: 10, className: 'ui-graph-node is-selected' }),
-    h('text', { x: 320, y: 140, textAnchor: 'middle', dominantBaseline: 'central', className: 'ui-graph-name' }, 'trace_post_send')),
-  h(UI.GraphLegend))
+    h('text', { x: 320, y: 140, textAnchor: 'middle', dominantBaseline: 'central', className: 'ui-graph-name' }, 'trace_post_send'),
+  ),
+  h(UI.GraphLegend),
+);
 ```

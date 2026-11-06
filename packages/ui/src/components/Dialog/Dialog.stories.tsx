@@ -9,7 +9,7 @@ export const Default = {
       <UI.Dialog
         title="刪除這個專案？"
         modal={false}
-        onClose={function () {}}
+        onClose={() => {}}
         actions={React.createElement(
           React.Fragment,
           null,

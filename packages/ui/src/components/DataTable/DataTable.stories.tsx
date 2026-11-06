@@ -62,7 +62,7 @@ function D() {
           { key: 'budget', label: '預算', type: 'range', scale: 10000, unitLabel: '單位：萬' },
         ]}
         totals={{ budget: 'sum', progress: 'avg' }}
-        bulkActions={function (ids, clear) {
+        bulkActions={(ids, clear) => {
           return [
             <UI.Button key="e" variant="secondary" onClick={clear}>
               匯出
@@ -72,7 +72,7 @@ function D() {
             </UI.Button>,
           ];
         }}
-        rowActions={function (r) {
+        rowActions={(r) => {
           return [<UI.IconButton key="e" label={'編輯 ' + r.name} icon={'pencil-simple'} />, <UI.IconButton key="d" label={'刪除 ' + r.name} icon={'trash'} />];
         }}
         columns={[

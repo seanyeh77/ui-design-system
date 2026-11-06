@@ -35,7 +35,7 @@ export function KpiCard(props: KpiCardProps) {
   const { label, value, unit, decimals = 0, delta, deltaUnit, good, spark, compareLabel, className } = props;
   const t = useCountUp(value, 900);
   const valRef = React.useRef<HTMLDivElement>(null);
-  useFitText(valRef, [value, props.format, unit, I18N.locale]);
+  useFitText(valRef, [value, props.format, unit, decimals, props.compact, props.currency, I18N.locale]);
   const hasDelta = typeof delta === 'number';
   const up = hasDelta && delta > 0;
   const isGood = good ?? up;

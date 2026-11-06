@@ -1,16 +1,47 @@
 <!-- @dsCard group="Forms" height=420 -->
 <!doctype html>
 <html lang="zh-Hant">
-<head><meta charset="utf-8"><title>FormGrid — preview</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-<div id="root"></div>
-<script>
-  var U = window.UI, h = React.createElement;
-  var S=React.useState; function D(){var c=S(''),n=S(''); return h('div',{style:{padding:20}}, h(U.FormGrid,null, h(U.TextField,{label:'名稱',required:true,placeholder:'輸入名稱'}), h(U.TextField,{label:'Email',type:'email',placeholder:'name@example.com'}), h(U.Select,{label:'頻率',value:c[0],onChange:c[1],options:[{value:'day',label:'每天'},{value:'week',label:'每週'}]}), h(U.TextField,{label:'電話',placeholder:'0912 345 678'}), h(U.TextArea,{className:'is-full',label:'備註',value:n[0],onChange:n[1]})));}
-  ReactDOM.createRoot(document.getElementById('root')).render(h(D));
-</script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>FormGrid — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      var S = React.useState;
+      function D() {
+        var c = S(''),
+          n = S('');
+        return h(
+          'div',
+          { style: { padding: 20 } },
+          h(
+            U.FormGrid,
+            null,
+            h(U.TextField, { label: '名稱', required: true, placeholder: '輸入名稱' }),
+            h(U.TextField, { label: 'Email', type: 'email', placeholder: 'name@example.com' }),
+            h(U.Select, {
+              label: '頻率',
+              value: c[0],
+              onChange: c[1],
+              options: [
+                { value: 'day', label: '每天' },
+                { value: 'week', label: '每週' },
+              ],
+            }),
+            h(U.TextField, { label: '電話', placeholder: '0912 345 678' }),
+            h(U.TextArea, { className: 'is-full', label: '備註', value: n[0], onChange: n[1] }),
+          ),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+    </script>
+  </body>
 </html>

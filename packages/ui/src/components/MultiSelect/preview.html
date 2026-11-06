@@ -1,16 +1,44 @@
 <!-- @dsCard group="Forms" height=420 -->
 <!doctype html>
 <html lang="zh-Hant">
-<head><meta charset="utf-8"><title>MultiSelect — preview</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-<div id="root"></div>
-<script>
-  var U = window.UI, h = React.createElement;
-  var M=['王小明','李小華','陳大同','林美玲','張志豪','黃雅婷','吳建宏','周佳穎'].map(function(n){return {value:n,label:n};}); function D(){var a=React.useState(['王小明','李小華','陳大同','林美玲']),b=React.useState(['urgent']); return h('div',{style:{padding:20,display:'flex',flexDirection:'column',gap:16,maxWidth:420,minHeight:380}}, h(U.MultiSelect,{label:'負責成員（只能從清單選）',options:M,value:a[0],onChange:a[1],emptyText:'找不到符合的成員'}), h(U.MultiSelect,{label:'標籤（可以新增）',creatable:true,options:[{value:'urgent',label:'urgent'},{value:'backend',label:'backend'},{value:'frontend',label:'frontend'}],value:b[0],onChange:b[1]}));}
-  ReactDOM.createRoot(document.getElementById('root')).render(h(D));
-</script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>MultiSelect — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      var M = ['王小明', '李小華', '陳大同', '林美玲', '張志豪', '黃雅婷', '吳建宏', '周佳穎'].map(function (n) {
+        return { value: n, label: n };
+      });
+      function D() {
+        var a = React.useState(['王小明', '李小華', '陳大同', '林美玲']),
+          b = React.useState(['urgent']);
+        return h(
+          'div',
+          { style: { padding: 20, display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 420, minHeight: 380 } },
+          h(U.MultiSelect, { label: '負責成員（只能從清單選）', options: M, value: a[0], onChange: a[1], emptyText: '找不到符合的成員' }),
+          h(U.MultiSelect, {
+            label: '標籤（可以新增）',
+            creatable: true,
+            options: [
+              { value: 'urgent', label: 'urgent' },
+              { value: 'backend', label: 'backend' },
+              { value: 'frontend', label: 'frontend' },
+            ],
+            value: b[0],
+            onChange: b[1],
+          }),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+    </script>
+  </body>
 </html>

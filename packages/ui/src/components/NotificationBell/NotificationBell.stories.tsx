@@ -10,22 +10,22 @@ const base = [
   { id: 4, title: '帳號整合 已審核通過', time: '昨天 18:20', group: '更早', read: true },
 ];
 function D() {
-  const s = React.useState(base);
+  const [s, setS] = React.useState(base);
   return (
     <div style={{ display: 'flex', justifyContent: 'flex-end', padding: 20, minHeight: 420 }}>
       <UI.NotificationBell
-        items={s[0]}
-        onOpen={function (it) {
-          s[1](
-            s[0].map((x) => {
-              return x.id === it.id ? Object.assign({}, x, { read: true }) : x;
+        items={s}
+        onOpen={(it) => {
+          setS(
+            s.map((x) => {
+              return x.id === it.id ? { ...x, read: true } : x;
             }),
           );
         }}
-        onReadAll={function () {
-          s[1](
-            s[0].map((x) => {
-              return Object.assign({}, x, { read: true });
+        onReadAll={() => {
+          setS(
+            s.map((x) => {
+              return { ...x, read: true };
             }),
           );
         }}

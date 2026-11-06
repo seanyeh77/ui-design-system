@@ -141,4 +141,5 @@ KPI 數字加迷你折線 · 箭頭加彩色文字 · 31 px · Geist Mono · 從
 
 - 依計畫文件全部執行：pnpm monorepo、元件改寫成 TypeScript（TSX）、浮起層改用 Base UI、輸出 Tailwind v4 設定、元件用 npm 套件且頁面範本用 shadcn registry、Storybook 文件網站、ESLint 規則與 `ui check`、Changesets 發佈。
 - 依兩個準則由 Claude 定的：只支援 React 19（`ref` 是一般屬性，`bundle.js` 自帶 React 19，一個 script 就能用）；危險按鈕、選單的危險項目、DangerZone 在型別上一定要給 `confirm`；圖示名稱是型別；新增 `AppShell`、`Page`、`Grid` 讓 agent 不用自己排版面；`Grid` 卡片間距 24 px；lint 規則中顏色、原生控制項、卡片裡的卡片、未確認的危險按鈕是錯誤，主要按鈕數量與按鈕文字是警告。
+- 審查後由 Claude 定的（待確認）：平板收合的側邊欄中，有第二層的項目點了在旁邊列出子頁面；手機底部分頁列到不了的頁面放在最後一格「更多」，開啟完整導覽，有子頁面的分頁開啟第一個子頁面；選單、下拉選單等浮起層一律在 Dialog、Drawer 之上（z-index 980）；Dialog 沒給 `open` 時要寫 `modal={false}` 才會畫成靜態框，否則開發時警告；Tooltip 文字同時作為按鈕的說明讓螢幕閱讀器讀出。
 - 通用化：LayerGraph 的 `fns` 改名 `size`，「N 個函式」等文字改由 `sizeLabel`、`countLabel`、`sharedMeta` 傳入；GraphLegend 預設「確定的關係、推測的關係、外部項目」；CommandPalette 內建種類只留頁面、設定、指令、檔案。

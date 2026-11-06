@@ -4,12 +4,10 @@ import * as UI from '../../index';
 export default { title: 'Actions/Button', component: UI.Button };
 
 function Demo() {
-  const [saving, set] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
   function save() {
-    set(true);
-    setTimeout(() => {
-      set(false);
-    }, 1400);
+    setSaving(true);
+    setTimeout(() => setSaving(false), 1400);
   }
   return (
     <div className="ui-stack">
@@ -23,13 +21,11 @@ function Demo() {
         </UI.Button>
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        <UI.Button variant="primary" disabled={true}>
+        <UI.Button variant="primary" disabled>
           無法使用
         </UI.Button>
-        <UI.Button disabled={true}>無法使用</UI.Button>
-        <UI.Button variant="primary" icon={'plus'}>
-          新增
-        </UI.Button>
+        <UI.Button disabled>無法使用</UI.Button>
+        <UI.Button icon="plus">新增</UI.Button>
       </div>
     </div>
   );

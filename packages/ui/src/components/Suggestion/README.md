@@ -10,6 +10,6 @@
 ```js
 h(UI.Suggestion, {
   before: '`flush_ring` 在 `ring.c:96` 把資料寫回檔案。',
-  after: '`flush_ring` 在 `ring.c:104` 把資料寫回檔案。'
-})
+  after: '`flush_ring` 在 `ring.c:104` 把資料寫回檔案。',
+});
 ```

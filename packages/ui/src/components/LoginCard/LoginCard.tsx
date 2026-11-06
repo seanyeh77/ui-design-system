@@ -56,7 +56,7 @@ export function LoginCard(p: LoginCardProps) {
             </label>
             {p.forgotHref ? (
               <a href={p.forgotHref} className="ui-link">
-                {tr('忘記密碼')}
+                {tr('忘記密碼？')}
               </a>
             ) : null}
           </div>

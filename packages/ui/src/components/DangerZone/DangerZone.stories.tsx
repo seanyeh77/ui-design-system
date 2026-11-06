@@ -11,7 +11,7 @@ function D() {
         description="刪除後，所有專案和資料都無法復原。"
         actionLabel="刪除帳號"
         confirm={{ title: '刪除帳號？', body: '所有專案和資料會一起刪除，無法復原。' }}
-        onAction={function () {}}
+        onAction={() => {}}
       />
     </div>
   );

@@ -1,16 +1,36 @@
 <!-- @dsCard group="Appearance" height=180 -->
 <!doctype html>
 <html lang="zh-Hant">
-<head><meta charset="utf-8"><title>AccentPicker — preview</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-<div id="root"></div>
-<script>
-  var U = window.UI, h = React.createElement;
-  function D(){var v=React.useState('#2457d6'); return h('div',{style:{padding:20,display:'flex',flexDirection:'column',gap:12}}, h('div',{style:{fontWeight:700}},'強調色'), h(U.AccentPicker,{value:v[0],onChange:v[1]}), h('div',{style:{display:'flex',gap:8,alignItems:'center'}}, h('span',{style:{width:16,height:16,borderRadius:4,background:v[0]}}), h('span',{style:{fontFamily:'var(--font-mono)',fontSize:13}},v[0])));}
-  ReactDOM.createRoot(document.getElementById('root')).render(h(D));
-</script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>AccentPicker — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      function D() {
+        var v = React.useState('#2457d6');
+        return h(
+          'div',
+          { style: { padding: 20, display: 'flex', flexDirection: 'column', gap: 12 } },
+          h('div', { style: { fontWeight: 700 } }, '強調色'),
+          h(U.AccentPicker, { value: v[0], onChange: v[1] }),
+          h(
+            'div',
+            { style: { display: 'flex', gap: 8, alignItems: 'center' } },
+            h('span', { style: { width: 16, height: 16, borderRadius: 4, background: v[0] } }),
+            h('span', { style: { fontFamily: 'var(--font-mono)', fontSize: 13 } }, v[0]),
+          ),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+    </script>
+  </body>
 </html>

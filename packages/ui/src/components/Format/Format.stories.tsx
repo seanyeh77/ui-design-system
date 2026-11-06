@@ -10,8 +10,8 @@ const LOCS = [
 ];
 const NOW = new Date(2026, 10, 4, 15, 57);
 function D() {
-  const l = React.useState('zh-TW'),
-    loc = l[0];
+  const [l, setL] = React.useState('zh-TW'),
+    loc = l;
   const cur = LOCS.filter((x) => {
     return x[0] === loc;
   })[0];
@@ -38,8 +38,8 @@ function D() {
             <UI.Button
               key={x[0]}
               variant={x[0] === loc ? 'primary' : 'secondary'}
-              onClick={function () {
-                l[1](x[0]);
+              onClick={() => {
+                setL(x[0]);
               }}
             >
               {x[1]}

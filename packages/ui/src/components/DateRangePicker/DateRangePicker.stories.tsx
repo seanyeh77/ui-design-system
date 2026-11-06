@@ -6,10 +6,10 @@ export default { title: 'Forms/DateRangePicker', component: UI.DateRangePicker }
 function D() {
   const t = new Date();
   t.setHours(0, 0, 0, 0);
-  const v = React.useState<[Date | null, Date | null]>([new Date(t.getFullYear(), t.getMonth(), t.getDate() - 6), t]);
+  const [v, setV] = React.useState<[Date | null, Date | null]>([new Date(t.getFullYear(), t.getMonth(), t.getDate() - 6), t]);
   return (
     <div style={{ padding: 20, minHeight: 420 }}>
-      <UI.DateRangePicker label="報表期間" value={v[0]} onChange={v[1]} />
+      <UI.DateRangePicker label="報表期間" value={v} onChange={setV} />
     </div>
   );
 }

@@ -23,11 +23,17 @@ export interface DrawerProps {
 export function Drawer({ open, onClose, title, actions, dirty, width, confirmTitle, confirmText, children }: DrawerProps) {
   const [asking, setAsking] = React.useState(false);
   const request = () => (dirty ? setAsking(true) : onClose());
+  const panel = React.useRef<HTMLDivElement>(null);
+  // Focus the first field (or action), not the close button.
+  const firstField = () =>
+    panel.current?.querySelector<HTMLElement>(
+      '.ui-drawer-body :is(input, textarea, select, button, [tabindex]):not([disabled], [tabindex="-1"]), .ui-drawer-foot button:not([disabled])',
+    ) ?? true;
   return (
     <Base.Root open={open} onOpenChange={(next) => !next && request()}>
       <Base.Portal>
         <Base.Backdrop className="ui-drawer-backdrop" />
-        <Base.Popup className="ui-drawer" style={width ? { width } : undefined}>
+        <Base.Popup ref={panel} initialFocus={firstField} className="ui-drawer" style={width ? { width } : undefined}>
           <div className="ui-drawer-head">
             <Base.Title className="ui-drawer-title">{title}</Base.Title>
             <button type="button" className="ui-drawer-close ui-dialog-close" aria-label={tr('關閉')} onClick={request}>

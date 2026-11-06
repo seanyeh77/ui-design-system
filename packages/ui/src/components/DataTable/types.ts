@@ -5,17 +5,13 @@ export type Row = object;
 /** The string keys of a row type. */
 export type RowKey<R extends Row> = Extract<keyof R, string>;
 
-export interface DataTableColumn<R extends Row = Record<string, unknown>> {
-  /** The field shown in this column. */
-  key: RowKey<R>;
+interface ColumnBase<R extends Row> {
   /** Header text; never wraps. */
   label: string;
   /** Numbers: right-aligned with tabular figures. */
   numeric?: boolean;
   /** After each value: '%', 'ms', '個'. Write it here, not in the label. */
   unit?: string;
-  /** Your own cell content (a Badge, a link). Return plain values from searchText for search. */
-  render?: (row: R) => React.ReactNode;
   sortable?: boolean;
   /** What to sort by when it is not the field itself. */
   sortValue?: (row: R) => number | string;
@@ -32,6 +28,22 @@ export interface DataTableColumn<R extends Row = Record<string, unknown>> {
   /** Long text: 2 lines with 「顯示全部」 on phone cards, one line with an ellipsis on desktop. */
   long?: boolean;
 }
+
+/** A column shows a field of the row (key is checked against the row type), or computes its cell with render (any key). */
+export type DataTableColumn<R extends Row = Record<string, unknown>> = ColumnBase<R> &
+  (
+    | {
+        /** The field shown in this column. */
+        key: RowKey<R>;
+        /** Your own cell content (a Badge, a link). Give searchText too, so search finds it. */
+        render?: (row: R) => React.ReactNode;
+      }
+    | {
+        /** A column that is not a field: any unique key, with render (and searchText / sortValue for search and sort). */
+        key: string;
+        render: (row: R) => React.ReactNode;
+      }
+  );
 
 export interface FilterOption {
   value: string;

@@ -5,6 +5,7 @@ import { CodeText, type OnRef, type RefHref } from '../InlineCode/InlineCode';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx, useNarrow } from '../../internal/util';
+import { FloatingPanel } from '../../internal/FloatingPanel';
 
 export interface TermProps {
   /** The word or label that needs explaining. */
@@ -81,13 +82,8 @@ export function Term({ children, title, text, content, code, action, refHref, on
       </Dialog.Root>
     );
   return (
-    <Popover.Root open={open} onOpenChange={setOpen}>
-      <Popover.Trigger render={trigger} />
-      <Popover.Portal>
-        <Popover.Positioner className="ui-float" side="bottom" align="start" sideOffset={8}>
-          <Popover.Popup className="ui-term-pop">{body(Popover.Title, Popover.Close)}</Popover.Popup>
-        </Popover.Positioner>
-      </Popover.Portal>
-    </Popover.Root>
+    <FloatingPanel open={open} onOpenChange={setOpen} sideOffset={8} className="ui-term-pop" trigger={trigger}>
+      {body(Popover.Title, Popover.Close)}
+    </FloatingPanel>
   );
 }

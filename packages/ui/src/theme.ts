@@ -5,7 +5,7 @@ import { reduced, store } from './internal/util';
 
 export type ThemeSetting = 'auto' | 'light' | 'dark';
 
-export const THEME_KEY = 'ui-theme';
+const THEME_KEY = 'ui-theme';
 export const ACCENT_KEY = 'ui-accent';
 export const DEFAULT_ACCENT = '#2457d6';
 

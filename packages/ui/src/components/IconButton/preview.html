@@ -1,18 +1,29 @@
 <!-- @dsCard group="Actions" height=80 -->
 <!doctype html>
 <html lang="zh-Hant">
-<head><meta charset="utf-8"><title>IconButton — preview</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-<div id="root"></div>
-<script>
-  var U = window.UI, h = React.createElement;
-  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { className: 'ui-row' },
-    h(U.IconButton, { label: '設定', icon: U.icons['sliders-horizontal'] }),
-    h(U.IconButton, { label: '關閉', icon: U.icons.close }),
-    h(U.IconButton, { label: '收合側邊欄', icon: U.icons['panel-left-close'] })));
-</script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>IconButton — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      ReactDOM.createRoot(document.getElementById('root')).render(
+        h(
+          'div',
+          { className: 'ui-row' },
+          h(U.IconButton, { label: '設定', icon: U.icons['sliders-horizontal'] }),
+          h(U.IconButton, { label: '關閉', icon: U.icons.x }),
+          h(U.IconButton, { label: '收合側邊欄', icon: U.icons['panel-left-close'] }),
+        ),
+      );
+    </script>
+  </body>
 </html>

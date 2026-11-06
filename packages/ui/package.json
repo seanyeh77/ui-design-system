@@ -37,8 +37,8 @@
     "test": "vitest run"
   },
   "peerDependencies": {
-    "react": ">=18",
-    "react-dom": ">=18"
+    "react": ">=19",
+    "react-dom": ">=19"
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.3",

@@ -8,10 +8,10 @@
 - 文字用主要文字色 `ink`，顏色只出現在進度圓圈上。
 - 5 種狀態與進度圓圈：
 
-| status | 文字 | 進度圓圈 | 顏色 |
-|---|---|---|---|
-| `draft` | 草稿 | 空心 | `neutral-500` |
-| `doing` | 進行中 | 半滿 | `accent` |
-| `review` | 審核中 | 四分之一 | `warning` |
-| `done` | 完成 | 全滿 | `success` |
-| `fail` | 失敗 | 全滿 | `danger` |
+| status   | 文字   | 進度圓圈 | 顏色          |
+| -------- | ------ | -------- | ------------- |
+| `draft`  | 草稿   | 空心     | `neutral-500` |
+| `doing`  | 進行中 | 半滿     | `accent`      |
+| `review` | 審核中 | 四分之一 | `warning`     |
+| `done`   | 完成   | 全滿     | `success`     |
+| `fail`   | 失敗   | 全滿     | `danger`      |

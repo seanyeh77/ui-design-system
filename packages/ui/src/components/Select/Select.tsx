@@ -4,6 +4,7 @@ import { Combobox } from '@base-ui/react/combobox';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
+import { FieldLabel } from '../../internal/Field';
 
 export interface SelectOption<V extends string = string> {
   value: V;
@@ -38,14 +39,9 @@ export function Select<V extends string = string>(props: SelectProps<V>) {
   const labelId = React.useId();
   const current = options.find((o) => o.value === value) ?? null;
   const head = label ? (
-    <span id={labelId} className="ui-field-label">
+    <FieldLabel id={labelId} required={required}>
       {label}
-      {required ? (
-        <span className="ui-req" aria-hidden="true">
-          {' *'}
-        </span>
-      ) : null}
-    </span>
+    </FieldLabel>
   ) : null;
   const trigger = (
     <>

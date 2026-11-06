@@ -6,14 +6,14 @@
 h(UI.TreeList, {
   title: '課程教材',
   items: [
-    { id: 'rec', name: '上課錄影', children: [
-      { id: 'r4', name: 'SDNFV_20261029_1.mp4', date: '2026-11-05T01:16', size: 144284057, unseen: true }
-    ] },
-    { id: 'f1', name: '課程評分方式.docx', date: '2026-09-22', size: 53248 }
+    { id: 'rec', name: '上課錄影', children: [{ id: 'r4', name: 'SDNFV_20261029_1.mp4', date: '2026-11-05T01:16', size: 144284057, unseen: true }] },
+    { id: 'f1', name: '課程評分方式.docx', date: '2026-09-22', size: 53248 },
   ],
   defaultOpen: ['rec'],
-  onDownload: function (files) { /* 一個或多個檔案 */ }
-})
+  onDownload: function (files) {
+    /* 一個或多個檔案 */
+  },
+});
 ```
 
 ## 資料
@@ -55,13 +55,25 @@ h(UI.TreeList, {
 
 ```js
 h(UI.TreeList, {
-  kind: 'plain', label: '呼叫流程',
-  items: [{ id: 'root', name: 'trace_post_send', path: 'src/libibtrace/hooks/ops.c:55', children: [
-    { id: 'hook_of', name: 'hook_of', path: 'src/libibtrace/hooks/ops.c:58', tags: ['編譯器'] },
-    { id: 'gettime', name: 'clock_gettime', meta: 'libc.so.6', tags: ['外部'], muted: true }
-  ] }],
-  defaultOpen: ['root'], selectedId: sel, onSelect: function (n) { setSel(n.id); }
-})
+  kind: 'plain',
+  label: '呼叫流程',
+  items: [
+    {
+      id: 'root',
+      name: 'trace_post_send',
+      path: 'src/libibtrace/hooks/ops.c:55',
+      children: [
+        { id: 'hook_of', name: 'hook_of', path: 'src/libibtrace/hooks/ops.c:58', tags: ['編譯器'] },
+        { id: 'gettime', name: 'clock_gettime', meta: 'libc.so.6', tags: ['外部'], muted: true },
+      ],
+    },
+  ],
+  defaultOpen: ['root'],
+  selectedId: sel,
+  onSelect: function (n) {
+    setSel(n.id);
+  },
+});
 ```
 
 - 每一列：名稱、分類標籤（`tags`，用 `UI.Tag` 顯示），名稱下方是位置：`meta` 直接顯示，或 `path` 用 `UI.format.path()` 保留頭尾、中間省略。

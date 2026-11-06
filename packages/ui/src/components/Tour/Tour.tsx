@@ -81,14 +81,20 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
   const end = (why: 'done' | 'skip') => onClose?.(why);
 
   // Follow the target while it moves (scrolling, layout changes).
+  // Depends on the step's fields, not the object: inline steps arrays are new on every render.
+  const target = step?.target;
+  const pad = step?.padding ?? 6;
+  const hasStep = !!step;
   React.useEffect(() => {
-    if (!open || !step) return;
-    findTarget(step.target)?.scrollIntoView?.({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
+    if (!open || !hasStep) return;
+    // A selector is looked up again until it appears (the target may render later), then kept.
+    let el = findTarget(target);
+    el?.scrollIntoView?.({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
     let raf = 0;
     let last = '';
     const tick = () => {
-      const r = findTarget(step.target)?.getBoundingClientRect();
-      const pad = step.padding ?? 6;
+      if (!el?.isConnected) el = findTarget(target);
+      const r = el?.getBoundingClientRect();
       let v: Box | null = null;
       if (r && r.width) {
         const l = Math.max(3, r.left - pad);
@@ -109,7 +115,7 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
     };
     tick();
     return () => cancelAnimationFrame(raf);
-  }, [open, step]);
+  }, [open, hasStep, i, target, pad]);
 
   const anchor = React.useMemo(
     () => ({

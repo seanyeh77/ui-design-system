@@ -1,16 +1,69 @@
 <!-- @dsCard group="Overlays" height=120 -->
 <!doctype html>
 <html lang="zh-Hant">
-<head><meta charset="utf-8"><title>Drawer — preview</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-<div id="root"></div>
-<script>
-  var U = window.UI, h = React.createElement;
-  function D(){var o=React.useState(false),n=React.useState('叢集監控'),d=React.useState(false); function close(){o[1](false);d[1](false);} return h('div',{style:{padding:20}}, h(U.Button,{variant:'secondary',onClick:function(){n[1]('叢集監控');d[1](false);o[1](true);}},'編輯專案'), h(U.Drawer,{open:o[0],onClose:close,title:'編輯專案',dirty:d[0],actions:[h(U.Button,{key:'c',variant:'secondary',onClick:close},'取消'),h(U.Button,{key:'s',variant:'primary',onClick:close},'儲存')]}, h(U.TextField,{label:'名稱',required:true,value:n[0],onChange:function(e){n[1](e.target.value);d[1](true);}}), h('div',{style:{fontSize:13,color:'var(--ink-muted)'}},'改一下名稱再關閉，會先問要不要放棄變更。')));}
-  ReactDOM.createRoot(document.getElementById('root')).render(h(D));
-</script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Drawer — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      function D() {
+        var o = React.useState(false),
+          n = React.useState('叢集監控'),
+          d = React.useState(false);
+        function close() {
+          o[1](false);
+          d[1](false);
+        }
+        return h(
+          'div',
+          { style: { padding: 20 } },
+          h(
+            U.Button,
+            {
+              variant: 'secondary',
+              onClick: function () {
+                n[1]('叢集監控');
+                d[1](false);
+                o[1](true);
+              },
+            },
+            '編輯專案',
+          ),
+          h(
+            U.Drawer,
+            {
+              open: o[0],
+              onClose: close,
+              title: '編輯專案',
+              dirty: d[0],
+              actions: [
+                h(U.Button, { key: 'c', variant: 'secondary', onClick: close }, '取消'),
+                h(U.Button, { key: 's', variant: 'primary', onClick: close }, '儲存'),
+              ],
+            },
+            h(U.TextField, {
+              label: '名稱',
+              required: true,
+              value: n[0],
+              onChange: function (e) {
+                n[1](e.target.value);
+                d[1](true);
+              },
+            }),
+            h('div', { style: { fontSize: 13, color: 'var(--ink-muted)' } }, '改一下名稱再關閉，會先問要不要放棄變更。'),
+          ),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+    </script>
+  </body>
 </html>

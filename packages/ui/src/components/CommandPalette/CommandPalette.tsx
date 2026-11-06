@@ -82,12 +82,26 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
   } = props;
   const [q, setQ] = React.useState(defaultQuery);
   const [active, setActive] = React.useState(0);
+  // Every open starts from the default query; opens come from the open prop, so compare during render.
+  const [wasOpen, setWasOpen] = React.useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setQ(defaultQuery);
+      setActive(0);
+    }
+  }
   const list = React.useRef<HTMLUListElement>(null);
   const id = React.useId();
   const toggle = React.useRef(onOpenChange);
+  const reportQuery = React.useRef(onQueryChange);
   React.useLayoutEffect(() => {
     toggle.current = onOpenChange;
+    reportQuery.current = onQueryChange;
   });
+  React.useEffect(() => {
+    if (open) reportQuery.current?.(defaultQuery);
+  }, [open, defaultQuery]);
   React.useEffect(() => {
     if (!hotkey) return;
     const key = (e: KeyboardEvent) => {
@@ -149,16 +163,7 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
   };
   const empty = query ? tr('找不到符合「{q}」的結果', { q: q.trim() }) : emptyText || tr('輸入名稱開始搜尋');
   return (
-    <Dialog.Root
-      open={open}
-      onOpenChange={(next) => {
-        if (next) {
-          setQ(defaultQuery);
-          setActive(0);
-        }
-        onOpenChange(next);
-      }}
-    >
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Backdrop className="ui-pal-backdrop" />
         <Dialog.Popup className="ui-pal" aria-label={label || tr('搜尋')}>
@@ -170,8 +175,8 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
               value={q}
               placeholder={placeholder || tr('搜尋')}
               role="combobox"
-              aria-expanded
-              aria-controls={id}
+              aria-expanded={shown.length > 0}
+              aria-controls={shown.length ? id : undefined}
               aria-autocomplete="list"
               aria-activedescendant={shown[act] ? `${id}-${act}` : undefined}
               autoComplete="off"

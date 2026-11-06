@@ -1,16 +1,70 @@
 <!-- @dsCard group="Overlays" height=340 -->
 <!doctype html>
 <html lang="zh-Hant">
-<head><meta charset="utf-8"><title>Popover — preview</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-<div id="root"></div>
-<script>
-  var U = window.UI, h = React.createElement;
-  var S=[['doing','進行中'],['review','審核中'],['done','完成'],['draft','草稿']]; function D(){var f=React.useState({doing:true}); var n=S.filter(function(x){return f[0][x[0]];}).length; return h('div',{style:{display:'flex',justifyContent:'flex-end',padding:20,minHeight:300}}, h(U.Popover,{label:'篩選',icon:U.icons['funnel'],count:n||null,title:'篩選狀態'}, function(close){return h('div',{style:{display:'flex',flexDirection:'column'}}, S.map(function(x){return h(U.Checkbox,{key:x[0],label:x[1],checked:!!f[0][x[0]],onChange:function(v){var o=Object.assign({},f[0]);o[x[0]]=v;f[1](o);}});}), h('div',{style:{display:'flex',justifyContent:'flex-end',gap:8,marginTop:8}}, h(U.Button,{variant:'secondary',onClick:function(){f[1]({});}},'清除'), h(U.Button,{variant:'primary',onClick:close},'套用')));}));}
-  ReactDOM.createRoot(document.getElementById('root')).render(h(D));
-</script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Popover — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      var S = [
+        ['doing', '進行中'],
+        ['review', '審核中'],
+        ['done', '完成'],
+        ['draft', '草稿'],
+      ];
+      function D() {
+        var f = React.useState({ doing: true });
+        var n = S.filter(function (x) {
+          return f[0][x[0]];
+        }).length;
+        return h(
+          'div',
+          { style: { display: 'flex', justifyContent: 'flex-end', padding: 20, minHeight: 300 } },
+          h(U.Popover, { label: '篩選', icon: U.icons['funnel'], count: n || null, title: '篩選狀態' }, function (close) {
+            return h(
+              'div',
+              { style: { display: 'flex', flexDirection: 'column' } },
+              S.map(function (x) {
+                return h(U.Checkbox, {
+                  key: x[0],
+                  label: x[1],
+                  checked: !!f[0][x[0]],
+                  onChange: function (v) {
+                    var o = Object.assign({}, f[0]);
+                    o[x[0]] = v;
+                    f[1](o);
+                  },
+                });
+              }),
+              h(
+                'div',
+                { style: { display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 } },
+                h(
+                  U.Button,
+                  {
+                    variant: 'secondary',
+                    onClick: function () {
+                      f[1]({});
+                    },
+                  },
+                  '清除',
+                ),
+                h(U.Button, { variant: 'primary', onClick: close }, '套用'),
+              ),
+            );
+          }),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+    </script>
+  </body>
 </html>

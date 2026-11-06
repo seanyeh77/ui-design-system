@@ -4,22 +4,22 @@ import * as UI from '../../index';
 export default { title: 'Pages/SettingsLayout', component: UI.SettingsLayout };
 
 function D() {
-  const t = React.useState(''),
-    n = React.useState('SeanYeh'),
-    a = React.useState(true),
+  const [t, setT] = React.useState(''),
+    [n, setN] = React.useState('SeanYeh'),
+    [a, setA] = React.useState(true),
     tm = React.useRef<ReturnType<typeof setTimeout>>(undefined);
   function saved() {
-    t[1]('已儲存');
+    setT('已儲存');
     clearTimeout(tm.current);
     tm.current = setTimeout(() => {
-      t[1]('');
+      setT('');
     }, 3000);
   }
   return (
     <div style={{ padding: 20, height: 520, boxSizing: 'border-box', overflow: 'auto' }}>
       <UI.SettingsLayout
         title="設定"
-        toast={t[0]}
+        toast={t}
         categories={[
           {
             id: 'profile',
@@ -28,9 +28,9 @@ function D() {
               <UI.SettingsSection title="個人資料">
                 <UI.TextField
                   label="名稱"
-                  value={n[0]}
-                  onChange={function (e) {
-                    n[1](e.target.value);
+                  value={n}
+                  onChange={(e) => {
+                    setN(e.target.value);
                   }}
                   onBlur={saved}
                 />
@@ -46,9 +46,9 @@ function D() {
                   Email 通知
                   <UI.Switch
                     label="Email 通知"
-                    checked={a[0]}
-                    onChange={function (v) {
-                      a[1](v);
+                    checked={a}
+                    onChange={(v) => {
+                      setA(v);
                       saved();
                     }}
                   />
@@ -67,7 +67,7 @@ function D() {
                   description="刪除後，所有專案和資料都無法復原。"
                   actionLabel="刪除帳號"
                   confirm={{ title: '刪除帳號？', body: '所有專案和資料會一起刪除，無法復原。' }}
-                  onAction={function () {}}
+                  onAction={() => {}}
                 />
               </React.Fragment>
             ),

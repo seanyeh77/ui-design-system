@@ -8,7 +8,7 @@ import { Button } from '../Button/Button';
 
 export interface DialogProps {
   /** Shows the dialog over a blurred backdrop, with focus trapped inside and Esc to close.
-   *  Leave it out only to draw the panel inline (a static preview). */
+   *  Required unless modal={false}. */
   open?: boolean;
   /** Called on Esc, a press on the backdrop, × and the cancel button. */
   onClose?: () => void;
@@ -30,14 +30,19 @@ export interface DialogProps {
   className?: string;
   /** @deprecated the id is generated. */
   titleId?: string;
-  /** @deprecated use open: without it the panel is drawn inline. */
-  modal?: boolean;
+  /** false: draw the panel inline, as a static preview in docs. Without it, pass open. */
+  modal?: false;
 }
 
 /** A centered 400 px dialog for a decision. Secondary button left, primary right. */
 export function Dialog(props: DialogProps) {
   const { open, onClose, title, children, confirmLabel, onConfirm, cancelLabel, tone = 'default', confirmLoading, actions, className } = props;
   devWarn((confirmLabel !== undefined) !== !!onConfirm, 'Dialog', 'confirmLabel and onConfirm go together; pass both, or pass actions.');
+  devWarn(
+    open === undefined && props.modal !== false,
+    'Dialog',
+    'pass open={…} (and onClose) to show a dialog; rendering it conditionally without open draws a static panel with no focus trap or Esc. Use modal={false} for a static preview.',
+  );
   devWarn(open !== undefined && !onClose, 'Dialog', 'an open dialog needs onClose, or Esc and the backdrop cannot close it.');
   const footer =
     actions ??

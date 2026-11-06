@@ -5,6 +5,5 @@ site/
 **/icons/data.ts
 *.md
 *.html
-*.css
 packages/tokens/fonts/
 .changeset/

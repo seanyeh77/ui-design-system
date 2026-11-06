@@ -18,7 +18,7 @@ function App() {
     <div>
       <UI.TopBar
         title="流程"
-        onSearch={function () {
+        onSearch={() => {
           setOpen(true);
         }}
       />
@@ -30,7 +30,7 @@ function App() {
         recent={ITEMS.slice(0, 2)}
         defaultQuery="post"
         placeholder="搜尋函式、檔案、元件"
-        onSelect={function (it) {
+        onSelect={(it) => {
           setPicked(it.label);
         }}
       />

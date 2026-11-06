@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Popover } from '@base-ui/react/popover';
-import { cx } from './util';
 
 export interface FloatingPanelProps {
   open: boolean;
@@ -12,12 +11,8 @@ export interface FloatingPanelProps {
   sideOffset?: number;
   /** Class of the panel (it carries the look: .ui-datepop, .ui-noti …). */
   className?: string;
-  /** Match the trigger's width. */
-  matchWidth?: boolean;
   /** Accessible name of the panel. */
   'aria-label'?: string;
-  /** Which element gets focus on open. Default: the first focusable one. */
-  initialFocus?: React.RefObject<HTMLElement | null> | boolean;
   /** Position against this element instead of the trigger (e.g. the whole field around a calendar button). */
   anchor?: React.RefObject<Element | null>;
   /** Open on hover as well as on press. */
@@ -34,8 +29,6 @@ export function FloatingPanel({
   align = 'start',
   sideOffset = 6,
   className,
-  matchWidth,
-  initialFocus,
   openOnHover,
   anchor,
   children,
@@ -45,8 +38,8 @@ export function FloatingPanel({
     <Popover.Root open={open} onOpenChange={onOpenChange}>
       <Popover.Trigger render={trigger} openOnHover={openOnHover} delay={0} closeDelay={150} />
       <Popover.Portal>
-        <Popover.Positioner className={cx('ui-float', matchWidth && 'is-match')} side={side} align={align} sideOffset={sideOffset} anchor={anchor}>
-          <Popover.Popup className={className} aria-label={aria['aria-label']} initialFocus={initialFocus}>
+        <Popover.Positioner className="ui-float" side={side} align={align} sideOffset={sideOffset} anchor={anchor}>
+          <Popover.Popup className={className} aria-label={aria['aria-label']}>
             {children}
           </Popover.Popup>
         </Popover.Positioner>

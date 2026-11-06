@@ -73,7 +73,7 @@ function Demo() {
               key={n.id}
               className={near(n.id) ? '' : 'is-dim'}
               style={{ cursor: 'pointer' }}
-              onClick={function () {
+              onClick={() => {
                 setSel(sel === n.id ? null : n.id);
               }}
             >

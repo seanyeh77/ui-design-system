@@ -10,14 +10,14 @@ const S = [
   ['draft', '草稿'],
 ];
 function D() {
-  const f = React.useState<Record<string, boolean>>({ doing: true });
+  const [f, setF] = React.useState<Record<string, boolean>>({ doing: true });
   const n = S.filter((x) => {
-    return f[0][x[0]];
+    return f[x[0]];
   }).length;
   return (
     <div style={{ display: 'flex', justifyContent: 'flex-end', padding: 20, minHeight: 300 }}>
       <UI.Popover label="篩選" icon={'funnel'} count={n || undefined} title="篩選狀態">
-        {function (close) {
+        {(close) => {
           return (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {S.map((x) => {
@@ -25,11 +25,11 @@ function D() {
                   <UI.Checkbox
                     key={x[0]}
                     label={x[1]}
-                    checked={!!f[0][x[0]]}
-                    onChange={function (v) {
-                      const o = Object.assign({}, f[0]);
+                    checked={!!f[x[0]]}
+                    onChange={(v) => {
+                      const o = { ...f };
                       o[x[0]] = v;
-                      f[1](o);
+                      setF(o);
                     }}
                   />
                 );
@@ -37,8 +37,8 @@ function D() {
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
                 <UI.Button
                   variant="secondary"
-                  onClick={function () {
-                    f[1]({});
+                  onClick={() => {
+                    setF({});
                   }}
                 >
                   清除

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ChartTip, fmtNum, niceMax } from '../../internal/chart';
+import { ChartTip, TICKS, fmtNum, tickDecimals, niceMax } from '../../internal/chart';
 import { cx, digits } from '../../internal/util';
 
 export interface BarDatum {
@@ -14,21 +14,23 @@ export interface BarChartProps {
   /** Describes the chart for screen readers. */
   label: string;
   unit?: string;
+  /** Decimals of the values in the tooltip. Default 0. */
+  decimals?: number;
   max?: number;
   className?: string;
 }
 
 /** Compares a few categories: rounded bars that grow in, a tooltip on hover. */
-export function BarChart({ data, label, unit, max, className }: BarChartProps) {
+export function BarChart({ data, label, unit, decimals, max, className }: BarChartProps) {
   const [hi, setHi] = React.useState(-1);
   const top = max || niceMax(Math.max(1, ...data.map((d) => d.value)));
   const suffix = unit ? ' ' + unit : '';
   return (
     <div className={cx('ui-chart', className)}>
       <div className="ui-bars" role="img" aria-label={label} onMouseLeave={() => setHi(-1)}>
-        {[0, 0.25, 0.5, 0.75, 1].map((f, i) => (
+        {TICKS.map((f, i) => (
           <div key={'g' + i} className={cx('ui-bars-grid', !i && 'is-axis')} style={{ bottom: f * 100 + '%' }}>
-            <span className="ui-chart-tick">{fmtNum(f * top)}</span>
+            <span className="ui-chart-tick">{fmtNum(f * top, tickDecimals(top))}</span>
           </div>
         ))}
         <div className="ui-bars-row">
@@ -40,7 +42,7 @@ export function BarChart({ data, label, unit, max, className }: BarChartProps) {
                 {hi === i ? (
                   <ChartTip
                     style={{ bottom: `calc(${ht} + 8px)`, left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap' }}
-                    rows={[{ name: d.label, value: fmtNum(d.value) + suffix }]}
+                    rows={[{ name: d.label, value: fmtNum(d.value, decimals) + suffix }]}
                   />
                 ) : null}
               </div>

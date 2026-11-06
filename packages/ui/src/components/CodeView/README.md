@@ -11,7 +11,11 @@
 
 ```js
 h(UI.CodeView, {
-  file: 'src/libibtrace/hooks/ops.c', fileHref: '#/file/ops.c',
-  code: source, start: 70, target: 74, maxHeight: '420px'
-})
+  file: 'src/libibtrace/hooks/ops.c',
+  fileHref: '#/file/ops.c',
+  code: source,
+  start: 70,
+  target: 74,
+  maxHeight: '420px',
+});
 ```

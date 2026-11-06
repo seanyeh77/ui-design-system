@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CHART, ChartTip, fmtNum, niceMax, smoothPath } from '../../internal/chart';
+import { ChartTip, TICKS, fmtNum, tickDecimals, niceMax, seriesColor, smoothPath } from '../../internal/chart';
 import { cx, digits } from '../../internal/util';
 
 export interface LineSeries {
@@ -16,6 +16,8 @@ export interface LineChartProps {
   label: string;
   /** After each value in the tooltip. */
   unit?: string;
+  /** Decimals of the values in the tooltip. Default 0. */
+  decimals?: number;
   /** Top of the y axis. Default: a round number above the largest value. */
   max?: number;
   /** Show every nth x label when they would crowd. */
@@ -29,14 +31,14 @@ const T = 10;
 const B = 210;
 
 /** A trend over time: smooth lines, 5 grid lines, a guide and tooltip on hover. */
-export function LineChart({ series, labels, label, unit, max, labelEvery = 1, className }: LineChartProps) {
+export function LineChart({ series, labels, label, unit, decimals, max, labelEvery = 1, className }: LineChartProps) {
   const [hi, setHi] = React.useState(-1);
   const top = max || niceMax(Math.max(1, ...series.flatMap((s) => s.values)));
   const n = labels.length || series[0]?.values.length || 0;
   const step = (R - L) / Math.max(1, n - 1);
   const X = (i: number) => L + i * step;
   const Y = (v: number) => B - (v / top) * (B - T);
-  const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => f * top);
+  const ticks = TICKS.map((f) => f * top);
   const suffix = unit ? ' ' + unit : '';
   const edge = { left: ((L - step / 2) / 640) * 100 + '%', right: ((640 - R - step / 2) / 640) * 100 + '%' };
   return (
@@ -45,7 +47,7 @@ export function LineChart({ series, labels, label, unit, max, labelEvery = 1, cl
         <div className="ui-chart-legend">
           {series.map((s, i) => (
             <span key={i}>
-              <span className="ui-chart-swatch" style={{ background: CHART[i % 3] }} />
+              <span className="ui-chart-swatch" style={{ background: seriesColor(i) }} />
               {s.name}
             </span>
           ))}
@@ -57,7 +59,7 @@ export function LineChart({ series, labels, label, unit, max, labelEvery = 1, cl
             <g key={i}>
               <line x1={L} x2={R} y1={Y(v)} y2={Y(v)} className={i ? 'ui-chart-grid' : 'ui-chart-axis'} />
               <text x={L - 8} y={Y(v) + 4} textAnchor="end" className="ui-chart-tick">
-                {fmtNum(v)}
+                {fmtNum(v, tickDecimals(top))}
               </text>
             </g>
           ))}
@@ -67,7 +69,7 @@ export function LineChart({ series, labels, label, unit, max, labelEvery = 1, cl
               d={smoothPath(s.values.map((v, j) => [X(j), Y(v)]))}
               pathLength={1}
               className="ui-chart-line"
-              style={{ stroke: CHART[i % 3], animationDelay: i * 150 + 'ms' }}
+              style={{ stroke: seriesColor(i), animationDelay: i * 150 + 'ms' }}
             />
           ))}
         </svg>
@@ -78,7 +80,7 @@ export function LineChart({ series, labels, label, unit, max, labelEvery = 1, cl
                 <>
                   <div className="ui-chart-guide" />
                   {series.map((s, i) => (
-                    <span key={i} className="ui-chart-dot" style={{ top: (Y(s.values[j]) / 210) * 100 + '%', background: CHART[i % 3] }} />
+                    <span key={i} className="ui-chart-dot" style={{ top: (Y(s.values[j]) / B) * 100 + '%', background: seriesColor(i) }} />
                   ))}
                 </>
               ) : null}
@@ -89,7 +91,7 @@ export function LineChart({ series, labels, label, unit, max, labelEvery = 1, cl
           <ChartTip
             title={labels[hi]}
             style={{ left: (X(hi) / 640) * 100 + '%', transform: hi > n * 0.65 ? 'translateX(calc(-100% - 12px))' : 'translateX(12px)' }}
-            rows={series.map((s, i) => ({ color: CHART[i % 3], name: s.name, value: fmtNum(s.values[hi]) + suffix }))}
+            rows={series.map((s, i) => ({ color: seriesColor(i), name: s.name, value: fmtNum(s.values[hi], decimals) + suffix }))}
           />
         ) : null}
       </div>
