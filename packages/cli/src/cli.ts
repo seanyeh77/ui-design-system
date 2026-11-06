@@ -44,6 +44,9 @@ function list() {
   }
 }
 
+/** The page itself could not be opened: a wrong path, no server, or an HTTP error. */
+class Unreachable extends Error {}
+
 async function check(targets: string[], opts: { shots?: string; strict: boolean; wait: number }) {
   const { chromium } = await import('playwright');
   const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}).catch((e: unknown) => {
@@ -80,9 +83,16 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
           const errors: string[] = [];
           page.on('pageerror', (e) => errors.push(String(e)));
           page.on('console', (m) => {
-            if (m.type() === 'error') errors.push(m.text());
+            if (m.type() !== 'error') return;
+            const src = m.location().url;
+            // Chromium asks every server for /favicon.ico; a missing one is not the page's error.
+            if (/\/favicon\.ico$/.test(src)) return;
+            errors.push(src && src !== url ? `${m.text()} (${src})` : m.text());
           });
-          await page.goto(url, { waitUntil: 'load' });
+          const resp = await page.goto(url, { waitUntil: 'load' }).catch((e: unknown) => {
+            throw new Unreachable(String(e).split('\n')[0]);
+          });
+          if (resp && !resp.ok()) throw new Unreachable(`HTTP ${resp.status()}`);
           await page.evaluate((t) => {
             const r = document.documentElement;
             if (r.hasAttribute('data-theme') || 'UI' in window) r.setAttribute('data-theme', t);
@@ -126,8 +136,9 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
     const r = lanes[i % 4]
       .then(() => checkOne(job))
       .catch((e: unknown) => {
+        if (!(e instanceof Unreachable)) return { out: [job.url, `  check crashed: ${String(e).split('\n')[0]}`], bad: true };
         unreachable = true;
-        return { out: [job.url, `  could not load: ${String(e).split('\n')[0]}. Check the path, or start the server first.`], bad: true };
+        return { out: [job.url, `  could not load: ${e.message}. Check the path, or start the server first.`], bad: true };
       });
     lanes[i % 4] = r;
     return r;

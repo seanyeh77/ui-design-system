@@ -14,6 +14,8 @@ tester.run('no-raw-color', rules['no-raw-color'], {
     '<div style={{ color: map["red"] }} />',
     '<div style={{ color: tone[ok ? "green" : "red"] }} />',
     '<div style={{ background: tone[s ?? "red"] }} />',
+    '<div style={{ color: s === "red" ? cssVar("danger") : cssVar("ink") }} />',
+    '<div style={{ background: ["red", "green"].includes(s) ? cssVar("danger") : undefined }} />',
     '<div className="bg-surface text-ink" />',
   ],
   invalid: [

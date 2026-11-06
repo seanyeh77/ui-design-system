@@ -70,16 +70,21 @@ const noRawColor: Rule.RuleModule = {
       'JSXAttribute[name.name="style"] Literal'(node: Node) {
         const v = valueOf(node);
         if (typeof v !== 'string') return;
-        // tone['red'] or tone[ok ? 'green' : 'red'] is a lookup key, not a value.
+        // tone['red'] or tone[ok ? 'green' : 'red'] is a lookup key, not a value. A color name counts only where it
+        // becomes the value (through ?:, &&, ??, as); s === 'red' or ['red'].includes(s) only compares a status.
         let p: Node | null = node.parent;
+        let isValue = true;
         for (let c: Node = node; p && p.type !== 'Property'; c = p, p = p.parent) {
-          const m = p as unknown as { type: string; computed?: boolean; property?: unknown };
+          const m = p as unknown as { type: string; computed?: boolean; property?: unknown; test?: unknown };
           if (m.type === 'MemberExpression' && m.computed && m.property === c) return;
+          const passes =
+            (m.type === 'ConditionalExpression' && m.test !== c) || ['LogicalExpression', 'TSAsExpression', 'TSSatisfiesExpression'].includes(m.type);
+          if (!passes) isValue = false;
         }
         if (!p) return;
         const key = (p as unknown as { key?: Node & { name?: string; value?: unknown } }).key;
         if (key === node) return;
-        check(node, v, String(key?.name ?? key?.value ?? ''));
+        check(node, v, isValue ? String(key?.name ?? key?.value ?? '') : '');
       },
       'JSXAttribute[name.name=/^(className|class)$/] Literal'(node: Node) {
         const v = valueOf(node);
