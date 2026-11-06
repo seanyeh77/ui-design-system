@@ -47,8 +47,8 @@ export function MobileTabBar({ items, value, onChange, label, className }: Mobil
           aria-label={t.label}
           aria-current={i === idx ? 'page' : undefined}
           onClick={() => {
-            if (i === idx) return;
-            setForward(i > idx);
+            // The selected tab still reports a press: a tab like 「更多」 opens something each time.
+            if (i !== idx) setForward(i > idx);
             onChange?.(t.id);
           }}
         >

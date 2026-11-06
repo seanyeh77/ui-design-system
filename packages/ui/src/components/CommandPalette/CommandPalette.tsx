@@ -136,6 +136,8 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
     onSelect?.(it);
   };
   const onKey = (e: React.KeyboardEvent) => {
+    // Enter and arrows during IME composition (注音, 倉頡) belong to the input method.
+    if (e.nativeEvent.isComposing || e.keyCode === 229) return;
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
       const d = e.key === 'ArrowDown' ? 1 : -1;

@@ -20,5 +20,11 @@ export function IconButton({ label, icon, className, tooltip = true, ...native }
       <IconOf icon={icon} />
     </button>
   );
-  return tooltip ? <Tooltip label={label}>{btn}</Tooltip> : btn;
+  return tooltip ? (
+    <Tooltip label={label} describe={false}>
+      {btn}
+    </Tooltip>
+  ) : (
+    btn
+  );
 }

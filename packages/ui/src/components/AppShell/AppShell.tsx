@@ -52,6 +52,7 @@ export function AppShell({ nav, value, onNavigate, brand, title, breadcrumb, onS
   const tabValue = tabs.some((t) => t.id === current) ? current : MORE;
   const onTab = (id: string) => {
     if (id === MORE) return setMoreOpen(true);
+    if (id === current) return;
     const item = top.find((it) => it.id === id);
     onNavigate(item?.children?.[0]?.id ?? id);
   };

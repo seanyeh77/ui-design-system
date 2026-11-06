@@ -14,6 +14,8 @@ tester.run('no-raw-color', rules['no-raw-color'], {
     { code: '<div style={{ background: `rgba(0,0,0,.2)` }} />', errors: 1 },
     { code: '<div style={{ color: "red" }} />', errors: 1 },
     { code: '<div className="bg-[#fff] p-4" />', errors: 1 },
+    { code: '<div style={{ color: ok ? "#16a34a" : "#dc2626" }} />', errors: 2 },
+    { code: '<path fill={on ? "#2457d6" : "none"} />', errors: 1 },
   ],
 });
 tester.run('no-native-controls', rules['no-native-controls'], {
@@ -29,7 +31,10 @@ tester.run('no-nested-card', rules['no-nested-card'], {
   invalid: [{ code: '<Card><div><Card /></div></Card>', errors: 1 }],
 });
 tester.run('one-primary-button', rules['one-primary-button'], {
-  valid: ['<Card><Button variant="primary">儲存</Button><Button>取消</Button></Card>'],
+  valid: [
+    '<Card><Button variant="primary">儲存</Button><Button>取消</Button></Card>',
+    '<Card>{editing ? <Button variant="primary">儲存</Button> : <Button variant="primary">編輯</Button>}</Card>',
+  ],
   invalid: [
     { code: '<Card><Button variant="primary">儲存</Button><Button variant="primary">發布</Button></Card>', errors: 1 },
     { code: '<Card><Button variant="primary">儲存</Button>{open && <Button variant="primary">發布</Button>}</Card>', errors: 1 },

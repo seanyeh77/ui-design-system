@@ -33,7 +33,6 @@ export interface DashboardProps {
   trend: { labels: string[]; series: { name: string; values: number[] }[] };
   rows: ProjectRow[];
   notifications: NotificationItem[];
-  onOpenRow?: (row: ProjectRow) => void;
 }
 
 const NAV: NavSection[] = [

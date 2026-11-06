@@ -8,18 +8,22 @@ export interface TooltipProps {
   side?: 'top' | 'bottom';
   /** One focusable element that accepts a ref (a button, IconButton, Button, a link). */
   children: React.ReactElement;
+  /** false: the label only repeats the trigger's own name (an IconButton's aria-label), so it is not added as its description. Default true. */
+  describe?: boolean;
 }
 
 /** Dark label above the element (below when there is no room), with an arrow. Appears at once on hover and focus. */
-export function Tooltip({ label, side = 'top', children }: TooltipProps) {
+export function Tooltip({ label, side = 'top', describe = true, children }: TooltipProps) {
   // Base UI tooltips are visual only; a hidden copy gives screen readers the description.
   const id = React.useId();
   return (
     <Base.Root>
-      <Base.Trigger delay={0} render={children} aria-describedby={id} />
-      <span id={id} hidden>
-        {label}
-      </span>
+      <Base.Trigger delay={0} render={children} aria-describedby={describe ? id : undefined} />
+      {describe ? (
+        <span id={id} hidden>
+          {label}
+        </span>
+      ) : null}
       <Base.Portal>
         <Base.Positioner side={side} sideOffset={8} className="ui-tooltip-positioner">
           <Base.Popup className="ui-tooltip">

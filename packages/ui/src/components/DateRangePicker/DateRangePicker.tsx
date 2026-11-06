@@ -56,7 +56,11 @@ export function DateRangePicker({ label, value, onChange, placeholder, className
           <button
             type="button"
             className={cx('ui-datefield', 'ui-rangefield', open && 'is-open')}
-            aria-label={tr('{label}：{a} 到 {b}', { label: label || tr('期間'), a: fmtDate(value[0]), b: fmtDate(value[1]) })}
+            aria-label={
+              value[0]
+                ? tr('{label}：{a} 到 {b}', { label: label || tr('期間'), a: fmtDate(value[0]), b: fmtDate(value[1]) })
+                : `${label || tr('期間')}：${placeholder || tr('選擇期間')}`
+            }
           >
             <Icon name="calendar-blank" size={18} />
             <span>{value[0] ? `${fmtDate(value[0])} – ${fmtDate(value[1])}` : placeholder || tr('選擇期間')}</span>

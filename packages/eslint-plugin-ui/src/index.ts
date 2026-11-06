@@ -67,10 +67,16 @@ const noRawColor: Rule.RuleModule = {
     };
     return {
       // style={{ color: '#fff' }} and style props of any element
-      'JSXAttribute[name.name="style"] Property > Literal'(node: Node) {
+      // Any string under style, also inside ternaries and ?? / && (status colors); the key is the nearest property's.
+      'JSXAttribute[name.name="style"] Literal'(node: Node) {
         const v = valueOf(node);
-        const key = (node.parent as unknown as { key?: { name?: string; value?: unknown } }).key;
-        if (typeof v === 'string') check(node, v, String(key?.name ?? key?.value ?? ''));
+        if (typeof v !== 'string') return;
+        let p: Node | null = node.parent;
+        while (p && p.type !== 'Property') p = p.parent;
+        if (!p) return;
+        const key = (p as unknown as { key?: { name?: string; value?: unknown } }).key;
+        if ((p as unknown as { key?: unknown }).key === node) return;
+        check(node, v, String(key?.name ?? key?.value ?? ''));
       },
       'JSXAttribute[name.name=/^(className|class)$/] Literal'(node: Node) {
         const v = valueOf(node);
@@ -85,7 +91,7 @@ const noRawColor: Rule.RuleModule = {
         check(node, String((valueOf(node) as { raw: string }).raw));
       },
       // fill="#2457d6" on SVG and similar attributes
-      'JSXAttribute[name.name=/^(fill|stroke|color|stopColor|floodColor)$/] > Literal'(node: Node) {
+      'JSXAttribute[name.name=/^(fill|stroke|color|stopColor|floodColor)$/] Literal'(node: Node) {
         const v = valueOf(node);
         if (typeof v === 'string') check(node, v, 'color');
       },
@@ -159,21 +165,29 @@ const onePrimary: Rule.RuleModule = {
         let section: JSXElementNode | undefined = el.parent;
         while (section && !(section.type === 'JSXElement' && SECTIONS.has(tagName(section.openingElement)))) section = section.parent;
         if (!section) return;
-        const primaries: JSXElementNode[] = [];
         // Every node under the section: conditionals, fragments, map callbacks and JSX passed in props count too.
-        const walk = (n: unknown) => {
-          if (!n || typeof n !== 'object') return;
-          if (Array.isArray(n)) return n.forEach(walk);
-          const e = n as JSXElementNode & Record<string, unknown>;
-          if (typeof e.type !== 'string') return;
-          if (e.type === 'JSXElement') {
-            if (e !== section && SECTIONS.has(tagName(e.openingElement))) return;
-            if (tagName(e.openingElement) === 'Button' && literal(attr(e.openingElement, 'variant')) === 'primary') primaries.push(e);
+        // The two branches of a ternary never render together, so they count as the larger of the two.
+        // Returns the primaries that can render at once, in source order.
+        const walk = (n: unknown): JSXElementNode[] => {
+          if (!n || typeof n !== 'object') return [];
+          if (Array.isArray(n)) return n.flatMap(walk);
+          const e = n as Omit<JSXElementNode, 'type'> & { type: string } & Record<string, unknown>;
+          if (typeof e.type !== 'string') return [];
+          if (e.type === 'ConditionalExpression') {
+            const a = walk(e.consequent);
+            const b = walk(e.alternate);
+            return [...walk(e.test), ...(b.length > a.length ? b : a)];
           }
-          for (const k in e) if (k !== 'parent' && k !== 'loc' && k !== 'range') walk(e[k]);
+          const own: JSXElementNode[] = [];
+          if (e.type === 'JSXElement') {
+            if (e !== section && SECTIONS.has(tagName(e.openingElement))) return [];
+            if (tagName(e.openingElement) === 'Button' && literal(attr(e.openingElement, 'variant')) === 'primary') own.push(e as JSXElementNode);
+          }
+          for (const k in e) if (k !== 'parent' && k !== 'loc' && k !== 'range') own.push(...walk(e[k]));
+          return own;
         };
-        walk(section);
-        if (primaries.length > 1 && primaries[0] !== el)
+        const primaries = walk(section);
+        if (primaries.length > 1 && primaries.includes(el) && primaries[0] !== el)
           context.report({ node, message: 'A second primary Button in this section. Keep one primary (the main action) and make the others secondary.' });
       },
     };
