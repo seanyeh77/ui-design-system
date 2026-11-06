@@ -42,6 +42,31 @@ h(UI.TreeList, {
 - 滑過列 `surface-sub`，勾選中的列 `accent-soft`。
 - 展開時子項目往下長出 260 ms；減少動態效果時改成淡入。
 
+## 一般的樹
+
+`kind="plain"` 用在不是檔案的階層，例如呼叫關係、元件結構。
+
+```js
+h(UI.TreeList, {
+  kind: 'plain', label: '呼叫流程',
+  items: [{ id: 'root', name: 'trace_post_send', path: 'src/libibtrace/hooks/ops.c:55', children: [
+    { id: 'hook_of', name: 'hook_of', path: 'src/libibtrace/hooks/ops.c:58', tags: ['編譯器'] },
+    { id: 'gettime', name: 'clock_gettime', meta: 'libc.so.6', tags: ['外部'], muted: true }
+  ] }],
+  defaultOpen: ['root'], selectedId: sel, onSelect: function (n) { setSel(n.id); }
+})
+```
+
+- 每一列：名稱、分類標籤（`tags`，用 `UI.Tag` 顯示），名稱下方是位置：`meta` 直接顯示，或 `path` 用 `UI.format.path()` 保留頭尾、中間省略。
+- 照資料原本的順序；有子項目的不會被排到前面。`sort` 仍然可以指定。
+- 點一列呼叫 `onSelect`，選中的列是 `accent-soft` 底；點左邊的箭頭才展開或收合。Enter 選取，→ ← 展開收合。
+- `muted: true` 的項目名稱用次要文字色（例如外部函式）。`icon` 可以放 Phosphor 圖示名稱。
+- 預設不顯示「全部展開」；需要時加 `toggleAll: true`。沒有勾選和下載。
+
+## 手機上的縮排
+
+清單寬度小於 600 px 時（看清單本身的寬度），每層縮 16 px，最多縮 3 層；更深的不再縮排，名稱前加層數「L5」。檔案清單和一般的樹都適用。
+
 ## 鍵盤
 
 一次只有一列能用 Tab 進入。↑ ↓ 移動，Home／End 到頭尾，→ 展開（已展開就到第一個子項目），← 收合或回到上一層，Enter 打開檔案或切換資料夾，空白鍵勾選。

@@ -1,0 +1,12 @@
+<!-- @dsCard group="Data" height=200 -->
+<!doctype html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><title>Tag — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var U = window.UI, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { style: { display: 'flex', alignItems: 'center', gap: 8 } }, h('span', { style: { fontWeight: 500 } }, 'hook_of'), h(U.Tag, null, '編譯器'), h('span', { style: { marginLeft: 24, fontWeight: 500 } }, '原本的 post_send'), h(U.Tag, null, '規則：經由指標'), h('span', { style: { marginLeft: 24, fontWeight: 500, color: 'var(--ink-muted)' } }, 'clock_gettime'), h(U.Tag, null, '外部')));
+</script>
+</body>
+</html>

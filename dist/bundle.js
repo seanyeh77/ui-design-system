@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"UI","components":[{"name":"Button"},{"name":"IconButton"},{"name":"TextField"},{"name":"Checkbox"},{"name":"RadioGroup"},{"name":"Switch"},{"name":"Select"},{"name":"SearchField"},{"name":"TextArea"},{"name":"FormGrid"},{"name":"KpiCard"},{"name":"LineChart"},{"name":"BarChart"},{"name":"ProgressBar"},{"name":"LoadingBar"},{"name":"ProgressRing"},{"name":"Tooltip"},{"name":"Menu"},{"name":"Popover"},{"name":"Drawer"},{"name":"ThemePicker"},{"name":"AccentPicker"},{"name":"NotificationBell"},{"name":"DatePicker"},{"name":"DateRangePicker"},{"name":"FileUpload"},{"name":"MultiSelect"},{"name":"ErrorPage"},{"name":"LoginCard"},{"name":"SettingsLayout"},{"name":"DangerZone"},{"name":"Badge"},{"name":"Alert"},{"name":"DataTable"},{"name":"Skeleton"},{"name":"EmptyState"},{"name":"Toast"},{"name":"Dialog"},{"name":"SideNav"},{"name":"TopBar"},{"name":"Breadcrumb"},{"name":"Tabs"},{"name":"MobileTabBar"},{"name":"TreeList"},{"name":"InlineCode"},{"name":"CodeText"}]} */
+/* @ds-bundle: {"format":4,"namespace":"UI","components":[{"name":"Button"},{"name":"IconButton"},{"name":"TextField"},{"name":"Checkbox"},{"name":"RadioGroup"},{"name":"Switch"},{"name":"Select"},{"name":"SearchField"},{"name":"TextArea"},{"name":"FormGrid"},{"name":"KpiCard"},{"name":"LineChart"},{"name":"BarChart"},{"name":"ProgressBar"},{"name":"LoadingBar"},{"name":"ProgressRing"},{"name":"Tooltip"},{"name":"Menu"},{"name":"Popover"},{"name":"Drawer"},{"name":"ThemePicker"},{"name":"AccentPicker"},{"name":"NotificationBell"},{"name":"DatePicker"},{"name":"DateRangePicker"},{"name":"FileUpload"},{"name":"MultiSelect"},{"name":"ErrorPage"},{"name":"LoginCard"},{"name":"SettingsLayout"},{"name":"DangerZone"},{"name":"Badge"},{"name":"Alert"},{"name":"DataTable"},{"name":"Skeleton"},{"name":"EmptyState"},{"name":"Toast"},{"name":"Dialog"},{"name":"SideNav"},{"name":"TopBar"},{"name":"Breadcrumb"},{"name":"Tabs"},{"name":"MobileTabBar"},{"name":"TreeList"},{"name":"InlineCode"},{"name":"CodeText"},{"name":"Tag"},{"name":"ProjectSwitcher"},{"name":"DetailList"},{"name":"ActionBar"}]} */
 (function () {
   var React = window.React;
   var h = React.createElement;
@@ -9,7 +9,7 @@
      Every built-in string is the zh-TW text passed through tr(); other languages come from UI.addMessages().
      Dates and numbers go through UI.format, which uses Intl for the current locale. The zh-TW rules are the
      ones the design system chose; other locales use their own conventions from Intl. */
-  var I18N = { locale: 'zh-TW', currency: 'TWD', messages: { en: {"Email 或帳號": "Email or username", "{label}：{a} 到 {b}": "{label}: {a} to {b}", "{n} 個百分點": "{n} pts", "上一頁": "Previous page", "上個月": "Previous month", "上傳失敗，請再試一次。": "Upload failed. Try again.", "下一頁": "Next page", "下個月": "Next month", "主要導覽": "Main navigation", "主題": "Theme", "今天": "Today", "全選": "Select all", "全部": "All", "全部標為已讀": "Mark all as read", "共 0 筆": "0 items", "分頁": "Pagination", "刪除": "Delete", "危險操作": "Danger zone", "取消選取": "Clear selection", "可以直接輸入，例如 2026/11/14": "Type a date, e.g. 2026/11/14", "回上一頁": "Go back", "回首頁": "Go home", "完成 ✓": "Done ✓", "密碼": "Password", "展開側邊欄": "Expand sidebar", "已選 {n} 筆": "{n} selected", "帳號": "Username", "強調色": "Accent color", "忘記密碼？": "Forgot password?", "找不到符合的選項": "No matching options", "拖放檔案，或 ": "Drop files here, or ", "搜尋": "Search", "操作": "Actions", "收合側邊欄": "Collapse sidebar", "放棄": "Discard", "放棄未儲存的變更？": "Discard unsaved changes?", "新增「{q}」": "Add “{q}”", "日期格式不正確，請寫成 2026/11/14": "Invalid date. Use 2026/11/14.", "更多操作": "More actions", "最近 30 天": "Last 30 days", "最近 7 天": "Last 7 days", "期間": "Period", "未讀": "Unread", "本月": "This month", "沒有符合的資料": "No matching data", "沒有通知": "No notifications", "清除": "Clear", "清除搜尋": "Clear search", "登入": "Sign in", "發生錯誤": "Something went wrong", "移除 {name}": "Remove {name}", "第 {a}–{b} 筆，共 {n} 筆": "{a}–{b} of {n}", "繼續編輯": "Keep editing", "自訂強調色（色碼）": "Custom accent color (hex)", "色碼格式不正確，例如 #2457d6": "Invalid hex, e.g. #2457d6", "設定分類": "Settings sections", "請輸入密碼": "Enter your password", "請輸入帳號": "Enter your username", "請選擇": "Select", "路徑": "Breadcrumb", "較上週": "vs last week", "載入中": "Loading", "輸入 # 加 6 碼": "Enter # and 6 digits", "通知": "Notifications", "通知，{n} 則未讀": "Notifications, {n} unread", "選取第 {n} 筆": "Select row {n}", "選擇日期": "Choose date", "選擇期間": "Choose period", "選擇檔案": "choose files", "重試": "Retry", "開啟日曆": "Open calendar", "關閉": "Close", "關閉後，剛才的修改不會保留。": "If you close now, your changes will be lost.", "關閉提示": "Dismiss", "隱藏密碼": "Hide password", "顯示密碼": "Show password", "（今天）": " (today)", "伺服器暫時無法回應": "The server is not responding", "找不到這個頁面": "Page not found", "沒有權限查看這個頁面": "You do not have access to this page", "網址可能打錯了，或這個頁面已經移除。": "The address may be wrong, or the page has been removed.", "這個問題已經記錄下來，請稍後重新整理再試。": "The problem has been logged. Refresh the page later.", "請向管理員申請權限，或切換成有權限的帳號。": "Ask an admin for access, or switch to an account that has it.", "自動": "Auto", "淺色": "Light", "深色": "Dark", "藍": "Blue", "靛": "Indigo", "紫": "Purple", "桃紅": "Pink", "紅": "Red", "橘": "Orange", "綠": "Green", "青": "Teal", "草稿": "Draft", "進行中": "In progress", "審核中": "In review", "完成": "Done", "失敗": "Failed", "已儲存": "Saved", "檢視": "Views", "{n} / {total} 筆": "{n} / {total}", "欄位": "Columns", "顯示的欄位": "Visible columns", "清除篩選": "Clear filters", "清除全部": "Clear all", "篩選": "Filter", "最低": "Min", "最高": "Max", "合計 {n} 筆": "Total: {n}", "平均": "Avg", "選取 {name}": "Select {name}", "{n} 個新": "{n} new", "{n} 個檔案": "{n} files", "下載 {name}": "Download {name}", "已選 {n} 個檔案": "{n} files selected", "共 {size}": "{size} total", "清除選取": "Clear selection", "下載": "Download", "全部展開": "Expand all", "全部收合": "Collapse all", "這裡還沒有檔案": "No files here yet", "顯示全部": "Show all", "收合": "Show less", "依狀態篩選": "Filter by status"} } };
+  var I18N = { locale: 'zh-TW', currency: 'TWD', messages: { en: {"Email 或帳號": "Email or username", "{label}：{a} 到 {b}": "{label}: {a} to {b}", "{n} 個百分點": "{n} pts", "上一頁": "Previous page", "上個月": "Previous month", "上傳失敗，請再試一次。": "Upload failed. Try again.", "下一頁": "Next page", "下個月": "Next month", "主要導覽": "Main navigation", "主題": "Theme", "今天": "Today", "全選": "Select all", "全部": "All", "全部標為已讀": "Mark all as read", "共 0 筆": "0 items", "分頁": "Pagination", "刪除": "Delete", "危險操作": "Danger zone", "取消選取": "Clear selection", "可以直接輸入，例如 2026/11/14": "Type a date, e.g. 2026/11/14", "回上一頁": "Go back", "回首頁": "Go home", "完成 ✓": "Done ✓", "密碼": "Password", "展開側邊欄": "Expand sidebar", "已選 {n} 筆": "{n} selected", "帳號": "Username", "強調色": "Accent color", "忘記密碼？": "Forgot password?", "找不到符合的選項": "No matching options", "拖放檔案，或 ": "Drop files here, or ", "搜尋": "Search", "操作": "Actions", "收合側邊欄": "Collapse sidebar", "放棄": "Discard", "放棄未儲存的變更？": "Discard unsaved changes?", "新增「{q}」": "Add “{q}”", "日期格式不正確，請寫成 2026/11/14": "Invalid date. Use 2026/11/14.", "更多操作": "More actions", "最近 30 天": "Last 30 days", "最近 7 天": "Last 7 days", "期間": "Period", "未讀": "Unread", "本月": "This month", "沒有符合的資料": "No matching data", "沒有通知": "No notifications", "清除": "Clear", "清除搜尋": "Clear search", "登入": "Sign in", "發生錯誤": "Something went wrong", "移除 {name}": "Remove {name}", "第 {a}–{b} 筆，共 {n} 筆": "{a}–{b} of {n}", "繼續編輯": "Keep editing", "自訂強調色（色碼）": "Custom accent color (hex)", "色碼格式不正確，例如 #2457d6": "Invalid hex, e.g. #2457d6", "設定分類": "Settings sections", "請輸入密碼": "Enter your password", "請輸入帳號": "Enter your username", "請選擇": "Select", "路徑": "Breadcrumb", "較上週": "vs last week", "載入中": "Loading", "輸入 # 加 6 碼": "Enter # and 6 digits", "通知": "Notifications", "通知，{n} 則未讀": "Notifications, {n} unread", "選取第 {n} 筆": "Select row {n}", "選擇日期": "Choose date", "選擇期間": "Choose period", "選擇檔案": "choose files", "重試": "Retry", "開啟日曆": "Open calendar", "關閉": "Close", "關閉後，剛才的修改不會保留。": "If you close now, your changes will be lost.", "關閉提示": "Dismiss", "隱藏密碼": "Hide password", "顯示密碼": "Show password", "（今天）": " (today)", "伺服器暫時無法回應": "The server is not responding", "找不到這個頁面": "Page not found", "沒有權限查看這個頁面": "You do not have access to this page", "網址可能打錯了，或這個頁面已經移除。": "The address may be wrong, or the page has been removed.", "這個問題已經記錄下來，請稍後重新整理再試。": "The problem has been logged. Refresh the page later.", "請向管理員申請權限，或切換成有權限的帳號。": "Ask an admin for access, or switch to an account that has it.", "自動": "Auto", "淺色": "Light", "深色": "Dark", "藍": "Blue", "靛": "Indigo", "紫": "Purple", "桃紅": "Pink", "紅": "Red", "橘": "Orange", "綠": "Green", "青": "Teal", "草稿": "Draft", "進行中": "In progress", "審核中": "In review", "完成": "Done", "失敗": "Failed", "已儲存": "Saved", "檢視": "Views", "{n} / {total} 筆": "{n} / {total}", "欄位": "Columns", "顯示的欄位": "Visible columns", "清除篩選": "Clear filters", "清除全部": "Clear all", "篩選": "Filter", "最低": "Min", "最高": "Max", "合計 {n} 筆": "Total: {n}", "平均": "Avg", "選取 {name}": "Select {name}", "{n} 個新": "{n} new", "{n} 個檔案": "{n} files", "下載 {name}": "Download {name}", "已選 {n} 個檔案": "{n} files selected", "共 {size}": "{size} total", "清除選取": "Clear selection", "下載": "Download", "全部展開": "Expand all", "全部收合": "Collapse all", "這裡還沒有檔案": "No files here yet", "顯示全部": "Show all", "收合": "Show less", "依狀態篩選": "Filter by status", "展開": "Expand", "沒有項目": "Nothing here", "即時": "Live", "已過期": "Stale", "離線": "Offline", "切換專案": "Switch project", "切換專案，目前是 {name}": "Switch project, now {name}"} } };
   function msgsFor(loc) { return I18N.messages[loc] || I18N.messages[String(loc).split('-')[0]] || null; }
   function tr(key, vars) {
     var m = I18N.locale.indexOf('zh') === 0 ? null : msgsFor(I18N.locale);
@@ -694,7 +694,7 @@
       else if (e.key === 'ArrowUp') { e.preventDefault(); els[(i - 1 + els.length) % els.length].focus(); }
       else if (e.key === 'Tab') close(false);
     }
-    var trigger = h('button', { type: 'button', ref: f.anchor, className: cx('ui-iconbtn', 'ui-menu-trigger', open && 'is-open'), 'aria-label': p.label || tr('更多操作'), 'aria-haspopup': 'menu', 'aria-expanded': String(open), 'aria-controls': open ? id : undefined,
+    var trigger = h('button', { type: 'button', ref: f.anchor, className: cx('ui-iconbtn', 'ui-menu-trigger', p.triggerClassName, open && 'is-open'), 'aria-label': p.label || tr('更多操作'), 'aria-haspopup': 'menu', 'aria-expanded': String(open), 'aria-controls': open ? id : undefined,
       onClick: function () { setOpen(!open); } }, h(Icon, { d: p.icon || PATHS.more, size: 20 }));
     var origin = f.pos ? (f.pos.side === 'top' ? 'bottom ' : 'top ') + (f.pos.align === 'end' ? 'right' : 'left') : 'top right';
     return h(React.Fragment, null, trigger, open ? portal(h('div', { ref: f.floating, id: id, role: 'menu', className: 'ui-menu', style: Object.assign(floatStyle(f.pos), { transformOrigin: origin }), onKeyDown: key },
@@ -1341,7 +1341,8 @@
     if (n.children) n.children.forEach(function (c) { var d = tlLatest(c); if (d && (!best || d > best)) best = d; });
     return best;
   }
-  function tlSort(list, sort) {
+  function tlSort(list, sort, keepOrder) {
+    if (keepOrder) return list.slice();
     return list.map(function (n, i) { return [n, i]; }).sort(function (x, y) {
       var a = x[0], b = y[0], fa = !!a.children, fb = !!b.children;
       if (fa !== fb) return fa ? -1 : 1;
@@ -1359,11 +1360,78 @@
     return null;
   }
   var DOC_SHAPE = 'M5 1.5h15l7.5 7.5v25.5H5z';
+
+  // Category tag: what kind of thing an item is (「編譯器」「外部」). Small gray text only; status uses Badge instead.
+  function Tag(p) { return h('span', { className: cx('ui-tag', p.className) }, p.children); }
+
+  // Shorten a path: keep the first segment and the last two, 「src/…/hooks/ops.c:58」.
+  fmt.path = function (path, o) {
+    o = o || {}; var head = o.head != null ? o.head : 1, tail = o.tail != null ? o.tail : 2;
+    var parts = String(path || '').split('/');
+    return parts.length > head + tail ? parts.slice(0, head).join('/') + '/…/' + parts.slice(-tail).join('/') : String(path || '');
+  };
+
+  /* ProjectSwitcher: the outlined chip in the top bar that says which project and environment is shown and whether
+     the data is live. Clicking it opens a list to switch project. */
+  var PS_STATUS = { live: '即時', stale: '已過期', offline: '離線' };
+  function ProjectSwitcher(p) {
+    var os = React.useState(false), open = os[0], setOpen = os[1];
+    var f = useFloating(open, 'bottom', 'end', 6);
+    var opts = p.options || [];
+    var can = opts.length > 0 && !!p.onChange;
+    var status = PS_STATUS[p.status] ? p.status : 'live';
+    React.useEffect(function () {
+      if (!open) return;
+      function down(e) { if (f.floating.current && !f.floating.current.contains(e.target) && f.anchor.current && !f.anchor.current.contains(e.target)) setOpen(false); }
+      function key(e) { if (e.key === 'Escape') { setOpen(false); if (f.anchor.current) f.anchor.current.focus(); } }
+      document.addEventListener('mousedown', down); document.addEventListener('keydown', key);
+      return function () { document.removeEventListener('mousedown', down); document.removeEventListener('keydown', key); };
+    }, [open]);
+    var label = p.project + ' · ' + (p.statusLabel || tr(PS_STATUS[status]));
+    return h(React.Fragment, null,
+      h('button', { type: 'button', ref: f.anchor, className: cx('ui-projsw', 'is-' + status, open && 'is-open', !can && 'is-static', p.className), disabled: !can, 'aria-haspopup': can ? 'listbox' : undefined, 'aria-expanded': can ? String(open) : undefined,
+        'aria-label': can ? tr('切換專案，目前是 {name}', { name: label }) : label, onClick: function () { if (can) setOpen(!open); } },
+        h('span', { className: 'ui-projsw-dot', 'aria-hidden': 'true' }),
+        h('span', { className: 'ui-projsw-text' }, label),
+        can ? h(Icon, { name: 'caret-down', size: 14, className: 'ui-projsw-caret' }) : null),
+      open ? portal(h('div', { ref: f.floating, className: 'ui-projsw-pop', role: 'listbox', 'aria-label': tr('切換專案'), style: Object.assign(floatStyle(f.pos), { transformOrigin: 'top right' }) },
+        h('div', { className: 'ui-projsw-title' }, tr('切換專案')),
+        opts.map(function (o) {
+          var on = o.id === p.value;
+          return h('button', { key: o.id, type: 'button', role: 'option', 'aria-selected': String(on), className: cx('ui-projsw-opt', on && 'is-on'),
+            onClick: function () { setOpen(false); if (!on) p.onChange(o.id); } },
+            h('span', { className: 'ui-projsw-optlabel' }, o.label),
+            o.detail ? h('span', { className: 'ui-projsw-optdetail' }, o.detail) : null,
+            on ? h(Icon, { d: CHECK, size: 16, className: 'ui-projsw-check' }) : null);
+        }),
+        p.footer ? h('div', { className: 'ui-projsw-foot' }, p.footer) : null)) : null);
+  }
+
+  // DetailList: labelled facts about one item. Label beside the value when there is room; label above the value under 600 px.
+  function DetailList(p) {
+    return h('dl', { className: cx('ui-dl', p.className) }, (p.items || []).map(function (it, i) {
+      return h('div', { key: i, className: 'ui-dl-item' }, h('dt', null, it.label), h('dd', null, it.value));
+    }));
+  }
+
+  // ActionBar: a card's actions. Under 600 px the primary action is a full-width button and the others go into 「更多」.
+  function ActionBar(p) {
+    var acts = p.actions || [];
+    var main = acts.filter(function (a) { return a.primary; })[0] || acts[0];
+    var rest = acts.filter(function (a) { return a !== main; });
+    function btn(a, i, wide) { return h(Button, { key: i, variant: a === main ? 'primary' : 'secondary', icon: a.icon, onClick: a.onClick, disabled: a.disabled, className: wide ? 'ui-actbar-main' : undefined }, a.label); }
+    return h('div', { className: cx('ui-actbar', p.className) },
+      h('div', { className: 'ui-actbar-wide' }, [main].concat(rest).filter(Boolean).map(function (a, i) { return btn(a, i, false); })),
+      h('div', { className: 'ui-actbar-narrow' }, main ? btn(main, 0, true) : null,
+        rest.length ? h(Menu, { label: tr('更多操作'), triggerClassName: 'ui-actbar-more', items: rest.map(function (a) { return { label: a.label, icon: a.icon, onSelect: a.onClick, disabled: a.disabled, danger: a.danger }; }) }) : null));
+  }
+
   function TreeList(p) {
     var items = p.items || [];
     var single = p.expand === 'single';
-    var sort = p.sort === undefined ? 'newest' : p.sort;
-    var selectable = !!p.selectable;
+    var plain = p.kind === 'plain';
+    var sort = p.sort === undefined ? (plain ? false : 'newest') : p.sort;
+    var selectable = !!p.selectable && !plain;
     var os = React.useState(function () { var o = {}; (p.defaultOpen || []).forEach(function (k) { o[k] = true; }); return o; });
     var open = os[0], setOpen = os[1];
     var fresh = React.useRef({});
@@ -1402,9 +1470,9 @@
 
     var rows = [];
     (function walk(list, depth, guides, isFresh) {
-      var sorted = tlSort(list, sort);
+      var sorted = tlSort(list, sort, plain && !sort);
       sorted.forEach(function (n, i) {
-        var isF = !!n.children, isOpen = isF && !!open[n.id];
+        var isF = plain ? !!(n.children && n.children.length) : !!n.children, isOpen = isF && !!open[n.id];
         rows.push({ n: n, depth: depth, guides: guides, fresh: isFresh, isF: isF, open: isOpen, pos: i + 1, size: sorted.length });
         if (isOpen) walk(n.children, depth + 1, guides.concat([depth]), isFresh || !!fresh.current[n.id]);
       });
@@ -1427,11 +1495,36 @@
         if (r.isF && r.open) toggle(r.n);
         else for (var j = cur - 1; j >= 0; j--) if (rows[j].depth < r.depth) { go(j); break; }
       }
-      else if (k === 'Enter') { e.preventDefault(); if (r.isF) toggle(r.n); else openFile(r.n); }
+      else if (k === 'Enter') { e.preventDefault(); if (plain) { if (p.onSelect) p.onSelect(r.n); } else if (r.isF) toggle(r.n); else openFile(r.n); }
       else if (k === ' ' && selectable) { e.preventDefault(); ckToggle(r.n); }
     }
 
+    function plainRow(r, idx) {
+      var n = r.n, isF = r.isF, on = p.selectedId != null && p.selectedId === n.id;
+      var meta = n.meta != null ? n.meta : (n.path ? fmt.path(n.path) : '');
+      return h('div', {
+        key: n.id, ref: function (el) { refs.current[n.id] = el; }, role: 'treeitem', tabIndex: idx === cur ? 0 : -1,
+        'aria-level': r.depth + 1, 'aria-posinset': r.pos, 'aria-setsize': r.size,
+        'aria-expanded': isF ? String(r.open) : undefined, 'aria-selected': p.onSelect ? String(on) : undefined,
+        className: cx('ui-tree-row', 'is-plain', on && 'is-current', n.muted && 'is-muted', r.fresh && 'ui-tree-in'),
+        style: { '--d': r.depth },
+        onClick: function () { setFocusId(n.id); if (p.onSelect) p.onSelect(n); else if (isF) toggle(n); },
+        onFocus: function () { if (focusId !== n.id) setFocusId(n.id); }
+      },
+        r.guides.map(function (d) { return h('span', { key: d, className: cx('ui-tree-guide', d >= 3 && 'is-deep'), 'aria-hidden': 'true', style: { '--g': d } }); }),
+        h('button', { type: 'button', tabIndex: -1, className: cx('ui-tree-caret', 'ui-tree-caretbtn', r.open && 'is-open', !isF && 'is-leaf'), 'aria-label': (r.open ? tr('收合') : tr('展開')) + ' ' + n.name,
+          onClick: function (e) { e.stopPropagation(); if (isF) toggle(n); } }, h(Icon, { name: 'caret-right', size: 16 })),
+        n.icon ? h('span', { className: 'ui-tree-picon', 'aria-hidden': 'true' }, h(Icon, { name: n.icon, size: 20 })) : null,
+        h('div', { className: 'ui-tree-main' },
+          h('div', { className: 'ui-tree-name' },
+            r.depth > 3 ? h('span', { className: 'ui-tree-depth', 'aria-hidden': 'true' }, 'L' + (r.depth + 1)) : null,
+            h('span', { className: 'ui-tree-label is-one' }, n.name),
+            (n.tags || []).map(function (t, i) { return h(Tag, { key: i }, t); })),
+          meta ? h('div', { className: 'ui-tree-pmeta' }, meta) : null),
+        p.rowActions ? h('span', { className: 'ui-tree-act', onClick: function (e) { e.stopPropagation(); } }, p.rowActions(n)) : null);
+    }
     function rowEl(r, idx) {
+      if (plain) return plainRow(r, idx);
       var n = r.n, isF = r.isF;
       var ck = selectable ? ckState(n) : false;
       var ext = isF ? '' : fileExt(n), kind = FILE_KIND[ext] || 'other';
@@ -1446,11 +1539,11 @@
         'aria-level': r.depth + 1, 'aria-posinset': r.pos, 'aria-setsize': r.size,
         'aria-expanded': isF ? String(r.open) : undefined, 'aria-selected': selectable ? String(ck === true) : undefined,
         className: cx('ui-tree-row', isF && 'is-folder', ck === true && 'is-selected', r.fresh && 'ui-tree-in'),
-        style: { paddingLeft: pad(r.depth) },
+        style: { '--d': r.depth },
         onClick: function () { setFocusId(n.id); if (isF) toggle(n); else openFile(n); },
         onFocus: function () { if (focusId !== n.id) setFocusId(n.id); }
       },
-        r.guides.map(function (d) { return h('span', { key: d, className: 'ui-tree-guide', 'aria-hidden': 'true', style: { left: pad(d) + 7 } }); }),
+        r.guides.map(function (d) { return h('span', { key: d, className: cx('ui-tree-guide', d >= 3 && 'is-deep'), 'aria-hidden': 'true', style: { '--g': d } }); }),
         selectable ? h('span', { className: 'ui-tree-sel' },
           h('button', { type: 'button', role: 'checkbox', tabIndex: -1, 'aria-checked': String(ck), 'aria-label': tr('選取 {name}', { name: n.name }), className: cx('ui-check', ck && 'is-on'),
             onClick: function (e) { e.stopPropagation(); ckToggle(n); } },
@@ -1493,23 +1586,23 @@
             h(Button, { onClick: function () { setSel([]); } }, tr('清除選取')),
             p.onDownload ? h(Button, { variant: 'primary', icon: PATHS.download, onClick: function () { p.onDownload(selFiles); setSel([]); } }, tr('下載')) : null,
             p.bulkActions ? p.bulkActions(selFiles, function () { setSel([]); }) : null))
-      : (p.title || p.actions || (!single && folders.length))
+      : (p.title || p.actions || (!single && folders.length && (!plain || p.toggleAll)))
         ? h('div', { className: 'ui-tree-head' },
             p.title ? h('h2', { className: 'ui-tree-title' }, p.title) : h('span'),
             h('span', { className: 'ui-tree-head-actions' },
-              !single && folders.length ? h(Button, { onClick: function () {
+              !single && folders.length && (!plain || p.toggleAll) ? h(Button, { onClick: function () {
                 var o = {}; folders.forEach(function (f) { o[f.id] = anyClosed; });
                 fresh.current = {}; if (anyClosed && !reduced()) folders.forEach(function (f) { if (!open[f.id]) fresh.current[f.id] = true; });
                 setOpen(o);
               } }, anyClosed ? tr('全部展開') : tr('全部收合')) : null,
               p.actions || null))
         : null;
-    return h('section', { className: cx('ui-tree', selectable && 'is-selectable', selFiles.length && 'has-sel', p.className), 'aria-label': p.title ? undefined : p.label },
+    return h('section', { className: cx('ui-tree', plain && 'is-plain', selectable && 'is-selectable', selFiles.length && 'has-sel', p.className), 'aria-label': p.title ? undefined : p.label },
       head,
       rows.length
         ? h('div', { role: 'tree', 'aria-label': p.label || p.title, 'aria-multiselectable': selectable ? 'true' : undefined, className: 'ui-tree-list', onKeyDown: onKey }, rows.map(rowEl))
-        : h('p', { className: 'ui-tree-empty' }, p.emptyText || tr('這裡還沒有檔案')));
+        : h('p', { className: 'ui-tree-empty' }, p.emptyText || (plain ? tr('沒有項目') : tr('這裡還沒有檔案'))));
   }
 
-  window.UI = Object.assign(window.UI || {}, { Button: Button, IconButton: IconButton, TextField: TextField, Checkbox: Checkbox, RadioGroup: RadioGroup, Switch: Switch, Select: Select, SearchField: SearchField, TextArea: TextArea, FormGrid: FormGrid, t: tr, setLocale: setLocale, addMessages: addMessages, format: fmt, ThemePicker: ThemePicker, AccentPicker: AccentPicker, setTheme: setTheme, setAccent: setAccent, initTheme: initTheme, NotificationBell: NotificationBell, DatePicker: DatePicker, DateRangePicker: DateRangePicker, Calendar: Calendar, FileUpload: FileUpload, MultiSelect: MultiSelect, ErrorPage: ErrorPage, LoginCard: LoginCard, SettingsLayout: SettingsLayout, SettingsSection: SettingsSection, DangerZone: DangerZone, Tooltip: Tooltip, Menu: Menu, Popover: Popover, Drawer: Drawer, KpiCard: KpiCard, LineChart: LineChart, BarChart: BarChart, ProgressBar: ProgressBar, LoadingBar: LoadingBar, ProgressRing: ProgressRing, Badge: Badge, Alert: Alert, DataTable: DataTable, Skeleton: Skeleton, EmptyState: EmptyState, Toast: Toast, Dialog: Dialog, SideNav: SideNav, TopBar: TopBar, Breadcrumb: Breadcrumb, Tabs: Tabs, MobileTabBar: MobileTabBar, TreeList: TreeList, InlineCode: InlineCode, CodeText: CodeText, MOTION: MOTION, Icon: Icon, icons: Object.assign({}, ICONS, PATHS) });
+  window.UI = Object.assign(window.UI || {}, { Button: Button, IconButton: IconButton, TextField: TextField, Checkbox: Checkbox, RadioGroup: RadioGroup, Switch: Switch, Select: Select, SearchField: SearchField, TextArea: TextArea, FormGrid: FormGrid, t: tr, setLocale: setLocale, addMessages: addMessages, format: fmt, ThemePicker: ThemePicker, AccentPicker: AccentPicker, setTheme: setTheme, setAccent: setAccent, initTheme: initTheme, NotificationBell: NotificationBell, DatePicker: DatePicker, DateRangePicker: DateRangePicker, Calendar: Calendar, FileUpload: FileUpload, MultiSelect: MultiSelect, ErrorPage: ErrorPage, LoginCard: LoginCard, SettingsLayout: SettingsLayout, SettingsSection: SettingsSection, DangerZone: DangerZone, Tooltip: Tooltip, Menu: Menu, Popover: Popover, Drawer: Drawer, KpiCard: KpiCard, LineChart: LineChart, BarChart: BarChart, ProgressBar: ProgressBar, LoadingBar: LoadingBar, ProgressRing: ProgressRing, Badge: Badge, Alert: Alert, DataTable: DataTable, Skeleton: Skeleton, EmptyState: EmptyState, Toast: Toast, Dialog: Dialog, SideNav: SideNav, TopBar: TopBar, Breadcrumb: Breadcrumb, Tabs: Tabs, MobileTabBar: MobileTabBar, TreeList: TreeList, Tag: Tag, ProjectSwitcher: ProjectSwitcher, DetailList: DetailList, ActionBar: ActionBar, InlineCode: InlineCode, CodeText: CodeText, MOTION: MOTION, Icon: Icon, icons: Object.assign({}, ICONS, PATHS) });
 })();
