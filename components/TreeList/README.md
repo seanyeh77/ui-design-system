@@ -28,6 +28,10 @@ h(UI.TreeList, {
 
 - `sort`：`'newest'`（預設）、`'oldest'`、`'name'`，或 `false` 照資料原本的順序。資料夾一律排在檔案前面。看情況選。
 - `expand`：`'multi'`（預設，點資料夾展開或收合，標題列有「全部展開」）或 `'single'`（一次只開一個，同層的其他資料夾自動收合）。需要一次看到全部時用 `'multi'`，資料夾又多又雜時用 `'single'`。
+- `meta`：名稱下方的次要文字（例如「2 個 caller」），一般字體、數字用 Geist Mono；沒有 `meta` 時顯示 `path`，整行 Geist Mono。
+- `title` 加 `subtitle`：標題和下方一行次要文字（例如「17 個檔案」）。
+- `height`：固定高度（例如 `'100%'` 填滿外層、或 `520`），標題列不動，清單在裡面捲動。放在固定高度的版面（例如側邊面板）時一定要給，不然下面的項目看不到。
+- TreeList 本身就是一張卡片，不要再包進另一張卡片。真的要放進現有的卡片或面板時給 `bare`：沒有底色、陰影和圓角。
 - `defaultOpen`：一開始展開的資料夾 `id`。
 - `open` 加 `onToggle(node, isOpen, openIds)`：由外部控制展開，例如寫進網址。給了 `open` 時，請在 `onToggle` 裡更新它。
 - `selectable`：顯示勾選框（滑過才出現，勾了一個之後全部顯示；觸控裝置一直顯示）。勾資料夾等於全選裡面的檔案。勾選後標題列換成「已選 n 個檔案 共 x MB」、「清除選取」和「下載」。`selected` 加 `onSelectChange` 可以由外部控制（只會有檔案的 `id`）。`bulkActions(files, clear)` 可以再加按鈕。

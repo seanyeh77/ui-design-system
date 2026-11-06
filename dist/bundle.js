@@ -1566,7 +1566,8 @@
             r.depth > 3 ? h('span', { className: 'ui-tree-depth', 'aria-hidden': 'true' }, 'L' + (r.depth + 1)) : null,
             h('span', { className: 'ui-tree-label is-one' }, n.name),
             (n.tags || []).map(function (t, i) { return h(Tag, { key: i }, t); })),
-          meta ? h('div', { className: 'ui-tree-pmeta' }, meta) : null),
+          meta ? h('div', { className: cx('ui-tree-pmeta', n.meta == null && 'is-path') }, n.meta != null && typeof meta === 'string'
+            ? meta.split(/(\d[\d,.]*)/).map(function (t, i) { return i % 2 ? h('span', { key: i, className: 'ui-num' }, t) : t; }) : meta) : null),
         p.rowActions ? h('span', { className: 'ui-tree-act', onClick: function (e) { e.stopPropagation(); } }, p.rowActions(n)) : null);
     }
     function extraRow(r) {
@@ -1646,7 +1647,7 @@
             p.bulkActions ? p.bulkActions(selFiles, function () { setSel([]); }) : null))
       : (p.title || p.actions || (!single && folders.length && (!plain || p.toggleAll)))
         ? h('div', { className: 'ui-tree-head' },
-            p.title ? h('h2', { className: 'ui-tree-title' }, p.title) : h('span'),
+            p.title ? h('div', { className: 'ui-tree-titles' }, h('h2', { className: 'ui-tree-title' }, p.title), p.subtitle ? h('div', { className: 'ui-tree-subtitle' }, p.subtitle) : null) : h('span'),
             h('span', { className: 'ui-tree-head-actions' },
               !single && folders.length && (!plain || p.toggleAll) ? h(Button, { onClick: function () {
                 var o = {}; folders.forEach(function (f) { o[f.id] = anyClosed; });
@@ -1655,7 +1656,7 @@
               } }, anyClosed ? tr('全部展開') : tr('全部收合')) : null,
               p.actions || null))
         : null;
-    return h('section', { className: cx('ui-tree', plain && 'is-plain', selectable && 'is-selectable', selFiles.length && 'has-sel', p.className), 'aria-label': p.title ? undefined : p.label },
+    return h('section', { className: cx('ui-tree', plain && 'is-plain', selectable && 'is-selectable', selFiles.length && 'has-sel', p.bare && 'is-bare', p.height != null && 'has-height', p.className), 'aria-label': p.title ? undefined : p.label, style: p.height != null ? { height: typeof p.height === 'number' ? p.height + 'px' : p.height } : undefined },
       head,
       rows.length
         ? h('div', { role: 'tree', 'aria-label': p.label || p.title, 'aria-multiselectable': selectable ? 'true' : undefined, className: 'ui-tree-list', onKeyDown: onKey }, all.map(rowEl))

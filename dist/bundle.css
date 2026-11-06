@@ -703,7 +703,7 @@ html.ui-theme-fade, html.ui-theme-fade * { transition: background-color 300ms ea
 .ui-tree-row.is-muted .ui-tree-label { color: var(--ink-muted); }
 .ui-tree-label.is-one { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .ui-tree.is-plain .ui-tree-row:not(.is-muted) .ui-tree-label { font-weight: 500; }
-.ui-tree-pmeta { font-family: var(--font-mono); font-size: 12px; color: var(--ink-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ui-tree-pmeta { font-size: 13px; color: var(--ink-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ui-tree-depth { display: none; flex: 0 0 auto; padding: 0 5px; border-radius: 4px; background: var(--surface-sub); color: var(--ink-muted); font-family: var(--font-mono); font-size: 11px; font-weight: 600; line-height: 18px; }
 @container (max-width: 599px) {
   .ui-tree-row { padding-left: calc(var(--tl-base) + min(var(--d, 0), 3) * 16px); }
@@ -922,3 +922,14 @@ html.ui-theme-fade, html.ui-theme-fade * { transition: background-color 300ms ea
   .ui-searchfield-icon { top: 16px; }
   .ui-searchfield-clear { top: 10px; }
 }
+
+/* TreeList: fixed height with its own scrolling, and the bare look for use inside another card */
+.ui-tree.has-height { display: flex; flex-direction: column; }
+.ui-tree.has-height > .ui-tree-head { flex: 0 0 auto; }
+.ui-tree.has-height > .ui-tree-list, .ui-tree.has-height > .ui-tree-empty { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.ui-tree.is-bare { background: transparent; box-shadow: none; border-radius: 0; }
+.ui-tree.is-bare > .ui-tree-head { padding-left: 0; padding-right: 0; }
+.ui-tree-titles { min-width: 0; }
+.ui-tree-subtitle { margin-top: 2px; font-size: 13px; color: var(--ink-muted); white-space: nowrap; }
+.ui-tree-pmeta.is-path { font-family: var(--font-mono); font-size: 12px; }
+.ui-tree-pmeta .ui-num { font-family: var(--font-mono); font-size: 12px; }
