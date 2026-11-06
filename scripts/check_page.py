@@ -5,6 +5,7 @@ For each page at 390 px and 1280 px, light and dark:
   - console errors and uncaught exceptions
   - horizontal overflow at 390 px (and which elements stick out)
   - touch targets smaller than 48 x 48 px at 390 px
+  - a card inside a card (two nested elements that both cast a shadow)
 
 A target counts its own box or a larger hit area drawn by ::before / ::after.
 Text links and buttons that sit inside a line of text are exempt, as in
@@ -66,6 +67,19 @@ MEASURE = r"""
     const item = describe(el) + ' ' + Math.round(w) + ' x ' + Math.round(h) + ' px';
     (isInline(el, cs) ? out.inline : out.small).push(item);
   }
+  // a card inside a card: two nested elements that both cast an outer shadow with blur (focus rings and inset bars do not count)
+  out.nested = [];
+  const cardLike = (el) => { const sh = getComputedStyle(el).boxShadow; if (!sh || sh === 'none') return false;
+    return sh.split(/,(?![^(]*\))/).some(x => !/inset/.test(x) && (x.match(/(-?[\d.]+)px/g) || []).length >= 3 && parseFloat((x.match(/(-?[\d.]+)px/g) || [])[2]) >= 4); };
+  for (const el of document.body.querySelectorAll('*')) {
+    if (out.nested.length >= 6) break;
+    if (!cardLike(el)) continue;
+    const r = el.getBoundingClientRect(); if (!r.width || !r.height) continue;
+    for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+      if (getComputedStyle(a).position === 'fixed') break;
+      if (cardLike(a)) { out.nested.push(describe(el) + ' inside ' + describe(a)); break; }
+    }
+  }
   return out;
 
   function isInline(el, cs) {
@@ -123,6 +137,7 @@ def main():
                     tag = f'  {width} px {theme}:'
                     problems = []
                     if errors: problems.append('console errors: ' + ' | '.join(errors[:5]))
+                    if res.get('nested'): problems.append('card inside a card (two shadows): ' + '; '.join(res['nested']))
                     if width == 390:
                         if res['overflow']: problems.append('horizontal overflow: ' + '; '.join(res['overflow']))
                         if res['small']: problems.append('touch targets under 48 px: ' + '; '.join(res['small'][:12]) + (f' (+{len(res["small"]) - 12} more)' if len(res['small']) > 12 else ''))

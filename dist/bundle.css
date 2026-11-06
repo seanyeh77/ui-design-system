@@ -963,3 +963,15 @@ html.ui-theme-fade, html.ui-theme-fade * { transition: background-color 300ms ea
 .ui-lg-shared-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-top: 4px; color: var(--ink-muted); }
 .ui-lg-shared-row .ui-lg-name { color: var(--ink); font-size: 12px; }
 .ui-graph-legend-sw { display: inline-flex; gap: 4px; }
+
+/* Card, and no card inside a card: card-styled components inside a Card (or inside another card-styled component) lose their shadow */
+.ui-card { box-sizing: border-box; min-width: 0; padding: var(--space-4); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-card); color: var(--ink); }
+.ui-card.is-flush { padding: 0; overflow: hidden; }
+.ui-card-head { display: flex; align-items: center; gap: var(--space-3); min-height: 40px; margin-bottom: var(--space-3); }
+.ui-card-title { flex: 1 1 auto; min-width: 0; margin: 0; font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ui-card-actions { display: flex; align-items: center; gap: var(--space-2); flex: 0 0 auto; }
+:is(.ui-card, .ui-tree, .ui-settings-section, .ui-dialog, .ui-drawer) :is(.ui-tree, .ui-kpi, .ui-settings-section, .ui-alert) { box-shadow: none; }
+:is(.ui-card, .ui-settings-section) .ui-tree { background: transparent; border-radius: 0; overflow: visible; }
+:is(.ui-card, .ui-settings-section) .ui-tree > .ui-tree-head { padding-left: 0; padding-right: 0; }
+.ui-card.is-flush .ui-tree > .ui-tree-head { padding-left: 20px; padding-right: 20px; }
+:is(.ui-card, .ui-settings-section) :is(.ui-kpi, .ui-alert) { background: var(--surface-sub); }

@@ -2120,7 +2120,17 @@ const UI = (function () {
   }
   addMessages('en', { '{n} 次': '{n} calls', '{n} 個函式': '{n} functions', '被 {a} 個元件呼叫 {b} 次': 'Called {b} times by {a} components', '共用元件': 'Shared components', '架構圖': 'Architecture', '呼叫次數越多線越粗': 'Thicker lines mean more calls' });
 
-  return { Button: Button, IconButton: IconButton, TextField: TextField, Checkbox: Checkbox, RadioGroup: RadioGroup, Switch: Switch, Select: Select, SearchField: SearchField, TextArea: TextArea, FormGrid: FormGrid, t: tr, setLocale: setLocale, addMessages: addMessages, format: fmt, ThemePicker: ThemePicker, AccentPicker: AccentPicker, setTheme: setTheme, setAccent: setAccent, initTheme: initTheme, NotificationBell: NotificationBell, DatePicker: DatePicker, DateRangePicker: DateRangePicker, Calendar: Calendar, FileUpload: FileUpload, MultiSelect: MultiSelect, ErrorPage: ErrorPage, LoginCard: LoginCard, SettingsLayout: SettingsLayout, SettingsSection: SettingsSection, DangerZone: DangerZone, Tooltip: Tooltip, Menu: Menu, Popover: Popover, Drawer: Drawer, KpiCard: KpiCard, LineChart: LineChart, BarChart: BarChart, ProgressBar: ProgressBar, LoadingBar: LoadingBar, ProgressRing: ProgressRing, Badge: Badge, Alert: Alert, DataTable: DataTable, Skeleton: Skeleton, EmptyState: EmptyState, Toast: Toast, Dialog: Dialog, SideNav: SideNav, TopBar: TopBar, Breadcrumb: Breadcrumb, Tabs: Tabs, MobileTabBar: MobileTabBar, TreeList: TreeList, Tag: Tag, ProjectSwitcher: ProjectSwitcher, DetailList: DetailList, ActionBar: ActionBar, InlineCode: InlineCode, CodeText: CodeText, CommandPalette: CommandPalette, Tour: Tour, useTour: useTour, Suggestion: Suggestion, Term: Term, CodeView: CodeView, GraphDefs: GraphDefs, GraphLegend: GraphLegend, LayerGraph: LayerGraph, MOTION: MOTION, Icon: Icon, icons: Object.assign({}, ICONS, PATHS) };
+
+  /* Card: the one container with a shadow. Card-styled components placed inside it (TreeList, KpiCard, Alert, SettingsSection)
+     drop their own shadow, so there is never a card inside a card. */
+  function Card(p) {
+    var Tag = p.as || 'section';
+    return h(Tag, Object.assign({}, rest(p, ['as', 'title', 'actions', 'className', 'children', 'padding']), { className: cx('ui-card', p.padding === false && 'is-flush', p.className) }),
+      p.title || p.actions ? h('div', { className: 'ui-card-head' }, p.title ? h('h2', { className: 'ui-card-title' }, p.title) : h('span'), p.actions ? h('div', { className: 'ui-card-actions' }, p.actions) : null) : null,
+      p.children);
+  }
+
+  return { Button: Button, IconButton: IconButton, TextField: TextField, Checkbox: Checkbox, RadioGroup: RadioGroup, Switch: Switch, Select: Select, SearchField: SearchField, TextArea: TextArea, FormGrid: FormGrid, t: tr, setLocale: setLocale, addMessages: addMessages, format: fmt, ThemePicker: ThemePicker, AccentPicker: AccentPicker, setTheme: setTheme, setAccent: setAccent, initTheme: initTheme, NotificationBell: NotificationBell, DatePicker: DatePicker, DateRangePicker: DateRangePicker, Calendar: Calendar, FileUpload: FileUpload, MultiSelect: MultiSelect, ErrorPage: ErrorPage, LoginCard: LoginCard, SettingsLayout: SettingsLayout, SettingsSection: SettingsSection, DangerZone: DangerZone, Tooltip: Tooltip, Menu: Menu, Popover: Popover, Drawer: Drawer, KpiCard: KpiCard, LineChart: LineChart, BarChart: BarChart, ProgressBar: ProgressBar, LoadingBar: LoadingBar, ProgressRing: ProgressRing, Badge: Badge, Alert: Alert, DataTable: DataTable, Skeleton: Skeleton, EmptyState: EmptyState, Toast: Toast, Dialog: Dialog, SideNav: SideNav, TopBar: TopBar, Breadcrumb: Breadcrumb, Tabs: Tabs, MobileTabBar: MobileTabBar, TreeList: TreeList, Tag: Tag, ProjectSwitcher: ProjectSwitcher, DetailList: DetailList, ActionBar: ActionBar, InlineCode: InlineCode, CodeText: CodeText, CommandPalette: CommandPalette, Tour: Tour, useTour: useTour, Suggestion: Suggestion, Term: Term, CodeView: CodeView, GraphDefs: GraphDefs, GraphLegend: GraphLegend, LayerGraph: LayerGraph, Card: Card, MOTION: MOTION, Icon: Icon, icons: Object.assign({}, ICONS, PATHS) };
 })();
 
 export default UI;
@@ -2192,6 +2202,7 @@ export const CodeView = UI.CodeView;
 export const GraphDefs = UI.GraphDefs;
 export const GraphLegend = UI.GraphLegend;
 export const LayerGraph = UI.LayerGraph;
+export const Card = UI.Card;
 export const MOTION = UI.MOTION;
 export const Icon = UI.Icon;
 export const icons = UI.icons;

@@ -54,7 +54,7 @@ import { Button, DataTable, initTheme } from '@seanyeh77/ui';   // or: import UI
 
 Check the page against this list, at 390 px and 1280 px wide, in light and dark. Take a screenshot if you can.
 
-`python3 scripts/check_page.py <file or URL> --shots shots/` does the automatic part (console errors, overflow at 390 px, touch targets under 48 px) and exits with 1 when something fails; the rest of the list needs a look at the screenshots.
+`python3 scripts/check_page.py <file or URL> --shots shots/` does the automatic part (console errors, overflow at 390 px, touch targets under 48 px, cards inside cards) and exits with 1 when something fails; the rest of the list needs a look at the screenshots.
 
 - Components: wherever `window.UI` has a component for the job, it is used and its README was read. Nothing is hand-built that a component already covers.
 - Fonts: Geist Mono only on numbers, code, file paths and IDs, never on a Chinese sentence or a whole meta line.
@@ -62,6 +62,7 @@ Check the page against this list, at 390 px and 1280 px wide, in light and dark.
 - Wrapping: no label, heading, table header, tab or button text wraps. Widen it, shorten it, or truncate with an ellipsis and a tooltip.
 - Markdown: rendered, never shown raw. No visible backticks, asterisks or `#`; code inside a sentence uses the inline code style.
 - Text: only the point, in formal written Chinese. Explanations are at most 2 short sentences; nothing the screen already shows is said again; no question-style titles or links. See 文字語氣 in `docs/guidelines.md`.
+- Cards: no card inside a card (one shadow per block). Blocks use `UI.Card`; TreeList, KpiCard, Alert and SettingsSection are already cards and lose their shadow inside `UI.Card`.
 - Titles: the page title appears once, in the top bar or as the page heading, not both.
 - Links: file paths, line references, IDs and anything else that points somewhere are links.
 - Status: shown with `UI.Badge` or the component's own status style, never by color alone.
