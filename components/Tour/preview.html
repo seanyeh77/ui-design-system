@@ -1,0 +1,26 @@
+<!-- @dsCard group="Overlays" height=440 -->
+<!doctype html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><title>Tour — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var U = window.UI, h = React.createElement;
+  var card = { background: 'var(--surface)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-card)', padding: 16, marginBottom: 12, fontSize: 15 };
+  function App() {
+    var s = React.useState(true), open = s[0], setOpen = s[1];
+    return h('div', null,
+      h(U.TopBar, { title: '流程', onSearch: function () {} }),
+      h('div', { style: { padding: 16, maxWidth: 560 } },
+        h('section', { id: 'pv-tree', style: card }, h('strong', null, 'trace_post_send'), h('div', { style: { color: 'var(--ink-muted)', fontSize: 14 } }, '呼叫 3 個函式')),
+        h('section', { id: 'pv-note', style: card }, '檢查筆記：1 個錯誤'),
+        h('p', { style: { fontSize: 14, color: 'var(--ink-muted)' } }, '第一次使用？', h('button', { type: 'button', className: 'ui-link-btn', onClick: function () { setOpen(true); } }, '重看導覽'))),
+      h(U.Tour, { open: open, onClose: function () { setOpen(false); }, steps: [
+        { target: '.ui-search, .ui-search-icon', title: '搜尋', text: '從這裡找函式、檔案、元件和環境變數。電腦上也可以按 Ctrl K。' },
+        { target: '#pv-tree', title: '流程樹', text: '名稱旁的小字說明這條關係是怎麼找到的，點一下看原因。' },
+        { target: '#pv-note', title: '檢查筆記', text: '寫錯的位置會附上修正建議，可以一鍵複製。' }] }));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>
