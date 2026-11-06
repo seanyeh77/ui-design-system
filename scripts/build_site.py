@@ -21,7 +21,7 @@ if SITE.exists():
     shutil.rmtree(SITE)
 (SITE / 'preview').mkdir(parents=True)
 (SITE / 'md').mkdir()
-shutil.copytree(ROOT / 'dist', SITE / 'dist')
+shutil.copytree(ROOT / 'packages' / 'ui' / 'dist', SITE / 'dist')
 for md in (ROOT / 'docs').glob('*.md'):
     shutil.copy(md, SITE / 'md' / md.name)
 
@@ -32,13 +32,13 @@ PREVIEW_HEAD = '''<!doctype html>
 <link rel="stylesheet" href="../dist/tokens.css"><link rel="stylesheet" href="../dist/bundle.css">
 <style>body{{margin:0;padding:24px;font-family:var(--font-sans);color:var(--ink);background:var(--bg)}}</style>
 <script>try{{var t=new URLSearchParams(location.search).get('theme');if(t)document.documentElement.setAttribute('data-theme',t);}}catch(e){{}}</script>
-<script src="{react}"></script><script src="{react_dom}"></script><script src="../dist/bundle.js"></script>
+<script src="../dist/bundle.js"></script>
 </head>
 <body>
 '''
 
 components = []
-for folder in sorted((ROOT / 'components').iterdir()):
+for folder in sorted((ROOT / 'packages' / 'ui' / 'src' / 'components').iterdir()):
     pv = folder / 'preview.html'
     if not pv.is_file():
         continue
@@ -70,7 +70,7 @@ index = (ROOT / 'scripts' / 'site_index.html').read_text(encoding='utf-8').repla
 
 # Files for agents: raw tokens, AGENTS.md, and an llms.txt index of every published file.
 (SITE / 'tokens').mkdir()
-shutil.copy(ROOT / 'tokens' / 'tokens.json', SITE / 'tokens' / 'tokens.json')
+shutil.copy(ROOT / 'packages' / 'tokens' / 'tokens.json', SITE / 'tokens' / 'tokens.json')
 shutil.copy(ROOT / 'AGENTS.md', SITE / 'AGENTS.md')
 BASE = 'https://seanyeh77.github.io/ui-design-system'
 doc_titles = {'guidelines': 'All confirmed design rules', 'layout': 'Page structure and breakpoints',
@@ -91,7 +91,7 @@ lines = [
     '',
     f'- [tokens.css]({BASE}/dist/tokens.css): CSS variables for every token, light and dark',
     f'- [bundle.css]({BASE}/dist/bundle.css): component styles',
-    f'- [bundle.js]({BASE}/dist/bundle.js): all components on window.UI (needs React 18 UMD)',
+    f'- [bundle.js]({BASE}/dist/bundle.js): all components on window.UI (React 19 included; sets window.React, window.ReactDOM and window.UI)',
     f'- [index.js]({BASE}/dist/index.js): the same components as an ES module (npm package @seanyeh77/ui)',
     f'- [fonts.css]({BASE}/dist/fonts.css): self-hosted Inter, Geist Mono and Noto Sans TC, weights 400 to 700',
     f'- [index.d.ts]({BASE}/dist/index.d.ts): component props and API types',
