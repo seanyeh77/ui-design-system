@@ -134,3 +134,11 @@ KPI 數字加迷你折線 · 箭頭加彩色文字 · 31 px · Geist Mono · 從
 勁量避免套娃 card（因為會有很多陰影）
 
 - `UI.Card` 元件、放進 Card 的卡片元件自動拿掉陰影、`check_page.py` 檢查卡片裡的卡片，是 Claude 的做法。
+
+## 重新整理成 monorepo
+
+要用最前沿的技術，可以全部都做，讓 agent 不要出錯與可設計性為最主要的目的，以這兩個為準來抉擇。
+
+- 依計畫文件全部執行：pnpm monorepo、元件改寫成 TypeScript（TSX）、浮起層改用 Base UI、輸出 Tailwind v4 設定、元件用 npm 套件且頁面範本用 shadcn registry、Storybook 文件網站、ESLint 規則與 `ui check`、Changesets 發佈。
+- 依兩個準則由 Claude 定的：只支援 React 19（`ref` 是一般屬性，`bundle.js` 自帶 React 19，一個 script 就能用）；危險按鈕、選單的危險項目、DangerZone 在型別上一定要給 `confirm`；圖示名稱是型別；新增 `AppShell`、`Page`、`Grid` 讓 agent 不用自己排版面；`Grid` 卡片間距 24 px；lint 規則中顏色、原生控制項、卡片裡的卡片、未確認的危險按鈕是錯誤，主要按鈕數量與按鈕文字是警告。
+- 通用化：LayerGraph 的 `fns` 改名 `size`，「N 個函式」等文字改由 `sizeLabel`、`countLabel`、`sharedMeta` 傳入；GraphLegend 預設「確定的關係、推測的關係、外部項目」；CommandPalette 內建種類只留頁面、設定、指令、檔案。
