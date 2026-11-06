@@ -974,6 +974,9 @@ html.ui-theme-fade, html.ui-theme-fade * { transition: background-color 300ms ea
 /* ---------- Positioned layers (Base UI) ----------
    Positioners place popups next to their trigger; dialogs and drawers sit over a backdrop. */
 .ui-float { z-index: 900; outline: none; }
+.ui-menu { width: max-content; max-width: var(--available-width, 100vw); }
+/* Base UI renders list items as divs; keep the sizing the old buttons had. */
+:is(.ui-menu-item, .ui-select-opt, .ui-projsw-opt) { box-sizing: border-box; }
 .ui-float.is-match > * { width: var(--anchor-width); box-sizing: border-box; }
 .ui-tooltip-positioner { z-index: 1000; pointer-events: none; }
 .ui-tour-float { z-index: 961; }
@@ -987,3 +990,4 @@ html.ui-theme-fade, html.ui-theme-fade * { transition: background-color 300ms ea
 .ui-dialog-title:where(h2) { font-size: 20px; line-height: 28px; }
 .ui-drawer-title:where(h2) { font-size: 20px; }
 .ui-term-sheet .ui-term-title:where(h2) { font-size: 17px; }
+.ui-select-empty:empty { display: none; }

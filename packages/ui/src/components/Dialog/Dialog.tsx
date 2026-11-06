@@ -37,7 +37,7 @@ export interface DialogProps {
 /** A centered 400 px dialog for a decision. Secondary button left, primary right. */
 export function Dialog(props: DialogProps) {
   const { open, onClose, title, children, confirmLabel, onConfirm, cancelLabel, tone = 'default', confirmLoading, actions, className } = props;
-  devWarn(!!confirmLabel !== !!onConfirm, 'Dialog', 'confirmLabel and onConfirm go together; pass both, or pass actions.');
+  devWarn((confirmLabel !== undefined) !== !!onConfirm, 'Dialog', 'confirmLabel and onConfirm go together; pass both, or pass actions.');
   devWarn(open !== undefined && !onClose, 'Dialog', 'an open dialog needs onClose, or Esc and the backdrop cannot close it.');
   const footer =
     actions ??
