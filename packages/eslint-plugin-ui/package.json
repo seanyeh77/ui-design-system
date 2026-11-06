@@ -1,0 +1,17 @@
+{
+  "name": "@seanyeh77/eslint-plugin-ui",
+  "version": "0.2.0",
+  "description": "ESLint rules for SeanYeh's design system: token colors only, design-system components instead of native controls, no card in a card, one primary button, verb labels.",
+  "license": "MIT",
+  "author": "Hsiu-An Yeh",
+  "repository": { "type": "git", "url": "git+https://github.com/seanyeh77/ui-design-system.git", "directory": "packages/eslint-plugin-ui" },
+  "type": "module",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc -p .",
+    "test": "vitest run --config vitest.config.ts"
+  },
+  "peerDependencies": { "eslint": ">=9" }
+}

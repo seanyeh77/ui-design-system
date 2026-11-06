@@ -1,0 +1,16 @@
+{
+  "name": "@seanyeh77/ui-cli",
+  "version": "0.2.0",
+  "description": "Checks a page against SeanYeh's design system and prints component docs: ui check, ui docs, ui list.",
+  "license": "MIT",
+  "author": "Hsiu-An Yeh",
+  "repository": { "type": "git", "url": "git+https://github.com/seanyeh77/ui-design-system.git", "directory": "packages/cli" },
+  "type": "module",
+  "bin": { "ui": "./dist/cli.js" },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": { "@seanyeh77/ui": "workspace:^", "playwright": "^1.65.0" }
+}

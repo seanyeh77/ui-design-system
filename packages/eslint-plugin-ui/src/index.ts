@@ -1,0 +1,207 @@
+/* ESLint rules that keep code written against @seanyeh77/ui on the design system's rules.
+   Each message says what is wrong and what to use instead.
+
+   // eslint.config.js
+   import ui from '@seanyeh77/eslint-plugin-ui';
+   export default [ui.configs.recommended];                                                     */
+import type { ESLint, Linter, Rule } from 'eslint';
+
+type Node = Rule.Node;
+const valueOf = (n: Node): unknown => (n as unknown as { value?: unknown }).value;
+type JSXAttr = { type: string; name: { name: string }; value: null | { type: string; value?: unknown; expression?: { type: string; value?: unknown } } };
+type JSXOpening = { name: { type: string; name?: string; property?: { name: string } }; attributes: JSXAttr[] };
+type JSXElementNode = { type: 'JSXElement'; openingElement: JSXOpening; children: unknown[]; parent?: JSXElementNode };
+
+const COLOR = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(|\boklch\(/;
+
+function tagName(el: JSXOpening): string {
+  const n = el.name;
+  if (n.type === 'JSXIdentifier') return n.name ?? '';
+  if (n.type === 'JSXMemberExpression') return n.property?.name ?? '';
+  return '';
+}
+
+function attr(el: JSXOpening, name: string): JSXAttr | undefined {
+  return el.attributes.find((a) => a.type === 'JSXAttribute' && a.name?.name === name);
+}
+
+function literal(a: JSXAttr | undefined): unknown {
+  if (!a?.value) return a ? true : undefined;
+  if (a.value.type === 'Literal') return a.value.value;
+  if (a.value.type === 'JSXExpressionContainer' && a.value.expression?.type === 'Literal') return a.value.expression.value;
+  return undefined;
+}
+
+function textOf(el: JSXElementNode): string {
+  return el.children
+    .map((c) => {
+      const n = c as { type: string; value?: string; expression?: { type: string; value?: unknown } };
+      if (n.type === 'JSXText') return n.value ?? '';
+      if (n.type === 'JSXExpressionContainer' && n.expression?.type === 'Literal') return String(n.expression.value);
+      return '\u0000';
+    })
+    .join('')
+    .trim();
+}
+
+const noRawColor: Rule.RuleModule = {
+  meta: { type: 'problem', docs: { description: 'Colors come from tokens: var(--ink) or cssVar("ink"), never a hex, rgb() or hsl() value.' }, schema: [] },
+  create(context) {
+    const check = (node: Node, value: string) => {
+      if (COLOR.test(value)) context.report({ node, message: 'Hard-coded color "{{v}}". Use a token: var(--ink-muted) in CSS, cssVar("ink-muted") from @seanyeh77/tokens in style props, or a component prop.', data: { v: value.slice(0, 40) } });
+    };
+    return {
+      // style={{ color: '#fff' }} and style props of any element
+      'JSXAttribute[name.name="style"] Property > Literal'(node: Node) {
+        {
+          const v = valueOf(node);
+          if (typeof v === 'string') check(node, v);
+        }
+      },
+      'JSXAttribute[name.name="style"] Property > TemplateLiteral > TemplateElement'(node: Node) {
+        check(node, String((valueOf(node) as { raw: string }).raw));
+      },
+      // fill="#2457d6" on SVG and similar attributes
+      'JSXAttribute[name.name=/^(fill|stroke|color|stopColor|floodColor)$/] > Literal'(node: Node) {
+        {
+          const v = valueOf(node);
+          if (typeof v === 'string') check(node, v);
+        }
+      },
+    };
+  },
+};
+
+const REPLACE: Record<string, string> = {
+  select: 'Select (or MultiSelect)',
+  table: 'DataTable',
+  dialog: 'Dialog',
+  progress: 'ProgressBar',
+};
+const INPUT_REPLACE: Record<string, string> = { checkbox: 'Checkbox', radio: 'RadioGroup', date: 'DatePicker', search: 'SearchField', file: 'FileUpload', color: 'AccentPicker' };
+
+const noNativeControls: Rule.RuleModule = {
+  meta: { type: 'problem', docs: { description: 'Use the design-system component instead of a native control it replaces.' }, schema: [] },
+  create(context) {
+    return {
+      JSXOpeningElement(node: Node) {
+        const el = node as unknown as JSXOpening;
+        const name = tagName(el);
+        if (REPLACE[name]) context.report({ node, message: 'Native <{{n}}>: use {{c}} from @seanyeh77/ui.', data: { n: name, c: REPLACE[name] } });
+        if (name === 'input') {
+          const t = literal(attr(el, 'type'));
+          if (typeof t === 'string' && INPUT_REPLACE[t]) context.report({ node, message: '<input type="{{t}}">: use {{c}} from @seanyeh77/ui.', data: { t, c: INPUT_REPLACE[t] } });
+        }
+      },
+    };
+  },
+};
+
+const noNestedCard: Rule.RuleModule = {
+  meta: { type: 'problem', docs: { description: 'No Card inside a Card: one shadow per block.' }, schema: [] },
+  create(context) {
+    return {
+      JSXElement(node: Node) {
+        const el = node as unknown as JSXElementNode;
+        if (tagName(el.openingElement) !== 'Card') return;
+        for (let p = el.parent; p; p = p.parent) {
+          if (p.type === 'JSXElement' && tagName(p.openingElement) === 'Card') {
+            context.report({ node, message: 'Card inside a Card gives two shadows. Use one Card and split it with headings, or place the Cards side by side.' });
+            return;
+          }
+        }
+      },
+    };
+  },
+};
+
+const onePrimary: Rule.RuleModule = {
+  meta: { type: 'suggestion', docs: { description: 'At most one primary button per section.' }, schema: [] },
+  create(context) {
+    const SECTIONS = new Set(['Card', 'Dialog', 'Drawer', 'section', 'form', 'SettingsSection']);
+    return {
+      JSXElement(node: Node) {
+        const el = node as unknown as JSXElementNode;
+        const name = tagName(el.openingElement);
+        if (name !== 'Button' || literal(attr(el.openingElement, 'variant')) !== 'primary') return;
+        let section: JSXElementNode | undefined = el.parent;
+        while (section && !(section.type === 'JSXElement' && SECTIONS.has(tagName(section.openingElement)))) section = section.parent;
+        if (!section) return;
+        const primaries: JSXElementNode[] = [];
+        const walk = (n: unknown) => {
+          const e = n as JSXElementNode;
+          if (e?.type !== 'JSXElement') return;
+          if (e !== section && SECTIONS.has(tagName(e.openingElement))) return;
+          if (tagName(e.openingElement) === 'Button' && literal(attr(e.openingElement, 'variant')) === 'primary') primaries.push(e);
+          e.children.forEach(walk);
+        };
+        walk(section);
+        if (primaries.length > 1 && primaries[0] !== el)
+          context.report({ node, message: 'A second primary Button in this section. Keep one primary (the main action) and make the others secondary.' });
+      },
+    };
+  },
+};
+
+const VAGUE = /^(確定|確認|好|好的|OK|Ok|ok|Submit|submit|送出|是|否|Yes|No)$/;
+
+const verbLabels: Rule.RuleModule = {
+  meta: { type: 'suggestion', docs: { description: 'Button labels say what happens: 儲存, 刪除 api-gateway, 發布. Not 確定 or OK.' }, schema: [] },
+  create(context) {
+    return {
+      JSXElement(node: Node) {
+        const el = node as unknown as JSXElementNode;
+        if (tagName(el.openingElement) !== 'Button') return;
+        const t = textOf(el);
+        if (VAGUE.test(t)) context.report({ node, message: 'Button label "{{t}}" does not say what happens. Use the verb of the action: 儲存, 刪除, 發布.', data: { t } });
+      },
+    };
+  },
+};
+
+const dangerConfirm: Rule.RuleModule = {
+  meta: { type: 'problem', docs: { description: 'A danger Button is confirmed: pass confirm, or confirmed inside the confirm dialog.' }, schema: [] },
+  create(context) {
+    return {
+      JSXOpeningElement(node: Node) {
+        const el = node as unknown as JSXOpening;
+        if (tagName(el) !== 'Button' || literal(attr(el, 'variant')) !== 'danger') return;
+        if (!attr(el, 'confirm') && !attr(el, 'confirmed'))
+          context.report({ node, message: 'Danger Button without confirmation. Add confirm={{ title: "刪除 …？" }}, or confirmed when it is the button inside the confirm Dialog.' });
+      },
+    };
+  },
+};
+
+const rules = {
+  'no-raw-color': noRawColor,
+  'no-native-controls': noNativeControls,
+  'no-nested-card': noNestedCard,
+  'one-primary-button': onePrimary,
+  'verb-labels': verbLabels,
+  'danger-confirm': dangerConfirm,
+};
+
+const plugin: ESLint.Plugin & { configs: Record<string, Linter.Config> } = {
+  meta: { name: '@seanyeh77/eslint-plugin-ui', version: '0.2.0' },
+  rules,
+  configs: {},
+};
+
+plugin.configs.recommended = {
+  name: '@seanyeh77/ui/recommended',
+  files: ['**/*.{jsx,tsx}'],
+  plugins: { ui: plugin },
+  languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } },
+  rules: {
+    'ui/no-raw-color': 'error',
+    'ui/no-native-controls': 'error',
+    'ui/no-nested-card': 'error',
+    'ui/danger-confirm': 'error',
+    'ui/one-primary-button': 'warn',
+    'ui/verb-labels': 'warn',
+  },
+};
+
+export default plugin;
+export { rules };
