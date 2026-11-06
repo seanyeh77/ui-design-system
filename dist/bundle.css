@@ -332,7 +332,7 @@ body { margin: 0; font-family: var(--font-sans); font-size: 16px; line-height: 1
 .ui-dt-bulk-close { width: 32px; height: 32px; border: 0; border-radius: var(--radius-sm); background: transparent; color: inherit; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .ui-dt-empty { padding: 28px 12px; text-align: center; color: var(--ink-muted); }
 .ui-dt-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
-.ui-dt-range { font-family: var(--font-mono); font-size: 13px; color: var(--ink-muted); }
+.ui-dt-range { font-size: 13px; color: var(--ink-muted); }
 .ui-dt-pages { display: flex; gap: 4px; }
 .ui-dt-page { min-width: 36px; height: 36px; padding: 0 8px; border: 1px solid var(--line); border-radius: var(--radius-chip); background: var(--surface); color: var(--ink); font: inherit; font-family: var(--font-mono); font-weight: 600; cursor: pointer; }
 .ui-dt-page.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
@@ -349,17 +349,20 @@ body { margin: 0; font-family: var(--font-sans); font-size: 16px; line-height: 1
   .ui-dt-table { width: auto; min-width: 0; }
   .ui-dt-head:not(.ui-dt-bulk) { display: none; }
   .ui-dt-bulk { position: static; border: 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
-  .ui-dt-body .ui-dt-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto !important; align-items: center; min-width: 0 !important; min-height: 0; padding: var(--space-3) var(--space-4); border: 0; border-top: 1px solid var(--line); border-radius: 0; background: transparent !important; box-shadow: none; }
+  .ui-dt-tools { flex-wrap: nowrap; }
+  .ui-dt-search { flex: 1 1 auto; min-width: 0; }
+  .ui-dt-colbtn { display: none !important; }
+  .ui-dt-body .ui-dt-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto !important; align-items: center; min-width: 0 !important; min-height: 0; padding: var(--space-3) var(--space-4); border: 0; border-top: 1px solid var(--line); border-radius: 0; background: transparent !important; box-shadow: none; }
   .ui-dt-body .ui-dt-row:first-child { border-top: 0; }
   .ui-dt-body .ui-dt-row.is-selected { background: var(--accent-soft) !important; box-shadow: none; }
-  .ui-dt-body .ui-dt-cell { grid-column: 1 / -1; display: block; margin-top: var(--space-2); padding: 0; border-right: 0; text-align: left; overflow: visible; white-space: normal; overflow-wrap: anywhere; }
-  .ui-dt-body .ui-dt-cell[data-label]::before { content: attr(data-label); display: block; margin-bottom: 2px; color: var(--ink-muted); font-family: var(--font-sans); font-size: 13px; font-weight: 400; white-space: nowrap; }
+  .ui-dt-body .ui-dt-cell { grid-column: 1 / -1; display: block; margin-top: 4px; padding: 0; border-right: 0; text-align: left; overflow: visible; white-space: normal; overflow-wrap: anywhere; }
+  .ui-dt-body .ui-dt-cell[data-label]::before { content: attr(data-label); display: block; margin-bottom: 0; color: var(--ink-muted); font-family: var(--font-sans); font-size: 12px; line-height: 18px; font-weight: 400; white-space: nowrap; }
   .ui-dt-body .ui-dt-cell.ui-dt-sel { grid-column: 1; grid-row: 1; margin: 0 var(--space-2) 0 0; }
   .ui-dt-body .ui-dt-cell.is-m-title { grid-column: 2; grid-row: 1; margin-top: 0; font-weight: 600; }
   .ui-dt-body .ui-dt-cell.is-m-status { grid-column: 3; grid-row: 1; margin: 0 0 0 var(--space-2); }
   .ui-dt-body .ui-dt-cell.is-m-title::before, .ui-dt-body .ui-dt-cell.is-m-status::before { display: none; }
   .ui-dt-body .ui-dt-cell.is-m-hide { display: none; }
-  .ui-dt-body .ui-dt-cell.ui-dt-acts { display: flex; justify-content: flex-end; }
+  .ui-dt-body .ui-dt-cell.ui-dt-acts { grid-column: 4; grid-row: 1; display: flex; justify-content: flex-end; align-items: center; gap: 4px; margin: 0 0 0 var(--space-2); }
   .ui-dt-sel > *, .ui-dt-acts > * { opacity: 1; }
   .ui-dt-body .ui-dt-cell.is-long > .ui-dt-long { overflow: visible; white-space: normal; }
   .ui-dt-summary { display: flex; align-self: stretch; }

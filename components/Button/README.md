@@ -8,3 +8,4 @@
 - 狀態：滑過變深（`accent-hover`）、按下下移 1 px（`accent-press`）、停用為 `surface-sub` 灰底加 `ink-muted` 灰字、`loading` 顯示轉圈並停用，文字改成進行式（「儲存中」）。
 - 高度 `control-height` 40 px；觸控點擊範圍 `touch-target` 48 px（按鈕外觀不變，外圍擴大可點範圍）。
 - 按鈕文字只用動詞，例如「儲存」、「刪除」。
+- `icon` 可以給 Phosphor 圖示名稱（例如 `'file-text'`），也可以給 SVG path。
