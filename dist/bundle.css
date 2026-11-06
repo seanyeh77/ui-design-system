@@ -864,8 +864,8 @@ html.ui-theme-fade, html.ui-theme-fade * { transition: background-color 300ms ea
 /* Touch targets: on touch screens every control keeps its look but its hit area grows to at least 48 x 48 px (touch-target).
    Text links and terms inside a sentence are exempt (WCAG 2.2, 2.5.8 inline exception). */
 @media (pointer: coarse) {
-  :where(button:not(.ui-term):not(.ui-code):not(.ui-cal-day):not(.ui-dt-view), a.ui-link, a.ui-btn, [role="tab"]:not(.ui-dt-view), [role="switch"], [role="menuitem"], .ui-crumbs a, .ui-crumb a, a.ui-crumb, .ui-dt-cell .ui-code.is-link, .ui-dl-item dd > .ui-code.is-link, .ui-tag > .ui-term) { position: relative; }
-  :where(button:not(.ui-term):not(.ui-code):not(.ui-cal-day):not(.ui-dt-view), a.ui-link, a.ui-btn, [role="tab"]:not(.ui-dt-view), [role="switch"], [role="menuitem"], .ui-crumbs a, .ui-crumb a, a.ui-crumb, .ui-dt-cell .ui-code.is-link, .ui-dl-item dd > .ui-code.is-link, .ui-tag > .ui-term)::after {
+  :where(button:not(.ui-term):not(.ui-code):not(.ui-cal-day):not(.ui-dt-view), a.ui-link, a.ui-btn, [role="tab"]:not(.ui-dt-view), [role="switch"], [role="menuitem"], .ui-crumbs a, .ui-crumb a, a.ui-crumb, .ui-dt-cell .ui-code.is-link, .ui-dl-item dd > .ui-code.is-link, .ui-term:not(.is-inline)) { position: relative; }
+  :where(button:not(.ui-term):not(.ui-code):not(.ui-cal-day):not(.ui-dt-view), a.ui-link, a.ui-btn, [role="tab"]:not(.ui-dt-view), [role="switch"], [role="menuitem"], .ui-crumbs a, .ui-crumb a, a.ui-crumb, .ui-dt-cell .ui-code.is-link, .ui-dl-item dd > .ui-code.is-link, .ui-term:not(.is-inline))::after {
     content: ''; position: absolute; left: 50%; top: 50%; width: max(100%, var(--touch-target)); height: max(100%, var(--touch-target)); transform: translate(-50%, -50%);
   }
 }

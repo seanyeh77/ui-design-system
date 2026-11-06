@@ -1877,6 +1877,13 @@
       document.addEventListener('mousedown', down); document.addEventListener('keydown', esc);
       return function () { document.removeEventListener('mousedown', down); document.removeEventListener('keydown', esc); };
     }, [open, narrow]);
+    // Inside a sentence (text next to it) the term keeps its line height; on its own it gets the 48 px touch area.
+    var ins = React.useState(false), inline = ins[0], setInline = ins[1];
+    React.useLayoutEffect(function () {
+      var el = f.anchor.current, par = el && el.parentNode, txt = false;
+      if (par) for (var i = 0; i < par.childNodes.length; i++) { var n = par.childNodes[i]; if (n.nodeType === 3 && n.textContent.trim()) { txt = true; break; } }
+      if (txt !== inline) setInline(txt);
+    });
     var title = p.title || (typeof p.children === 'string' ? p.children : '');
     var body = [
       h('div', { key: 'h', className: 'ui-term-head' }, h('span', { id: id + '-t', className: 'ui-term-title' }, title),
@@ -1886,7 +1893,7 @@
       p.code ? h('pre', { key: 'p', className: 'ui-term-code' }, p.code) : null,
       p.action ? h('button', { key: 'a', type: 'button', className: 'ui-link-btn ui-term-action', onClick: function () { setOpen(false); p.action.onClick && p.action.onClick(); } }, p.action.label) : null
     ];
-    var trigger = h('button', { type: 'button', ref: f.anchor, className: cx('ui-term', open && 'is-open', p.className), 'aria-expanded': String(open), 'aria-controls': open ? id : undefined,
+    var trigger = h('button', { type: 'button', ref: f.anchor, className: cx('ui-term', inline && 'is-inline', open && 'is-open', p.className), 'aria-expanded': String(open), 'aria-controls': open ? id : undefined,
       onClick: function () { setOpen(!open); } }, p.children, h(Icon, { name: 'question', size: 14, className: 'ui-term-q' }), h('span', { className: 'ui-visually-hidden' }, tr('（說明）')));
     var pop = null;
     if (open && narrow) pop = portal(h('div', { className: 'ui-term-layer' },
