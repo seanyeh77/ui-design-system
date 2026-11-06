@@ -59,7 +59,13 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
     // Chromium normalizes URLs (trailing slash, case, escapes); compare against the same form.
     const url = target.includes('://') ? new URL(target).href : pathToFileURL(resolve(target)).href;
     // Screenshot names come from the file name; a second target with the same name gets -2, -3, …
-    const base = (url.replace(/\/$/, '').split('/').pop() || 'page').replace(/\.[^.]*$/, '');
+    const base = decodeURIComponent(
+      url
+        .replace(/[?#].*$/, '')
+        .replace(/\/$/, '')
+        .split('/')
+        .pop() || 'page',
+    ).replace(/\.[^.]*$/, '');
     const n = (stems.get(base) ?? 0) + 1;
     stems.set(base, n);
     return { url, stem: n > 1 ? `${base}-${n}` : base };
