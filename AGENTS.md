@@ -29,6 +29,8 @@ Use it for any web page, dashboard, frontend or tool UI unless the user asks for
 3. Use components from `window.UI` (types in `dist/index.d.ts`) rather than hand-building equivalents. Call `UI.initTheme()` once; theme via `UI.setTheme('light' | 'dark' | 'auto')`, accent via `UI.setAccent(hex)`.
 4. When you must write your own CSS, use the CSS variables from `tokens.css` (`var(--bg)`, `var(--surface)`, `var(--ink)`, `var(--accent)`, `var(--space-4)`, `var(--radius-md)` and so on). Never hard-code a color, size or radius that has a token. Token names and their intended use are in `tokens/tokens.json`.
 5. Rules that are easy to miss: no native `<select>`; one primary button per section; button labels are verbs only; dates `2026/11/04（三）` with relative time inside a week; amounts `NT$ 1,280`; numbers right-aligned with tabular figures; danger actions confirm in a Dialog; error messages give the cause and the fix.
+6. Items marked 看情況 ("situational") in the docs are not fixed rules: choose per context and say which way you chose.
+
 ### Projects with a build step (Vite and similar)
 
 Until the npm packages exist, the bundle is a UMD file that reads `window.React` and `window.ReactDOM`.
@@ -51,8 +53,6 @@ export const UI = window.UI; // typed by vendor/ui-design-system/index.d.ts (add
 - Tests in Node (Vitest without a DOM): the bundle does nothing when there is no `window`, so importing it no longer throws, but `UI` is undefined. Run component tests with `environment: 'jsdom'` and set the globals in the setup file.
 - Fonts come from Google Fonts. Pages that must work offline fall back to system fonts; self-hosted font files are not in `dist` yet.
 
-6. Items marked 看情況 ("situational") in the docs are not fixed rules: choose per context and say which way you chose.
-
 ### Before you finish
 
 Check the page against this list, at 390 px and 1280 px wide, in light and dark. Take a screenshot if you can.
@@ -69,7 +69,7 @@ Check the page against this list, at 390 px and 1280 px wide, in light and dark.
 - Links: file paths, line references, IDs and anything else that points somewhere are links.
 - Status: shown with `UI.Badge` or the component's own status style, never by color alone.
 - Long lists of results: items that need attention (errors, to confirm) come first or can be filtered from the summary.
-- Phones: nothing overflows the screen; long text is left-aligned; touch targets are at least 48 px.
+- Phones: nothing overflows the screen; long text is left-aligned; touch targets are at least 48 px (components get this automatically on touch screens; text links inside a sentence are exempt).
 
 Scope: this system covers web UI and the tokens of SeanYeh's Slidev decks. Slidev decks use the `teaching` preset (`data-theme="teaching"` in `tokens.css`, defined under `presets` in `tokens/tokens.json`): warm-gray neutrals and Inter / Geist Mono from this system, plus teal `#0f766e`, 0 px radius, no shadows and 1.5 px borders, light only. Deck CSS reads token names only. Slide layout and rules, Notion documents and teaching diagrams follow SeanYeh's separate `teaching-materials-style` skill.
 
