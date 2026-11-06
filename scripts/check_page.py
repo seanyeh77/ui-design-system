@@ -52,6 +52,9 @@ MEASURE = r"""
     if (!r.width || !r.height) continue;
     // A checkbox or radio inside its label uses the label as target.
     if ((el.type === 'checkbox' || el.type === 'radio') && el.closest('label')) continue;
+    // An input inside a field box that focuses it on click (password, date, multi-select) uses the box as target.
+    const box = el.tagName === 'INPUT' && el.closest('.ui-pwfield, .ui-datefield, .ui-ms, .ui-searchfield');
+    if (box) { const br = box.getBoundingClientRect(); if (br.height >= 47.5 && br.width >= 47.5) continue; }
     let w = r.width, h = r.height;
     for (const pe of ['::before', '::after']) {
       const ps = getComputedStyle(el, pe);
