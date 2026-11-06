@@ -69,10 +69,13 @@ const noRawColor: Rule.RuleModule = {
       // Any string under style, also inside ternaries and ?? / && (status colors); the key is the nearest property's.
       'JSXAttribute[name.name="style"] Literal'(node: Node) {
         const v = valueOf(node);
-        // map['red'] is a lookup key, not a value.
-        if (typeof v !== 'string' || node.parent.type === 'MemberExpression') return;
+        if (typeof v !== 'string') return;
+        // tone['red'] or tone[ok ? 'green' : 'red'] is a lookup key, not a value.
         let p: Node | null = node.parent;
-        while (p && p.type !== 'Property') p = p.parent;
+        for (let c: Node = node; p && p.type !== 'Property'; c = p, p = p.parent) {
+          const m = p as unknown as { type: string; computed?: boolean; property?: unknown };
+          if (m.type === 'MemberExpression' && m.computed && m.property === c) return;
+        }
         if (!p) return;
         const key = (p as unknown as { key?: Node & { name?: string; value?: unknown } }).key;
         if (key === node) return;

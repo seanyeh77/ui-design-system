@@ -17,7 +17,7 @@ interface ColumnBase<R extends Row> {
   sortValue?: (row: R) => number | string;
   width?: number;
   grow?: number;
-  /** money: NT$ 1,280. date: 2026/11/04（三）. relative: 「2 小時前」 within a week. */
+  /** money: NT$ 1,280. date: 2026/11/04（三）. relative: 「2 小時前」 within a week. percent: adds the % sign itself; leave unit out. */
   format?: 'money' | 'date' | 'datetime' | 'relative' | 'percent';
   currency?: string;
   decimals?: number;

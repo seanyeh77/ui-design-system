@@ -9,7 +9,7 @@ export interface KpiCardProps {
   /** What is measured: 「本月營收」. */
   label: string;
   value: number;
-  /** 'money' shows NT$ 1,280; 'percent' 1 decimal. Default 'number'. */
+  /** 'money' shows NT$ 1,280; 'percent' 1 decimal without the % sign: pass unit="%". Default 'number'. */
   format?: 'number' | 'money' | 'percent';
   /** For money. Default: the locale's currency (TWD). */
   currency?: string;

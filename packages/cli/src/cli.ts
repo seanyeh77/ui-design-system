@@ -14,6 +14,7 @@ const HELP = `ui check <file or URL>... [--shots DIR] [--strict] [--wait MS]
   Opens each page at 390 px and 1280 px, light and dark, and fails (exit 1) on:
   console errors, horizontal overflow at 390 px, touch targets under 48 px, a card inside a card,
   raw Markdown, native controls the design system replaces, and wrapped buttons, tabs, headers or headings.
+  Exits 2 when a page cannot be loaded at all.
 ui docs [Name]   prints the README of a component (Button, DataTable…) or a guide (guidelines, layout, motion)
 ui list          lists every component`;
 
@@ -74,60 +75,72 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
           isMobile: phone,
           deviceScaleFactor: phone ? 2 : 1,
         });
-        const page = await ctx.newPage();
-        const errors: string[] = [];
-        page.on('pageerror', (e) => errors.push(String(e)));
-        page.on('console', (m) => {
-          if (m.type() === 'error') errors.push(m.text());
-        });
-        await page.goto(url, { waitUntil: 'load' });
-        await page.evaluate((t) => {
-          const r = document.documentElement;
-          if (r.hasAttribute('data-theme') || 'UI' in window) r.setAttribute('data-theme', t);
-        }, theme);
-        await page.waitForTimeout(opts.wait);
-        const res = await page.evaluate(measure);
-        const problems: string[] = [];
-        if (errors.length) problems.push('console errors: ' + errors.slice(0, 5).join(' | '));
-        if (res.nested.length) problems.push('card inside a card (two shadows): ' + res.nested.join('; '));
-        if (res.markdown.length) problems.push('raw Markdown shown: ' + res.markdown.join('; '));
-        if (res.native.length) problems.push('native controls: ' + [...new Set(res.native)].join('; '));
-        if (res.wrapped.length) problems.push('text that must stay on one line wraps: ' + res.wrapped.join('; '));
-        if (phone) {
-          if (res.overflow.length) problems.push('horizontal overflow: ' + res.overflow.join('; '));
-          if (res.small.length)
-            problems.push(`touch targets under 48 px: ${res.small.slice(0, 12).join('; ')}${res.small.length > 12 ? ` (+${res.small.length - 12} more)` : ''}`);
-          if (res.inline.length && opts.strict) problems.push('inline targets under 48 px: ' + res.inline.slice(0, 12).join('; '));
+        try {
+          const page = await ctx.newPage();
+          const errors: string[] = [];
+          page.on('pageerror', (e) => errors.push(String(e)));
+          page.on('console', (m) => {
+            if (m.type() === 'error') errors.push(m.text());
+          });
+          await page.goto(url, { waitUntil: 'load' });
+          await page.evaluate((t) => {
+            const r = document.documentElement;
+            if (r.hasAttribute('data-theme') || 'UI' in window) r.setAttribute('data-theme', t);
+          }, theme);
+          await page.waitForTimeout(opts.wait);
+          const res = await page.evaluate(measure);
+          const problems: string[] = [];
+          if (errors.length) problems.push('console errors: ' + errors.slice(0, 5).join(' | '));
+          if (res.nested.length) problems.push('card inside a card (two shadows): ' + res.nested.join('; '));
+          if (res.markdown.length) problems.push('raw Markdown shown: ' + res.markdown.join('; '));
+          if (res.native.length) problems.push('native controls: ' + [...new Set(res.native)].join('; '));
+          if (res.wrapped.length) problems.push('text that must stay on one line wraps: ' + res.wrapped.join('; '));
+          if (phone) {
+            if (res.overflow.length) problems.push('horizontal overflow: ' + res.overflow.join('; '));
+            if (res.small.length)
+              problems.push(
+                `touch targets under 48 px: ${res.small.slice(0, 12).join('; ')}${res.small.length > 12 ? ` (+${res.small.length - 12} more)` : ''}`,
+              );
+            if (res.inline.length && opts.strict) problems.push('inline targets under 48 px: ' + res.inline.slice(0, 12).join('; '));
+          }
+          out.push(`  ${width} px ${theme}: ${problems.length ? '' : 'ok'}`);
+          for (const p of problems) out.push('    - ' + p);
+          if (phone && theme === 'light' && res.inline.length && !opts.strict) out.push(`    (inline text targets, exempt: ${res.inline.length})`);
+          bad ||= problems.length > 0;
+          if (opts.shots) {
+            await page.screenshot({ path: join(opts.shots, `${stem}-${width}-${theme}.png`), fullPage: true });
+          }
+        } finally {
+          await ctx.close();
         }
-        out.push(`  ${width} px ${theme}: ${problems.length ? '' : 'ok'}`);
-        for (const p of problems) out.push('    - ' + p);
-        if (phone && theme === 'light' && res.inline.length && !opts.strict) out.push(`    (inline text targets, exempt: ${res.inline.length})`);
-        bad ||= problems.length > 0;
-        if (opts.shots) {
-          mkdirSync(opts.shots, { recursive: true });
-          await page.screenshot({ path: join(opts.shots, `${stem}-${width}-${theme}.png`), fullPage: true });
-        }
-        await ctx.close();
       }
     }
     return { out, bad };
   };
 
-  // 4 pages at a time; reports print in the order the targets were given.
-  const done = jobs.map(() => Promise.withResolvers<{ out: string[]; bad: boolean }>());
-  let next = 0;
-  const lanes = Array.from({ length: Math.min(4, jobs.length) }, async () => {
-    for (let i = next++; i < jobs.length; i = next++) await checkOne(jobs[i]).then(done[i].resolve, done[i].reject);
+  if (opts.shots) mkdirSync(opts.shots, { recursive: true });
+  // 4 lanes; reports print in the order the targets were given. A page that cannot load becomes a report line.
+  let unreachable = false;
+  const lanes: Promise<unknown>[] = Array(4).fill(Promise.resolve());
+  const results = jobs.map((job, i) => {
+    const r = lanes[i % 4]
+      .then(() => checkOne(job))
+      .catch((e: unknown) => {
+        unreachable = true;
+        return { out: [job.url, `  could not load: ${String(e).split('\n')[0]}. Check the path, or start the server first.`], bad: true };
+      });
+    lanes[i % 4] = r;
+    return r;
   });
   let failed = false;
-  for (const d of done) {
-    const { out, bad } = await d.promise;
+  for (const r of results) {
+    const { out, bad } = await r;
     console.log(out.join('\n'));
     failed ||= bad;
   }
-  await Promise.all(lanes);
   await browser.close();
-  process.exit(failed ? 1 : 0);
+  // 2: a page could not be checked at all; 1: checks found problems.
+  process.exit(unreachable ? 2 : failed ? 1 : 0);
 }
 
 const [cmd, ...rest] = process.argv.slice(2);
@@ -146,7 +159,12 @@ if (cmd === 'check') {
       console.error(`${t}: no such file. Pass a file path or a URL.`);
       process.exit(2);
     }
-  await check(positionals, { shots: values.shots, strict: !!values.strict, wait: Number(values.wait) });
+  const wait = Number(values.wait);
+  if (!Number.isFinite(wait) || wait < 0) {
+    console.error(`--wait ${values.wait}: give the milliseconds to wait after load, e.g. --wait 800.`);
+    process.exit(2);
+  }
+  await check(positionals, { shots: values.shots, strict: !!values.strict, wait });
 } else if (cmd === 'docs') docs(rest[0]);
 else if (cmd === 'list') list();
 else {

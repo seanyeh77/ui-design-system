@@ -12,6 +12,8 @@ tester.run('no-raw-color', rules['no-raw-color'], {
     '<path fill="currentColor" />',
     '<rect fill="url(#fade)" />',
     '<div style={{ color: map["red"] }} />',
+    '<div style={{ color: tone[ok ? "green" : "red"] }} />',
+    '<div style={{ background: tone[s ?? "red"] }} />',
     '<div className="bg-surface text-ink" />',
   ],
   invalid: [
@@ -22,6 +24,7 @@ tester.run('no-raw-color', rules['no-raw-color'], {
     { code: '<div className="bg-[#fff] p-4" />', errors: 1 },
     { code: '<div style={{ color: ok ? "#16a34a" : "#dc2626" }} />', errors: 2 },
     { code: '<path fill={on ? "#2457d6" : "none"} />', errors: 1 },
+    { code: '<div style={{ color: "#fff".toString() }} />', errors: 1 },
   ],
 });
 tester.run('no-native-controls', rules['no-native-controls'], {

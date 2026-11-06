@@ -24,7 +24,6 @@
       "default": "./dist/format.js"
     },
     "./styles.css": "./dist/styles.css",
-    "./bundle.css": "./dist/styles.css",
     "./tokens.css": "./dist/tokens.css",
     "./fonts.css": "./dist/fonts.css",
     "./bundle.js": "./dist/bundle.js",

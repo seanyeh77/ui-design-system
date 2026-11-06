@@ -20,9 +20,8 @@ export interface LoginCardProps {
   className?: string;
 }
 
-/* LoginCard: centered card on surface-sub: account and password (with show-password), 「忘記密碼」 beside the password
-   label, errors under each field. Pass error = { account, password } from your sign-in check. */
-/** A centered sign-in card: account, password with show-password, errors under each field. */
+/** A centered sign-in card: account, password with show-password, 「忘記密碼」 beside the password label, errors under each
+ *  field. Pass error = { account, password } from your sign-in check. */
 export function LoginCard(p: LoginCardProps) {
   const pwId = React.useId();
   const [user, setUser] = React.useState('');
