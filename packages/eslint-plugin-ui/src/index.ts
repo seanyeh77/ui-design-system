@@ -66,7 +66,6 @@ const noRawColor: Rule.RuleModule = {
         });
     };
     return {
-      // style={{ color: '#fff' }} and style props of any element
       // Any string under style, also inside ternaries and ?? / && (status colors); the key is the nearest property's.
       'JSXAttribute[name.name="style"] Literal'(node: Node) {
         const v = valueOf(node);
@@ -74,8 +73,8 @@ const noRawColor: Rule.RuleModule = {
         let p: Node | null = node.parent;
         while (p && p.type !== 'Property') p = p.parent;
         if (!p) return;
-        const key = (p as unknown as { key?: { name?: string; value?: unknown } }).key;
-        if ((p as unknown as { key?: unknown }).key === node) return;
+        const key = (p as unknown as { key?: Node & { name?: string; value?: unknown } }).key;
+        if (key === node) return;
         check(node, v, String(key?.name ?? key?.value ?? ''));
       },
       'JSXAttribute[name.name=/^(className|class)$/] Literal'(node: Node) {

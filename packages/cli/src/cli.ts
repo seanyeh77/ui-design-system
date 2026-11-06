@@ -51,15 +51,19 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
     process.exit(2);
   });
   const stems = new Map<string, number>();
-  let failed = false;
-  for (const target of targets) {
+  const jobs = targets.map((target) => {
     const url = target.includes('://') ? target : pathToFileURL(resolve(target)).href;
-    console.log(url);
     // Screenshot names come from the file name; a second target with the same name gets -2, -3, …
     const base = (url.replace(/\/$/, '').split('/').pop() || 'page').replace(/\.[^.]*$/, '');
     const n = (stems.get(base) ?? 0) + 1;
     stems.set(base, n);
-    const stem = n > 1 ? `${base}-${n}` : base;
+    return { url, stem: n > 1 ? `${base}-${n}` : base };
+  });
+
+  // One page: 2 widths x 2 themes, each in a fresh context (initTheme reads the color scheme at load).
+  const checkOne = async ({ url, stem }: { url: string; stem: string }) => {
+    const out: string[] = [url];
+    let bad = false;
     for (const width of [390, 1280]) {
       for (const theme of ['light', 'dark'] as const) {
         const phone = width === 390;
@@ -95,10 +99,10 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
             problems.push(`touch targets under 48 px: ${res.small.slice(0, 12).join('; ')}${res.small.length > 12 ? ` (+${res.small.length - 12} more)` : ''}`);
           if (res.inline.length && opts.strict) problems.push('inline targets under 48 px: ' + res.inline.slice(0, 12).join('; '));
         }
-        console.log(`  ${width} px ${theme}: ${problems.length ? '' : 'ok'}`);
-        for (const p of problems) console.log('    - ' + p);
-        if (phone && theme === 'light' && res.inline.length && !opts.strict) console.log(`    (inline text targets, exempt: ${res.inline.length})`);
-        failed ||= problems.length > 0;
+        out.push(`  ${width} px ${theme}: ${problems.length ? '' : 'ok'}`);
+        for (const p of problems) out.push('    - ' + p);
+        if (phone && theme === 'light' && res.inline.length && !opts.strict) out.push(`    (inline text targets, exempt: ${res.inline.length})`);
+        bad ||= problems.length > 0;
         if (opts.shots) {
           mkdirSync(opts.shots, { recursive: true });
           await page.screenshot({ path: join(opts.shots, `${stem}-${width}-${theme}.png`), fullPage: true });
@@ -106,7 +110,22 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
         await ctx.close();
       }
     }
+    return { out, bad };
+  };
+
+  // 4 pages at a time; reports print in the order the targets were given.
+  const done = jobs.map(() => Promise.withResolvers<{ out: string[]; bad: boolean }>());
+  let next = 0;
+  const lanes = Array.from({ length: Math.min(4, jobs.length) }, async () => {
+    for (let i = next++; i < jobs.length; i = next++) await checkOne(jobs[i]).then(done[i].resolve, done[i].reject);
+  });
+  let failed = false;
+  for (const d of done) {
+    const { out, bad } = await d.promise;
+    console.log(out.join('\n'));
+    failed ||= bad;
   }
+  await Promise.all(lanes);
   await browser.close();
   process.exit(failed ? 1 : 0);
 }

@@ -23,5 +23,8 @@
   "dependencies": {
     "@seanyeh77/ui": "workspace:^",
     "playwright": "^1.65.0"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

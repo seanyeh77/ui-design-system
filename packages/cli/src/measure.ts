@@ -113,6 +113,10 @@ export function measure(): Findings {
     'input[type=checkbox]': 'Checkbox',
     'input[type=radio]': 'RadioGroup',
     'input[type=date]': 'DatePicker',
+    progress: 'ProgressBar',
+    'input[type=search]': 'SearchField',
+    'input[type=file]': 'FileUpload',
+    'input[type=color]': 'AccentPicker',
   };
   for (const [q, use] of Object.entries(replacements))
     // Controls a component renders carry its ui-* class; anything else is hand-written.

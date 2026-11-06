@@ -7,7 +7,6 @@ const tokens = new URL('../tokens/', root);
 const dist = new URL('dist/', root);
 
 cpSync(new URL('src/styles.css', root), new URL('styles.css', dist));
-cpSync(new URL('src/styles.css', root), new URL('bundle.css', dist));
 cpSync(new URL('dist/tokens.css', tokens), new URL('tokens.css', dist));
 cpSync(new URL('fonts.css', tokens), new URL('fonts.css', dist));
 cpSync(new URL('fonts', tokens), new URL('fonts', dist), { recursive: true });
@@ -19,8 +18,5 @@ for (const name of readdirSync(components)) {
   const readme = new URL(`${name}/README.md`, components);
   if (existsSync(readme)) cpSync(readme, new URL(`${name}.md`, docs));
 }
-for (const file of ['guidelines.md', 'layout.md', 'motion.md']) {
-  const src = new URL(`../../docs/${file}`, root);
-  if (existsSync(src)) cpSync(src, new URL(file, docs));
-}
+for (const file of ['guidelines.md', 'layout.md', 'motion.md']) cpSync(new URL(`../../docs/${file}`, root), new URL(file, docs));
 console.log('postbuild: styles, tokens, fonts and docs copied');

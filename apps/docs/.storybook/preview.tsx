@@ -30,7 +30,21 @@ const preview: Preview = {
     layout: 'padded',
     options: {
       storySort: {
-        order: ['設計系統', 'Foundations', 'Actions', 'Forms', 'Data', 'Status', 'Feedback', 'Overlays', 'Navigation', 'Appearance', 'Pages', 'Blocks'],
+        order: [
+          '設計系統',
+          'Foundations',
+          'Layout',
+          'Actions',
+          'Forms',
+          'Data',
+          'Status',
+          'Feedback',
+          'Overlays',
+          'Navigation',
+          'Appearance',
+          'Pages',
+          'Blocks',
+        ],
       },
     },
     a11y: { test: 'error' },

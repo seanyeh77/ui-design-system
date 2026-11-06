@@ -14,6 +14,7 @@ const at = (p: string) => new URL(p, root);
 const BASE = 'https://seanyeh77.github.io/ui-design-system';
 const GROUPS: Record<string, string> = {
   Foundations: '基礎',
+  Layout: '版面',
   Actions: '按鈕',
   Forms: '表單',
   Data: '數據呈現',
@@ -70,7 +71,7 @@ for (const f of readdirSync(at('docs/'))) if (f.endsWith('.md')) cpSync(at(`docs
 cpSync(at('packages/tokens/tokens.json'), new URL('tokens/tokens.json', site));
 cpSync(at('AGENTS.md'), new URL('AGENTS.md', site));
 writeFileSync(new URL('.nojekyll', site), '');
-execFileSync('npx', ['-y', 'shadcn@4', 'build', 'registry.json', '--output', 'site/r'], { stdio: 'inherit', cwd: root });
+execFileSync('pnpm', ['exec', 'shadcn', 'build', 'registry.json', '--output', 'site/r'], { stdio: 'inherit', cwd: root });
 const blocks = (JSON.parse(readFileSync(at('registry.json'), 'utf8')) as { items: { name: string; description: string }[] }).items;
 
 const guides: [string, string][] = [
@@ -94,7 +95,7 @@ const lines = [
   '## Files to load',
   '',
   `- [bundle.js](${BASE}/dist/bundle.js): every component on window.UI, React 19 included (sets window.React and window.ReactDOM too)`,
-  `- [styles.css](${BASE}/dist/styles.css): component styles (bundle.css is the same file)`,
+  `- [styles.css](${BASE}/dist/styles.css): component styles`,
   `- [tokens.css](${BASE}/dist/tokens.css): CSS variables for every token, light, dark and the teaching preset`,
   `- [fonts.css](${BASE}/dist/fonts.css): self-hosted Inter, Geist Mono and Noto Sans TC, weights 400 to 700`,
   `- [index.d.ts](${BASE}/dist/index.d.ts): props and API types`,
