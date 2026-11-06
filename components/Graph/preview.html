@@ -24,7 +24,7 @@
           var a = node(e[0]), b = node(e[1]), sx = a.x + a.w / 2, sy = a.y + 40, tx = b.x + b.w / 2, ty = b.y - 2, my = sy + 24, on = sel && related(e);
           return h('g', { key: i, className: related(e) ? '' : 'is-dim' },
             h('path', { d: 'M' + sx + ' ' + sy + ' V' + my + ' H' + tx + ' V' + ty, className: 'ui-graph-edge' + (e[2] ? ' is-inferred' : '') + (on ? ' is-related' : ''), markerEnd: on ? 'url(#ui-arrow-accent)' : 'url(#ui-arrow)' }),
-            e[3] ? h('text', { x: tx + 8, y: (my + ty) / 2 + 2, dominantBaseline: 'central', className: 'ui-graph-label' + (on ? ' is-related' : '') }, e[3]) : null);
+            e[3] ? h('text', { x: tx + 8, y: (my + ty) / 2 + 2, dominantBaseline: 'central', className: 'ui-graph-label' + (on ? ' is-related' : '') }, h('tspan', { className: 'ui-graph-code' }, e[3])) : null);
         }),
         NODES.map(function (n) {
           return h('g', { key: n.id, className: near(n.id) ? '' : 'is-dim', style: { cursor: 'pointer' }, onClick: function () { setSel(sel === n.id ? null : n.id); } },

@@ -1956,7 +1956,7 @@
     var body = React.useRef(null);
     React.useEffect(function () {
       var b = body.current, el = b && b.querySelector('.is-target');
-      if (b && el && b.scrollHeight > b.clientHeight) b.scrollTop = el.offsetTop - b.clientHeight / 2 + el.offsetHeight / 2;
+      if (b && el && b.scrollHeight > b.clientHeight) b.scrollTop += el.getBoundingClientRect().top - b.getBoundingClientRect().top - b.clientHeight / 2 + el.offsetHeight / 2;
     }, [ta, p.code]);
     var digits = String(start + lines.length - 1).length;
     var rows = [];
