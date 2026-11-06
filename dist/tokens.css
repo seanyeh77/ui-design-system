@@ -9,6 +9,10 @@
   --ink-muted: #6d645a;
   --line: #e2dfdc;
   --line-strong: #8c8073;
+  --graph-edge: #8c8073;
+  --graph-node: #f6f5f4;
+  --code-keyword: #2457d6;
+  --code-constant: #0b7a6b;
   --accent: #2457d6;
   --accent-hover: #204dbc;
   --accent-press: #1c44a7;
@@ -84,6 +88,10 @@
   --ink: #f6f5f4;
   --ink-muted: #b3aba2;
   --line: #4c4844;
+  --graph-edge: #b3aba2;
+  --graph-node: #443f3b;
+  --code-keyword: #a3b7ee;
+  --code-constant: #3cc4ae;
   --accent-text: #819ee7;
   --accent-soft: #2d344c;
   --focus-ring: rgba(124, 154, 230, 0.45);

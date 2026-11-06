@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"UI","components":[{"name":"Button"},{"name":"IconButton"},{"name":"TextField"},{"name":"Checkbox"},{"name":"RadioGroup"},{"name":"Switch"},{"name":"Select"},{"name":"SearchField"},{"name":"TextArea"},{"name":"FormGrid"},{"name":"KpiCard"},{"name":"LineChart"},{"name":"BarChart"},{"name":"ProgressBar"},{"name":"LoadingBar"},{"name":"ProgressRing"},{"name":"Tooltip"},{"name":"Menu"},{"name":"Popover"},{"name":"Drawer"},{"name":"ThemePicker"},{"name":"AccentPicker"},{"name":"NotificationBell"},{"name":"DatePicker"},{"name":"DateRangePicker"},{"name":"FileUpload"},{"name":"MultiSelect"},{"name":"ErrorPage"},{"name":"LoginCard"},{"name":"SettingsLayout"},{"name":"DangerZone"},{"name":"Badge"},{"name":"Alert"},{"name":"DataTable"},{"name":"Skeleton"},{"name":"EmptyState"},{"name":"Toast"},{"name":"Dialog"},{"name":"SideNav"},{"name":"TopBar"},{"name":"Breadcrumb"},{"name":"Tabs"},{"name":"MobileTabBar"},{"name":"TreeList"},{"name":"InlineCode"},{"name":"CodeText"},{"name":"Tag"},{"name":"ProjectSwitcher"},{"name":"DetailList"},{"name":"ActionBar"}]} */
+/* @ds-bundle: {"format":4,"namespace":"UI","components":[{"name":"Button"},{"name":"IconButton"},{"name":"TextField"},{"name":"Checkbox"},{"name":"RadioGroup"},{"name":"Switch"},{"name":"Select"},{"name":"SearchField"},{"name":"TextArea"},{"name":"FormGrid"},{"name":"KpiCard"},{"name":"LineChart"},{"name":"BarChart"},{"name":"ProgressBar"},{"name":"LoadingBar"},{"name":"ProgressRing"},{"name":"Tooltip"},{"name":"Menu"},{"name":"Popover"},{"name":"Drawer"},{"name":"ThemePicker"},{"name":"AccentPicker"},{"name":"NotificationBell"},{"name":"DatePicker"},{"name":"DateRangePicker"},{"name":"FileUpload"},{"name":"MultiSelect"},{"name":"ErrorPage"},{"name":"LoginCard"},{"name":"SettingsLayout"},{"name":"DangerZone"},{"name":"Badge"},{"name":"Alert"},{"name":"DataTable"},{"name":"Skeleton"},{"name":"EmptyState"},{"name":"Toast"},{"name":"Dialog"},{"name":"SideNav"},{"name":"TopBar"},{"name":"Breadcrumb"},{"name":"Tabs"},{"name":"MobileTabBar"},{"name":"TreeList"},{"name":"InlineCode"},{"name":"CodeText"},{"name":"Tag"},{"name":"ProjectSwitcher"},{"name":"DetailList"},{"name":"ActionBar"},{"name":"CommandPalette"},{"name":"Tour"},{"name":"Suggestion"},{"name":"Term"},{"name":"CodeView"},{"name":"GraphLegend"}]} */
 (function () {
   if (typeof window === 'undefined') return; // server or Node test: nothing to register
   var React = window.React;
@@ -1905,5 +1905,95 @@
   addMessages('en', { '載入中': 'Loading', '無法載入 {name} 的子項目': 'Could not load the children of {name}', '重試': 'Retry', '找不到符合「{q}」的結果': 'No results for “{q}”', '輸入名稱開始搜尋': 'Type a name to search', '搜尋中': 'Searching', '搜尋結果': 'Search results', '最近開啟': 'Recently opened', '選擇': 'Select', '打開': 'Open', '取消': 'Cancel',
     '略過': 'Skip', '上一步': 'Back', '下一步': 'Next', '建議修正': 'Suggested fix', '複製修正': 'Copy fix', '已複製': 'Copied', '原本：': 'Before: ', '改成：': 'After: ', '關閉說明': 'Close explanation', '（說明）': ' (explain)', '搜尋（{k}）': 'Search ({k})' });
 
-  window.UI = Object.assign(window.UI || {}, { Button: Button, IconButton: IconButton, TextField: TextField, Checkbox: Checkbox, RadioGroup: RadioGroup, Switch: Switch, Select: Select, SearchField: SearchField, TextArea: TextArea, FormGrid: FormGrid, t: tr, setLocale: setLocale, addMessages: addMessages, format: fmt, ThemePicker: ThemePicker, AccentPicker: AccentPicker, setTheme: setTheme, setAccent: setAccent, initTheme: initTheme, NotificationBell: NotificationBell, DatePicker: DatePicker, DateRangePicker: DateRangePicker, Calendar: Calendar, FileUpload: FileUpload, MultiSelect: MultiSelect, ErrorPage: ErrorPage, LoginCard: LoginCard, SettingsLayout: SettingsLayout, SettingsSection: SettingsSection, DangerZone: DangerZone, Tooltip: Tooltip, Menu: Menu, Popover: Popover, Drawer: Drawer, KpiCard: KpiCard, LineChart: LineChart, BarChart: BarChart, ProgressBar: ProgressBar, LoadingBar: LoadingBar, ProgressRing: ProgressRing, Badge: Badge, Alert: Alert, DataTable: DataTable, Skeleton: Skeleton, EmptyState: EmptyState, Toast: Toast, Dialog: Dialog, SideNav: SideNav, TopBar: TopBar, Breadcrumb: Breadcrumb, Tabs: Tabs, MobileTabBar: MobileTabBar, TreeList: TreeList, Tag: Tag, ProjectSwitcher: ProjectSwitcher, DetailList: DetailList, ActionBar: ActionBar, InlineCode: InlineCode, CodeText: CodeText, CommandPalette: CommandPalette, Tour: Tour, useTour: useTour, Suggestion: Suggestion, Term: Term, MOTION: MOTION, Icon: Icon, icons: Object.assign({}, ICONS, PATHS) });
+
+  /* ---------- CodeView and diagram helpers ---------- */
+  var CV_KW = {
+    c: 'auto break case char const continue default do double else enum extern float for goto if inline int long register restrict return short signed sizeof static struct switch typedef union unsigned void volatile while bool true false NULL nullptr class namespace template typename public private protected virtual new delete',
+    js: 'async await break case catch class const continue default delete do else export extends false finally for from function if import in instanceof let new null of return static super switch this throw true try typeof undefined var void while yield interface type enum implements',
+    py: 'and as assert async await break class continue def del elif else except False finally for from global if import in is lambda None nonlocal not or pass raise return True try while with yield',
+    sh: 'if then else elif fi for while do done case esac in function return export local set unset echo exit'
+  };
+  var CV_EXT = { c: 'c', h: 'c', cc: 'c', cpp: 'c', hpp: 'c', cu: 'c', js: 'js', jsx: 'js', ts: 'js', tsx: 'js', mjs: 'js', py: 'py', sh: 'sh', bash: 'sh' };
+  function cvLang(p) { if (p.language) return p.language; var m = /\.([A-Za-z0-9]+)$/.exec(p.file || ''); return m ? (CV_EXT[m[1].toLowerCase()] || 'plain') : 'plain'; }
+  // Splits each line into [class, text] pieces: keyword, constant, comment, string. Block comments may span lines.
+  function cvTokens(lines, lang) {
+    if (lang === 'plain') return lines.map(function (l) { return [['', l]]; });
+    var kw = {}; (CV_KW[lang] || '').split(' ').forEach(function (k) { kw[k] = true; });
+    var hash = lang === 'py' || lang === 'sh', inBlock = false;
+    var re = hash ? /(#.*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|([A-Za-z_]\w*)|(\b\d[\w.]*)/g
+                  : /(\/\/.*$|\/\*.*?(?:\*\/|$))|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|([A-Za-z_]\w*)|(\b\d[\w.]*)/g;
+    return lines.map(function (line) {
+      var out = [], i = 0, m;
+      if (inBlock) { var e = line.indexOf('*/'); if (e < 0) return [['is-comment', line]]; out.push(['is-comment', line.slice(0, e + 2)]); i = e + 2; inBlock = false; }
+      re.lastIndex = i;
+      while ((m = re.exec(line))) {
+        if (m.index > i) out.push(['', line.slice(i, m.index)]);
+        var cls = m[1] ? 'is-comment' : m[2] ? 'is-string' : m[3] ? (kw[m[3]] ? 'is-keyword' : (/^[A-Z][A-Z0-9_]+$/.test(m[3]) ? 'is-constant' : '')) : 'is-constant';
+        if (m[1] && !hash && m[1].indexOf('/*') === 0 && !/\*\/$/.test(m[1])) inBlock = true;
+        out.push([cls, m[0]]); i = m.index + m[0].length;
+        if (!m[0].length) re.lastIndex++;
+      }
+      if (i < line.length) out.push(['', line.slice(i)]);
+      return out.length ? out : [['', '']];
+    });
+  }
+  /* CodeView: source with line numbers and an optional target line.
+     Numbers are plain gray; the target line has a soft accent background with a thin accent bar; long lines wrap with a hanging indent;
+     light syntax colours. On phones only the target line and 2 lines either side show, with 「顯示全部 N 行」. */
+  function CodeView(p) {
+    var lines = React.useMemo(function () { return String(p.code || '').replace(/\n$/, '').split('\n'); }, [p.code]);
+    var lang = cvLang(p);
+    var toks = React.useMemo(function () { return p.highlight === false ? lines.map(function (l) { return [['', l]]; }) : cvTokens(lines, lang); }, [lines, lang, p.highlight]);
+    var start = p.start || 1, t = p.target, ta = t == null ? null : (Array.isArray(t) ? t[0] : t), tb = t == null ? null : (Array.isArray(t) ? t[1] : t);
+    var narrow = useNarrow();
+    var es = React.useState(false), all = es[0], setAll = es[1];
+    React.useEffect(function () { setAll(false); }, [p.code, ta, tb]);
+    var ctx = p.context != null ? p.context : 2;
+    var from = 0, to = lines.length;
+    var windowed = narrow && ta != null && !all && lines.length > (tb - ta + 1) + ctx * 2;
+    if (windowed) { from = Math.max(0, ta - start - ctx); to = Math.min(lines.length, tb - start + ctx + 1); }
+    var body = React.useRef(null);
+    React.useEffect(function () {
+      var b = body.current, el = b && b.querySelector('.is-target');
+      if (b && el && b.scrollHeight > b.clientHeight) b.scrollTop = el.offsetTop - b.clientHeight / 2 + el.offsetHeight / 2;
+    }, [ta, p.code]);
+    var digits = String(start + lines.length - 1).length;
+    var rows = [];
+    for (var i = from; i < to; i++) {
+      var n = start + i, on = ta != null && n >= ta && n <= tb;
+      rows.push(h('div', { key: i, className: cx('ui-cv-line', on && 'is-target'), 'aria-current': on && n === ta ? 'location' : undefined },
+        h('span', { className: 'ui-cv-num', style: { width: (digits + 2) + 'ch' } }, n),
+        h('span', { className: 'ui-cv-text' }, toks[i].map(function (k, j) { return k[0] ? h('span', { key: j, className: k[0] }, k[1]) : k[1]; }))));
+    }
+    var head = p.file || p.title ? h('div', { className: 'ui-cv-head' },
+      p.file ? (p.fileHref || p.onFile ? h(InlineCode, { href: p.fileHref, onClick: p.onFile, className: 'ui-cv-file' }, p.file) : h('span', { className: 'ui-cv-file' }, p.file)) : h('span', { className: 'ui-cv-title' }, p.title),
+      p.languageLabel !== false && lang !== 'plain' ? h('span', { className: 'ui-cv-lang' }, p.languageLabel || { c: 'C', js: 'JavaScript', py: 'Python', sh: 'Shell' }[lang] || lang) : null) : null;
+    return h('div', { className: cx('ui-cv', p.className), role: 'region', 'aria-label': p.file || p.title || tr('原始碼') },
+      head,
+      h('pre', { ref: body, className: 'ui-cv-body', style: p.maxHeight ? { maxHeight: p.maxHeight } : undefined, tabIndex: 0 }, h('code', null, rows)),
+      ta != null && narrow && lines.length > (tb - ta + 1) + ctx * 2 ? h('button', { type: 'button', className: 'ui-link-btn ui-cv-more', onClick: function () { setAll(!all); } },
+        h('span', null, all ? tr('只顯示第 {n} 行前後', { n: ta }) : monoNums(tr('顯示全部 {n} 行', { n: '\u0001' }), [lines.length]))) : null);
+  }
+
+  /* Diagram helpers. Draw the SVG yourself with these classes (see the Graph README); GraphDefs adds the arrowheads,
+     GraphLegend the legend row under the diagram. */
+  function GraphDefs() {
+    return h('defs', null,
+      h('marker', { id: 'ui-arrow', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, h('path', { d: 'M0 0L10 5L0 10z', className: 'ui-graph-arrow' })),
+      h('marker', { id: 'ui-arrow-accent', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, h('path', { d: 'M0 0L10 5L0 10z', className: 'ui-graph-arrow is-accent' })));
+  }
+  var LEGEND_DEFAULT = [{ type: 'edge', label: '編譯器確認' }, { type: 'inferred', label: '推測（規則）' }, { type: 'external', label: '外部函式' }];
+  function GraphLegend(p) {
+    var items = p.items || LEGEND_DEFAULT;
+    return h('div', { className: cx('ui-graph-legend', p.className) }, items.map(function (it, i) {
+      var sw = it.type === 'external' || it.type === 'node'
+        ? h('svg', { width: 22, height: 14, 'aria-hidden': 'true' }, h('rect', { x: 1, y: 1, width: 20, height: 12, rx: 4, className: cx('ui-graph-node', it.type === 'external' && 'is-external') }))
+        : h('svg', { width: 28, height: 8, 'aria-hidden': 'true' }, h('line', { x1: 0, y1: 4, x2: 28, y2: 4, className: cx('ui-graph-edge', it.type === 'inferred' && 'is-inferred') }));
+      var text = it.text ? h(Term, { title: it.label, text: it.text }, tr(it.label)) : tr(it.label);
+      return h('span', { key: i, className: 'ui-graph-legend-item' }, sw, text);
+    }));
+  }
+  addMessages('en', { '原始碼': 'Source', '顯示全部 {n} 行': 'Show all {n} lines', '只顯示第 {n} 行前後': 'Show only around line {n}', '編譯器確認': 'Confirmed by the compiler', '推測（規則）': 'Inferred (rule)', '外部函式': 'External function' });
+
+  window.UI = Object.assign(window.UI || {}, { Button: Button, IconButton: IconButton, TextField: TextField, Checkbox: Checkbox, RadioGroup: RadioGroup, Switch: Switch, Select: Select, SearchField: SearchField, TextArea: TextArea, FormGrid: FormGrid, t: tr, setLocale: setLocale, addMessages: addMessages, format: fmt, ThemePicker: ThemePicker, AccentPicker: AccentPicker, setTheme: setTheme, setAccent: setAccent, initTheme: initTheme, NotificationBell: NotificationBell, DatePicker: DatePicker, DateRangePicker: DateRangePicker, Calendar: Calendar, FileUpload: FileUpload, MultiSelect: MultiSelect, ErrorPage: ErrorPage, LoginCard: LoginCard, SettingsLayout: SettingsLayout, SettingsSection: SettingsSection, DangerZone: DangerZone, Tooltip: Tooltip, Menu: Menu, Popover: Popover, Drawer: Drawer, KpiCard: KpiCard, LineChart: LineChart, BarChart: BarChart, ProgressBar: ProgressBar, LoadingBar: LoadingBar, ProgressRing: ProgressRing, Badge: Badge, Alert: Alert, DataTable: DataTable, Skeleton: Skeleton, EmptyState: EmptyState, Toast: Toast, Dialog: Dialog, SideNav: SideNav, TopBar: TopBar, Breadcrumb: Breadcrumb, Tabs: Tabs, MobileTabBar: MobileTabBar, TreeList: TreeList, Tag: Tag, ProjectSwitcher: ProjectSwitcher, DetailList: DetailList, ActionBar: ActionBar, InlineCode: InlineCode, CodeText: CodeText, CommandPalette: CommandPalette, Tour: Tour, useTour: useTour, Suggestion: Suggestion, Term: Term, CodeView: CodeView, GraphDefs: GraphDefs, GraphLegend: GraphLegend, MOTION: MOTION, Icon: Icon, icons: Object.assign({}, ICONS, PATHS) });
 })();

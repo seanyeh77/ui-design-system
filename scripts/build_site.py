@@ -28,8 +28,7 @@ for md in (ROOT / 'docs').glob('*.md'):
 PREVIEW_HEAD = '''<!doctype html>
 <html lang="zh-Hant">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{name}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../dist/fonts.css">
 <link rel="stylesheet" href="../dist/tokens.css"><link rel="stylesheet" href="../dist/bundle.css">
 <style>body{{margin:0;padding:24px;font-family:var(--font-sans);color:var(--ink);background:var(--bg)}}</style>
 <script>try{{var t=new URLSearchParams(location.search).get('theme');if(t)document.documentElement.setAttribute('data-theme',t);}}catch(e){{}}</script>
@@ -93,6 +92,8 @@ lines = [
     f'- [tokens.css]({BASE}/dist/tokens.css): CSS variables for every token, light and dark',
     f'- [bundle.css]({BASE}/dist/bundle.css): component styles',
     f'- [bundle.js]({BASE}/dist/bundle.js): all components on window.UI (needs React 18 UMD)',
+    f'- [index.js]({BASE}/dist/index.js): the same components as an ES module (npm package @seanyeh77/ui)',
+    f'- [fonts.css]({BASE}/dist/fonts.css): self-hosted Inter, Geist Mono and Noto Sans TC, weights 400 to 700',
     f'- [index.d.ts]({BASE}/dist/index.d.ts): component props and API types',
     f'- [tokens.json]({BASE}/tokens/tokens.json): token values with their intended usage',
     '',

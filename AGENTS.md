@@ -4,7 +4,7 @@ Instructions for AI agents (Claude, Codex, Cursor and others) that build UI with
 
 ## What this is
 
-SeanYeh's design system: React 18 components on `window.UI`, design tokens, and written rules. Warm-gray neutrals, one blue accent (`#2457d6`, user-adjustable), Inter + Noto Sans TC, Geist Mono for numbers and labels, light and dark themes, compact density, Phosphor icons.
+SeanYeh's design system: React components (React 18 or 19) on `window.UI` and in the npm package `@seanyeh77/ui`, design tokens, and written rules. Warm-gray neutrals, one blue accent (`#2457d6`, user-adjustable), Inter + Noto Sans TC, Geist Mono for numbers and labels, light and dark themes, compact density, Phosphor icons.
 
 - Docs site (live previews of every component): https://seanyeh77.github.io/ui-design-system/
 - Machine-readable index of every file below: https://seanyeh77.github.io/ui-design-system/llms.txt
@@ -17,7 +17,7 @@ Use it for any web page, dashboard, frontend or tool UI unless the user asks for
 2. Load the published files instead of copying values:
 
 ```html
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/fonts.css">
 <link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/tokens.css">
 <link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/bundle.css">
 <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
@@ -33,25 +33,22 @@ Use it for any web page, dashboard, frontend or tool UI unless the user asks for
 
 ### Projects with a build step (Vite and similar)
 
-Until the npm packages exist, the bundle is a UMD file that reads `window.React` and `window.ReactDOM`.
+Install the package `@seanyeh77/ui`: an ES module with the same components, React and React DOM as peer dependencies (18 or 19), plus the CSS and font files.
 
-- Vendor a fixed version: copy `dist/tokens.css`, `dist/bundle.css`, `dist/bundle.js` and `dist/index.d.ts` from one commit into the project (for example `vendor/ui-design-system/`) and write that commit in a `VERSION` file. Update by copying again from a newer commit. The docs site always serves the latest `main`, and a `?v=` query only avoids the browser cache, it does not pin a version.
-- Load order: React first, then the bundle. In Vite, make one module that sets the globals and import it before anything that uses `UI`:
-
-```ts
-// src/ui.ts
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-import * as ReactDOMClient from 'react-dom/client';
-Object.assign(window, { React, ReactDOM: { ...ReactDOM, ...ReactDOMClient } });
-// @ts-expect-error: a UMD file; its types come from index.d.ts
-await import('../vendor/ui-design-system/bundle.js');
-export const UI = window.UI; // typed by vendor/ui-design-system/index.d.ts (add it to tsconfig include)
+```bash
+npm i react react-dom github:seanyeh77/ui-design-system#<commit or tag>   # until it is on npm; pins that version
 ```
 
-- React 18 and 19 both work (tested with 19.3.1, Vite 8 build, TypeScript strict with `"types": ["vite/client"]`). Import `tokens.css` and `bundle.css` from the vendored folder in the entry file.
-- Tests in Node (Vitest without a DOM): the bundle does nothing when there is no `window`, so importing it no longer throws, but `UI` is undefined. Run component tests with `environment: 'jsdom'` and set the globals in the setup file.
-- Fonts come from Google Fonts. Pages that must work offline fall back to system fonts; self-hosted font files are not in `dist` yet.
+```ts
+import '@seanyeh77/ui/fonts.css';   // self-hosted Inter, Geist Mono, Noto Sans TC: works offline
+import '@seanyeh77/ui/tokens.css';
+import '@seanyeh77/ui/bundle.css';
+import { Button, DataTable, initTheme } from '@seanyeh77/ui';   // or: import UI from '@seanyeh77/ui'
+```
+
+- Types come with the package. Tested with React 19.3.1, Vite 8 and TypeScript strict.
+- Components need a browser: in server rendering or Vitest without a DOM the exports are undefined. Run component tests with `environment: 'jsdom'`.
+- The UMD file is still there as `@seanyeh77/ui/umd` (or `dist/bundle.js`) for pages without a build step.
 
 ### Before you finish
 
@@ -76,7 +73,8 @@ Scope: this system covers web UI and the tokens of SeanYeh's Slidev decks. Slide
 ## Changing the design system
 
 - Tokens: edit `tokens/tokens.json` (theme presets live under `presets`; each lists only values that differ from light), then run `python3 scripts/build_tokens.py` to regenerate `dist/tokens.css`. Do not edit `dist/tokens.css` by hand.
-- Components: edit `dist/bundle.js` and `dist/bundle.css`, update `components/<Name>/README.md` and `dist/index.d.ts` (declare the new export, then `python3 scripts/ui_keys.py --write` updates `Window.UI`; CI fails when they differ). A new component also needs `components/<Name>/preview.html` whose first line is `<!-- @dsCard group="Data" height=400 -->`.
+- Components: edit `dist/bundle.js` and `dist/bundle.css`, update `components/<Name>/README.md` and `dist/index.d.ts` (declare the new export, then `python3 scripts/ui_keys.py --write` updates `Window.UI`), and run `python3 scripts/build_esm.py` to regenerate `dist/index.js`. CI fails when any of them is out of date.
+- Releases: bump `version` in `package.json`, push a tag `v<version>`; the publish workflow puts it on npm (needs the `NPM_TOKEN` secret). A new component also needs `components/<Name>/preview.html` whose first line is `<!-- @dsCard group="Data" height=400 -->`.
 - Rules: confirmed choices go in `docs/guidelines.md`; the original wording of each lab decision goes in `docs/decisions.md`. Only record what the user confirmed.
 - Preview locally: `python3 scripts/build_tokens.py && python3 scripts/build_site.py`, then serve `site/`.
 - Pushing to `main` rebuilds and publishes the docs site through GitHub Actions.
