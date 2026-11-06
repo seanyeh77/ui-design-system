@@ -20,8 +20,13 @@ export function Login({ brand, signIn, forgotHref }: LoginProps) {
       error={error}
       onSubmit={async ({ account, password }) => {
         setLoading(true);
-        setError(await signIn(account, password));
-        setLoading(false);
+        try {
+          setError(await signIn(account, password));
+        } catch {
+          setError({ password: '無法連線，請確認網路後再試一次。' });
+        } finally {
+          setLoading(false);
+        }
       }}
     />
   );

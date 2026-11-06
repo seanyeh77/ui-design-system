@@ -123,6 +123,11 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     // eslint-disable-next-line react-hooks/exhaustive-deps -- written when the conditions change, not when the filter list is rebuilt
   }, [valuesKey, q]);
   devWarn(
+    cols.some((c) => c.format === 'percent' && c.unit),
+    'DataTable',
+    "format: 'percent' already adds the % sign; remove unit from that column.",
+  );
+  devWarn(
     rows.length > 1 && rows.every((r) => get(r, 'id') == null) && selectable,
     'DataTable',
     'rows have no id, so a selection follows the position, not the row. Add an id to each row.',
@@ -165,7 +170,9 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     const id = get(x.r, 'id');
     return id != null ? String(id) : String(x.i);
   };
-  const selIds = Object.keys(sel).filter((k) => sel[k]);
+  // Only rows that still exist: a row removed from rows (after a delete) must not reach bulkActions.
+  const present = new Set(rows.map((r, i) => idOf({ r, i })));
+  const selIds = Object.keys(sel).filter((k) => sel[k] && present.has(k));
   const visIds = vis.map(idOf);
   const selVis = visIds.filter((id) => sel[id]).length;
   const allOn = visIds.length > 0 && selVis === visIds.length;

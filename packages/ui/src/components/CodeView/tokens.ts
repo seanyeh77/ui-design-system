@@ -1,5 +1,5 @@
 /* Light syntax colors for CodeView. A token is [class, text]; the classes are is-keyword, is-constant, is-comment,
-   is-string and '' for plain text. Any highlighter that returns these classes can replace the built-in one (see shiki.ts). */
+   is-string and '' for plain text. Any highlighter that returns these classes can replace the built-in one (CodeView's tokenizer prop). */
 
 export type TokenClass = '' | 'is-keyword' | 'is-constant' | 'is-comment' | 'is-string';
 export type Token = [TokenClass, string];

@@ -25,7 +25,7 @@ export interface CodeViewProps {
   languageLabel?: string | false;
   /** false: no syntax colors. */
   highlight?: boolean;
-  /** Replaces the built-in highlighter, e.g. the Shiki one from '@seanyeh77/ui/shiki'. */
+  /** Replaces the built-in highlighter, e.g. one built on Shiki that returns the same token classes. */
   tokenizer?: Tokenizer;
   /** Scrolls inside the box and keeps the target in view, e.g. '420px'. */
   maxHeight?: string;

@@ -4,12 +4,12 @@ import * as UI from '../../index';
 export default { title: 'Data/LayerGraph', component: UI.LayerGraph };
 
 const nodes = [
-  { id: 'cli', name: 'src/cli', layer: 0, fns: 34 },
-  { id: 'server', name: 'src/server', layer: 0, fns: 88 },
-  { id: 'parser', name: 'src/parser', layer: 1, fns: 61 },
-  { id: 'net', name: 'src/net', layer: 1, fns: 47 },
-  { id: 'storage', name: 'src/storage', layer: 2, fns: 52 },
-  { id: 'metrics', name: 'src/metrics', layer: 2, fns: 19 },
+  { id: 'cli', name: 'src/cli', layer: 0, size: 34 },
+  { id: 'server', name: 'src/server', layer: 0, size: 88 },
+  { id: 'parser', name: 'src/parser', layer: 1, size: 61 },
+  { id: 'net', name: 'src/net', layer: 1, size: 47 },
+  { id: 'storage', name: 'src/storage', layer: 2, size: 52 },
+  { id: 'metrics', name: 'src/metrics', layer: 2, size: 19 },
   { id: 'util', name: 'src/util', shared: true },
   { id: 'inc', name: 'include/common', shared: true },
 ];
@@ -31,9 +31,9 @@ const edges = [
 ];
 // two labelled lines into one box: labels split left and right
 const nodes2 = [
-  { id: 'src/ibmon', name: 'src/ibmon', layer: 0, fns: 91 },
-  { id: 'src/ucx_ib_test', name: 'src/ucx_ib_test', layer: 0, fns: 22 },
-  { id: 'src/libibtrace', name: 'src/libibtrace', layer: 1, fns: 114 },
+  { id: 'src/ibmon', name: 'src/ibmon', layer: 0, size: 91 },
+  { id: 'src/ucx_ib_test', name: 'src/ucx_ib_test', layer: 0, size: 22 },
+  { id: 'src/libibtrace', name: 'src/libibtrace', layer: 1, size: 114 },
   { id: 'src/common', name: 'src/common', shared: true },
 ];
 const edges2 = [
@@ -43,11 +43,11 @@ const edges2 = [
 ];
 // two labelled lines on the left half of one box: the second label moves up a line
 const nodes3 = [
-  { id: 'a', name: 'src/loader', layer: 0, fns: 12 },
-  { id: 'b', name: 'src/hooks', layer: 0, fns: 40 },
-  { id: 'c', name: 'src/cli', layer: 0, fns: 18 },
-  { id: 'd', name: 'src/tools', layer: 0, fns: 9 },
-  { id: 't', name: 'src/runtime', layer: 1, fns: 75 },
+  { id: 'a', name: 'src/loader', layer: 0, size: 12 },
+  { id: 'b', name: 'src/hooks', layer: 0, size: 40 },
+  { id: 'c', name: 'src/cli', layer: 0, size: 18 },
+  { id: 'd', name: 'src/tools', layer: 0, size: 9 },
+  { id: 't', name: 'src/runtime', layer: 1, size: 75 },
 ];
 const edges3 = [
   { from: 'a', to: 't', inferred: true, label: '經由 `dlsym` 取得' },

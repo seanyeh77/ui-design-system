@@ -33,7 +33,7 @@
             { style: { display: 'flex', flexWrap: 'wrap', gap: 8 } },
             h(U.Button, { variant: 'primary', onClick: save, loading: saving }, saving ? '儲存中' : '儲存'),
             h(U.Button, null, '取消'),
-            h(U.Button, { variant: 'danger' }, '刪除'),
+            h(U.Button, { variant: 'danger', confirm: { title: '刪除這個專案？', body: '專案內的 12 個任務會一起刪除，無法復原。' } }, '刪除'),
           ),
           h(
             'div',

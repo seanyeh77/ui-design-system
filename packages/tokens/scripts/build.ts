@@ -72,7 +72,7 @@ const twVars = [
 ];
 const twValues = [...groups.radius.map((n) => `  --${n}: ${light[n]};`), ...groups.font.map((n) => `  --${n}: ${light[n]};`)];
 // inline: utilities read var(--bg) where they are used, so a nested data-theme still switches them.
-const tailwind = `${HEADER}/* Use after @import "tailwindcss"; also load tokens.css. */\n@theme inline {\n${twVars.join('\n')}\n}\n@theme {\n${twValues.join('\n')}\n}\n`;
+const tailwind = `${HEADER}/* Use after @import "tailwindcss". Also load tokens.css, unlayered: the color, spacing and shadow utilities read its variables. */\n@theme inline {\n${twVars.join('\n')}\n}\n@theme {\n${twValues.join('\n')}\n}\n`;
 
 const union = (names: string[]) => names.map((n) => `'${n}'`).join(' | ');
 const dts = `${HEADER.replace('/*', '/**')}

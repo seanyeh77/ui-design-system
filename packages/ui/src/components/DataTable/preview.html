@@ -78,7 +78,7 @@
             bulkActions: function (ids, clear) {
               return [
                 h(U.Button, { key: 'e', variant: 'secondary', onClick: clear }, '匯出'),
-                h(U.Button, { key: 'd', variant: 'danger', onClick: clear }, '刪除'),
+                h(U.Button, { key: 'd', variant: 'danger', confirm: { title: '刪除 ' + ids.length + ' 筆專案？', body: '刪除後無法復原。' }, onClick: clear }, '刪除'),
               ];
             },
             rowActions: function (r) {

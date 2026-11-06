@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { format } from '../../format';
+import { devWarn } from '../../internal/dev';
 import { I18N, tr } from '../../i18n';
 import { kpiText, smoothPath, useCountUp, useFitText, type Point } from '../../internal/chart';
 import { cx, digits } from '../../internal/util';
@@ -33,6 +34,7 @@ export interface KpiCardProps {
 /** One figure with its change and a sparkline. It is a card: put several in a grid, not inside another Card. */
 export function KpiCard(props: KpiCardProps) {
   const { label, value, unit, decimals = 0, delta, deltaUnit, good, spark, compareLabel, className } = props;
+  devWarn(props.format === 'percent' && !unit, 'KpiCard', 'format=\'percent\' shows the number only; pass unit="%" for the smaller % after it.');
   const t = useCountUp(value, 900);
   const valRef = React.useRef<HTMLDivElement>(null);
   useFitText(valRef, [value, props.format, unit, decimals, props.compact, props.currency, I18N.locale]);

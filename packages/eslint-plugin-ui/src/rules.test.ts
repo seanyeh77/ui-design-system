@@ -7,7 +7,13 @@ RuleTester.it = it;
 const tester = new RuleTester({ languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } } });
 
 tester.run('no-raw-color', rules['no-raw-color'], {
-  valid: ['<div style={{ color: "var(--ink)" }} />', '<path fill="currentColor" />', '<rect fill="url(#fade)" />', '<div className="bg-surface text-ink" />'],
+  valid: [
+    '<div style={{ color: "var(--ink)" }} />',
+    '<path fill="currentColor" />',
+    '<rect fill="url(#fade)" />',
+    '<div style={{ color: map["red"] }} />',
+    '<div className="bg-surface text-ink" />',
+  ],
   invalid: [
     { code: '<div style={{ color: "#fff" }} />', errors: 1 },
     { code: '<rect fill="#2457d6" />', errors: 1 },
