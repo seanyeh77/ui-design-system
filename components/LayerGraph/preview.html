@@ -1,4 +1,4 @@
-<!-- @dsCard group="Data" height=560 -->
+<!-- @dsCard group="Data" height=1240 -->
 <!doctype html>
 <html lang="zh-Hant">
 <head><meta charset="utf-8"><title>LayerGraph — preview</title></head>
@@ -19,10 +19,32 @@
     { from: 'server', to: 'metrics', count: 4 }, { from: 'cli', to: 'util', count: 8 }, { from: 'server', to: 'util', count: 20 },
     { from: 'net', to: 'util', count: 13 }, { from: 'server', to: 'inc', count: 9 }, { from: 'parser', to: 'inc', count: 8 }
   ];
+  // two labelled lines into one box: labels split left and right
+  var nodes2 = [
+    { id: 'src/ibmon', name: 'src/ibmon', layer: 0, fns: 91 }, { id: 'src/ucx_ib_test', name: 'src/ucx_ib_test', layer: 0, fns: 22 },
+    { id: 'src/libibtrace', name: 'src/libibtrace', layer: 1, fns: 114 }, { id: 'src/common', name: 'src/common', shared: true }
+  ];
+  var edges2 = [
+    { from: 'src/ibmon', to: 'src/libibtrace', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
+    { from: 'src/ucx_ib_test', to: 'src/libibtrace', inferred: true, label: '攔截 17 個 `ucp` 呼叫' },
+    { from: 'src/ibmon', to: 'src/common', count: 6 }
+  ];
+  // two labelled lines on the left half of one box: the second label moves up a line
+  var nodes3 = [
+    { id: 'a', name: 'src/loader', layer: 0, fns: 12 }, { id: 'b', name: 'src/hooks', layer: 0, fns: 40 }, { id: 'c', name: 'src/cli', layer: 0, fns: 18 },
+    { id: 'd', name: 'src/tools', layer: 0, fns: 9 }, { id: 't', name: 'src/runtime', layer: 1, fns: 75 }
+  ];
+  var edges3 = [
+    { from: 'a', to: 't', inferred: true, label: '經由 `dlsym` 取得' }, { from: 'b', to: 't', inferred: true, label: '函式指標表 `ops`' },
+    { from: 'c', to: 't', count: 7 }, { from: 'd', to: 't', count: 2 }
+  ];
+  var card = { maxWidth: 640, padding: 16, marginBottom: 16, borderRadius: 'var(--radius-lg)', background: 'var(--surface)', boxShadow: 'var(--shadow-card)' };
   function Demo() {
     var s = React.useState('net');
-    return h('div', { style: { maxWidth: 640, padding: 16, borderRadius: 'var(--radius-lg)', background: 'var(--surface)', boxShadow: 'var(--shadow-card)' } },
-      h(U.LayerGraph, { nodes: nodes, edges: edges, selected: s[0], onSelect: s[1], inferredText: '由規則推得，編譯器無法確認。' }));
+    return h('div', null,
+      h('div', { style: card }, h(U.LayerGraph, { nodes: nodes, edges: edges, selected: s[0], onSelect: s[1], inferredText: '由規則推得，編譯器無法確認。' })),
+      h('div', { style: card }, h(U.LayerGraph, { nodes: nodes2, edges: edges2, legend: false })),
+      h('div', { style: card }, h(U.LayerGraph, { nodes: nodes3, edges: edges3, legend: false })));
   }
   ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
 </script>

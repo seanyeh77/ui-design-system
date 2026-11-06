@@ -2003,6 +2003,20 @@
      Shared components are not drawn: they are listed under the diagram with how often they are called.
      Line width shows the number of calls; inferred relations are dashed and labelled; boxes have a gray left bar and a bar for their size.
      Selecting a box dims everything unrelated to 40% and turns its lines accent. Wider than the screen: scrolls sideways. */
+  // label width before layout: text in the sans font, `code` and numbers in the mono font (as lgParts draws them)
+  var lgCanvas = null;
+  function lgWidth(text) {
+    var parts = String(text).split(/(`[^`]+`|\d[\d,.]*)/).filter(Boolean);
+    var c = null;
+    try { c = lgCanvas || (lgCanvas = document.createElement('canvas').getContext('2d')); } catch (e) {}
+    if (!c) return String(text).length * 9;
+    var cs = getComputedStyle(document.documentElement), sans = cs.getPropertyValue('--font-sans') || 'sans-serif', mono = cs.getPropertyValue('--font-mono') || 'monospace';
+    return parts.reduce(function (w, t) {
+      var code = t[0] === '`' || /^\d/.test(t);
+      c.font = '600 12px ' + (code ? mono : sans);
+      return w + c.measureText(t[0] === '`' ? t.slice(1, -1) : t).width;
+    }, 0);
+  }
   function lgParts(text) {
     return String(text).split(/(`[^`]+`|\d[\d,.]*)/).filter(Boolean).map(function (t, i) {
       if (t[0] === '`') return h('span', { key: i, className: 'ui-lg-code' }, t.slice(1, -1));
@@ -2045,7 +2059,7 @@
       var z = pts[pts.length - 1]; return d + ' L' + z[0] + ' ' + z[1];
     }
     function clean(pts) { return pts.filter(function (q, i) { var o = pts[i - 1]; return !o || o[0] !== q[0] || o[1] !== q[1]; }).filter(function (q, i, arr) { var a = arr[i - 1], c = arr[i + 1]; return !a || !c || !((a[0] === q[0] && q[0] === c[0]) || (a[1] === q[1] && q[1] === c[1])); }); }
-    var paths = [], labels = [];
+    var paths = [], labels = [], marks = [], arrows = [];
     edges.forEach(function (e, idx) {
       var a = pos[e.from], b = pos[e.to]; if (!a || !b) return;
       var oi = outs[e.from].indexOf(e), on = outs[e.from].length, ii = ins[e.to].indexOf(e), inn = ins[e.to].length;
@@ -2062,11 +2076,26 @@
       var w = e.inferred ? 1.5 : 1.5 + 5.5 * ((e.count || 0) / maxC);
       var cls = cx('ui-lg-edge', e.inferred && 'is-inferred', r && 'is-related', dim && 'is-dim');
       paths.push(h('path', { key: 'p' + idx, className: cls, d: route(clean(pts)), strokeWidth: w }));
+      arrows.push([tx - 5, tx + 5, ty - 9, ty]);
       paths.push(h('path', { key: 'a' + idx, className: cx('ui-lg-arrow', r && 'is-related', dim && 'is-dim'), d: 'M' + (tx - 5) + ' ' + (ty - 9) + ' L' + (tx + 5) + ' ' + (ty - 9) + ' L' + tx + ' ' + ty + ' Z' }));
       if (e.inferred || r) {
         var text = e.inferred ? (e.label || tr('推測（規則）')) : tr('{n} 次', { n: e.count });
-        labels.push(h('span', { key: 'l' + idx, className: cx('ui-lg-label', r && 'is-related', dim && 'is-dim'), style: { left: tx + 8, top: ty - 16 } }, lgParts(text)));
+        // several arrows into one box: an arrow on the left half puts its label on its left
+        marks.push({ idx: idx, text: text, tx: tx, ty: ty, left: inn > 1 && tx < b.x + NW / 2, r: r, dim: dim });
       }
+    });
+    // labels go beside their arrowheads, inside the diagram; one that would touch a label already placed moves up a line (18 px)
+    // obstacles: every arrowhead, then each label once placed ([left, right, top, bottom])
+    var placed = arrows.slice();
+    function hits(x0, x1, y0, y1) { return placed.some(function (q) { var g = q[4] || 0; return x0 < q[1] + g && q[0] < x1 + g && y0 < q[3] && q[2] < y1; }); }
+    marks.sort(function (m, n) { return m.ty - n.ty || m.tx - n.tx; }).forEach(function (m) {
+      var w = Math.ceil(lgWidth(m.text)), left = m.left;
+      if (left && m.tx - 8 - w < 0) left = false;
+      else if (!left && m.tx + 8 + w > W) left = m.tx - 8 - w >= 0;
+      var x0 = left ? m.tx - 8 - w : Math.min(m.tx + 8, W - w), x1 = x0 + w, top = m.ty - 16;
+      for (var k = 0; k < 8 && hits(x0, x1, top - 8, top + 8); k++) top -= 18;
+      placed.push([x0, x1, top - 8, top + 8, 6]);
+      labels.push(h('span', { key: 'l' + m.idx, className: cx('ui-lg-label', m.r && 'is-related', m.dim && 'is-dim'), style: { left: x0, top: top } }, lgParts(m.text)));
     });
     var nodes = main.map(function (n) {
       var q = pos[n.id], on = n.id === sel;
