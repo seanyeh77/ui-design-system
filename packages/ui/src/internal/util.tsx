@@ -12,7 +12,13 @@ export function monoNums(text: string, nums: React.ReactNode[]): React.ReactNode
   // eslint-disable-next-line no-control-regex -- the marks are control characters on purpose
   return text.split(/(\u0001|\u0002|\u0003)/).map((t, i) => {
     const k = marks.indexOf(t);
-    return k >= 0 ? <span key={i} className="ui-num">{nums[k]}</span> : t;
+    return k >= 0 ? (
+      <span key={i} className="ui-num">
+        {nums[k]}
+      </span>
+    ) : (
+      t
+    );
   });
 }
 
@@ -74,4 +80,17 @@ export async function copyText(text: string): Promise<void> {
   } finally {
     document.body.removeChild(t);
   }
+}
+
+/** Text with every number in Geist Mono and the words in the text font, for labels that mix both (「第 1 週」). */
+export function digits(text: string): React.ReactNode[] {
+  return text.split(/(\d[\d,.:/]*)/).map((t, i) =>
+    i % 2 ? (
+      <span key={i} className="ui-num">
+        {t}
+      </span>
+    ) : (
+      t
+    ),
+  );
 }

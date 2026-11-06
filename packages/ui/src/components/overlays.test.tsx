@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { describe, expect, test, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { Button, CommandPalette, DatePicker, Dialog, Drawer, Menu, MultiSelect, Popover, Select, Term, Tooltip, Tour } from '../index';
 
@@ -17,7 +17,7 @@ describe('danger actions are confirmed', () => {
     await user.click(screen.getByRole('button', { name: '刪除' }));
     expect(onClick).not.toHaveBeenCalled();
     const dialog = await screen.findByRole('dialog', { name: '刪除 api？' });
-    await user.click(screen.getAllByRole('button', { name: '刪除' }).find((b) => dialog.contains(b))!);
+    await user.click(within(dialog).getByRole('button', { name: '刪除' }));
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
@@ -70,7 +70,16 @@ test('Drawer with unsaved changes asks before closing', async () => {
 
 test('Select picks with the keyboard', async () => {
   const onChange = vi.fn();
-  render(<Select label="環境" options={[{ value: 'dev', label: '開發' }, { value: 'prod', label: '正式' }]} onChange={onChange} />);
+  render(
+    <Select
+      label="環境"
+      options={[
+        { value: 'dev', label: '開發' },
+        { value: 'prod', label: '正式' },
+      ]}
+      onChange={onChange}
+    />,
+  );
   await user.click(screen.getByRole('combobox', { name: '環境' }));
   await user.click(await screen.findByRole('option', { name: '正式' }));
   expect(onChange).toHaveBeenCalledWith('prod');
@@ -89,7 +98,17 @@ test('Select over 8 options has a search box', async () => {
 test('MultiSelect adds and removes chips', async () => {
   function Demo() {
     const [v, setV] = React.useState<string[]>([]);
-    return <MultiSelect label="標籤" value={v} onChange={setV} options={[{ value: 'a', label: '前端' }, { value: 'b', label: '後端' }]} />;
+    return (
+      <MultiSelect
+        label="標籤"
+        value={v}
+        onChange={setV}
+        options={[
+          { value: 'a', label: '前端' },
+          { value: 'b', label: '後端' },
+        ]}
+      />
+    );
   }
   render(<Demo />);
   await user.click(screen.getByLabelText('標籤'));
@@ -109,7 +128,11 @@ test('DatePicker picks today from the calendar', async () => {
 });
 
 test('Popover opens on click and shows its content', async () => {
-  render(<Popover label="說明" title="篩選">內容文字</Popover>);
+  render(
+    <Popover label="說明" title="篩選">
+      內容文字
+    </Popover>,
+  );
   await user.click(screen.getByRole('button', { name: '說明' }));
   expect(await screen.findByText('內容文字')).toBeTruthy();
 });
@@ -128,7 +151,17 @@ test('CommandPalette opens with Ctrl K and picks with Enter', async () => {
   const onSelect = vi.fn();
   function Demo() {
     const [open, setOpen] = React.useState(false);
-    return <CommandPalette open={open} onOpenChange={setOpen} items={[{ label: '設定', kind: '頁面' }, { label: '帳單', kind: '頁面' }]} onSelect={onSelect} />;
+    return (
+      <CommandPalette
+        open={open}
+        onOpenChange={setOpen}
+        items={[
+          { label: '設定', kind: '頁面' },
+          { label: '帳單', kind: '頁面' },
+        ]}
+        onSelect={onSelect}
+      />
+    );
   }
   render(<Demo />);
   await user.keyboard('{Control>}k{/Control}');
@@ -148,7 +181,16 @@ test('Term opens its explanation and closes with ×', async () => {
 
 test('Tour steps forward and ends', async () => {
   const onClose = vi.fn();
-  render(<Tour open steps={[{ title: '第一步', text: 'a' }, { title: '第二步', text: 'b' }]} onClose={onClose} />);
+  render(
+    <Tour
+      open
+      steps={[
+        { title: '第一步', text: 'a' },
+        { title: '第二步', text: 'b' },
+      ]}
+      onClose={onClose}
+    />,
+  );
   await screen.findByText('第一步');
   await user.click(screen.getByRole('button', { name: '下一步' }));
   await screen.findByText('第二步');

@@ -22,4 +22,3 @@ export function ProgressBar({ value, label, className }: ProgressBarProps) {
     </div>
   );
 }
-

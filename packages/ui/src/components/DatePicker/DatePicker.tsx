@@ -79,8 +79,9 @@ export function DatePicker({ label, value, onChange, hint, required, className }
           </div>
         </FloatingPanel>
       </div>
-      <div className={cx('ui-field-hint', bad && 'is-error')}>{bad ? tr('日期格式不正確，請寫成 2026/11/14') : hint || tr('可以直接輸入，例如 2026/11/14')}</div>
+      <div className={cx('ui-field-hint', bad && 'is-error')}>
+        {bad ? tr('日期格式不正確，請寫成 2026/11/14') : hint || tr('可以直接輸入，例如 2026/11/14')}
+      </div>
     </div>
   );
 }
-

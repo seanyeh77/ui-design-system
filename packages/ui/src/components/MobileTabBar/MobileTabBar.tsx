@@ -22,7 +22,10 @@ export interface MobileTabBarProps {
 
 /** Bottom navigation on phones, in place of the sidebar. The pill slides like a droplet; the selected icon is filled. */
 export function MobileTabBar({ items, value, onChange, label, className }: MobileTabBarProps) {
-  const idx = Math.max(0, items.findIndex((t) => t.id === value));
+  const idx = Math.max(
+    0,
+    items.findIndex((t) => t.id === value),
+  );
   const [forward, setForward] = React.useState(true);
   const w = 100 / Math.max(1, items.length);
   return (
@@ -30,7 +33,11 @@ export function MobileTabBar({ items, value, onChange, label, className }: Mobil
       <span
         className="ui-tabbar-pill"
         aria-hidden="true"
-        style={{ left: `calc(${idx * w + w / 2}% - 28px)`, right: `calc(${100 - idx * w - w / 2}% - 28px)`, transition: dropTransition('left', 'right', forward) }}
+        style={{
+          left: `calc(${idx * w + w / 2}% - 28px)`,
+          right: `calc(${100 - idx * w - w / 2}% - 28px)`,
+          transition: dropTransition('left', 'right', forward),
+        }}
       />
       {items.map((t, i) => (
         <button

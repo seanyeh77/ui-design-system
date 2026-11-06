@@ -18,14 +18,18 @@ function date(d: Date | null | undefined, o: { weekday?: boolean; long?: boolean
   if (!d) return '';
   const wd = o.weekday !== false;
   if (o.long) return new Intl.DateTimeFormat(I18N.locale, { year: 'numeric', month: 'long', day: 'numeric', weekday: wd ? 'long' : undefined }).format(d);
-  if (isZhTW()) return `${d.getFullYear()}/${pad2(d.getMonth() + 1)}/${pad2(d.getDate())}${wd ? `（${new Intl.DateTimeFormat('zh-TW', { weekday: 'narrow' }).format(d)}）` : ''}`;
+  if (isZhTW())
+    return `${d.getFullYear()}/${pad2(d.getMonth() + 1)}/${pad2(d.getDate())}${wd ? `（${new Intl.DateTimeFormat('zh-TW', { weekday: 'narrow' }).format(d)}）` : ''}`;
   return new Intl.DateTimeFormat(I18N.locale, { year: 'numeric', month: '2-digit', day: '2-digit', weekday: wd ? 'short' : undefined }).format(d);
 }
 
 /** zh-TW: 24-hour 15:57. Other locales: their own clock. */
 function time(d: Date | null | undefined): string {
   if (!d) return '';
-  return new Intl.DateTimeFormat(I18N.locale, isZhTW() ? { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' } : { hour: 'numeric', minute: '2-digit' }).format(d);
+  return new Intl.DateTimeFormat(
+    I18N.locale,
+    isZhTW() ? { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' } : { hour: 'numeric', minute: '2-digit' },
+  ).format(d);
 }
 
 function dateTime(d: Date | null | undefined, o?: { weekday?: boolean }): string {

@@ -24,4 +24,3 @@ export function DetailList({ items, className }: DetailListProps) {
     </dl>
   );
 }
-

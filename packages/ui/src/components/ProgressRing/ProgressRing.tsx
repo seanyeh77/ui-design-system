@@ -20,9 +20,27 @@ export function ProgressRing({ value, label, size = 72, className }: ProgressRin
   const t = useCountUp(v, 900);
   const mid = size / 2;
   return (
-    <svg className={cx('ui-ring', className)} width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(v)} aria-label={label}>
+    <svg
+      className={cx('ui-ring', className)}
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(v)}
+      aria-label={label}
+    >
       <circle cx={mid} cy={mid} r={r} className="ui-ring-track" strokeWidth={sw} />
-      <circle cx={mid} cy={mid} r={r} className="ui-ring-fill" strokeWidth={sw} strokeDasharray={`${((c * v) / 100 * t).toFixed(1)} ${c.toFixed(1)}`} transform={`rotate(-90 ${mid} ${mid})`} />
+      <circle
+        cx={mid}
+        cy={mid}
+        r={r}
+        className="ui-ring-fill"
+        strokeWidth={sw}
+        strokeDasharray={`${(((c * v) / 100) * t).toFixed(1)} ${c.toFixed(1)}`}
+        transform={`rotate(-90 ${mid} ${mid})`}
+      />
       <text x={mid} y={mid + 5} textAnchor="middle" className="ui-ring-text">
         {Math.round(v * t) + '%'}
       </text>

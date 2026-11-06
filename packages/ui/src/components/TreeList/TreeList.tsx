@@ -183,7 +183,11 @@ export function TreeList(p: TreeListProps) {
     o[n.id] = will;
     setFresh(will && !reduced() ? { [n.id]: true } : {});
     if (will) load(n);
-    p.onToggle?.(n, will, Object.keys(o).filter((k) => o[k]));
+    p.onToggle?.(
+      n,
+      will,
+      Object.keys(o).filter((k) => o[k]),
+    );
     if (!p.open) setOwnOpen(o);
   };
   const checkState = (n: TreeNode): boolean | 'mixed' => {
@@ -220,7 +224,10 @@ export function TreeList(p: TreeListProps) {
   };
   walk(items, 0, [], false);
   const rows = every.filter((r): r is NodeRow => !r.x);
-  const cur = Math.max(0, rows.findIndex((r) => r.n.id === focusId));
+  const cur = Math.max(
+    0,
+    rows.findIndex((r) => r.n.id === focusId),
+  );
 
   const go = (j: number) => {
     if (!rows[j]) return;
@@ -416,7 +423,16 @@ export function TreeList(p: TreeListProps) {
             >
               <span className="ui-check-box" aria-hidden="true">
                 {ck === true ? (
-                  <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width={14}
+                    height={14}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={3.5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <path d={CHECK} />
                   </svg>
                 ) : null}
@@ -540,13 +556,27 @@ export function TreeList(p: TreeListProps) {
     ) : null;
   return (
     <section
-      className={cx('ui-tree', plain && 'is-plain', selectable && 'is-selectable', selFiles.length && 'has-sel', p.bare && 'is-bare', p.height != null && 'has-height', p.className)}
+      className={cx(
+        'ui-tree',
+        plain && 'is-plain',
+        selectable && 'is-selectable',
+        selFiles.length && 'has-sel',
+        p.bare && 'is-bare',
+        p.height != null && 'has-height',
+        p.className,
+      )}
       aria-label={p.title ? undefined : p.label}
       style={p.height != null ? { height: typeof p.height === 'number' ? p.height + 'px' : p.height } : undefined}
     >
       {head}
       {rows.length ? (
-        <div role="tree" aria-label={p.label || (typeof p.title === 'string' ? p.title : undefined)} aria-multiselectable={selectable || undefined} className="ui-tree-list" onKeyDown={onKey}>
+        <div
+          role="tree"
+          aria-label={p.label || (typeof p.title === 'string' ? p.title : undefined)}
+          aria-multiselectable={selectable || undefined}
+          className="ui-tree-list"
+          onKeyDown={onKey}
+        >
           {every.map((r) => (r.x ? extraRow(r) : plain ? plainRow(r, rows.indexOf(r)) : fileRow(r, rows.indexOf(r))))}
         </div>
       ) : (

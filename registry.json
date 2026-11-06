@@ -1,0 +1,45 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "seanyeh77",
+  "homepage": "https://seanyeh77.github.io/ui-design-system/",
+  "items": [
+    {
+      "name": "dashboard",
+      "type": "registry:block",
+      "title": "Dashboard",
+      "description": "Dashboard page in the app frame: KPI cards, a trend chart and a table of records. Replace the sample data with yours.",
+      "dependencies": ["@seanyeh77/ui"],
+      "files": [
+        { "path": "packages/blocks/src/dashboard/Dashboard.tsx", "type": "registry:block", "target": "components/blocks/dashboard/Dashboard.tsx" },
+        { "path": "packages/blocks/src/dashboard/sample.ts", "type": "registry:block", "target": "components/blocks/dashboard/sample.ts" }
+      ]
+    },
+    {
+      "name": "list-detail",
+      "type": "registry:block",
+      "title": "List and edit drawer",
+      "description": "A table of records with an edit drawer that asks before discarding unsaved changes.",
+      "dependencies": ["@seanyeh77/ui"],
+      "files": [
+        { "path": "packages/blocks/src/list-detail/ListDetail.tsx", "type": "registry:block", "target": "components/blocks/list-detail/ListDetail.tsx" },
+        { "path": "packages/blocks/src/list-detail/sample.ts", "type": "registry:block", "target": "components/blocks/list-detail/sample.ts" }
+      ]
+    },
+    {
+      "name": "settings",
+      "type": "registry:block",
+      "title": "Settings page",
+      "description": "Settings with categories, auto-save with 「已儲存」, theme and accent pickers, and a danger zone.",
+      "dependencies": ["@seanyeh77/ui"],
+      "files": [{ "path": "packages/blocks/src/settings/Settings.tsx", "type": "registry:block", "target": "components/blocks/settings/Settings.tsx" }]
+    },
+    {
+      "name": "login",
+      "type": "registry:block",
+      "title": "Sign-in page",
+      "description": "A centered sign-in card with per-field errors from your sign-in check.",
+      "dependencies": ["@seanyeh77/ui"],
+      "files": [{ "path": "packages/blocks/src/login/Login.tsx", "type": "registry:block", "target": "components/blocks/login/Login.tsx" }]
+    }
+  ]
+}

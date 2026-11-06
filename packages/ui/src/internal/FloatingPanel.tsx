@@ -26,7 +26,21 @@ export interface FloatingPanelProps {
 }
 
 /** A positioned panel next to its trigger: flips when there is no room, closes on Esc and outside press, returns focus. */
-export function FloatingPanel({ open, onOpenChange, trigger, side = 'bottom', align = 'start', sideOffset = 6, className, matchWidth, initialFocus, openOnHover, anchor, children, ...aria }: FloatingPanelProps) {
+export function FloatingPanel({
+  open,
+  onOpenChange,
+  trigger,
+  side = 'bottom',
+  align = 'start',
+  sideOffset = 6,
+  className,
+  matchWidth,
+  initialFocus,
+  openOnHover,
+  anchor,
+  children,
+  ...aria
+}: FloatingPanelProps) {
   return (
     <Popover.Root open={open} onOpenChange={onOpenChange}>
       <Popover.Trigger render={trigger} openOnHover={openOnHover} delay={0} closeDelay={150} />

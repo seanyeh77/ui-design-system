@@ -21,7 +21,15 @@ export function markMatch(text: React.ReactNode, q: string): React.ReactNode {
 }
 
 /** 「欄位」: hide and show columns. The first column cannot be hidden; the menu stays open while toggling. */
-export function ColumnMenu<R extends Row>({ cols, hidden, onToggle }: { cols: DataTableColumn<R>[]; hidden: Record<string, boolean>; onToggle: (key: string) => void }) {
+export function ColumnMenu<R extends Row>({
+  cols,
+  hidden,
+  onToggle,
+}: {
+  cols: DataTableColumn<R>[];
+  hidden: Record<string, boolean>;
+  onToggle: (key: string) => void;
+}) {
   const [open, setOpen] = React.useState(false);
   return (
     <FloatingPanel
@@ -93,14 +101,29 @@ export function FilterButton<R extends Row>({ filters, values, activeCount, coun
           const v = values[f.key];
           if (f.type === 'range') {
             const cur: RangeValue = v && !Array.isArray(v) ? v : { min: '', max: '' };
-            const set = (k: keyof RangeValue) => (e: React.ChangeEvent<HTMLInputElement>) => onChange(f.key, { ...cur, [k]: e.target.value.replace(/[^\d.]/g, '') });
+            const set = (k: keyof RangeValue) => (e: React.ChangeEvent<HTMLInputElement>) =>
+              onChange(f.key, { ...cur, [k]: e.target.value.replace(/[^\d.]/g, '') });
             return (
               <fieldset key={f.key} className="ui-dt-facet">
                 <legend>{f.label}</legend>
                 <div className="ui-dt-range-inputs">
-                  <input className="ui-input" inputMode="decimal" aria-label={`${f.label} ${tr('最低')}`} placeholder={tr('最低')} value={cur.min} onChange={set('min')} />
+                  <input
+                    className="ui-input"
+                    inputMode="decimal"
+                    aria-label={`${f.label} ${tr('最低')}`}
+                    placeholder={tr('最低')}
+                    value={cur.min}
+                    onChange={set('min')}
+                  />
                   <span>–</span>
-                  <input className="ui-input" inputMode="decimal" aria-label={`${f.label} ${tr('最高')}`} placeholder={tr('最高')} value={cur.max} onChange={set('max')} />
+                  <input
+                    className="ui-input"
+                    inputMode="decimal"
+                    aria-label={`${f.label} ${tr('最高')}`}
+                    placeholder={tr('最高')}
+                    value={cur.max}
+                    onChange={set('max')}
+                  />
                 </div>
                 {f.unitLabel ? <div className="ui-field-hint">{f.unitLabel}</div> : null}
               </fieldset>

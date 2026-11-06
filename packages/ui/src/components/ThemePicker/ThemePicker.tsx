@@ -31,7 +31,14 @@ export function ThemePicker({ value, onChange, label, className }: ThemePickerPr
   return (
     <div role="radiogroup" aria-label={label || tr('主題')} className={cx('ui-themepick', className)}>
       {THEMES.map((t) => (
-        <button key={t.id} type="button" role="radio" aria-checked={cur === t.id} className={cx('ui-themepick-opt', cur === t.id && 'is-on')} onClick={() => pick(t.id)}>
+        <button
+          key={t.id}
+          type="button"
+          role="radio"
+          aria-checked={cur === t.id}
+          className={cx('ui-themepick-opt', cur === t.id && 'is-on')}
+          onClick={() => pick(t.id)}
+        >
           <span className={'ui-themepick-mini is-' + t.id} aria-hidden="true">
             <span />
             <span />
@@ -42,4 +49,3 @@ export function ThemePicker({ value, onChange, label, className }: ThemePickerPr
     </div>
   );
 }
-

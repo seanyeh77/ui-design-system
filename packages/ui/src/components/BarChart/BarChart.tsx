@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ChartTip, fmtNum, niceMax } from '../../internal/chart';
-import { cx } from '../../internal/util';
+import { cx, digits } from '../../internal/util';
 
 export interface BarDatum {
   label: string;
@@ -37,7 +37,12 @@ export function BarChart({ data, label, unit, max, className }: BarChartProps) {
             return (
               <div key={i} className="ui-bar-slot" onMouseEnter={() => setHi(i)}>
                 <div className="ui-bar" style={{ height: ht, animationDelay: i * 40 + 'ms', opacity: hi >= 0 && hi !== i ? 0.55 : 1 }} />
-                {hi === i ? <ChartTip style={{ bottom: `calc(${ht} + 8px)`, left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap' }} rows={[{ name: d.label, value: fmtNum(d.value) + suffix }]} /> : null}
+                {hi === i ? (
+                  <ChartTip
+                    style={{ bottom: `calc(${ht} + 8px)`, left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap' }}
+                    rows={[{ name: d.label, value: fmtNum(d.value) + suffix }]}
+                  />
+                ) : null}
               </div>
             );
           })}
@@ -45,7 +50,7 @@ export function BarChart({ data, label, unit, max, className }: BarChartProps) {
       </div>
       <div className="ui-bars-labels">
         {data.map((d, i) => (
-          <span key={i}>{d.short || d.label}</span>
+          <span key={i}>{digits(d.short || d.label)}</span>
         ))}
       </div>
     </div>

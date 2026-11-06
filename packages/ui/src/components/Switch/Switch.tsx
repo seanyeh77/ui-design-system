@@ -37,13 +37,28 @@ export function Switch({ checked, onChange, label, disabled, className }: Switch
     >
       <span
         className="ui-switch-thumb"
-        style={{ left, right, height: th, marginTop: -th / 2, transition: `${dropTransition('left', 'right', on)}, height 150ms ease, margin-top 150ms ease, background-color .2s ease` }}
+        style={{
+          left,
+          right,
+          height: th,
+          marginTop: -th / 2,
+          transition: `${dropTransition('left', 'right', on)}, height 150ms ease, margin-top 150ms ease, background-color .2s ease`,
+        }}
       >
-        <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg
+          width={12}
+          height={12}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={3.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
           <path d={on ? 'M5 12.5l4.5 4.5L19 7' : 'M7 7l10 10M17 7L7 17'} />
         </svg>
       </span>
     </button>
   );
 }
-

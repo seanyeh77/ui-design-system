@@ -52,4 +52,3 @@ export function TextArea({ label, hint, value, onChange, maxLength = 200, classN
     </div>
   );
 }
-

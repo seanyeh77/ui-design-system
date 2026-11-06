@@ -23,4 +23,3 @@ export function Toast({ children, actionLabel, onAction }: ToastProps) {
     </div>
   );
 }
-

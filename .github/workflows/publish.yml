@@ -1,23 +1,32 @@
-name: Publish to npm
-# Runs when a version tag (v0.1.0) is pushed. Needs the NPM_TOKEN repository secret.
+name: Release
+
+# Changesets opens a "Version packages" pull request; merging it publishes to npm. Needs the NPM_TOKEN secret.
 on:
   push:
-    tags: ['v*']
+    branches: [main]
+
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
   id-token: write
+
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: pnpm
           registry-url: https://registry.npmjs.org
-      - run: python3 scripts/ui_keys.py && python3 scripts/build_esm.py --check
-      - name: Check that the tag matches package.json
-        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
-      - run: npm publish --access public --provenance
+      - run: pnpm install --frozen-lockfile
+      - uses: changesets/action@v1
+        with:
+          publish: pnpm release
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true

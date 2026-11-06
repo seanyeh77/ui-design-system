@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { CHART, ChartTip, fmtNum, niceMax, smoothPath } from '../../internal/chart';
-import { cx } from '../../internal/util';
+import { cx, digits } from '../../internal/util';
 
 export interface LineSeries {
   name: string;
@@ -62,7 +62,13 @@ export function LineChart({ series, labels, label, unit, max, labelEvery = 1, cl
             </g>
           ))}
           {series.map((s, i) => (
-            <path key={i} d={smoothPath(s.values.map((v, j) => [X(j), Y(v)]))} pathLength={1} className="ui-chart-line" style={{ stroke: CHART[i % 3], animationDelay: i * 150 + 'ms' }} />
+            <path
+              key={i}
+              d={smoothPath(s.values.map((v, j) => [X(j), Y(v)]))}
+              pathLength={1}
+              className="ui-chart-line"
+              style={{ stroke: CHART[i % 3], animationDelay: i * 150 + 'ms' }}
+            />
           ))}
         </svg>
         <div className="ui-chart-hit" style={edge}>
@@ -89,7 +95,7 @@ export function LineChart({ series, labels, label, unit, max, labelEvery = 1, cl
       </div>
       <div className="ui-chart-xlabels" style={{ marginLeft: edge.left, marginRight: edge.right }}>
         {labels.map((lb, j) => (
-          <span key={j}>{labelEvery > 1 && j % labelEvery ? '' : lb}</span>
+          <span key={j}>{labelEvery > 1 && j % labelEvery ? '' : digits(lb)}</span>
         ))}
       </div>
     </div>

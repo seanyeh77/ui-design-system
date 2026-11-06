@@ -33,4 +33,3 @@ export function EmptyState({ title, description, steps = [], current = 0, action
     </div>
   );
 }
-

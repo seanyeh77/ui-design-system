@@ -64,7 +64,12 @@ export function DateRangePicker({ label, value, onChange, placeholder, className
       >
         <div className="ui-quick">
           {quick.map(([name, r]) => (
-            <button key={name} type="button" className={cx('ui-quick-btn', sameDay(r[0], value[0]) && sameDay(r[1], value[1]) && 'is-on')} onClick={() => set(r)}>
+            <button
+              key={name}
+              type="button"
+              className={cx('ui-quick-btn', sameDay(r[0], value[0]) && sameDay(r[1], value[1]) && 'is-on')}
+              onClick={() => set(r)}
+            >
               {name}
             </button>
           ))}
@@ -89,4 +94,3 @@ export function DateRangePicker({ label, value, onChange, placeholder, className
     </div>
   );
 }
-

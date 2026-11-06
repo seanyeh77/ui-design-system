@@ -50,4 +50,3 @@ export function Alert({ tone = 'info', title, children, actionLabel, onAction, o
     </div>
   );
 }
-

@@ -49,7 +49,11 @@ export function Button(props: ButtonProps) {
   const { variant = 'secondary', loading, icon, className, children, disabled, onClick, ...other } = props;
   const { confirm, confirmed, ...native } = other as typeof other & { confirm?: DangerConfirm; confirmed?: boolean };
   const [asking, setAsking] = React.useState(false);
-  devWarn(variant === 'danger' && !confirm && !confirmed, 'Button', 'a danger button needs confirm={{ title }} (or confirmed when it is the button inside the confirm Dialog).');
+  devWarn(
+    variant === 'danger' && !confirm && !confirmed,
+    'Button',
+    'a danger button needs confirm={{ title }} (or confirmed when it is the button inside the confirm Dialog).',
+  );
   const ownEvent = React.useRef<React.MouseEvent<HTMLButtonElement> | null>(null);
   const button = (
     <button

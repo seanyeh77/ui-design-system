@@ -43,7 +43,11 @@ export function NotificationBell({ items, onOpen, onReadAll, emptyText }: Notifi
       className="ui-noti"
       aria-label={tr('通知')}
       trigger={
-        <button type="button" className={cx('ui-iconbtn', 'ui-bell', open && 'is-open')} aria-label={unread ? tr('通知，{n} 則未讀', { n: unread }) : tr('通知')}>
+        <button
+          type="button"
+          className={cx('ui-iconbtn', 'ui-bell', open && 'is-open')}
+          aria-label={unread ? tr('通知，{n} 則未讀', { n: unread }) : tr('通知')}
+        >
           <Icon name="bell" />
           {unread ? (
             <span className="ui-badge-count" aria-hidden="true">

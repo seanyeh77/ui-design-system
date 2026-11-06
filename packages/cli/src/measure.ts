@@ -46,7 +46,8 @@ export function measure(): Findings {
 
   // 2. Touch targets under 48 px. A target counts a larger hit area drawn by ::before or ::after.
   // Links and buttons inside a line of text are exempt (WCAG 2.2, 2.5.8 inline exception) and listed apart.
-  const sel = 'a[href], button, input:not([type=hidden]), select, textarea, summary, [role=button], [role=tab], [role=switch], [role=checkbox], [role=radio], [role=option], [role=menuitem], [role=link], [tabindex]:not([tabindex="-1"])';
+  const sel =
+    'a[href], button, input:not([type=hidden]), select, textarea, summary, [role=button], [role=tab], [role=switch], [role=checkbox], [role=radio], [role=option], [role=menuitem], [role=link], [tabindex]:not([tabindex="-1"])';
   for (const el of new Set(document.querySelectorAll<HTMLElement>(sel))) {
     if (el.closest('[aria-hidden="true"], [inert]')) continue;
     const cs = getComputedStyle(el);
@@ -105,8 +106,16 @@ export function measure(): Findings {
   }
 
   // 5. Native controls that the design system replaces.
-  const replacements: Record<string, string> = { select: 'Select', table: 'DataTable', dialog: 'Dialog', 'input[type=checkbox]': 'Checkbox', 'input[type=radio]': 'RadioGroup', 'input[type=date]': 'DatePicker' };
-  for (const [q, use] of Object.entries(replacements)) for (const el of document.querySelectorAll(q)) if (visible(el) && !el.closest('[class^="ui-"], [class*=" ui-"]')) out.native.push(`<${q}> → use ${use}`);
+  const replacements: Record<string, string> = {
+    select: 'Select',
+    table: 'DataTable',
+    dialog: 'Dialog',
+    'input[type=checkbox]': 'Checkbox',
+    'input[type=radio]': 'RadioGroup',
+    'input[type=date]': 'DatePicker',
+  };
+  for (const [q, use] of Object.entries(replacements))
+    for (const el of document.querySelectorAll(q)) if (visible(el) && !el.closest('[class^="ui-"], [class*=" ui-"]')) out.native.push(`<${q}> → use ${use}`);
 
   // 6. Text that must stay on one line: buttons, tabs, table headers, labels, headings.
   for (const el of document.querySelectorAll<HTMLElement>('.ui-btn, .ui-tab, [role=columnheader], .ui-field-label, h1, h2, h3, h4')) {

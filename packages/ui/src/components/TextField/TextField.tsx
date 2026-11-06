@@ -30,7 +30,16 @@ export function TextField({ label, hint, error, id, className, required, disable
         ) : null}
       </label>
       <div className="ui-field-box">
-        <input type="text" {...native} required={required} disabled={disabled} id={fieldId} className="ui-input" aria-invalid={error ? true : undefined} aria-describedby={desc} />
+        <input
+          type="text"
+          {...native}
+          required={required}
+          disabled={disabled}
+          id={fieldId}
+          className="ui-input"
+          aria-invalid={error ? true : undefined}
+          aria-describedby={desc}
+        />
         {error ? <Icon name="warning-circle" className="ui-field-icon" /> : null}
       </div>
       {desc ? (
@@ -41,4 +50,3 @@ export function TextField({ label, hint, error, id, className, required, disable
     </div>
   );
 }
-

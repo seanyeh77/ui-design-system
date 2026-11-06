@@ -54,7 +54,12 @@ export function Suggestion({ title, before, after, copyText: copyValue, copyLabe
     <div className={cx('ui-sug', className)}>
       <div className="ui-sug-head">
         <span className="ui-sug-title">{title || tr('建議修正')}</span>
-        <IconButton className={cx('ui-sug-copy', copied && 'is-copied')} label={copied ? tr('已複製') : copyLabel || tr('複製修正')} icon={copied ? CHECK : 'copy'} onClick={copy} />
+        <IconButton
+          className={cx('ui-sug-copy', copied && 'is-copied')}
+          label={copied ? tr('已複製') : copyLabel || tr('複製修正')}
+          icon={copied ? CHECK : 'copy'}
+          onClick={copy}
+        />
       </div>
       {before != null ? line('del', before) : null}
       {line('add', after)}

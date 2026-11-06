@@ -1,0 +1,21 @@
+{
+  "name": "@seanyeh77/docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "pages": "node scripts/pages.ts",
+    "dev": "node scripts/pages.ts && storybook dev -p 6006",
+    "build": "node scripts/pages.ts && storybook build -o ../../site --quiet"
+  },
+  "devDependencies": {
+    "@seanyeh77/tokens": "workspace:^",
+    "@seanyeh77/ui": "workspace:^",
+    "@storybook/addon-a11y": "^10.6.6",
+    "@storybook/addon-docs": "^10.6.6",
+    "@storybook/react-vite": "^10.6.6",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "storybook": "^10.6.6",
+    "vite": "^8.3.6"
+  }
+}

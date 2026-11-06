@@ -34,4 +34,3 @@ export function Badge({ status, variant = 'chip', children, className }: BadgePr
     </span>
   );
 }
-

@@ -26,7 +26,10 @@ export function Tabs<V extends string = string>({ items, value, onChange, label,
   const [box, setBox] = React.useState<{ left: number; right: number } | null>(null);
   const [forward, setForward] = React.useState(true);
   const [moving, bump] = useMoving();
-  const idx = Math.max(0, items.findIndex((t) => t.id === value));
+  const idx = Math.max(
+    0,
+    items.findIndex((t) => t.id === value),
+  );
   React.useLayoutEffect(() => {
     const el = refs.current[idx];
     const tr = track.current;

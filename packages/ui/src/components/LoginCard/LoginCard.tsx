@@ -5,7 +5,6 @@ import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
 
-
 export interface LoginCardProps {
   /** Logo or product name above the title. */
   brand?: React.ReactNode;
@@ -40,27 +39,26 @@ export function LoginCard(p: LoginCardProps) {
   return (
     <div className={cx('ui-loginpage', p.className)}>
       <form className="ui-logincard" onSubmit={submit} noValidate>
-        {p.brand ? <div className="ui-login-brand">
-          {p.brand}
-        </div> : null}
-        <h1 className="ui-login-title">
-          {p.title || tr('登入')}
-        </h1>
+        {p.brand ? <div className="ui-login-brand">{p.brand}</div> : null}
+        <h1 className="ui-login-title">{p.title || tr('登入')}</h1>
         <TextField
           label={tr('帳號')}
           value={user}
           onChange={(e) => setUser(e.target.value)}
           placeholder={tr('Email 或帳號')}
           autoComplete="username"
-          error={uErr} />
+          error={uErr}
+        />
         <div className="ui-field">
           <div className="ui-login-pwlabel">
             <label htmlFor={pwId} className="ui-field-label">
               {tr('密碼')}
             </label>
-            {p.forgotHref ? <a href={p.forgotHref} className="ui-link">
-              {tr('忘記密碼')}
-            </a> : null}
+            {p.forgotHref ? (
+              <a href={p.forgotHref} className="ui-link">
+                {tr('忘記密碼')}
+              </a>
+            ) : null}
           </div>
           <div className={cx('ui-pwfield', pErr && 'is-invalid')}>
             <input
@@ -71,29 +69,28 @@ export function LoginCard(p: LoginCardProps) {
               autoComplete="current-password"
               aria-invalid={pErr ? true : undefined}
               aria-describedby={pErr ? pwId + '-err' : undefined}
-              onChange={(e) => setPass(e.target.value)} />
+              onChange={(e) => setPass(e.target.value)}
+            />
             <button
               type="button"
               className="ui-datefield-btn"
               aria-label={show ? tr('隱藏密碼') : tr('顯示密碼')}
               aria-pressed={show}
-              onClick={() => setShow(!show)}>
+              onClick={() => setShow(!show)}
+            >
               <Icon name={show ? 'eye-slash' : 'eye'} size={18} />
             </button>
           </div>
-          {pErr ? <div id={pwId + '-err'} className="ui-field-hint is-error" role="alert">
-            {pErr}
-          </div> : null}
+          {pErr ? (
+            <div id={pwId + '-err'} className="ui-field-hint is-error" role="alert">
+              {pErr}
+            </div>
+          ) : null}
         </div>
-        <Button
-          variant="primary"
-          type="submit"
-          loading={p.loading}
-          className="ui-login-submit">
+        <Button variant="primary" type="submit" loading={p.loading} className="ui-login-submit">
           {tr('登入')}
         </Button>
       </form>
     </div>
   );
 }
-

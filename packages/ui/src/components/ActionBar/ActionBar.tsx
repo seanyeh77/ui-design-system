@@ -40,12 +40,21 @@ export function ActionBar({ actions, className }: ActionBarProps) {
         {a.label}
       </Button>
     ) : (
-      <Button key={i} variant={a === main ? 'primary' : 'secondary'} icon={a.icon} onClick={a.onClick} disabled={a.disabled} className={wide ? 'ui-actbar-main' : undefined}>
+      <Button
+        key={i}
+        variant={a === main ? 'primary' : 'secondary'}
+        icon={a.icon}
+        onClick={a.onClick}
+        disabled={a.disabled}
+        className={wide ? 'ui-actbar-main' : undefined}
+      >
         {a.label}
       </Button>
     );
-  const menuItems = others.map(
-    (a): MenuItem => (a.danger ? { label: a.label, icon: a.icon, onSelect: a.onClick, disabled: a.disabled, danger: true, confirm: a.confirm } : { label: a.label, icon: a.icon, onSelect: a.onClick, disabled: a.disabled }),
+  const menuItems = others.map((a): MenuItem =>
+    a.danger
+      ? { label: a.label, icon: a.icon, onSelect: a.onClick, disabled: a.disabled, danger: true, confirm: a.confirm }
+      : { label: a.label, icon: a.icon, onSelect: a.onClick, disabled: a.disabled },
   );
   return (
     <div className={cx('ui-actbar', className)}>

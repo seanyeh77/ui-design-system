@@ -34,7 +34,17 @@ export function Checkbox({ checked, onChange, label, disabled, className, ...ari
     >
       <span className="ui-check-box" aria-hidden="true">
         {v === true ? (
-          <svg className={cx(drawn && 'ui-draw')} width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            className={cx(drawn && 'ui-draw')}
+            width={14}
+            height={14}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={3.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d={CHECK} />
           </svg>
         ) : null}
@@ -44,4 +54,3 @@ export function Checkbox({ checked, onChange, label, disabled, className, ...ari
     </button>
   );
 }
-

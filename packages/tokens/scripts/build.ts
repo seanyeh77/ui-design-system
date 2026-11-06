@@ -4,8 +4,17 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
 type Value = string | { light: string; dark?: string };
-interface Token { name: string; value: Value; usage?: string }
-interface Preset { id: string; name: string; usage?: string; values: Record<string, string> }
+interface Token {
+  name: string;
+  value: Value;
+  usage?: string;
+}
+interface Preset {
+  id: string;
+  name: string;
+  usage?: string;
+  values: Record<string, string>;
+}
 interface TokenFile {
   color: { tokens: Token[] };
   spacing: { tokens: Token[] };
@@ -29,7 +38,7 @@ for (const group of GROUPS) {
   for (const t of file[group].tokens) {
     const v = t.value;
     light[t.name] = typeof v === 'string' ? v : v.light;
-    dark[t.name] = typeof v === 'string' ? light[t.name] : v.dark ?? v.light;
+    dark[t.name] = typeof v === 'string' ? light[t.name] : (v.dark ?? v.light);
     groups[group].push(t.name);
   }
 }

@@ -24,4 +24,3 @@ export function SearchField({ value, onChange, className, label, ...native }: Se
     </div>
   );
 }
-

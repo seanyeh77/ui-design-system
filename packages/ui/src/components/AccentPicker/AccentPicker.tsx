@@ -81,4 +81,3 @@ export function AccentPicker({ value, onChange, label, className }: AccentPicker
     </div>
   );
 }
-

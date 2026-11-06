@@ -1,0 +1,75 @@
+import * as React from 'react';
+import * as UI from '../../index';
+
+export default { title: 'Data/LayerGraph', component: UI.LayerGraph };
+
+const nodes = [
+  { id: 'cli', name: 'src/cli', layer: 0, fns: 34 },
+  { id: 'server', name: 'src/server', layer: 0, fns: 88 },
+  { id: 'parser', name: 'src/parser', layer: 1, fns: 61 },
+  { id: 'net', name: 'src/net', layer: 1, fns: 47 },
+  { id: 'storage', name: 'src/storage', layer: 2, fns: 52 },
+  { id: 'metrics', name: 'src/metrics', layer: 2, fns: 19 },
+  { id: 'util', name: 'src/util', shared: true },
+  { id: 'inc', name: 'include/common', shared: true },
+];
+const edges = [
+  { from: 'cli', to: 'parser', count: 12 },
+  { from: 'cli', to: 'net', count: 3 },
+  { from: 'server', to: 'parser', count: 5 },
+  { from: 'server', to: 'net', count: 18 },
+  { from: 'parser', to: 'storage', count: 9 },
+  { from: 'net', to: 'storage', count: 6 },
+  { from: 'net', to: 'metrics', inferred: true, label: '經由 `on_packet` 回呼' },
+  { from: 'parser', to: 'metrics', count: 2 },
+  { from: 'server', to: 'metrics', count: 4 },
+  { from: 'cli', to: 'util', count: 8 },
+  { from: 'server', to: 'util', count: 20 },
+  { from: 'net', to: 'util', count: 13 },
+  { from: 'server', to: 'inc', count: 9 },
+  { from: 'parser', to: 'inc', count: 8 },
+];
+// two labelled lines into one box: labels split left and right
+const nodes2 = [
+  { id: 'src/ibmon', name: 'src/ibmon', layer: 0, fns: 91 },
+  { id: 'src/ucx_ib_test', name: 'src/ucx_ib_test', layer: 0, fns: 22 },
+  { id: 'src/libibtrace', name: 'src/libibtrace', layer: 1, fns: 114 },
+  { id: 'src/common', name: 'src/common', shared: true },
+];
+const edges2 = [
+  { from: 'src/ibmon', to: 'src/libibtrace', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
+  { from: 'src/ucx_ib_test', to: 'src/libibtrace', inferred: true, label: '攔截 17 個 `ucp` 呼叫' },
+  { from: 'src/ibmon', to: 'src/common', count: 6 },
+];
+// two labelled lines on the left half of one box: the second label moves up a line
+const nodes3 = [
+  { id: 'a', name: 'src/loader', layer: 0, fns: 12 },
+  { id: 'b', name: 'src/hooks', layer: 0, fns: 40 },
+  { id: 'c', name: 'src/cli', layer: 0, fns: 18 },
+  { id: 'd', name: 'src/tools', layer: 0, fns: 9 },
+  { id: 't', name: 'src/runtime', layer: 1, fns: 75 },
+];
+const edges3 = [
+  { from: 'a', to: 't', inferred: true, label: '經由 `dlsym` 取得' },
+  { from: 'b', to: 't', inferred: true, label: '函式指標表 `ops`' },
+  { from: 'c', to: 't', count: 7 },
+  { from: 'd', to: 't', count: 2 },
+];
+const card = { maxWidth: 640, padding: 16, marginBottom: 16, borderRadius: 'var(--radius-lg)', background: 'var(--surface)', boxShadow: 'var(--shadow-card)' };
+function Demo() {
+  const s = React.useState<string | null>('net');
+  return (
+    <div>
+      <div style={card}>
+        <UI.LayerGraph nodes={nodes} edges={edges} selected={s[0]} onSelect={s[1]} inferredText="由規則推得，編譯器無法確認。" />
+      </div>
+      <div style={card}>
+        <UI.LayerGraph nodes={nodes2} edges={edges2} legend={false} />
+      </div>
+      <div style={card}>
+        <UI.LayerGraph nodes={nodes3} edges={edges3} legend={false} />
+      </div>
+    </div>
+  );
+}
+export const Default = { render: () => <Demo /> };

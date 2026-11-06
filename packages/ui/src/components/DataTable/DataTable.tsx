@@ -78,7 +78,17 @@ function RowCheck({ v, label, onClick }: { v: boolean | 'mixed'; label: string; 
       }}
     >
       {v === true ? (
-        <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg
+          width={14}
+          height={14}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={3.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
           <path d={CHECK} />
         </svg>
       ) : v === 'mixed' ? (
@@ -99,7 +109,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const { columns: cols, rows, pageSize = 10, urlSync = true, urlKey, search = {}, selectable = false, stickyFirst: sticky = false } = p;
   const filters: ResolvedFilter<R>[] = React.useMemo(() => {
     const list = p.filters ? [...p.filters] : [];
-    if (p.filter && !list.length) list.push({ key: p.filter.key, label: p.filter.label || cols.find((c) => c.key === p.filter?.key)?.label || p.filter.key, options: p.filter.options });
+    if (p.filter && !list.length)
+      list.push({ key: p.filter.key, label: p.filter.label || cols.find((c) => c.key === p.filter?.key)?.label || p.filter.key, options: p.filter.options });
     return resolveFilters(list, rows);
   }, [p.filters, p.filter, cols, rows]);
   const fromUrl = () => (urlSync && typeof location !== 'undefined' ? readUrl(urlKey, filters) : { q: '', values: {} });
@@ -126,7 +137,11 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     if (urlSync && filters.length) writeUrl(urlKey, filters, values, q);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- written when the conditions change, not when the filter list is rebuilt
   }, [valuesKey, q]);
-  devWarn(rows.length > 1 && rows.every((r) => get(r, 'id') == null) && selectable, 'DataTable', 'rows have no id, so a selection follows the position, not the row. Add an id to each row.');
+  devWarn(
+    rows.length > 1 && rows.every((r) => get(r, 'id') == null) && selectable,
+    'DataTable',
+    'rows have no id, so a selection follows the position, not the row. Add an id to each row.',
+  );
 
   const shownCols = cols.filter((c, i) => i === 0 || !hidden[c.key]);
   const bodyRef = React.useRef<HTMLDivElement>(null);
@@ -204,11 +219,23 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
       const timing = { duration: MOVE.dur, delay: i * MOVE.stagger, easing: MOVE.ease, fill: 'backwards' as const };
       if (old) {
         const from = old.top - (r.top - top0);
-        el.animate([{ transform: `translateY(${from}px)`, backgroundColor: old.bg }, { transform: 'none', backgroundColor: getComputedStyle(el).backgroundColor }], timing);
+        el.animate(
+          [
+            { transform: `translateY(${from}px)`, backgroundColor: old.bg },
+            { transform: 'none', backgroundColor: getComputedStyle(el).backgroundColor },
+          ],
+          timing,
+        );
       } else {
         const off = sn.kind === 'next' ? n : sn.kind === 'prev' ? -n : n + k - i;
         k++;
-        el.animate([{ transform: `translateY(${off * rh}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], timing);
+        el.animate(
+          [
+            { transform: `translateY(${off * rh}px)`, opacity: 0 },
+            { transform: 'none', opacity: 1 },
+          ],
+          timing,
+        );
       }
     });
     // Rows that left the page: animate a copy out.
@@ -223,7 +250,13 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
       ghost.style.backgroundColor = o.bg;
       body.appendChild(ghost);
       const to = sn.kind === 'next' ? -n : sn.kind === 'prev' ? n : n + 1 - j;
-      ghost.animate([{ transform: 'none', opacity: 1 }, { transform: `translateY(${to * rh}px)`, opacity: 0 }], { duration: MOVE.dur, easing: MOVE.ease, fill: 'forwards' }).onfinish = () => ghost.remove();
+      ghost.animate(
+        [
+          { transform: 'none', opacity: 1 },
+          { transform: `translateY(${to * rh}px)`, opacity: 0 },
+        ],
+        { duration: MOVE.dur, easing: MOVE.ease, fill: 'forwards' },
+      ).onfinish = () => ghost.remove();
     });
   });
 
@@ -265,7 +298,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const minW = (selectable ? 46 : 0) + shownCols.reduce((a, c) => a + (c.width || (c.numeric ? 96 : 120)), 0) + (hasAct ? actW : 0);
   const gridStyle = { gridTemplateColumns: template, minWidth: minW };
   const stickyStyle = (ci: number) => (ci === 0 && sticky ? { left: selectable ? 46 : 0 } : undefined);
-  const cellClass = (c: DataTableColumn<R>, ci: number, ...more: unknown[]) => cx('ui-dt-cell', isNum(c) && 'is-num', ci === 0 && sticky && 'is-sticky', ...more);
+  const cellClass = (c: DataTableColumn<R>, ci: number, ...more: unknown[]) =>
+    cx('ui-dt-cell', isNum(c) && 'is-num', ci === 0 && sticky && 'is-sticky', ...more);
 
   const head =
     selectable && selIds.length && p.bulkActions ? (
@@ -289,7 +323,13 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         {shownCols.map((c, ci) => {
           const cur = sort.key === c.key;
           return (
-            <div key={c.key} role="columnheader" aria-sort={cur ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'} className={cellClass(c, ci)} style={stickyStyle(ci)}>
+            <div
+              key={c.key}
+              role="columnheader"
+              aria-sort={cur ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
+              className={cellClass(c, ci)}
+              style={stickyStyle(ci)}
+            >
               {c.sortable === false ? (
                 c.label
               ) : (
@@ -403,8 +443,12 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
             }}
           />
         ) : null}
-        <span className="ui-dt-result">{monoNums(tr('{n} / {total} 筆', { n: '\u0001', total: '\u0002' }), [format.number(list.length), format.number(baseCount)])}</span>
-        {p.columnMenu !== false && cols.length > 2 ? <ColumnMenu cols={cols} hidden={hidden} onToggle={(k) => setHidden({ ...hidden, [k]: !hidden[k] })} /> : null}
+        <span className="ui-dt-result">
+          {monoNums(tr('{n} / {total} 筆', { n: '\u0001', total: '\u0002' }), [format.number(list.length), format.number(baseCount)])}
+        </span>
+        {p.columnMenu !== false && cols.length > 2 ? (
+          <ColumnMenu cols={cols} hidden={hidden} onToggle={(k) => setHidden({ ...hidden, [k]: !hidden[k] })} />
+        ) : null}
       </div>
       <div className="ui-dt-scroll">
         <div className="ui-dt-table" role="table" aria-label={p.label || p.caption}>
@@ -431,7 +475,13 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                       </div>
                     ) : null}
                     {shownCols.map((c, ci) => (
-                      <div key={c.key} role="cell" data-label={c.label} className={cellClass(c, ci, c.long && 'is-long', mobileClass(c, ci))} style={stickyStyle(ci)}>
+                      <div
+                        key={c.key}
+                        role="cell"
+                        data-label={c.label}
+                        className={cellClass(c, ci, c.long && 'is-long', mobileClass(c, ci))}
+                        style={stickyStyle(ci)}
+                      >
                         {cell(x.r, c)}
                       </div>
                     ))}
@@ -471,7 +521,11 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         <div className="ui-dt-foot">
           <span className="ui-dt-range">
             {list.length
-              ? monoNums(tr('第 {a}–{b} 筆，共 {n} 筆', { a: '\u0001', b: '\u0002', n: '\u0003' }), [start + 1, Math.min(list.length, start + pageSize), format.number(list.length)])
+              ? monoNums(tr('第 {a}–{b} 筆，共 {n} 筆', { a: '\u0001', b: '\u0002', n: '\u0003' }), [
+                  start + 1,
+                  Math.min(list.length, start + pageSize),
+                  format.number(list.length),
+                ])
               : monoNums(tr('共 {n} 筆', { n: '\u0001' }), [0])}
           </span>
           {pages > 1 ? (
@@ -480,7 +534,13 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                 ‹
               </button>
               {Array.from({ length: pages }, (_, i) => (
-                <button key={i} type="button" className={cx('ui-dt-page', i === pageNow && 'is-on')} aria-current={i === pageNow ? 'page' : undefined} onClick={() => goPage(i)}>
+                <button
+                  key={i}
+                  type="button"
+                  className={cx('ui-dt-page', i === pageNow && 'is-on')}
+                  aria-current={i === pageNow ? 'page' : undefined}
+                  onClick={() => goPage(i)}
+                >
                   {String(i + 1)}
                 </button>
               ))}

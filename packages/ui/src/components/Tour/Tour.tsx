@@ -93,7 +93,12 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
       if (r && r.width) {
         const l = Math.max(3, r.left - pad);
         const t = Math.max(3, r.top - pad);
-        v = { left: l, top: t, width: Math.max(0, Math.min(window.innerWidth - 3, r.right + pad) - l), height: Math.max(0, Math.min(window.innerHeight - 3, r.bottom + pad) - t) };
+        v = {
+          left: l,
+          top: t,
+          width: Math.max(0, Math.min(window.innerWidth - 3, r.right + pad) - l),
+          height: Math.max(0, Math.min(window.innerHeight - 3, r.bottom + pad) - t),
+        };
       }
       const k = JSON.stringify(v);
       if (k !== last) {
@@ -128,7 +133,13 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
           <div className={cx('ui-tour-block', !rect && 'is-dim')} />
           {rect ? <div className="ui-tour-spot" aria-hidden="true" style={rect} /> : null}
         </div>
-        <Popover.Positioner className="ui-float ui-tour-float" anchor={anchor} side={rect ? step.side ?? 'bottom' : 'bottom'} align="center" sideOffset={rect ? 12 : -100}>
+        <Popover.Positioner
+          className="ui-float ui-tour-float"
+          anchor={anchor}
+          side={rect ? (step.side ?? 'bottom') : 'bottom'}
+          align="center"
+          sideOffset={rect ? 12 : -100}
+        >
           <Popover.Popup key={i} className="ui-tour-card" initialFocus={next}>
             <div className="ui-tour-count">{monoNums(tr('{n} / {total}', { n: '\u0001', total: '\u0002' }), [i + 1, steps.length])}</div>
             <Popover.Title className="ui-tour-title">{step.title}</Popover.Title>

@@ -53,7 +53,13 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
     for (const width of [390, 1280]) {
       for (const theme of ['light', 'dark'] as const) {
         const phone = width === 390;
-        const ctx = await browser.newContext({ viewport: { width, height: phone ? 844 : 900 }, colorScheme: theme, hasTouch: phone, isMobile: phone, deviceScaleFactor: phone ? 2 : 1 });
+        const ctx = await browser.newContext({
+          viewport: { width, height: phone ? 844 : 900 },
+          colorScheme: theme,
+          hasTouch: phone,
+          isMobile: phone,
+          deviceScaleFactor: phone ? 2 : 1,
+        });
         const page = await ctx.newPage();
         const errors: string[] = [];
         page.on('pageerror', (e) => errors.push(String(e)));
@@ -75,7 +81,8 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
         if (res.wrapped.length) problems.push('text that must stay on one line wraps: ' + res.wrapped.join('; '));
         if (phone) {
           if (res.overflow.length) problems.push('horizontal overflow: ' + res.overflow.join('; '));
-          if (res.small.length) problems.push(`touch targets under 48 px: ${res.small.slice(0, 12).join('; ')}${res.small.length > 12 ? ` (+${res.small.length - 12} more)` : ''}`);
+          if (res.small.length)
+            problems.push(`touch targets under 48 px: ${res.small.slice(0, 12).join('; ')}${res.small.length > 12 ? ` (+${res.small.length - 12} more)` : ''}`);
           if (res.inline.length && opts.strict) problems.push('inline targets under 48 px: ' + res.inline.slice(0, 12).join('; '));
         }
         console.log(`  ${width} px ${theme}: ${problems.length ? '' : 'ok'}`);
@@ -97,15 +104,20 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
 
 const [cmd, ...rest] = process.argv.slice(2);
 if (cmd === 'check') {
-  const { values, positionals } = parseArgs({ args: rest, allowPositionals: true, options: { shots: { type: 'string' }, strict: { type: 'boolean', default: false }, wait: { type: 'string', default: '800' } } });
+  const { values, positionals } = parseArgs({
+    args: rest,
+    allowPositionals: true,
+    options: { shots: { type: 'string' }, strict: { type: 'boolean', default: false }, wait: { type: 'string', default: '800' } },
+  });
   if (!positionals.length) {
     console.error(HELP);
     process.exit(2);
   }
-  for (const t of positionals) if (!t.includes('://') && !existsSync(t)) {
-    console.error(`${t}: no such file. Pass a file path or a URL.`);
-    process.exit(2);
-  }
+  for (const t of positionals)
+    if (!t.includes('://') && !existsSync(t)) {
+      console.error(`${t}: no such file. Pass a file path or a URL.`);
+      process.exit(2);
+    }
   await check(positionals, { shots: values.shots, strict: !!values.strict, wait: Number(values.wait) });
 } else if (cmd === 'docs') docs(rest[0]);
 else if (cmd === 'list') list();

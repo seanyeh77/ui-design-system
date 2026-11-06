@@ -33,8 +33,29 @@ export interface CodeViewProps {
 }
 
 /** Source with line numbers and an optional target line: soft accent background, long lines wrap, light syntax colors. */
-export function CodeView({ code, start = 1, target, context = 2, file, fileHref, onFile, title, language, languageLabel, highlight = true, tokenizer = builtIn, maxHeight, className }: CodeViewProps) {
-  const lines = React.useMemo(() => String(code || '').replace(/\n$/, '').split('\n'), [code]);
+export function CodeView({
+  code,
+  start = 1,
+  target,
+  context = 2,
+  file,
+  fileHref,
+  onFile,
+  title,
+  language,
+  languageLabel,
+  highlight = true,
+  tokenizer = builtIn,
+  maxHeight,
+  className,
+}: CodeViewProps) {
+  const lines = React.useMemo(
+    () =>
+      String(code || '')
+        .replace(/\n$/, '')
+        .split('\n'),
+    [code],
+  );
   const lang = language || languageOf(file);
   const toks = React.useMemo(() => (highlight ? tokenizer(lines, lang) : lines.map((l) => [['', l] as const])), [lines, lang, highlight, tokenizer]);
   const [ta, tb] = target == null ? [null, null] : Array.isArray(target) ? target : [target, target];
@@ -53,7 +74,8 @@ export function CodeView({ code, start = 1, target, context = 2, file, fileHref,
   React.useEffect(() => {
     const b = body.current;
     const el = b?.querySelector<HTMLElement>('.is-target');
-    if (b && el && b.scrollHeight > b.clientHeight) b.scrollTop += el.getBoundingClientRect().top - b.getBoundingClientRect().top - b.clientHeight / 2 + el.offsetHeight / 2;
+    if (b && el && b.scrollHeight > b.clientHeight)
+      b.scrollTop += el.getBoundingClientRect().top - b.getBoundingClientRect().top - b.clientHeight / 2 + el.offsetHeight / 2;
   }, [ta, code]);
   const digits = String(start + lines.length - 1).length;
   const rows: React.ReactNode[] = [];

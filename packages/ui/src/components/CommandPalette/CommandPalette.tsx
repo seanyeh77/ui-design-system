@@ -62,7 +62,24 @@ function score(it: PaletteItem, q: string): [rank: number, at: number] | null {
 
 /** One search for everything, opened with Ctrl K (⌘K). A panel in the middle of the screen; results sorted by relevance. */
 export function CommandPalette<T extends PaletteItem = PaletteItem>(props: CommandPaletteProps<T>) {
-  const { open, onOpenChange, items, onSelect, placeholder, recent, recentLabel, emptyText, kinds, filter = true, onQueryChange, loading, limit = 50, hotkey = true, defaultQuery = '', label } = props;
+  const {
+    open,
+    onOpenChange,
+    items,
+    onSelect,
+    placeholder,
+    recent,
+    recentLabel,
+    emptyText,
+    kinds,
+    filter = true,
+    onQueryChange,
+    loading,
+    limit = 50,
+    hotkey = true,
+    defaultQuery = '',
+    label,
+  } = props;
   const [q, setQ] = React.useState(defaultQuery);
   const [active, setActive] = React.useState(0);
   const list = React.useRef<HTMLUListElement>(null);
@@ -184,7 +201,7 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
                   onClick={() => pick(it)}
                 >
                   <span className="ui-pal-kind" title={it.kind}>
-                    <IconOf icon={it.icon ?? (it.kind ? kinds?.[it.kind] ?? KIND_ICONS[it.kind] : undefined) ?? 'file'} size={16} />
+                    <IconOf icon={it.icon ?? (it.kind ? (kinds?.[it.kind] ?? KIND_ICONS[it.kind]) : undefined) ?? 'file'} size={16} />
                   </span>
                   <span className="ui-pal-text">
                     <span className="ui-pal-line">

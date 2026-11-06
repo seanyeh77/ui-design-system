@@ -4,18 +4,32 @@
   "description": "Design tokens of SeanYeh's design system: CSS variables for light, dark and the teaching preset, a Tailwind v4 theme, typed token names and self-hosted fonts.",
   "license": "MIT",
   "author": "Hsiu-An Yeh",
-  "repository": { "type": "git", "url": "git+https://github.com/seanyeh77/ui-design-system.git", "directory": "packages/tokens" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seanyeh77/ui-design-system.git",
+    "directory": "packages/tokens"
+  },
   "type": "module",
-  "sideEffects": ["*.css"],
+  "sideEffects": [
+    "*.css"
+  ],
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
     "./tokens.css": "./dist/tokens.css",
     "./tailwind.css": "./dist/tailwind.css",
     "./fonts.css": "./fonts.css",
     "./tokens.json": "./tokens.json",
     "./package.json": "./package.json"
   },
-  "files": ["dist", "fonts", "fonts.css", "tokens.json"],
+  "files": [
+    "dist",
+    "fonts",
+    "fonts.css",
+    "tokens.json"
+  ],
   "scripts": {
     "build": "node scripts/build.ts",
     "typecheck": "tsc -p ."

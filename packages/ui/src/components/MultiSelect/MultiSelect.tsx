@@ -32,7 +32,7 @@ export function MultiSelect({ label, options, value, onChange, creatable, maxChi
   const id = React.useId();
   const [query, setQuery] = React.useState('');
   const labels = React.useMemo(() => new Map(options.map((o) => [o.value, o.label])), [options]);
-  const labelOf = (v: string) => (v.startsWith(CREATE) ? tr('新增「{q}」', { q: v.slice(CREATE.length) }) : labels.get(v) ?? v);
+  const labelOf = (v: string) => (v.startsWith(CREATE) ? tr('新增「{q}」', { q: v.slice(CREATE.length) }) : (labels.get(v) ?? v));
   const q = query.trim();
   const exists = options.some((o) => o.label === q) || value.includes(q);
   const items = [...options.map((o) => o.value), ...value.filter((v) => !labels.has(v)), ...(creatable && q && !exists ? [CREATE + q] : [])];
@@ -102,4 +102,3 @@ export function MultiSelect({ label, options, value, onChange, creatable, maxChi
     </div>
   );
 }
-

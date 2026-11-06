@@ -73,22 +73,21 @@ export function Menu({ items, label, icon = 'dots-three', align = 'end', trigger
         </Base.Portal>
       </Base.Root>
       {danger.length ? (
-      <Dialog
-        open={!!asking}
-        onClose={() => setAsking(null)}
-        title={asking ? (asking.confirm?.title ?? asking.label + '？') : ''}
-        tone="danger"
-        confirmLabel={asking?.confirm?.confirmLabel ?? asking?.label ?? ''}
-        onConfirm={() => {
-          const it = asking;
-          setAsking(null);
-          it?.onSelect?.();
-        }}
-      >
-        {asking?.confirm?.body}
-      </Dialog>
+        <Dialog
+          open={!!asking}
+          onClose={() => setAsking(null)}
+          title={asking ? (asking.confirm?.title ?? asking.label + '？') : ''}
+          tone="danger"
+          confirmLabel={asking?.confirm?.confirmLabel ?? asking?.label ?? ''}
+          onConfirm={() => {
+            const it = asking;
+            setAsking(null);
+            it?.onSelect?.();
+          }}
+        >
+          {asking?.confirm?.body}
+        </Dialog>
       ) : null}
     </>
   );
 }
-

@@ -131,7 +131,11 @@ export function LayerGraph(p: LayerGraphProps) {
   const PAD = 16;
   const all = p.nodes;
   const sel = p.selected ?? null;
-  devWarn(all.some((n) => n.fns != null), 'LayerGraph', 'fns is renamed size; pass size and, for the text under the bar, sizeLabel such as 「{n} 個函式」.');
+  devWarn(
+    all.some((n) => n.fns != null),
+    'LayerGraph',
+    'fns is renamed size; pass size and, for the text under the bar, sizeLabel such as 「{n} 個函式」.',
+  );
   const sizeOf = (n: LayerGraphNode) => n.size ?? n.fns;
   const sharedIds = new Set(all.filter((n) => n.shared).map((n) => n.id));
   const main = all.filter((n) => !n.shared);
@@ -196,7 +200,14 @@ export function LayerGraph(p: LayerGraphProps) {
       const chans = [next[0].x - COL / 2, ...next.map((q) => q.x + NW + COL / 2)].map((c) => Math.max(PAD / 2, Math.min(W - PAD / 2, c)));
       const chx = chans.reduce((best, c) => (Math.abs(c - mid) < Math.abs(best - mid) ? c : best), chans[0]) + off;
       const y2 = ty - GAP / 2 + off;
-      pts = [[sx, sy], [sx, y1], [chx, y1], [chx, y2], [tx, y2], [tx, ty - 8]];
+      pts = [
+        [sx, sy],
+        [sx, y1],
+        [chx, y1],
+        [chx, y2],
+        [tx, y2],
+        [tx, ty - 8],
+      ];
     } else
       pts = [
         [sx, sy],
@@ -207,9 +218,18 @@ export function LayerGraph(p: LayerGraphProps) {
     const r = related(e);
     const dim = !!sel && !r;
     const w = e.inferred ? 1.5 : 1.5 + 5.5 * ((e.count || 0) / maxCount);
-    paths.push(<path key={'p' + idx} className={cx('ui-lg-edge', e.inferred && 'is-inferred', r && 'is-related', dim && 'is-dim')} d={route(clean(pts), 10)} strokeWidth={w} />);
+    paths.push(
+      <path
+        key={'p' + idx}
+        className={cx('ui-lg-edge', e.inferred && 'is-inferred', r && 'is-related', dim && 'is-dim')}
+        d={route(clean(pts), 10)}
+        strokeWidth={w}
+      />,
+    );
     arrows.push([tx - 5, tx + 5, ty - 9, ty]);
-    paths.push(<path key={'a' + idx} className={cx('ui-lg-arrow', r && 'is-related', dim && 'is-dim')} d={`M${tx - 5} ${ty - 9} L${tx + 5} ${ty - 9} L${tx} ${ty} Z`} />);
+    paths.push(
+      <path key={'a' + idx} className={cx('ui-lg-arrow', r && 'is-related', dim && 'is-dim')} d={`M${tx - 5} ${ty - 9} L${tx + 5} ${ty - 9} L${tx} ${ty} Z`} />,
+    );
     if (e.inferred || r) {
       const text = e.inferred ? e.label || p.inferredLabel || tr('推測') : (p.countLabel ?? tr('{n} 次')).replace('{n}', String(e.count ?? 0));
       // Several arrows into one box: an arrow in the left half puts its label on its left.
@@ -219,7 +239,8 @@ export function LayerGraph(p: LayerGraphProps) {
   // Labels sit beside their arrowheads, inside the diagram; one that would touch a placed label or an arrowhead moves up 18 px.
   // Obstacles are [left, right, top, bottom, gap].
   const placed = [...arrows];
-  const hits = (x0: number, x1: number, y0: number, y1: number) => placed.some((q) => x0 < q[1] + (q[4] || 0) && q[0] < x1 + (q[4] || 0) && y0 < q[3] && q[2] < y1);
+  const hits = (x0: number, x1: number, y0: number, y1: number) =>
+    placed.some((q) => x0 < q[1] + (q[4] || 0) && q[0] < x1 + (q[4] || 0) && y0 < q[3] && q[2] < y1);
   marks
     .sort((m, n) => m.ty - n.ty || m.tx - n.tx)
     .forEach((m) => {

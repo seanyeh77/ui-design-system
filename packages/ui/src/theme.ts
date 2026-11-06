@@ -44,7 +44,16 @@ const hexRgb = (x: string): number[] => [1, 3, 5].map((i) => parseInt(x.slice(i,
 function mixHex(a: string, b: string, t: number): string {
   const p = hexRgb(a);
   const q = hexRgb(b);
-  return '#' + p.map((v, i) => Math.round(v + (q[i] - v) * t).toString(16).padStart(2, '0')).join('');
+  return (
+    '#' +
+    p
+      .map((v, i) =>
+        Math.round(v + (q[i] - v) * t)
+          .toString(16)
+          .padStart(2, '0'),
+      )
+      .join('')
+  );
 }
 
 function lum(x: string): number {

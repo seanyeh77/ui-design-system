@@ -60,7 +60,13 @@ export function Dialog(props: DialogProps) {
   const closeIcon = <Icon name="x" />;
   const head = (
     <div className="ui-dialog-head">
-      {inline ? <div id={id} className="ui-dialog-title">{title}</div> : <Base.Title className="ui-dialog-title">{title}</Base.Title>}
+      {inline ? (
+        <div id={id} className="ui-dialog-title">
+          {title}
+        </div>
+      ) : (
+        <Base.Title className="ui-dialog-title">{title}</Base.Title>
+      )}
       {onClose && inline ? (
         <button type="button" className="ui-dialog-close" aria-label={tr('關閉')} onClick={onClose}>
           {closeIcon}

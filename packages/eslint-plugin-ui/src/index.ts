@@ -48,7 +48,13 @@ const noRawColor: Rule.RuleModule = {
   meta: { type: 'problem', docs: { description: 'Colors come from tokens: var(--ink) or cssVar("ink"), never a hex, rgb() or hsl() value.' }, schema: [] },
   create(context) {
     const check = (node: Node, value: string) => {
-      if (COLOR.test(value)) context.report({ node, message: 'Hard-coded color "{{v}}". Use a token: var(--ink-muted) in CSS, cssVar("ink-muted") from @seanyeh77/tokens in style props, or a component prop.', data: { v: value.slice(0, 40) } });
+      if (COLOR.test(value))
+        context.report({
+          node,
+          message:
+            'Hard-coded color "{{v}}". Use a token: var(--ink-muted) in CSS, cssVar("ink-muted") from @seanyeh77/tokens in style props, or a component prop.',
+          data: { v: value.slice(0, 40) },
+        });
     };
     return {
       // style={{ color: '#fff' }} and style props of any element
@@ -78,7 +84,14 @@ const REPLACE: Record<string, string> = {
   dialog: 'Dialog',
   progress: 'ProgressBar',
 };
-const INPUT_REPLACE: Record<string, string> = { checkbox: 'Checkbox', radio: 'RadioGroup', date: 'DatePicker', search: 'SearchField', file: 'FileUpload', color: 'AccentPicker' };
+const INPUT_REPLACE: Record<string, string> = {
+  checkbox: 'Checkbox',
+  radio: 'RadioGroup',
+  date: 'DatePicker',
+  search: 'SearchField',
+  file: 'FileUpload',
+  color: 'AccentPicker',
+};
 
 const noNativeControls: Rule.RuleModule = {
   meta: { type: 'problem', docs: { description: 'Use the design-system component instead of a native control it replaces.' }, schema: [] },
@@ -90,7 +103,8 @@ const noNativeControls: Rule.RuleModule = {
         if (REPLACE[name]) context.report({ node, message: 'Native <{{n}}>: use {{c}} from @seanyeh77/ui.', data: { n: name, c: REPLACE[name] } });
         if (name === 'input') {
           const t = literal(attr(el, 'type'));
-          if (typeof t === 'string' && INPUT_REPLACE[t]) context.report({ node, message: '<input type="{{t}}">: use {{c}} from @seanyeh77/ui.', data: { t, c: INPUT_REPLACE[t] } });
+          if (typeof t === 'string' && INPUT_REPLACE[t])
+            context.report({ node, message: '<input type="{{t}}">: use {{c}} from @seanyeh77/ui.', data: { t, c: INPUT_REPLACE[t] } });
         }
       },
     };
@@ -106,7 +120,10 @@ const noNestedCard: Rule.RuleModule = {
         if (tagName(el.openingElement) !== 'Card') return;
         for (let p = el.parent; p; p = p.parent) {
           if (p.type === 'JSXElement' && tagName(p.openingElement) === 'Card') {
-            context.report({ node, message: 'Card inside a Card gives two shadows. Use one Card and split it with headings, or place the Cards side by side.' });
+            context.report({
+              node,
+              message: 'Card inside a Card gives two shadows. Use one Card and split it with headings, or place the Cards side by side.',
+            });
             return;
           }
         }
@@ -153,7 +170,8 @@ const verbLabels: Rule.RuleModule = {
         const el = node as unknown as JSXElementNode;
         if (tagName(el.openingElement) !== 'Button') return;
         const t = textOf(el);
-        if (VAGUE.test(t)) context.report({ node, message: 'Button label "{{t}}" does not say what happens. Use the verb of the action: 儲存, 刪除, 發布.', data: { t } });
+        if (VAGUE.test(t))
+          context.report({ node, message: 'Button label "{{t}}" does not say what happens. Use the verb of the action: 儲存, 刪除, 發布.', data: { t } });
       },
     };
   },
@@ -167,7 +185,10 @@ const dangerConfirm: Rule.RuleModule = {
         const el = node as unknown as JSXOpening;
         if (tagName(el) !== 'Button' || literal(attr(el, 'variant')) !== 'danger') return;
         if (!attr(el, 'confirm') && !attr(el, 'confirmed'))
-          context.report({ node, message: 'Danger Button without confirmation. Add confirm={{ title: "刪除 …？" }}, or confirmed when it is the button inside the confirm Dialog.' });
+          context.report({
+            node,
+            message: 'Danger Button without confirmation. Add confirm={{ title: "刪除 …？" }}, or confirmed when it is the button inside the confirm Dialog.',
+          });
       },
     };
   },

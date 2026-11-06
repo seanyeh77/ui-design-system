@@ -77,7 +77,11 @@ export function useFitText(ref: React.RefObject<HTMLElement | null>, deps: React
   return size;
 }
 
-export interface ChartTipRow { name: React.ReactNode; value: React.ReactNode; color?: string }
+export interface ChartTipRow {
+  name: React.ReactNode;
+  value: React.ReactNode;
+  color?: string;
+}
 
 export function ChartTip({ title, rows, style }: { title?: React.ReactNode; rows: ChartTipRow[]; style?: React.CSSProperties }) {
   return (

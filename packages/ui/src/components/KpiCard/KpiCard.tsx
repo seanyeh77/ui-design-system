@@ -2,7 +2,7 @@ import * as React from 'react';
 import { format } from '../../format';
 import { I18N, tr } from '../../i18n';
 import { kpiText, smoothPath, useCountUp, useFitText, type Point } from '../../internal/chart';
-import { cx } from '../../internal/util';
+import { cx, digits } from '../../internal/util';
 
 export interface KpiCardProps {
   /** What is measured: 「本月營收」. */
@@ -68,7 +68,10 @@ export function KpiCard(props: KpiCardProps) {
       ) : null}
       {hasDelta ? (
         <div className="ui-kpi-delta">
-          <span className={cx('ui-kpi-change', isGood ? 'is-good' : 'is-bad')}>{(up ? '▲ ' : '▼ ') + dTxt}</span>
+          <span className={cx('ui-kpi-change', isGood ? 'is-good' : 'is-bad')}>
+            {up ? '▲ ' : '▼ '}
+            {digits(dTxt)}
+          </span>
           <span className="ui-kpi-note">{compareLabel || tr('較上週')}</span>
         </div>
       ) : null}
