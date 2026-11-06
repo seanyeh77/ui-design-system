@@ -5,6 +5,8 @@
    import ui from '@seanyeh77/eslint-plugin-ui';
    export default [ui.configs.recommended];                                                     */
 import type { ESLint, Linter, Rule } from 'eslint';
+import tsParser from '@typescript-eslint/parser';
+import pkg from '../package.json' with { type: 'json' };
 
 type Node = Rule.Node;
 const valueOf = (n: Node): unknown => (n as unknown as { value?: unknown }).value;
@@ -13,6 +15,13 @@ type JSXOpening = { name: { type: string; name?: string; property?: { name: stri
 type JSXElementNode = { type: 'JSXElement'; openingElement: JSXOpening; children: unknown[]; parent?: JSXElementNode };
 
 const COLOR = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(|\boklch\(/;
+// url(#fade) points at an SVG id, not a color.
+const URL_REF = /url\(\s*['"]?#[^)]*\)/g;
+const NAMED =
+  /^(black|white|red|green|blue|yellow|orange|purple|pink|gray|grey|brown|cyan|magenta|navy|teal|maroon|olive|lime|aqua|fuchsia|silver|gold|indigo|violet|crimson|tomato|coral|salmon|khaki|beige|ivory|lavender|tan|darkgray|darkgrey|lightgray|lightgrey|darkblue|lightblue|darkred|darkgreen|lightgreen)$/i;
+const COLOR_KEY = /color|background|fill|stroke|border|outline|shadow/i;
+// Tailwind arbitrary values: bg-[#fff], text-[rgb(0,0,0)].
+const ARBITRARY = /-\[(#|rgba?\(|hsla?\(|oklch\()/;
 
 function tagName(el: JSXOpening): string {
   const n = el.name;
@@ -47,8 +56,8 @@ function textOf(el: JSXElementNode): string {
 const noRawColor: Rule.RuleModule = {
   meta: { type: 'problem', docs: { description: 'Colors come from tokens: var(--ink) or cssVar("ink"), never a hex, rgb() or hsl() value.' }, schema: [] },
   create(context) {
-    const check = (node: Node, value: string) => {
-      if (COLOR.test(value))
+    const check = (node: Node, value: string, key = '') => {
+      if (COLOR.test(value.replace(URL_REF, '')) || (COLOR_KEY.test(key) && NAMED.test(value.trim())))
         context.report({
           node,
           message:
@@ -59,20 +68,26 @@ const noRawColor: Rule.RuleModule = {
     return {
       // style={{ color: '#fff' }} and style props of any element
       'JSXAttribute[name.name="style"] Property > Literal'(node: Node) {
-        {
-          const v = valueOf(node);
-          if (typeof v === 'string') check(node, v);
-        }
+        const v = valueOf(node);
+        const key = (node.parent as unknown as { key?: { name?: string; value?: unknown } }).key;
+        if (typeof v === 'string') check(node, v, String(key?.name ?? key?.value ?? ''));
+      },
+      'JSXAttribute[name.name=/^(className|class)$/] Literal'(node: Node) {
+        const v = valueOf(node);
+        if (typeof v === 'string' && ARBITRARY.test(v))
+          context.report({
+            node,
+            message: 'Arbitrary color in "{{v}}". Use the token classes of @seanyeh77/tokens/tailwind.css: bg-surface, text-ink-muted.',
+            data: { v: v.slice(0, 40) },
+          });
       },
       'JSXAttribute[name.name="style"] Property > TemplateLiteral > TemplateElement'(node: Node) {
         check(node, String((valueOf(node) as { raw: string }).raw));
       },
       // fill="#2457d6" on SVG and similar attributes
       'JSXAttribute[name.name=/^(fill|stroke|color|stopColor|floodColor)$/] > Literal'(node: Node) {
-        {
-          const v = valueOf(node);
-          if (typeof v === 'string') check(node, v);
-        }
+        const v = valueOf(node);
+        if (typeof v === 'string') check(node, v, 'color');
       },
     };
   },
@@ -145,12 +160,17 @@ const onePrimary: Rule.RuleModule = {
         while (section && !(section.type === 'JSXElement' && SECTIONS.has(tagName(section.openingElement)))) section = section.parent;
         if (!section) return;
         const primaries: JSXElementNode[] = [];
+        // Every node under the section: conditionals, fragments, map callbacks and JSX passed in props count too.
         const walk = (n: unknown) => {
-          const e = n as JSXElementNode;
-          if (e?.type !== 'JSXElement') return;
-          if (e !== section && SECTIONS.has(tagName(e.openingElement))) return;
-          if (tagName(e.openingElement) === 'Button' && literal(attr(e.openingElement, 'variant')) === 'primary') primaries.push(e);
-          e.children.forEach(walk);
+          if (!n || typeof n !== 'object') return;
+          if (Array.isArray(n)) return n.forEach(walk);
+          const e = n as JSXElementNode & Record<string, unknown>;
+          if (typeof e.type !== 'string') return;
+          if (e.type === 'JSXElement') {
+            if (e !== section && SECTIONS.has(tagName(e.openingElement))) return;
+            if (tagName(e.openingElement) === 'Button' && literal(attr(e.openingElement, 'variant')) === 'primary') primaries.push(e);
+          }
+          for (const k in e) if (k !== 'parent' && k !== 'loc' && k !== 'range') walk(e[k]);
         };
         walk(section);
         if (primaries.length > 1 && primaries[0] !== el)
@@ -204,7 +224,7 @@ const rules = {
 };
 
 const plugin: ESLint.Plugin & { configs: Record<string, Linter.Config> } = {
-  meta: { name: '@seanyeh77/eslint-plugin-ui', version: '0.2.0' },
+  meta: { name: pkg.name, version: pkg.version },
   rules,
   configs: {},
 };
@@ -213,7 +233,8 @@ plugin.configs.recommended = {
   name: '@seanyeh77/ui/recommended',
   files: ['**/*.{jsx,tsx}'],
   plugins: { ui: plugin },
-  languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } },
+  // The TypeScript parser reads .jsx as well, so the config works on its own.
+  languageOptions: { parser: tsParser, parserOptions: { ecmaFeatures: { jsx: true } } },
   rules: {
     'ui/no-raw-color': 'error',
     'ui/no-native-controls': 'error',

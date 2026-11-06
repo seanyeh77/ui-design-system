@@ -7,11 +7,13 @@ RuleTester.it = it;
 const tester = new RuleTester({ languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } } });
 
 tester.run('no-raw-color', rules['no-raw-color'], {
-  valid: ['<div style={{ color: "var(--ink)" }} />', '<path fill="currentColor" />'],
+  valid: ['<div style={{ color: "var(--ink)" }} />', '<path fill="currentColor" />', '<rect fill="url(#fade)" />', '<div className="bg-surface text-ink" />'],
   invalid: [
     { code: '<div style={{ color: "#fff" }} />', errors: 1 },
     { code: '<rect fill="#2457d6" />', errors: 1 },
     { code: '<div style={{ background: `rgba(0,0,0,.2)` }} />', errors: 1 },
+    { code: '<div style={{ color: "red" }} />', errors: 1 },
+    { code: '<div className="bg-[#fff] p-4" />', errors: 1 },
   ],
 });
 tester.run('no-native-controls', rules['no-native-controls'], {
@@ -28,7 +30,11 @@ tester.run('no-nested-card', rules['no-nested-card'], {
 });
 tester.run('one-primary-button', rules['one-primary-button'], {
   valid: ['<Card><Button variant="primary">儲存</Button><Button>取消</Button></Card>'],
-  invalid: [{ code: '<Card><Button variant="primary">儲存</Button><Button variant="primary">發布</Button></Card>', errors: 1 }],
+  invalid: [
+    { code: '<Card><Button variant="primary">儲存</Button><Button variant="primary">發布</Button></Card>', errors: 1 },
+    { code: '<Card><Button variant="primary">儲存</Button>{open && <Button variant="primary">發布</Button>}</Card>', errors: 1 },
+    { code: '<Card footer={<Button variant="primary">發布</Button>}><Button variant="primary">儲存</Button></Card>', errors: 1 },
+  ],
 });
 tester.run('verb-labels', rules['verb-labels'], {
   valid: ['<Button>儲存</Button>'],
@@ -37,4 +43,13 @@ tester.run('verb-labels', rules['verb-labels'], {
 tester.run('danger-confirm', rules['danger-confirm'], {
   valid: ['<Button variant="danger" confirm={{ title: "刪除？" }}>刪除</Button>', '<Button variant="danger" confirmed>刪除</Button>'],
   invalid: [{ code: '<Button variant="danger">刪除</Button>', errors: 1 }],
+});
+
+describe('configs.recommended', () => {
+  it('parses TypeScript in .tsx files', async () => {
+    const { Linter } = await import('eslint');
+    const plugin = (await import('./index')).default;
+    const out = new Linter().verify('interface P { a: string }\nexport const X = (p: P) => <select />;', [plugin.configs.recommended], 'x.tsx');
+    if (out.length !== 1 || out[0].ruleId !== 'ui/no-native-controls') throw new Error(JSON.stringify(out));
+  });
 });

@@ -62,17 +62,15 @@ for (const preset of file.presets ?? []) {
 }
 
 // Tailwind v4: colors point at the runtime variables so themes keep working (bg-surface, text-ink-muted).
-// Radius, shadow and font names are the same as Tailwind's own namespaces, so they get the light value here
-// and tokens.css (unlayered) overrides them per theme.
+// Shadows too: Tailwind copies a plain @theme shadow value into the utility, which would ignore dark and presets.
+// Radius and font names are the same as Tailwind's own namespaces and compile to var(--radius-md), so they get
+// the light value here and tokens.css (unlayered) overrides them per theme.
 const twVars = [
   ...groups.color.map((n) => `  --color-${n}: var(--${n});`),
   ...groups.spacing.map((n) => `  --spacing-${n.replace('space-', '')}: var(--${n});`),
+  ...groups.shadow.map((n) => `  --${n}: var(--${n});`),
 ];
-const twValues = [
-  ...groups.radius.map((n) => `  --${n}: ${light[n]};`),
-  ...groups.shadow.map((n) => `  --${n}: ${light[n]};`),
-  ...groups.font.map((n) => `  --${n}: ${light[n]};`),
-];
+const twValues = [...groups.radius.map((n) => `  --${n}: ${light[n]};`), ...groups.font.map((n) => `  --${n}: ${light[n]};`)];
 // inline: utilities read var(--bg) where they are used, so a nested data-theme still switches them.
 const tailwind = `${HEADER}/* Use after @import "tailwindcss"; also load tokens.css. */\n@theme inline {\n${twVars.join('\n')}\n}\n@theme {\n${twValues.join('\n')}\n}\n`;
 

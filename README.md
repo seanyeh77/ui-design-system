@@ -21,9 +21,11 @@ initTheme();
 沒有 build step 的頁面，一個 script 就包含 React 19 和全部元件：
 
 ```html
+<meta charset="utf-8">
 <link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/fonts.css">
 <link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/tokens.css">
 <link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/styles.css">
+<div id="root"></div>
 <script src="https://seanyeh77.github.io/ui-design-system/dist/bundle.js"></script>
 <script>
   UI.initTheme();
@@ -38,7 +40,7 @@ initTheme();
 
 ## 給 AI agent
 
-使用規則寫在 [AGENTS.md](AGENTS.md)（`CLAUDE.md` 會引用它）。文件網站另外提供 <https://seanyeh77.github.io/ui-design-system/llms.txt>，列出所有規則、元件說明和範本的網址。寫錯的用法大多在型別檢查、`@seanyeh77/eslint-plugin-ui` 或 `npx ui check` 就會被擋下。
+使用規則寫在 [AGENTS.md](AGENTS.md)（`CLAUDE.md` 會引用它）。文件網站另外提供 <https://seanyeh77.github.io/ui-design-system/llms.txt>，列出所有規則、元件說明和範本的網址。寫錯的用法大多在型別檢查、`@seanyeh77/eslint-plugin-ui` 或 `npx @seanyeh77/ui-cli check` 就會被擋下。
 
 ## 內容
 

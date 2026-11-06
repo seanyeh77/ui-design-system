@@ -2669,6 +2669,21 @@ html.ui-theme-fade * {
   color: var(--ink-muted);
   text-align: center;
 }
+/* Phones: day cells reach the 48 px touch target. */
+@media (max-width: 599px) {
+  .ui-cal {
+    width: 336px;
+    max-width: 100%;
+  }
+  .ui-cal-grid {
+    grid-template-columns: repeat(7, minmax(0, 48px));
+    gap: 0;
+  }
+  .ui-cal .ui-cal-day {
+    width: 100%;
+    height: 48px;
+  }
+}
 .ui-cal-day {
   position: relative;
   width: 36px;
@@ -2740,6 +2755,25 @@ html.ui-theme-fade * {
   background: var(--accent-soft);
   color: var(--accent-text);
   font-weight: 600;
+}
+/* Phones: the presets move above the month. */
+@media (max-width: 599px) {
+  .ui-rangepop {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .ui-quick {
+    flex-direction: row;
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 336px;
+    padding: 0 0 8px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .ui-quick-btn {
+    height: 48px;
+  }
 }
 
 /* ---------- File upload ---------- */

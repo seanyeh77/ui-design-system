@@ -14,20 +14,20 @@ SeanYeh's design system: typed React 19 components, design tokens, page template
 | `@seanyeh77/ui` | The components (ES module with types), `styles.css`, `bundle.js` for pages without a build step, and every README under `docs/` |
 | `@seanyeh77/tokens` | `tokens.css`, a Tailwind v4 theme (`tailwind.css`), typed token names with `cssVar()`, the fonts |
 | `@seanyeh77/eslint-plugin-ui` | Lint rules: token colors only, no native controls, no card in a card, danger actions confirmed, one primary button, verb labels |
-| `@seanyeh77/ui-cli` | `ui check <page>` (the automatic checks below), `ui docs <Name>`, `ui list` |
+| `@seanyeh77/ui-cli` | `ui check <page>` (the automatic checks below), `ui docs <Name>`, `ui list`. Run it as `npx @seanyeh77/ui-cli …`: plain `npx ui` runs an unrelated npm package when the CLI is not installed. |
 | Registry `…/r/<name>.json` | Page templates to copy into a project: `dashboard`, `list-detail`, `settings`, `login` |
 
 ## Building UI with it
 
 Use it for any web page, dashboard, frontend or tool UI unless the user asks for a different look. Your job is to pick the right template or component and connect data and events. Do not write your own styles for something a component covers.
 
-1. Start from a page template when one fits: `npx shadcn@latest add https://seanyeh77.github.io/ui-design-system/r/dashboard.json` (also `list-detail`, `settings`, `login`). It copies an editable page into the project. Agents with the shadcn MCP server can search and add them by name once the registry is in `components.json`:
+1. Start from a page template when one fits: `npx shadcn@latest add https://seanyeh77.github.io/ui-design-system/r/dashboard.json` (also `list-detail`, `settings`, `login`). It copies an editable page into the project. It needs a `components.json` (run `npx shadcn@latest init` first, or the command stops at a prompt) and `@seanyeh77/ui` installed. Without shadcn, read the files from the same JSON (`files[].content`) and write them yourself. Agents with the shadcn MCP server can search and add them by name once the registry is in `components.json`:
 
    ```json
    { "registries": { "@seanyeh77": "https://seanyeh77.github.io/ui-design-system/r/{name}.json" } }
    ```
 
-2. Otherwise build the page from components. Frame a dashboard with `AppShell` (sidebar, top bar, phone tabs), lay out content with `Page` and `Grid`, put each block in one `Card`. Before using a component, read its README: `npx ui docs DataTable`, `node_modules/@seanyeh77/ui/docs/DataTable.md`, or the docs site.
+2. Otherwise build the page from components. Frame a dashboard with `AppShell` (sidebar, top bar, phone tabs), lay out content with `Page` and `Grid`, put each block in one `Card`. Before using a component, read its README: `npx @seanyeh77/ui-cli docs DataTable`, `node_modules/@seanyeh77/ui/docs/DataTable.md`, or the docs site.
 3. Read the rules once: `docs/guidelines.md` (all confirmed choices), `docs/layout.md`, `docs/motion.md`.
 4. Your own CSS uses tokens only: `var(--surface)`, `var(--space-4)`, `var(--radius-md)` in CSS; `cssVar('ink-muted')` from `@seanyeh77/tokens` in style props (only token names compile); `bg-surface text-ink-muted` with the Tailwind theme. Never hard-code a color, size or radius that has a token.
 5. TypeScript enforces most rules: icon names are checked, a danger `Button` or menu item does not compile without `confirm`, `DataTable` column keys must exist on the rows. Fix type errors instead of casting them away. In development the components also warn in the console with the cause and the fix.
@@ -38,6 +38,7 @@ Use it for any web page, dashboard, frontend or tool UI unless the user asks for
 ```bash
 npm i react react-dom @seanyeh77/ui @seanyeh77/tokens
 npm i -D @seanyeh77/eslint-plugin-ui @seanyeh77/ui-cli
+npx playwright install chromium   # the browser ui check uses; or set CHROMIUM_PATH
 ```
 
 Until the packages are on npm, build them in a clone (`pnpm install && pnpm build`), pack them (`pnpm --filter @seanyeh77/ui pack`, same for the others) and install the `.tgz` files. `@seanyeh77/ui` carries `tokens.css` and the fonts too, so `@seanyeh77/tokens` is needed only for `cssVar()` and the Tailwind theme.
@@ -57,7 +58,8 @@ import ui from '@seanyeh77/eslint-plugin-ui';
 export default [ui.configs.recommended];
 ```
 
-- React 19 is required. The module starts with `'use client'`, so it works in Next.js server components pages as client components.
+- React 19 is required. The module starts with `'use client'`, so it works in Next.js server components pages as client components. Server code that only formats dates, numbers or text imports from `@seanyeh77/ui/format` (no `'use client'`).
+- The ESLint config reads `.tsx` with the typescript-eslint parser, which needs the `typescript` 5 or 6 API. With TypeScript 7 only, also install `typescript@npm:@typescript/typescript6` as a dev dependency.
 - Components need a browser: run component tests in a browser (Vitest browser mode) or jsdom.
 
 ### Pages without a build step
@@ -65,9 +67,11 @@ export default [ui.configs.recommended];
 One script brings React 19, ReactDOM and every component (`window.React`, `window.ReactDOM`, `window.UI`):
 
 ```html
+<meta charset="utf-8">
 <link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/fonts.css">
 <link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/tokens.css">
 <link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/styles.css">
+<div id="root"></div>
 <script src="https://seanyeh77.github.io/ui-design-system/dist/bundle.js"></script>
 <script>
   const h = React.createElement;
@@ -84,7 +88,7 @@ No native `<select>`, `<table>` or checkbox (use Select, DataTable, Checkbox); o
 
 ### Before you finish
 
-Run `npx ui check <file or URL>`. It opens the page at 390 px and 1280 px, light and dark, and fails on console errors, horizontal overflow at 390 px, touch targets under 48 px, a card inside a card, raw Markdown, native controls the system replaces, and wrapped buttons, tabs, headers or headings. Add `--shots shots/` and look at the screenshots for the rest of this list:
+Run `npx @seanyeh77/ui-cli check <file or URL>`. It opens the page at 390 px and 1280 px, light and dark, and fails on console errors, horizontal overflow at 390 px, touch targets under 48 px, a card inside a card, raw Markdown, native controls the system replaces, and wrapped buttons, tabs, headers or headings. Add `--shots shots/` and look at the screenshots for the rest of this list:
 
 - Components: wherever `@seanyeh77/ui` has a component for the job, it is used and its README was read. Nothing is hand-built that a component covers.
 - Fonts: Geist Mono only on numbers, code, file paths and IDs, never on a Chinese sentence or a whole meta line.

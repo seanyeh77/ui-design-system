@@ -3,16 +3,18 @@ import { defineConfig } from 'tsdown';
 export default defineConfig([
   {
     // npm: ES module with types; React and Base UI stay external.
-    entry: { index: 'src/index.ts' },
+    // format: the React-free helpers, usable in server components; it shares one chunk (one locale) with index.
+    entry: { index: 'src/index.ts', format: 'src/format-entry.ts' },
     format: 'esm',
-    platform: 'browser',
+    // neutral: keep process.env.NODE_ENV for the consumer's bundler to replace (browser would inline it as development).
+    platform: 'neutral',
     target: 'es2022',
     dts: true,
     sourcemap: true,
     clean: true,
     external: [/^react($|\/)/, /^react-dom($|\/)/, /^@base-ui\//],
-    // The components need the browser: frameworks with server components must treat this file as client code.
-    outputOptions: { banner: "'use client';" },
+    // The components need the browser: frameworks with server components must treat index as client code.
+    outputOptions: { banner: (chunk) => (chunk.name === 'index' ? "'use client';" : '') },
   },
   {
     // Pages without a build step: everything, React included, as window.UI.

@@ -115,7 +115,8 @@ export function measure(): Findings {
     'input[type=date]': 'DatePicker',
   };
   for (const [q, use] of Object.entries(replacements))
-    for (const el of document.querySelectorAll(q)) if (visible(el) && !el.closest('[class^="ui-"], [class*=" ui-"]')) out.native.push(`<${q}> → use ${use}`);
+    // Controls a component renders carry its ui-* class; anything else is hand-written.
+    for (const el of document.querySelectorAll(q)) if (visible(el) && !el.matches('[class^="ui-"], [class*=" ui-"]')) out.native.push(`<${q}> → use ${use}`);
 
   // 6. Text that must stay on one line: buttons, tabs, table headers, labels, headings.
   for (const el of document.querySelectorAll<HTMLElement>('.ui-btn, .ui-tab, [role=columnheader], .ui-field-label, h1, h2, h3, h4')) {

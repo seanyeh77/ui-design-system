@@ -45,11 +45,21 @@ function list() {
 
 async function check(targets: string[], opts: { shots?: string; strict: boolean; wait: number }) {
   const { chromium } = await import('playwright');
-  const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
+  const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}).catch((e: unknown) => {
+    console.error(String(e).split('\n')[0]);
+    console.error('No Chromium for ui check. Run `npx playwright install chromium`, or set CHROMIUM_PATH to an installed Chrome or Chromium.');
+    process.exit(2);
+  });
+  const stems = new Map<string, number>();
   let failed = false;
   for (const target of targets) {
     const url = target.includes('://') ? target : pathToFileURL(resolve(target)).href;
     console.log(url);
+    // Screenshot names come from the file name; a second target with the same name gets -2, -3, …
+    const base = (url.replace(/\/$/, '').split('/').pop() || 'page').replace(/\.[^.]*$/, '');
+    const n = (stems.get(base) ?? 0) + 1;
+    stems.set(base, n);
+    const stem = n > 1 ? `${base}-${n}` : base;
     for (const width of [390, 1280]) {
       for (const theme of ['light', 'dark'] as const) {
         const phone = width === 390;
@@ -91,7 +101,6 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
         failed ||= problems.length > 0;
         if (opts.shots) {
           mkdirSync(opts.shots, { recursive: true });
-          const stem = (url.replace(/\/$/, '').split('/').pop() || 'page').replace(/\.[^.]*$/, '');
           await page.screenshot({ path: join(opts.shots, `${stem}-${width}-${theme}.png`), fullPage: true });
         }
         await ctx.close();
