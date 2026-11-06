@@ -325,6 +325,11 @@
     }));
   }
 
+  // Puts the numbers of a translated sentence in Geist Mono and leaves the words in the text font.
+  function monoNums(text, nums) {
+    return text.split(/(\u0001|\u0002)/).map(function (t, i) { return t === '\u0001' ? h('span', { key: i, className: 'ui-num' }, nums[0]) : t === '\u0002' ? h('span', { key: i, className: 'ui-num' }, nums[1]) : t; });
+  }
+
   function DataTable(p) {
     var cols = p.columns || [];
     var pageSize = p.pageSize || 10;
@@ -463,7 +468,7 @@
         p.search !== false ? h(SearchField, { value: q, onChange: function (v) { setQ(v); setPage(0); }, placeholder: (p.search && p.search.placeholder) || tr('搜尋'), label: (p.search && p.search.placeholder) || tr('搜尋'), className: 'ui-dt-search' }) : null,
         filters.length ? h(DtFilterButton, { filters: filters, values: fvals, activeN: activeN, count: function (f, v) { return all.filter(function (x) { return passes(x.r, f.key) && dtMatch(f, x.r, f.type === 'list' ? [v] : undefined); }).length; },
           onChange: function (key, v) { var nv = Object.assign({}, fvals); nv[key] = v; setFvals(nv); setPage(0); }, onClear: function () { setFvals({}); setPage(0); } }) : null,
-        h('span', { className: 'ui-dt-result' }, tr('{n} / {total} 筆', { n: fmt.number(list.length), total: fmt.number(baseCount) })),
+        h('span', { className: 'ui-dt-result' }, monoNums(tr('{n} / {total} 筆', { n: '\u0001', total: '\u0002' }), [fmt.number(list.length), fmt.number(baseCount)])),
         p.columnMenu !== false && cols.length > 2 ? h(DtColumnMenu, { cols: cols, hidden: hidden, onToggle: function (k) { var nh = Object.assign({}, hidden); nh[k] = !nh[k]; setHidden(nh); } }) : null),
       h('div', { className: 'ui-dt-scroll' },
         h('div', { className: 'ui-dt-table', role: 'table', 'aria-label': p.label || p.caption },
@@ -473,7 +478,7 @@
               var id = idOf(r, i), on = !!sel[id];
               return h('div', { key: id, 'data-rid': id, ref: function (el) { if (el) rowEls.current[id] = el; else delete rowEls.current[id]; }, role: 'row', className: cx('ui-dt-row', i % 2 && 'is-even', on && 'is-selected', selectable && 'has-sel'), style: gridStyle },
                 selectable ? h('div', { className: 'ui-dt-cell ui-dt-sel', role: 'cell' }, h(Check, { v: on, label: tr('選取第 {n} 筆', { n: start + i + 1 }), onClick: function () { toggle([id], !on); } })) : null,
-                shownCols.map(function (c, ci) { var v = c.render ? c.render(r) : dtMark(cellText(c, r[c.key]), p.search !== false ? q : ''); if (c.long) v = h(DtLong, null, v); return h('div', { key: c.key, role: 'cell', 'data-label': c.label, className: cx('ui-dt-cell', (c.numeric || c.format === 'money' || c.format === 'percent') && 'is-num', ci === 0 && sticky && 'is-sticky', c.long && 'is-long', mcls(c, ci)), style: ci === 0 && sticky ? { left: selectable ? 46 : 0 } : undefined }, v); }),
+                shownCols.map(function (c, ci) { var raw = r[c.key], hasUnit = !c.render && c.unit && raw !== null && raw !== undefined && raw !== ''; var v = c.render ? c.render(r) : hasUnit ? h(React.Fragment, null, dtMark(cellText(Object.assign({}, c, { unit: null }), raw), p.search !== false ? q : ''), ' ', h('span', { className: 'ui-unit' }, c.unit)) : dtMark(cellText(c, raw), p.search !== false ? q : ''); if (c.long) v = h(DtLong, null, v); return h('div', { key: c.key, role: 'cell', 'data-label': c.label, className: cx('ui-dt-cell', (c.numeric || c.format === 'money' || c.format === 'percent') && 'is-num', ci === 0 && sticky && 'is-sticky', c.long && 'is-long', mcls(c, ci)), style: ci === 0 && sticky ? { left: selectable ? 46 : 0 } : undefined }, v); }),
                 hasAct ? h('div', { className: 'ui-dt-cell ui-dt-acts', role: 'cell' }, p.rowActions(r)) : null);
             }) : h('div', { className: 'ui-dt-empty' }, p.emptyText || tr('沒有符合的資料'), (q || activeN) ? h('div', null, h(Button, { variant: 'secondary', onClick: clearFilters }, tr('清除篩選'))) : null)),
           p.totals && list.length ? h('div', { className: 'ui-dt-row ui-dt-total', role: 'row', style: gridStyle },

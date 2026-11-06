@@ -586,7 +586,7 @@ html.ui-theme-fade, html.ui-theme-fade * { transition: background-color 300ms ea
 .ui-dt-view-n { margin-left: 6px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-muted); font-weight: 400; }
 .ui-dt-filterbtn, .ui-dt-colbtn { height: 36px; }
 .ui-dt-colbtn { margin-left: 0; }
-.ui-dt-result { margin-left: auto; font-family: var(--font-mono); font-size: 13px; color: var(--ink-muted); white-space: nowrap; }
+.ui-dt-result { margin-left: auto; font-size: 13px; color: var(--ink-muted); white-space: nowrap; }
 .ui-dt-filterpop { position: fixed; z-index: 900; width: 520px; max-width: calc(100vw - 16px); padding: 16px; box-sizing: border-box; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-overlay); animation: ui-pop-fade 150ms ease both; }
 .ui-dt-filterhead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .ui-dt-facets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
@@ -755,3 +755,7 @@ html.ui-theme-fade, html.ui-theme-fade * { transition: background-color 300ms ea
   .ui-actbar-wide { display: none; }
   .ui-actbar-narrow { display: flex; }
 }
+
+/* Numbers in Geist Mono, units and words in the text font */
+.ui-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.ui-unit { font-family: var(--font-sans); }
