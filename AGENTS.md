@@ -29,11 +29,35 @@ Use it for any web page, dashboard, frontend or tool UI unless the user asks for
 3. Use components from `window.UI` (types in `dist/index.d.ts`) rather than hand-building equivalents. Call `UI.initTheme()` once; theme via `UI.setTheme('light' | 'dark' | 'auto')`, accent via `UI.setAccent(hex)`.
 4. When you must write your own CSS, use the CSS variables from `tokens.css` (`var(--bg)`, `var(--surface)`, `var(--ink)`, `var(--accent)`, `var(--space-4)`, `var(--radius-md)` and so on). Never hard-code a color, size or radius that has a token. Token names and their intended use are in `tokens/tokens.json`.
 5. Rules that are easy to miss: no native `<select>`; one primary button per section; button labels are verbs only; dates `2026/11/04（三）` with relative time inside a week; amounts `NT$ 1,280`; numbers right-aligned with tabular figures; danger actions confirm in a Dialog; error messages give the cause and the fix.
+### Projects with a build step (Vite and similar)
+
+Until the npm packages exist, the bundle is a UMD file that reads `window.React` and `window.ReactDOM`.
+
+- Vendor a fixed version: copy `dist/tokens.css`, `dist/bundle.css`, `dist/bundle.js` and `dist/index.d.ts` from one commit into the project (for example `vendor/ui-design-system/`) and write that commit in a `VERSION` file. Update by copying again from a newer commit. The docs site always serves the latest `main`, and a `?v=` query only avoids the browser cache, it does not pin a version.
+- Load order: React first, then the bundle. In Vite, make one module that sets the globals and import it before anything that uses `UI`:
+
+```ts
+// src/ui.ts
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+import * as ReactDOMClient from 'react-dom/client';
+Object.assign(window, { React, ReactDOM: { ...ReactDOM, ...ReactDOMClient } });
+// @ts-expect-error: a UMD file; its types come from index.d.ts
+await import('../vendor/ui-design-system/bundle.js');
+export const UI = window.UI; // typed by vendor/ui-design-system/index.d.ts (add it to tsconfig include)
+```
+
+- React 18 and 19 both work (tested with 19.3.1, Vite 8 build, TypeScript strict with `"types": ["vite/client"]`). Import `tokens.css` and `bundle.css` from the vendored folder in the entry file.
+- Tests in Node (Vitest without a DOM): the bundle does nothing when there is no `window`, so importing it no longer throws, but `UI` is undefined. Run component tests with `environment: 'jsdom'` and set the globals in the setup file.
+- Fonts come from Google Fonts. Pages that must work offline fall back to system fonts; self-hosted font files are not in `dist` yet.
+
 6. Items marked 看情況 ("situational") in the docs are not fixed rules: choose per context and say which way you chose.
 
 ### Before you finish
 
 Check the page against this list, at 390 px and 1280 px wide, in light and dark. Take a screenshot if you can.
+
+`python3 scripts/check_page.py <file or URL> --shots shots/` does the automatic part (console errors, overflow at 390 px, touch targets under 48 px) and exits with 1 when something fails; the rest of the list needs a look at the screenshots.
 
 - Components: wherever `window.UI` has a component for the job, it is used and its README was read. Nothing is hand-built that a component already covers.
 - Fonts: Geist Mono only on numbers, code, file paths and IDs, never on a Chinese sentence or a whole meta line.

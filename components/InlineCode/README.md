@@ -25,3 +25,9 @@ h(UI.CodeText, {
 
 - 看起來像「檔名:行號」或「檔名:起-迄」的片段（`trace.c:321-322`）會變成連結；其他片段是一般的行內程式碼。用 `isRef` 可以改判斷方式。
 - 沒有給 `refHref` 或 `onRef` 時，全部都是一般的行內程式碼。
+
+引用連結：
+
+- `refHref(ref)` 回傳網址就是連結；回傳 `undefined` 表示這個引用沒有目標，顯示成一般的行內程式碼。
+- `onRef(ref, event)`：點擊時呼叫，元件會先 `preventDefault()`，網址和 hash 不會改變；按住 Ctrl、⌘、Shift 或用滑鼠中鍵時仍照 `href` 開新分頁。
+- `isRef(span)`：決定哪些反引號內容算引用，預設是 `檔名.副檔名:行號`。`UI.Suggestion` 和 `UI.Term` 也接受同樣的 `refHref`、`onRef`、`isRef`。

@@ -21,12 +21,15 @@ h(UI.TreeList, {
 - 資料夾有 `children`（可以是空陣列），檔案沒有。每個項目都要有唯一的 `id`。
 - 檔案：`name`（副檔名從檔名取，也可以另外給 `ext`）、`date`（Date、時間戳或日期字串）、`size`（位元組）、`unseen`（使用者還沒打開或下載過）。
 - 資料夾的檔案數和最新時間自動從裡面的檔案算出來，沒有資料就不顯示。
+- 子項目很多時（例如呼叫關係）可以延遲載入：項目給 `hasChildren: true`、不給 `children`，再給 `loadChildren(node)`，回傳子項目陣列或 Promise。展開時才載入，載入中顯示一列骨架；失敗時寫「無法載入 X 的子項目：原因。」和「重試」。載入過的不會重複載入。
+- `tags` 可以放文字或元件，例如 `h(UI.Term, …)`。
 
 ## 選項
 
 - `sort`：`'newest'`（預設）、`'oldest'`、`'name'`，或 `false` 照資料原本的順序。資料夾一律排在檔案前面。看情況選。
 - `expand`：`'multi'`（預設，點資料夾展開或收合，標題列有「全部展開」）或 `'single'`（一次只開一個，同層的其他資料夾自動收合）。需要一次看到全部時用 `'multi'`，資料夾又多又雜時用 `'single'`。
 - `defaultOpen`：一開始展開的資料夾 `id`。
+- `open` 加 `onToggle(node, isOpen, openIds)`：由外部控制展開，例如寫進網址。給了 `open` 時，請在 `onToggle` 裡更新它。
 - `selectable`：顯示勾選框（滑過才出現，勾了一個之後全部顯示；觸控裝置一直顯示）。勾資料夾等於全選裡面的檔案。勾選後標題列換成「已選 n 個檔案 共 x MB」、「清除選取」和「下載」。`selected` 加 `onSelectChange` 可以由外部控制（只會有檔案的 `id`）。`bulkActions(files, clear)` 可以再加按鈕。
 - `onDownload(files)`：每個檔案右邊的下載按鈕和批次下載都會呼叫它。
 - `onOpen(file)`：點檔案列或按 Enter；沒給時改成下載。打開或下載後，請把那個檔案的 `unseen` 改成 `false`。

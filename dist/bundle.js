@@ -1,6 +1,8 @@
 /* @ds-bundle: {"format":4,"namespace":"UI","components":[{"name":"Button"},{"name":"IconButton"},{"name":"TextField"},{"name":"Checkbox"},{"name":"RadioGroup"},{"name":"Switch"},{"name":"Select"},{"name":"SearchField"},{"name":"TextArea"},{"name":"FormGrid"},{"name":"KpiCard"},{"name":"LineChart"},{"name":"BarChart"},{"name":"ProgressBar"},{"name":"LoadingBar"},{"name":"ProgressRing"},{"name":"Tooltip"},{"name":"Menu"},{"name":"Popover"},{"name":"Drawer"},{"name":"ThemePicker"},{"name":"AccentPicker"},{"name":"NotificationBell"},{"name":"DatePicker"},{"name":"DateRangePicker"},{"name":"FileUpload"},{"name":"MultiSelect"},{"name":"ErrorPage"},{"name":"LoginCard"},{"name":"SettingsLayout"},{"name":"DangerZone"},{"name":"Badge"},{"name":"Alert"},{"name":"DataTable"},{"name":"Skeleton"},{"name":"EmptyState"},{"name":"Toast"},{"name":"Dialog"},{"name":"SideNav"},{"name":"TopBar"},{"name":"Breadcrumb"},{"name":"Tabs"},{"name":"MobileTabBar"},{"name":"TreeList"},{"name":"InlineCode"},{"name":"CodeText"},{"name":"Tag"},{"name":"ProjectSwitcher"},{"name":"DetailList"},{"name":"ActionBar"}]} */
 (function () {
+  if (typeof window === 'undefined') return; // server or Node test: nothing to register
   var React = window.React;
+  if (!React) throw new Error('UI bundle: window.React 未載入。先載入 React 18 或 19 並設定 window.React 和 window.ReactDOM，再載入 bundle.js。');
   var h = React.createElement;
   function cx() { return Array.prototype.filter.call(arguments, Boolean).join(' '); }
   function rest(p, keys) { var o = {}; for (var k in p) if (keys.indexOf(k) < 0) o[k] = p[k]; return o; }
@@ -321,7 +323,14 @@
       if (!t) return null;
       if (t.charAt(0) !== '`' || t.length < 2) return t;
       var v = t.slice(1, -1), link = (p.refHref || p.onRef) && isRef(v);
-      return h(InlineCode, { key: i, href: link && p.refHref ? p.refHref(v) : undefined, onClick: link && p.onRef ? function (e) { if (!p.refHref) e.preventDefault(); p.onRef(v, e); } : undefined }, v);
+      var href = link && p.refHref ? p.refHref(v) : undefined;
+      if (link && p.refHref && !href) link = false; // refHref returned nothing: the reference has no target
+      if (!link) return h(InlineCode, { key: i }, v);
+      return h(InlineCode, { key: i, href: href || undefined, onClick: p.onRef ? function (e) {
+        // A plain click goes to onRef; Ctrl, ⌘, Shift or the middle button still opens href in a new tab.
+        if (href && (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1)) return;
+        e.preventDefault(); p.onRef(v, e);
+      } : undefined }, v);
     }));
   }
 
@@ -343,6 +352,11 @@
     var hd = React.useState({}), hidden = hd[0], setHidden = hd[1];
     var sl = React.useState({}), sel = sl[0], setSel = sl[1];
     var sm = React.useState('all'), sumVal = sm[0], setSumVal = sm[1];
+    var rk = React.useRef(p.resetKey);
+    React.useEffect(function () {
+      if (rk.current === p.resetKey) return; rk.current = p.resetKey;
+      setQ(''); setFvals(dtReadUrl({ urlSync: false }, filters)); setPage(0); setSel({}); setSumVal('all'); setSort({ key: null, dir: 'desc' });
+    }, [p.resetKey]);
     React.useEffect(function () { if (p.urlSync !== false && filters.length) dtWriteUrl(p, filters, fvals, q); }, [JSON.stringify(fvals), q]);
     var shownCols = cols.filter(function (c, i) { return i === 0 || !hidden[c.key]; });
     var bodyRef = React.useRef(null), rowEls = React.useRef({}), snap = React.useRef(null), ver = React.useState(0), bump = ver[1];
@@ -1022,7 +1036,7 @@
         h(Button, { variant: 'secondary', onClick: p.onBack || function () { history.back(); } }, tr('回上一頁')),
         h(Button, { variant: 'primary', onClick: p.onHome || function () { location.href = p.homeHref || '/'; } }, tr('回首頁'))));
   }
-  /* LoginCard: centered card on surface-sub: account and password (with show-password), 「忘記密碼？」 beside the password
+  /* LoginCard: centered card on surface-sub: account and password (with show-password), 「忘記密碼」 beside the password
      label, errors under each field. Pass error = { account, password } from your sign-in check. */
   function LoginCard(p) {
     var us = React.useState(''), user = us[0], setUser = us[1];
@@ -1037,7 +1051,7 @@
       h('h1', { className: 'ui-login-title' }, p.title || tr('登入')),
       h(TextField, { label: tr('帳號'), value: user, onChange: function (e) { setUser(e.target.value); }, placeholder: tr('Email 或帳號'), autoComplete: 'username', error: uErr }),
       h('div', { className: 'ui-field' },
-        h('div', { className: 'ui-login-pwlabel' }, h('label', { htmlFor: 'ui-login-pw', className: 'ui-field-label' }, tr('密碼')), p.forgotHref ? h('a', { href: p.forgotHref, className: 'ui-link' }, tr('忘記密碼？')) : null),
+        h('div', { className: 'ui-login-pwlabel' }, h('label', { htmlFor: 'ui-login-pw', className: 'ui-field-label' }, tr('密碼')), p.forgotHref ? h('a', { href: p.forgotHref, className: 'ui-link' }, tr('忘記密碼')) : null),
         h('div', { className: cx('ui-pwfield', pErr && 'is-invalid') },
           h('input', { id: 'ui-login-pw', className: 'ui-pwfield-input', type: show ? 'text' : 'password', value: pass, autoComplete: 'current-password', 'aria-invalid': pErr ? 'true' : undefined, 'aria-describedby': pErr ? 'ui-login-pw-err' : undefined, onChange: function (e) { setPass(e.target.value); } }),
           h('button', { type: 'button', className: 'ui-datefield-btn', 'aria-label': show ? tr('隱藏密碼') : tr('顯示密碼'), 'aria-pressed': String(show), onClick: function () { setShow(!show); } }, h(Icon, { name: show ? 'eye-slash' : 'eye', size: 18 }))),
@@ -1287,9 +1301,9 @@
       p.title ? h('h1', { className: 'ui-topbar-title' }, p.title) : null,
       p.breadcrumb ? h(Breadcrumb, { items: p.breadcrumb }) : null,
       h('div', { className: 'ui-topbar-end' },
-        p.onSearch !== false ? h('button', { type: 'button', className: 'ui-search', onClick: p.onSearch, 'aria-keyshortcuts': IS_MAC ? 'Meta+K' : 'Control+K' },
+        p.onSearch !== false ? h('button', { type: 'button', className: 'ui-search', 'data-tour': 'search', onClick: p.onSearch, 'aria-keyshortcuts': IS_MAC ? 'Meta+K' : 'Control+K' },
           h(Icon, { d: PATHS.search, size: 16 }), h('span', null, p.searchLabel || tr('搜尋')), h('kbd', null, SHORTCUT)) : null,
-        p.onSearch !== false ? h(IconButton, { className: 'ui-search-icon', icon: PATHS.search, label: tr('搜尋（{k}）', { k: SHORTCUT }), onClick: p.onSearch }) : null,
+        p.onSearch !== false ? h(IconButton, { className: 'ui-search-icon', 'data-tour': 'search', icon: PATHS.search, label: tr('搜尋（{k}）', { k: SHORTCUT }), onClick: p.onSearch }) : null,
         p.children));
   }
 
@@ -1357,6 +1371,10 @@
       if (sort === 'newest' || sort === 'oldest') { var da = +(tlLatest(a) || 0), db = +(tlLatest(b) || 0); return (sort === 'oldest' ? da - db : db - da) || x[1] - y[1]; }
       return x[1] - y[1];
     }).map(function (x) { return x[0]; });
+  }
+  function tlFind(id, list, kids) {
+    for (var i = 0; i < list.length; i++) { var n = list[i]; if (n.id === id) return n; var c = kids(n); if (c) { var r = tlFind(id, c, kids); if (r) return r; } }
+    return null;
   }
   function tlPath(id, list, path) {
     for (var i = 0; i < list.length; i++) {
@@ -1441,6 +1459,20 @@
     var selectable = !!p.selectable && !plain;
     var os = React.useState(function () { var o = {}; (p.defaultOpen || []).forEach(function (k) { o[k] = true; }); return o; });
     var open = os[0], setOpen = os[1];
+    if (p.open) { open = {}; p.open.forEach(function (k) { open[k] = true; }); }
+    var lds = React.useState({}), loaded = lds[0], setLoaded = lds[1];
+    function kids(n) { return n.children || (loaded[n.id] && loaded[n.id].children) || null; }
+    function expandable(n) { var c = kids(n); return c ? c.length > 0 : !!n.hasChildren; }
+    function load(n) {
+      if (!p.loadChildren || kids(n) || (loaded[n.id] && loaded[n.id].status === 'loading')) return;
+      setLoaded(function (m) { var o = Object.assign({}, m); o[n.id] = { status: 'loading' }; return o; });
+      Promise.resolve().then(function () { return p.loadChildren(n); }).then(function (c) {
+        setLoaded(function (m) { var o = Object.assign({}, m); o[n.id] = { status: 'done', children: c || [] }; return o; });
+      }, function (err) {
+        setLoaded(function (m) { var o = Object.assign({}, m); o[n.id] = { status: 'error', error: err && err.message ? err.message : String(err || '') }; return o; });
+      });
+    }
+    React.useEffect(function () { Object.keys(open).forEach(function (k) { if (!open[k]) return; var n = tlFind(k, items, kids); if (n) load(n); }); }, [p.open && p.open.join('\u0000')]);
     var fresh = React.useRef({});
     var ss = React.useState([]), sel = p.selected || ss[0];
     function setSel(v) { if (!p.selected) ss[1](v); if (p.onSelectChange) p.onSelectChange(v); }
@@ -1456,12 +1488,14 @@
     function toggle(n) {
       var o = Object.assign({}, open), will = !o[n.id];
       if (single && will) {
-        var path = tlPath(n.id, items, []), sib = path && path.length > 1 ? path[path.length - 2].children : items;
+        var path = tlPath(n.id, items, []), sib = (path && path.length > 1 ? kids(path[path.length - 2]) : items) || [];
         sib.forEach(function (s) { if (s.id !== n.id) o[s.id] = false; });
       }
       o[n.id] = will;
       fresh.current = {}; if (will && !reduced()) fresh.current[n.id] = true;
-      setOpen(o);
+      if (will) load(n);
+      if (p.onToggle) p.onToggle(n, will, Object.keys(o).filter(function (k) { return o[k]; }));
+      if (!p.open) setOpen(o);
     }
     function ckState(n) {
       var fl = tlFiles(n), k = 0;
@@ -1479,11 +1513,16 @@
     (function walk(list, depth, guides, isFresh) {
       var sorted = tlSort(list, sort, plain && !sort);
       sorted.forEach(function (n, i) {
-        var isF = plain ? !!(n.children && n.children.length) : !!n.children, isOpen = isF && !!open[n.id];
+        var isF = plain ? expandable(n) : !!(n.children || n.hasChildren), isOpen = isF && !!open[n.id];
         rows.push({ n: n, depth: depth, guides: guides, fresh: isFresh, isF: isF, open: isOpen, pos: i + 1, size: sorted.length });
-        if (isOpen) walk(n.children, depth + 1, guides.concat([depth]), isFresh || !!fresh.current[n.id]);
+        if (!isOpen) return;
+        var c = kids(n), st = loaded[n.id];
+        if (c) walk(c, depth + 1, guides.concat([depth]), isFresh || !!fresh.current[n.id]);
+        else if (st && st.status === 'error') rows.push({ x: 'error', n: n, depth: depth + 1, guides: guides.concat([depth]), error: st.error });
+        else if (p.loadChildren) rows.push({ x: 'loading', n: n, depth: depth + 1, guides: guides.concat([depth]) });
       });
     })(items, 0, [], false);
+    var all = rows; rows = rows.filter(function (r) { return !r.x; });
     var cur = Math.max(0, rows.findIndex(function (r) { return r.n.id === focusId; }));
     var base = selectable ? 48 : 12, step = 28;
     var pad = function (d) { return base + d * step; };
@@ -1530,7 +1569,19 @@
           meta ? h('div', { className: 'ui-tree-pmeta' }, meta) : null),
         p.rowActions ? h('span', { className: 'ui-tree-act', onClick: function (e) { e.stopPropagation(); } }, p.rowActions(n)) : null);
     }
+    function extraRow(r) {
+      var guides = r.guides.map(function (d) { return h('span', { key: d, className: cx('ui-tree-guide', d >= 3 && 'is-deep'), 'aria-hidden': 'true', style: { '--g': d } }); });
+      if (r.x === 'loading') return h('div', { key: r.n.id + ':loading', className: 'ui-tree-row is-plain is-extra', style: { '--d': r.depth }, role: 'none' }, guides,
+        h('span', { className: 'ui-tree-caret is-leaf', 'aria-hidden': 'true' }), h('div', { className: 'ui-tree-main' }, h(Skeleton, { width: '55%', height: 14 })),
+        h('span', { className: 'ui-visually-hidden', role: 'status' }, tr('載入中')));
+      return h('div', { key: r.n.id + ':error', className: 'ui-tree-row is-plain is-extra is-error', style: { '--d': r.depth }, role: 'none' }, guides,
+        h('span', { className: 'ui-tree-caret is-leaf', 'aria-hidden': 'true' }),
+        h('div', { className: 'ui-tree-main', role: 'alert' }, tr('無法載入 {name} 的子項目', { name: r.n.name }), r.error ? '：' + r.error : '', '。'),
+        h('button', { type: 'button', className: 'ui-link-btn', onClick: function () { setLoaded(function (m) { var o = Object.assign({}, m); delete o[r.n.id]; return o; }); setTimeout(function () { load(r.n); }, 0); } }, tr('重試')));
+    }
     function rowEl(r, idx) {
+      if (r.x) return extraRow(r);
+      idx = rows.indexOf(r);
       if (plain) return plainRow(r, idx);
       var n = r.n, isF = r.isF;
       var ck = selectable ? ckState(n) : false;
@@ -1607,7 +1658,7 @@
     return h('section', { className: cx('ui-tree', plain && 'is-plain', selectable && 'is-selectable', selFiles.length && 'has-sel', p.className), 'aria-label': p.title ? undefined : p.label },
       head,
       rows.length
-        ? h('div', { role: 'tree', 'aria-label': p.label || p.title, 'aria-multiselectable': selectable ? 'true' : undefined, className: 'ui-tree-list', onKeyDown: onKey }, rows.map(rowEl))
+        ? h('div', { role: 'tree', 'aria-label': p.label || p.title, 'aria-multiselectable': selectable ? 'true' : undefined, className: 'ui-tree-list', onKeyDown: onKey }, all.map(rowEl))
         : h('p', { className: 'ui-tree-empty' }, p.emptyText || (plain ? tr('沒有項目') : tr('這裡還沒有檔案'))));
   }
 
@@ -1716,7 +1767,7 @@
     var s = React.useState(function () { return !store(TOUR_KEY + key); }), open = s[0], setOpen = s[1];
     return { open: open, start: function () { setOpen(true); }, close: function () { store(TOUR_KEY + key, '1'); setOpen(false); }, seen: !!store(TOUR_KEY + key) };
   }
-  function tourEl(t) { if (!t) return null; if (typeof t === 'string') return [].filter.call(document.querySelectorAll(t), function (e) { return e.getClientRects().length > 0; })[0] || null; if (t.current !== undefined) return t.current; return t.getBoundingClientRect ? t : null; }
+  function tourEl(t) { if (!t) return null; if (typeof t === 'string' && /^[\w-]+$/.test(t) && !/^(html|body|main|nav|header|footer|section|aside)$/.test(t)) t = '[data-tour="' + t + '"]'; if (typeof t === 'string') return [].filter.call(document.querySelectorAll(t), function (e) { return e.getClientRects().length > 0; })[0] || null; if (t.current !== undefined) return t.current; return t.getBoundingClientRect ? t : null; }
   function Tour(p) {
     var steps = p.steps || [];
     var ss = React.useState(0), inner = ss[0], setInner = ss[1];
@@ -1798,7 +1849,7 @@
       return h('div', { className: 'ui-sug-line is-' + kind },
         h('span', { className: 'ui-sug-mark', 'aria-hidden': 'true' }, kind === 'del' ? '−' : '+'),
         h('span', { className: 'ui-visually-hidden' }, kind === 'del' ? tr('原本：') : tr('改成：')),
-        h(CodeText, { className: 'ui-sug-text', text: text, refHref: p.refHref, onRef: p.onRef }));
+        h(CodeText, { className: 'ui-sug-text', text: text, refHref: p.refHref, onRef: p.onRef, isRef: p.isRef }));
     }
     return h('div', { className: cx('ui-sug', p.className) },
       h('div', { className: 'ui-sug-head' },
@@ -1830,7 +1881,7 @@
     var body = [
       h('div', { key: 'h', className: 'ui-term-head' }, h('span', { id: id + '-t', className: 'ui-term-title' }, title),
         h('button', { type: 'button', ref: closeBtn, className: 'ui-dialog-close ui-term-close', 'aria-label': tr('關閉說明'), onClick: function () { close(true); } }, h(Icon, { d: PATHS.close }))),
-      p.text ? h(CodeText, { key: 'b', as: 'div', className: 'ui-term-body', text: p.text, refHref: p.refHref, onRef: p.onRef }) : null,
+      p.text ? h(CodeText, { key: 'b', as: 'div', className: 'ui-term-body', text: p.text, refHref: p.refHref, onRef: p.onRef, isRef: p.isRef }) : null,
       p.content ? h('div', { key: 'c', className: 'ui-term-body' }, p.content) : null,
       p.code ? h('pre', { key: 'p', className: 'ui-term-code' }, p.code) : null,
       p.action ? h('button', { key: 'a', type: 'button', className: 'ui-link-btn ui-term-action', onClick: function () { setOpen(false); p.action.onClick && p.action.onClick(); } }, p.action.label) : null
@@ -1844,7 +1895,7 @@
     else if (open) pop = portal(h('div', { ref: f.floating, id: id, className: cx('ui-term-pop', f.pos && 'is-' + f.pos.side), role: 'dialog', 'aria-labelledby': id + '-t', style: floatStyle(f.pos) }, body));
     return h(React.Fragment, null, trigger, pop);
   }
-  addMessages('en', { '找不到符合「{q}」的結果': 'No results for “{q}”', '輸入名稱開始搜尋': 'Type a name to search', '搜尋中': 'Searching', '搜尋結果': 'Search results', '最近開啟': 'Recently opened', '選擇': 'Select', '打開': 'Open', '取消': 'Cancel',
+  addMessages('en', { '載入中': 'Loading', '無法載入 {name} 的子項目': 'Could not load the children of {name}', '重試': 'Retry', '找不到符合「{q}」的結果': 'No results for “{q}”', '輸入名稱開始搜尋': 'Type a name to search', '搜尋中': 'Searching', '搜尋結果': 'Search results', '最近開啟': 'Recently opened', '選擇': 'Select', '打開': 'Open', '取消': 'Cancel',
     '略過': 'Skip', '上一步': 'Back', '下一步': 'Next', '建議修正': 'Suggested fix', '複製修正': 'Copy fix', '已複製': 'Copied', '原本：': 'Before: ', '改成：': 'After: ', '關閉說明': 'Close explanation', '（說明）': ' (explain)', '搜尋（{k}）': 'Search ({k})' });
 
   window.UI = Object.assign(window.UI || {}, { Button: Button, IconButton: IconButton, TextField: TextField, Checkbox: Checkbox, RadioGroup: RadioGroup, Switch: Switch, Select: Select, SearchField: SearchField, TextArea: TextArea, FormGrid: FormGrid, t: tr, setLocale: setLocale, addMessages: addMessages, format: fmt, ThemePicker: ThemePicker, AccentPicker: AccentPicker, setTheme: setTheme, setAccent: setAccent, initTheme: initTheme, NotificationBell: NotificationBell, DatePicker: DatePicker, DateRangePicker: DateRangePicker, Calendar: Calendar, FileUpload: FileUpload, MultiSelect: MultiSelect, ErrorPage: ErrorPage, LoginCard: LoginCard, SettingsLayout: SettingsLayout, SettingsSection: SettingsSection, DangerZone: DangerZone, Tooltip: Tooltip, Menu: Menu, Popover: Popover, Drawer: Drawer, KpiCard: KpiCard, LineChart: LineChart, BarChart: BarChart, ProgressBar: ProgressBar, LoadingBar: LoadingBar, ProgressRing: ProgressRing, Badge: Badge, Alert: Alert, DataTable: DataTable, Skeleton: Skeleton, EmptyState: EmptyState, Toast: Toast, Dialog: Dialog, SideNav: SideNav, TopBar: TopBar, Breadcrumb: Breadcrumb, Tabs: Tabs, MobileTabBar: MobileTabBar, TreeList: TreeList, Tag: Tag, ProjectSwitcher: ProjectSwitcher, DetailList: DetailList, ActionBar: ActionBar, InlineCode: InlineCode, CodeText: CodeText, CommandPalette: CommandPalette, Tour: Tour, useTour: useTour, Suggestion: Suggestion, Term: Term, MOTION: MOTION, Icon: Icon, icons: Object.assign({}, ICONS, PATHS) });

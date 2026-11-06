@@ -860,3 +860,18 @@ html.ui-theme-fade, html.ui-theme-fade * { transition: background-color 300ms ea
 .ui-term-sheet .ui-term-action { min-height: var(--touch-target); }
 @keyframes ui-sheet-up { from { transform: translateY(100%); } to { transform: none; } }
 @media (prefers-reduced-motion: reduce) { .ui-term-sheet, .ui-term-pop, .ui-pal { animation: none; } }
+
+/* Touch targets: on touch screens every control keeps its look but its hit area grows to at least 48 x 48 px (touch-target).
+   Text links and terms inside a sentence are exempt (WCAG 2.2, 2.5.8 inline exception). */
+@media (pointer: coarse) {
+  :where(button:not(.ui-term):not(.ui-code):not(.ui-cal-day):not(.ui-dt-view), a.ui-link, a.ui-btn, [role="tab"]:not(.ui-dt-view), [role="switch"], [role="menuitem"], .ui-crumbs a, .ui-crumb a, a.ui-crumb, .ui-dt-cell .ui-code.is-link, .ui-dl-item dd > .ui-code.is-link, .ui-tag > .ui-term) { position: relative; }
+  :where(button:not(.ui-term):not(.ui-code):not(.ui-cal-day):not(.ui-dt-view), a.ui-link, a.ui-btn, [role="tab"]:not(.ui-dt-view), [role="switch"], [role="menuitem"], .ui-crumbs a, .ui-crumb a, a.ui-crumb, .ui-dt-cell .ui-code.is-link, .ui-dl-item dd > .ui-code.is-link, .ui-tag > .ui-term)::after {
+    content: ''; position: absolute; left: 50%; top: 50%; width: max(100%, var(--touch-target)); height: max(100%, var(--touch-target)); transform: translate(-50%, -50%);
+  }
+}
+
+/* TreeList: rows while children load, or when loading failed */
+.ui-tree-row.is-extra { cursor: default; min-height: 48px; }
+.ui-tree-row.is-extra:hover { background: transparent; }
+.ui-tree-row.is-error .ui-tree-main { color: var(--danger-text); font-size: 14px; }
+.ui-tree-row.is-error .ui-link-btn { flex: 0 0 auto; white-space: nowrap; }
