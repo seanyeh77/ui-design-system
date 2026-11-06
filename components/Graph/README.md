@@ -1,6 +1,8 @@
 # Graph
 
-架構圖（方框與箭頭）的樣式：自己畫 SVG，套用這些 class，再加 `UI.GraphDefs` 和 `UI.GraphLegend`。
+方框與箭頭的圖的樣式：自己畫 SVG，套用這些 class，再加 `UI.GraphDefs` 和 `UI.GraphLegend`。
+
+元件架構圖請直接用 `UI.LayerGraph`，它會自己排版和畫線。這裡的 class 給其他種類的圖用。
 
 - 外層加 `ui-graph`，`<svg>` 裡第一個放 `h(UI.GraphDefs)`，提供箭頭 `url(#ui-arrow)` 和強調色的 `url(#ui-arrow-accent)`。
 - 線：`<path class="ui-graph-edge">`，1.5 px、`graph-edge` 灰色，直角轉彎（`M x y V … H … V …`）。推測的關係加 `is-inferred`，變成虛線。

@@ -1,0 +1,30 @@
+<!-- @dsCard group="Data" height=560 -->
+<!doctype html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><title>LayerGraph — preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var U = window.UI, h = React.createElement;
+  var nodes = [
+    { id: 'cli', name: 'src/cli', layer: 0, fns: 34 }, { id: 'server', name: 'src/server', layer: 0, fns: 88 },
+    { id: 'parser', name: 'src/parser', layer: 1, fns: 61 }, { id: 'net', name: 'src/net', layer: 1, fns: 47 },
+    { id: 'storage', name: 'src/storage', layer: 2, fns: 52 }, { id: 'metrics', name: 'src/metrics', layer: 2, fns: 19 },
+    { id: 'util', name: 'src/util', shared: true }, { id: 'inc', name: 'include/common', shared: true }
+  ];
+  var edges = [
+    { from: 'cli', to: 'parser', count: 12 }, { from: 'cli', to: 'net', count: 3 }, { from: 'server', to: 'parser', count: 5 },
+    { from: 'server', to: 'net', count: 18 }, { from: 'parser', to: 'storage', count: 9 }, { from: 'net', to: 'storage', count: 6 },
+    { from: 'net', to: 'metrics', inferred: true, label: '經由 `on_packet` 回呼' }, { from: 'parser', to: 'metrics', count: 2 },
+    { from: 'server', to: 'metrics', count: 4 }, { from: 'cli', to: 'util', count: 8 }, { from: 'server', to: 'util', count: 20 },
+    { from: 'net', to: 'util', count: 13 }, { from: 'server', to: 'inc', count: 9 }, { from: 'parser', to: 'inc', count: 8 }
+  ];
+  function Demo() {
+    var s = React.useState('net');
+    return h('div', { style: { maxWidth: 640, padding: 16, borderRadius: 'var(--radius-lg)', background: 'var(--surface)', boxShadow: 'var(--shadow-card)' } },
+      h(U.LayerGraph, { nodes: nodes, edges: edges, selected: s[0], onSelect: s[1], inferredText: '由規則推得，編譯器無法確認。' }));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

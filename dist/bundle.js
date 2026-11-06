@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"UI","components":[{"name":"Button"},{"name":"IconButton"},{"name":"TextField"},{"name":"Checkbox"},{"name":"RadioGroup"},{"name":"Switch"},{"name":"Select"},{"name":"SearchField"},{"name":"TextArea"},{"name":"FormGrid"},{"name":"KpiCard"},{"name":"LineChart"},{"name":"BarChart"},{"name":"ProgressBar"},{"name":"LoadingBar"},{"name":"ProgressRing"},{"name":"Tooltip"},{"name":"Menu"},{"name":"Popover"},{"name":"Drawer"},{"name":"ThemePicker"},{"name":"AccentPicker"},{"name":"NotificationBell"},{"name":"DatePicker"},{"name":"DateRangePicker"},{"name":"FileUpload"},{"name":"MultiSelect"},{"name":"ErrorPage"},{"name":"LoginCard"},{"name":"SettingsLayout"},{"name":"DangerZone"},{"name":"Badge"},{"name":"Alert"},{"name":"DataTable"},{"name":"Skeleton"},{"name":"EmptyState"},{"name":"Toast"},{"name":"Dialog"},{"name":"SideNav"},{"name":"TopBar"},{"name":"Breadcrumb"},{"name":"Tabs"},{"name":"MobileTabBar"},{"name":"TreeList"},{"name":"InlineCode"},{"name":"CodeText"},{"name":"Tag"},{"name":"ProjectSwitcher"},{"name":"DetailList"},{"name":"ActionBar"},{"name":"CommandPalette"},{"name":"Tour"},{"name":"Suggestion"},{"name":"Term"},{"name":"CodeView"},{"name":"GraphLegend"}]} */
+/* @ds-bundle: {"format":4,"namespace":"UI","components":[{"name":"Button"},{"name":"IconButton"},{"name":"TextField"},{"name":"Checkbox"},{"name":"RadioGroup"},{"name":"Switch"},{"name":"Select"},{"name":"SearchField"},{"name":"TextArea"},{"name":"FormGrid"},{"name":"KpiCard"},{"name":"LineChart"},{"name":"BarChart"},{"name":"ProgressBar"},{"name":"LoadingBar"},{"name":"ProgressRing"},{"name":"Tooltip"},{"name":"Menu"},{"name":"Popover"},{"name":"Drawer"},{"name":"ThemePicker"},{"name":"AccentPicker"},{"name":"NotificationBell"},{"name":"DatePicker"},{"name":"DateRangePicker"},{"name":"FileUpload"},{"name":"MultiSelect"},{"name":"ErrorPage"},{"name":"LoginCard"},{"name":"SettingsLayout"},{"name":"DangerZone"},{"name":"Badge"},{"name":"Alert"},{"name":"DataTable"},{"name":"Skeleton"},{"name":"EmptyState"},{"name":"Toast"},{"name":"Dialog"},{"name":"SideNav"},{"name":"TopBar"},{"name":"Breadcrumb"},{"name":"Tabs"},{"name":"MobileTabBar"},{"name":"TreeList"},{"name":"InlineCode"},{"name":"CodeText"},{"name":"Tag"},{"name":"ProjectSwitcher"},{"name":"DetailList"},{"name":"ActionBar"},{"name":"CommandPalette"},{"name":"Tour"},{"name":"Suggestion"},{"name":"Term"},{"name":"CodeView"},{"name":"GraphLegend"},{"name":"LayerGraph"}]} */
 (function () {
   if (typeof window === 'undefined') return; // server or Node test: nothing to register
   var React = window.React;
@@ -1987,7 +1987,9 @@
   function GraphLegend(p) {
     var items = p.items || LEGEND_DEFAULT;
     return h('div', { className: cx('ui-graph-legend', p.className) }, items.map(function (it, i) {
-      var sw = it.type === 'external' || it.type === 'node'
+      var sw = it.type === 'weight'
+        ? h('span', { className: 'ui-graph-legend-sw' }, h('svg', { width: 22, height: 8, 'aria-hidden': 'true' }, h('line', { x1: 0, y1: 4, x2: 22, y2: 4, className: 'ui-graph-edge', style: { strokeWidth: 1.5 } })), h('svg', { width: 22, height: 8, 'aria-hidden': 'true' }, h('line', { x1: 0, y1: 4, x2: 22, y2: 4, className: 'ui-graph-edge', style: { strokeWidth: 6 } })))
+        : it.type === 'external' || it.type === 'node'
         ? h('svg', { width: 22, height: 14, 'aria-hidden': 'true' }, h('rect', { x: 1, y: 1, width: 20, height: 12, rx: 4, className: cx('ui-graph-node', it.type === 'external' && 'is-external') }))
         : h('svg', { width: 28, height: 8, 'aria-hidden': 'true' }, h('line', { x1: 0, y1: 4, x2: 28, y2: 4, className: cx('ui-graph-edge', it.type === 'inferred' && 'is-inferred') }));
       var text = it.text ? h(Term, { title: it.label, text: it.text }, tr(it.label)) : tr(it.label);
@@ -1996,5 +1998,97 @@
   }
   addMessages('en', { '原始碼': 'Source', '顯示全部 {n} 行': 'Show all {n} lines', '只顯示第 {n} 行前後': 'Show only around line {n}', '編譯器確認': 'Confirmed by the compiler', '推測（規則）': 'Inferred (rule)', '外部函式': 'External function' });
 
-  window.UI = Object.assign(window.UI || {}, { Button: Button, IconButton: IconButton, TextField: TextField, Checkbox: Checkbox, RadioGroup: RadioGroup, Switch: Switch, Select: Select, SearchField: SearchField, TextArea: TextArea, FormGrid: FormGrid, t: tr, setLocale: setLocale, addMessages: addMessages, format: fmt, ThemePicker: ThemePicker, AccentPicker: AccentPicker, setTheme: setTheme, setAccent: setAccent, initTheme: initTheme, NotificationBell: NotificationBell, DatePicker: DatePicker, DateRangePicker: DateRangePicker, Calendar: Calendar, FileUpload: FileUpload, MultiSelect: MultiSelect, ErrorPage: ErrorPage, LoginCard: LoginCard, SettingsLayout: SettingsLayout, SettingsSection: SettingsSection, DangerZone: DangerZone, Tooltip: Tooltip, Menu: Menu, Popover: Popover, Drawer: Drawer, KpiCard: KpiCard, LineChart: LineChart, BarChart: BarChart, ProgressBar: ProgressBar, LoadingBar: LoadingBar, ProgressRing: ProgressRing, Badge: Badge, Alert: Alert, DataTable: DataTable, Skeleton: Skeleton, EmptyState: EmptyState, Toast: Toast, Dialog: Dialog, SideNav: SideNav, TopBar: TopBar, Breadcrumb: Breadcrumb, Tabs: Tabs, MobileTabBar: MobileTabBar, TreeList: TreeList, Tag: Tag, ProjectSwitcher: ProjectSwitcher, DetailList: DetailList, ActionBar: ActionBar, InlineCode: InlineCode, CodeText: CodeText, CommandPalette: CommandPalette, Tour: Tour, useTour: useTour, Suggestion: Suggestion, Term: Term, CodeView: CodeView, GraphDefs: GraphDefs, GraphLegend: GraphLegend, MOTION: MOTION, Icon: Icon, icons: Object.assign({}, ICONS, PATHS) });
+
+  /* LayerGraph: component architecture as layers of boxes with arrows.
+     Shared components are not drawn: they are listed under the diagram with how often they are called.
+     Line width shows the number of calls; inferred relations are dashed and labelled; boxes have a gray left bar and a bar for their size.
+     Selecting a box dims everything unrelated to 40% and turns its lines accent. Wider than the screen: scrolls sideways. */
+  function lgParts(text) {
+    return String(text).split(/(`[^`]+`|\d[\d,.]*)/).filter(Boolean).map(function (t, i) {
+      if (t[0] === '`') return h('span', { key: i, className: 'ui-lg-code' }, t.slice(1, -1));
+      if (/^\d/.test(t)) return h('span', { key: i, className: 'ui-lg-code' }, t);
+      return t;
+    });
+  }
+  function LayerGraph(p) {
+    var NW = p.nodeWidth || 200, NH = 60, GAP = 56, COL = 40, PAD = 16, R = 10;
+    var all = p.nodes || [], edgesAll = p.edges || [], sel = p.selected || null;
+    var isShared = {}; all.forEach(function (n) { if (n.shared) isShared[n.id] = true; });
+    var main = all.filter(function (n) { return !n.shared; }), shared = all.filter(function (n) { return n.shared; });
+    var edges = edgesAll.filter(function (e) { return !isShared[e.from] && !isShared[e.to]; });
+    var byLayer = {}; main.forEach(function (n) { var l = n.layer || 0; (byLayer[l] = byLayer[l] || []).push(n); });
+    var layers = Object.keys(byLayer).map(Number).sort(function (a, b) { return a - b; });
+    var cols = Math.max.apply(null, [1].concat(layers.map(function (l) { return byLayer[l].length; })));
+    var W = PAD * 2 + cols * NW + (cols - 1) * COL, H = PAD * 2 + layers.length * NH + Math.max(0, layers.length - 1) * GAP;
+    var pos = {}, li = {};
+    layers.forEach(function (l, k) {
+      var row = byLayer[l], off = (W - (row.length * NW + (row.length - 1) * COL)) / 2;
+      row.forEach(function (n, i) { pos[n.id] = { x: off + i * (NW + COL), y: PAD + k * (NH + GAP) }; li[n.id] = k; });
+    });
+    var maxF = Math.max.apply(null, [1].concat(main.map(function (n) { return n.fns || 0; })));
+    var maxC = Math.max.apply(null, [1].concat(edges.map(function (e) { return e.count || 0; })));
+    var outs = {}, ins = {};
+    edges.forEach(function (e) { if (!pos[e.from] || !pos[e.to]) return; (outs[e.from] = outs[e.from] || []).push(e); (ins[e.to] = ins[e.to] || []).push(e); });
+    Object.keys(outs).forEach(function (k) { outs[k].sort(function (a, b) { return pos[a.to].x - pos[b.to].x; }); });
+    Object.keys(ins).forEach(function (k) { ins[k].sort(function (a, b) { return pos[a.from].x - pos[b.from].x; }); });
+    function rel(e) { return sel && (e.from === sel || e.to === sel); }
+    function near(id) { return !sel || id === sel || edges.some(function (e) { return rel(e) && (e.from === id || e.to === id); }); }
+    // orthogonal path through the given points, corners rounded
+    function route(pts) {
+      var d = 'M' + pts[0][0] + ' ' + pts[0][1];
+      for (var i = 1; i < pts.length - 1; i++) {
+        var a = pts[i - 1], b = pts[i], c = pts[i + 1];
+        var r = Math.min(R, Math.abs(b[0] - a[0] + b[1] - a[1]) / 2, Math.abs(c[0] - b[0] + c[1] - b[1]) / 2);
+        var ux = Math.sign(b[0] - a[0]), uy = Math.sign(b[1] - a[1]), vx = Math.sign(c[0] - b[0]), vy = Math.sign(c[1] - b[1]);
+        d += ' L' + (b[0] - ux * r) + ' ' + (b[1] - uy * r) + ' Q' + b[0] + ' ' + b[1] + ' ' + (b[0] + vx * r) + ' ' + (b[1] + vy * r);
+      }
+      var z = pts[pts.length - 1]; return d + ' L' + z[0] + ' ' + z[1];
+    }
+    function clean(pts) { return pts.filter(function (q, i) { var o = pts[i - 1]; return !o || o[0] !== q[0] || o[1] !== q[1]; }).filter(function (q, i, arr) { var a = arr[i - 1], c = arr[i + 1]; return !a || !c || !((a[0] === q[0] && q[0] === c[0]) || (a[1] === q[1] && q[1] === c[1])); }); }
+    var paths = [], labels = [];
+    edges.forEach(function (e, idx) {
+      var a = pos[e.from], b = pos[e.to]; if (!a || !b) return;
+      var oi = outs[e.from].indexOf(e), on = outs[e.from].length, ii = ins[e.to].indexOf(e), inn = ins[e.to].length;
+      var sx = Math.round(a.x + NW * (oi + 1) / (on + 1)), sy = a.y + NH, tx = Math.round(b.x + NW * (ii + 1) / (inn + 1)), ty = b.y;
+      var off = (oi - (on - 1) / 2) * 6, y1 = sy + GAP / 2 + off, pts;
+      if (li[e.to] - li[e.from] > 1) {
+        var next = byLayer[layers[li[e.from] + 1]].map(function (n) { return pos[n.id]; }), mid = (sx + tx) / 2;
+        var chans = [next[0].x - COL / 2].concat(next.map(function (q) { return q.x + NW + COL / 2; })).map(function (c) { return Math.max(PAD / 2, Math.min(W - PAD / 2, c)); });
+        var chx = chans.reduce(function (best, c) { return Math.abs(c - mid) < Math.abs(best - mid) ? c : best; }, chans[0]) + off;
+        var y2 = ty - GAP / 2 + off;
+        pts = [[sx, sy], [sx, y1], [chx, y1], [chx, y2], [tx, y2], [tx, ty - 8]];
+      } else pts = [[sx, sy], [sx, y1], [tx, y1], [tx, ty - 8]];
+      var r = rel(e), dim = sel && !r;
+      var w = e.inferred ? 1.5 : 1.5 + 5.5 * ((e.count || 0) / maxC);
+      var cls = cx('ui-lg-edge', e.inferred && 'is-inferred', r && 'is-related', dim && 'is-dim');
+      paths.push(h('path', { key: 'p' + idx, className: cls, d: route(clean(pts)), strokeWidth: w }));
+      paths.push(h('path', { key: 'a' + idx, className: cx('ui-lg-arrow', r && 'is-related', dim && 'is-dim'), d: 'M' + (tx - 5) + ' ' + (ty - 9) + ' L' + (tx + 5) + ' ' + (ty - 9) + ' L' + tx + ' ' + ty + ' Z' }));
+      if (e.inferred || r) {
+        var text = e.inferred ? (e.label || tr('推測（規則）')) : tr('{n} 次', { n: e.count });
+        labels.push(h('span', { key: 'l' + idx, className: cx('ui-lg-label', r && 'is-related', dim && 'is-dim'), style: { left: tx + 8, top: ty - 16 } }, lgParts(text)));
+      }
+    });
+    var nodes = main.map(function (n) {
+      var q = pos[n.id], on = n.id === sel;
+      return h('button', { key: n.id, type: 'button', className: cx('ui-lg-node', on && 'is-selected', !near(n.id) && 'is-dim'), style: { left: q.x, top: q.y, width: NW, height: NH },
+        'aria-pressed': p.onSelect ? String(on) : undefined, onClick: p.onSelect ? function () { p.onSelect(on ? null : n.id); } : undefined },
+        h('span', { className: 'ui-lg-name' }, n.name || n.id),
+        n.fns != null ? h('span', { className: 'ui-lg-size' }, h('span', { className: 'ui-lg-track', 'aria-hidden': 'true' }, h('span', { style: { width: Math.round((n.fns / maxF) * 100) + '%' } })),
+          h('span', { className: 'ui-lg-count' }, monoNums(tr('{n} 個函式', { n: '\u0001' }), [n.fns]))) : null);
+    });
+    var sharedRows = shared.map(function (s) {
+      var callers = {}, total = 0;
+      edgesAll.forEach(function (e) { if (e.to === s.id && !isShared[e.from]) { callers[e.from] = true; total += e.count || 0; } });
+      return h('div', { key: s.id, className: 'ui-lg-shared-row' }, h('span', { className: 'ui-lg-name' }, s.name || s.id),
+        h('span', { className: 'ui-lg-shared-meta' }, monoNums(tr('被 {a} 個元件呼叫 {b} 次', { a: '\u0001', b: '\u0002' }), [Object.keys(callers).length, total])));
+    });
+    return h('div', { className: cx('ui-graph ui-lg', p.className) },
+      h('div', { className: 'ui-lg-scroll' }, h('div', { className: 'ui-lg-canvas', style: { width: W, height: H }, role: 'group', 'aria-label': p.label || tr('架構圖') },
+        h('svg', { width: W, height: H, viewBox: '0 0 ' + W + ' ' + H, 'aria-hidden': 'true' }, paths), nodes, labels)),
+      shared.length ? h('div', { className: 'ui-lg-shared' }, h('div', { className: 'ui-lg-shared-title' }, p.sharedLabel || tr('共用元件')), sharedRows) : null,
+      p.legend === false ? null : h(GraphLegend, { items: p.legendItems || [{ type: 'weight', label: '呼叫次數越多線越粗' }, { type: 'inferred', label: '推測（規則）', text: p.inferredText }] }));
+  }
+  addMessages('en', { '{n} 次': '{n} calls', '{n} 個函式': '{n} functions', '被 {a} 個元件呼叫 {b} 次': 'Called {b} times by {a} components', '共用元件': 'Shared components', '架構圖': 'Architecture', '呼叫次數越多線越粗': 'Thicker lines mean more calls' });
+
+  window.UI = Object.assign(window.UI || {}, { Button: Button, IconButton: IconButton, TextField: TextField, Checkbox: Checkbox, RadioGroup: RadioGroup, Switch: Switch, Select: Select, SearchField: SearchField, TextArea: TextArea, FormGrid: FormGrid, t: tr, setLocale: setLocale, addMessages: addMessages, format: fmt, ThemePicker: ThemePicker, AccentPicker: AccentPicker, setTheme: setTheme, setAccent: setAccent, initTheme: initTheme, NotificationBell: NotificationBell, DatePicker: DatePicker, DateRangePicker: DateRangePicker, Calendar: Calendar, FileUpload: FileUpload, MultiSelect: MultiSelect, ErrorPage: ErrorPage, LoginCard: LoginCard, SettingsLayout: SettingsLayout, SettingsSection: SettingsSection, DangerZone: DangerZone, Tooltip: Tooltip, Menu: Menu, Popover: Popover, Drawer: Drawer, KpiCard: KpiCard, LineChart: LineChart, BarChart: BarChart, ProgressBar: ProgressBar, LoadingBar: LoadingBar, ProgressRing: ProgressRing, Badge: Badge, Alert: Alert, DataTable: DataTable, Skeleton: Skeleton, EmptyState: EmptyState, Toast: Toast, Dialog: Dialog, SideNav: SideNav, TopBar: TopBar, Breadcrumb: Breadcrumb, Tabs: Tabs, MobileTabBar: MobileTabBar, TreeList: TreeList, Tag: Tag, ProjectSwitcher: ProjectSwitcher, DetailList: DetailList, ActionBar: ActionBar, InlineCode: InlineCode, CodeText: CodeText, CommandPalette: CommandPalette, Tour: Tour, useTour: useTour, Suggestion: Suggestion, Term: Term, CodeView: CodeView, GraphDefs: GraphDefs, GraphLegend: GraphLegend, LayerGraph: LayerGraph, MOTION: MOTION, Icon: Icon, icons: Object.assign({}, ICONS, PATHS) });
 })();

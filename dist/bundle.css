@@ -934,3 +934,32 @@ html.ui-theme-fade, html.ui-theme-fade * { transition: background-color 300ms ea
 .ui-tree-subtitle { margin-top: 2px; font-size: 13px; color: var(--ink-muted); white-space: nowrap; }
 .ui-tree-pmeta.is-path { font-family: var(--font-mono); font-size: 12px; }
 .ui-tree-pmeta .ui-num { font-family: var(--font-mono); font-size: 12px; }
+
+/* LayerGraph */
+.ui-lg-scroll { overflow-x: auto; overscroll-behavior-x: contain; }
+.ui-lg-canvas { position: relative; margin: 0 auto; }
+.ui-lg-canvas > svg { position: absolute; left: 0; top: 0; overflow: visible; }
+.ui-lg-edge { fill: none; stroke: var(--graph-edge); stroke-linecap: round; stroke-linejoin: round; transition: opacity .15s ease; }
+.ui-lg-edge.is-inferred { stroke-dasharray: 6 4; stroke-linecap: butt; }
+.ui-lg-edge.is-related { stroke: var(--accent); }
+.ui-lg-arrow { fill: var(--graph-edge); transition: opacity .15s ease; }
+.ui-lg-arrow.is-related { fill: var(--accent); }
+.ui-lg .is-dim { opacity: .4; }
+.ui-lg-node { position: absolute; display: flex; flex-direction: column; justify-content: center; gap: 4px; box-sizing: border-box; padding: 8px 12px 8px 16px; border: 0; border-radius: var(--radius-md); background: var(--graph-node); box-shadow: inset 4px 0 0 var(--graph-edge); color: var(--ink); font: inherit; text-align: left; cursor: pointer; transition: opacity .15s ease, background .15s ease; }
+.ui-lg-node:hover { background: var(--line); }
+.ui-lg-node:focus-visible { outline: none; box-shadow: inset 4px 0 0 var(--graph-edge), 0 0 0 3px var(--focus-ring); }
+.ui-lg-node.is-selected { background: var(--accent-soft); box-shadow: inset 4px 0 0 var(--accent), inset 0 0 0 2px var(--accent); }
+.ui-lg-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); font-size: 13px; font-weight: 600; }
+.ui-lg-size { display: flex; align-items: center; gap: 6px; }
+.ui-lg-track { flex: 1 1 auto; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
+.ui-lg-track > span { display: block; height: 100%; border-radius: 2px; background: var(--graph-edge); }
+.ui-lg-node.is-selected .ui-lg-track > span { background: var(--accent); }
+.ui-lg-count { flex: 0 0 auto; font-size: 12px; color: var(--ink-muted); white-space: nowrap; }
+.ui-lg-label { position: absolute; transform: translateY(-50%); font-size: 12px; font-weight: 600; line-height: 16px; color: var(--ink); white-space: nowrap; pointer-events: none; paint-order: stroke fill; -webkit-text-stroke: 5px var(--ui-graph-bg, var(--surface)); transition: opacity .15s ease; }
+.ui-lg-label.is-related { color: var(--accent-text); }
+.ui-lg-code { font-family: var(--font-mono); }
+.ui-lg-shared { margin-top: var(--space-3); padding: 10px 12px; border-radius: var(--radius-md); background: var(--surface-sub); font-size: 13px; }
+.ui-lg-shared-title { font-weight: 700; }
+.ui-lg-shared-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-top: 4px; color: var(--ink-muted); }
+.ui-lg-shared-row .ui-lg-name { color: var(--ink); font-size: 12px; }
+.ui-graph-legend-sw { display: inline-flex; gap: 4px; }
