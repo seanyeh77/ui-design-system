@@ -4909,6 +4909,57 @@ html.ui-theme-fade * {
 .ui-lg .is-dim {
   opacity: 0.4;
 }
+/* Selectable edges (onSelectEdge): an invisible 12 px path over each line takes clicks and focus. It sits above the lines,
+   under the boxes and labels, and comes after the boxes in tab order. */
+.ui-lg-hits {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  overflow: visible;
+  pointer-events: none;
+}
+.ui-lg-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 12px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+.ui-lg-hit:focus {
+  outline: none;
+}
+.ui-lg-hit:focus-visible {
+  stroke: var(--focus-ring);
+}
+.ui-lg-node,
+.ui-lg-label {
+  z-index: 2;
+}
+.ui-lg-label.is-clickable {
+  pointer-events: auto;
+  cursor: pointer;
+}
+/* Hover on a line or its label: the line gets a little darker. */
+.ui-lg-edge.is-hover:not(.is-related) {
+  stroke: color-mix(in srgb, var(--graph-edge), var(--ink) 35%);
+}
+.ui-lg-edge.is-hover:not(.is-related) + .ui-lg-arrow {
+  fill: color-mix(in srgb, var(--graph-edge), var(--ink) 35%);
+}
+@media (pointer: coarse) {
+  .ui-lg-label.is-clickable::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, var(--touch-target));
+    height: max(100%, var(--touch-target));
+    transform: translate(-50%, -50%);
+  }
+}
 .ui-lg-node {
   position: absolute;
   display: flex;

@@ -26,14 +26,21 @@ export interface LayerGraphEdge {
   inferred?: boolean;
   /** Label of an inferred edge; `backticks` and numbers are in Geist Mono. */
   label?: string;
+  /** Names the edge for selectedEdge and onSelectEdge. Default `${from}->${to}`. */
+  id?: string;
 }
 
 export interface LayerGraphProps {
   nodes: LayerGraphNode[];
   edges: LayerGraphEdge[];
   selected?: string | null;
-  /** Selecting a box dims everything unrelated and turns its lines accent. */
+  /** Selecting a box dims everything unrelated and turns its lines accent. Clears the selected edge. */
   onSelect?: (id: string | null) => void;
+  /** The selected edge's id (controlled, like selected). */
+  selectedEdge?: string | null;
+  /** Makes edges selectable: a click on a line or its label, Enter or Space. null when it is clicked again, on a click on
+   *  the empty diagram or on Escape. Clears the selected box. Without it, edges cannot be clicked. */
+  onSelectEdge?: (id: string | null) => void;
   /** px. Default 200. */
   nodeWidth?: number;
   /** Text under a box's size bar; {n} is the size. Default 「{n} 個項目」. */
@@ -171,13 +178,29 @@ export function LayerGraph(p: LayerGraphProps) {
   }
   for (const k in outs) outs[k].sort((a, b) => pos[a.to].x - pos[b.to].x);
   for (const k in ins) ins[k].sort((a, b) => pos[a.from].x - pos[b.from].x);
-  const related = (e: LayerGraphEdge) => !!sel && (e.from === sel || e.to === sel);
-  const near = (id: string) => !sel || id === sel || edges.some((e) => related(e) && (e.from === id || e.to === id));
+  const edgeId = (e: LayerGraphEdge) => e.id ?? `${e.from}->${e.to}`;
+  const pickEdge = p.onSelectEdge;
+  const [hover, setHover] = React.useState<string | null>(null);
+  const selEdge = (pickEdge && edges.find((e) => edgeId(e) === p.selectedEdge)) || null;
+  // A selected box highlights its edges; a selected edge highlights itself, and both of its boxes stay undimmed.
+  const related = (e: LayerGraphEdge) => (selEdge ? e === selEdge : !!sel && (e.from === sel || e.to === sel));
+  const focus = !!sel || !!selEdge;
+  const near = (id: string) =>
+    selEdge ? id === selEdge.from || id === selEdge.to : !sel || id === sel || edges.some((e) => related(e) && (e.from === id || e.to === id));
+  const nameOf = (id: string) => all.find((n) => n.id === id)?.name || id;
+  const countText = (e: LayerGraphEdge) => (p.countLabel ?? tr('{n} 次')).replace('{n}', String(e.count ?? 0));
+  const choose = (e: LayerGraphEdge) => {
+    const id = edgeId(e);
+    const next = p.selectedEdge === id ? null : id;
+    if (next && sel != null) p.onSelect?.(null);
+    pickEdge?.(next);
+  };
 
   const paths: React.ReactNode[] = [];
   const labels: React.ReactNode[] = [];
-  const marks: { idx: number; text: string; tx: number; ty: number; left: boolean; r: boolean; dim: boolean }[] = [];
+  const marks: { idx: number; e: LayerGraphEdge; text: string; tx: number; ty: number; left: boolean; r: boolean; dim: boolean }[] = [];
   const arrows: number[][] = [];
+  const hitPaths: React.ReactNode[] = [];
   edges.forEach((e, idx) => {
     const a = pos[e.from];
     const b = pos[e.to];
@@ -216,24 +239,53 @@ export function LayerGraph(p: LayerGraphProps) {
         [tx, ty - 8],
       ];
     const r = related(e);
-    const dim = !!sel && !r;
-    const w = e.inferred ? 1.5 : 1.5 + 5.5 * ((e.count || 0) / maxCount);
+    const dim = focus && !r;
+    const picked = e === selEdge;
+    const w = (e.inferred ? 1.5 : 1.5 + 5.5 * ((e.count || 0) / maxCount)) + (picked ? 1.5 : 0);
+    const d = route(clean(pts), 10);
     paths.push(
       <path
         key={'p' + idx}
-        className={cx('ui-lg-edge', e.inferred && 'is-inferred', r && 'is-related', dim && 'is-dim')}
-        d={route(clean(pts), 10)}
+        className={cx('ui-lg-edge', e.inferred && 'is-inferred', r && 'is-related', dim && 'is-dim', pickEdge && hover === edgeId(e) && 'is-hover')}
+        d={d}
         strokeWidth={w}
       />,
     );
+    if (pickEdge) {
+      // An invisible 12 px path over the line: the click and keyboard target.
+      hitPaths.push(
+        <path
+          key={'h' + idx}
+          className="ui-lg-hit"
+          data-edge={edgeId(e)}
+          d={d}
+          role="button"
+          tabIndex={0}
+          aria-label={`${nameOf(e.from)} → ${nameOf(e.to)}，${e.inferred ? e.label || p.inferredLabel || tr('推測') : countText(e)}`}
+          aria-pressed={picked}
+          onClick={(ev) => {
+            ev.stopPropagation();
+            choose(e);
+          }}
+          onPointerEnter={() => setHover(edgeId(e))}
+          onPointerLeave={() => setHover(null)}
+          onKeyDown={(ev) => {
+            if (ev.key === 'Enter' || ev.key === ' ') {
+              ev.preventDefault();
+              choose(e);
+            } else if (ev.key === 'Escape' && picked) pickEdge(null);
+          }}
+        />,
+      );
+    }
     arrows.push([tx - 5, tx + 5, ty - 9, ty]);
     paths.push(
       <path key={'a' + idx} className={cx('ui-lg-arrow', r && 'is-related', dim && 'is-dim')} d={`M${tx - 5} ${ty - 9} L${tx + 5} ${ty - 9} L${tx} ${ty} Z`} />,
     );
     if (e.inferred || r) {
-      const text = e.inferred ? e.label || p.inferredLabel || tr('推測') : (p.countLabel ?? tr('{n} 次')).replace('{n}', String(e.count ?? 0));
+      const text = e.inferred ? e.label || p.inferredLabel || tr('推測') : countText(e);
       // Several arrows into one box: an arrow in the left half puts its label on its left.
-      marks.push({ idx, text, tx, ty, left: inn > 1 && tx < b.x + NW / 2, r, dim });
+      marks.push({ idx, e, text, tx, ty, left: inn > 1 && tx < b.x + NW / 2, r, dim });
     }
   });
   // Labels sit beside their arrowheads, inside the diagram; one that would touch a placed label or an arrowhead moves up 18 px.
@@ -254,7 +306,22 @@ export function LayerGraph(p: LayerGraphProps) {
       for (let k = 0; k < 8 && hits(x0, x1, top - 8, top + 8); k++) top -= 18;
       placed.push([x0, x1, top - 8, top + 8, 6]);
       labels.push(
-        <span key={'l' + m.idx} className={cx('ui-lg-label', m.r && 'is-related', m.dim && 'is-dim')} style={{ left: x0, top }}>
+        // With onSelectEdge the label selects its edge too (a mouse and touch target; keyboard uses the line itself).
+        <span
+          key={'l' + m.idx}
+          className={cx('ui-lg-label', pickEdge && 'is-clickable', m.r && 'is-related', m.dim && 'is-dim')}
+          style={{ left: x0, top }}
+          onClick={
+            pickEdge
+              ? (ev) => {
+                  ev.stopPropagation();
+                  choose(m.e);
+                }
+              : undefined
+          }
+          onPointerEnter={pickEdge ? () => setHover(edgeId(m.e)) : undefined}
+          onPointerLeave={pickEdge ? () => setHover(null) : undefined}
+        >
           {labelParts(m.text)}
         </span>,
       );
@@ -271,7 +338,14 @@ export function LayerGraph(p: LayerGraphProps) {
         className={cx('ui-lg-node', on && 'is-selected', !near(n.id) && 'is-dim')}
         style={{ left: q.x, top: q.y, width: NW, height: NH }}
         aria-pressed={p.onSelect ? on : undefined}
-        onClick={p.onSelect ? () => p.onSelect?.(on ? null : n.id) : undefined}
+        onClick={
+          p.onSelect
+            ? () => {
+                if (!on && p.selectedEdge != null) pickEdge?.(null);
+                p.onSelect?.(on ? null : n.id);
+              }
+            : undefined
+        }
       >
         <span className="ui-lg-name">{n.name || n.id}</span>
         {size != null ? (
@@ -304,12 +378,24 @@ export function LayerGraph(p: LayerGraphProps) {
   return (
     <div className={cx('ui-graph ui-lg', p.className)}>
       <div className="ui-lg-scroll">
-        <div className="ui-lg-canvas" style={{ width: W, height: H }} role="group" aria-label={p.label || tr('架構圖')}>
+        <div
+          className="ui-lg-canvas"
+          style={{ width: W, height: H }}
+          role="group"
+          aria-label={p.label || tr('架構圖')}
+          // A click on the empty diagram clears the selected edge.
+          onClick={pickEdge && p.selectedEdge != null ? () => pickEdge(null) : undefined}
+        >
           <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
             {paths}
           </svg>
           {nodes}
           {labels}
+          {hitPaths.length ? (
+            <svg className="ui-lg-hits" width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
+              {hitPaths}
+            </svg>
+          ) : null}
         </div>
       </div>
       {shared.length ? (

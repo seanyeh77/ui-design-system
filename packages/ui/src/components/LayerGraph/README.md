@@ -7,6 +7,12 @@
 - 方框：淡灰底，左側一條灰色色條；第一行是名稱（Geist Mono），第二行是大小長條和文字，長條長度和最大的項目相比。大小給 `size`（函式數、檔案數、端點數），文字用 `sizeLabel` 換成專案的單位，預設「{n} 個項目」。
 - 線：直角轉彎、轉角是圓的，每條線接在方框上不同的位置。線的粗細依次數（`count`），全部灰色。推測的關係（`inferred`）是細虛線，箭頭旁寫 `label`。一個方框收到兩條以上有標籤的線時，左半邊箭頭的標籤寫在箭頭左側、右半邊的寫在右側，只有一條時寫在右側；仍會碰到已經放好的標籤或其他箭頭時往上移一行（18 px）。標籤不會超出圖的左右邊界：放不下時改放另一側。選取時的「N 次」（`countLabel`）也一樣。
 - 選取（`selected`、`onSelect`）：點方框選取，再點一次取消。選取時相關的方框和線維持原樣、線變強調色並在箭頭旁寫「N 次」，其他淡到 40%。
+- 選線（`selectedEdge`、`onSelectEdge`，和 `selected`、`onSelect` 一樣是受控的）：有傳 `onSelectEdge` 時線才能點。點線或線上的標籤選取，再點一次同一條線或點圖的空白處取消（`null`）。選到的線變粗並用強調色，箭頭用強調色，標籤用強調文字色；線兩端的方框維持原樣，其他方框和線淡到 40%。線和方框一次只選一個：選線會清掉方框的選取，選方框會清掉線的選取。
+  - 每條線的 `id` 預設是 `` `${from}->${to}` ``，同一對方框之間有兩條線時要自己給 `id`。
+  - 點擊範圍：每條線上疊一條看不見、12 px 寬的路徑；有標籤的線，標籤也能點，觸控螢幕上標籤的點擊範圍至少 48 px。沒有標籤的線在手機上比較難點到，需要時改用標籤或鍵盤。
+  - 滑鼠移到線或標籤上，游標變成手指、線稍微變深。
+  - 鍵盤：線排在方框之後，Tab 依序移到每條線，Enter 或 Space 選取，Escape 取消。焦點樣式和方框一樣用 `focus-ring` 色。`aria-label` 是「起點 → 終點，標籤」或「起點 → 終點，N 次」，選到時 `aria-pressed="true"`。
+  - 細節面板由 app 自己畫，`LayerGraph` 只負責選線並回報 `id`。
 - 層與層之間 56 px。圖比畫面寬時左右捲動，手機也一樣。
 - 圖例預設放在下方：「次數越多線越粗」和「推測的關係」；`inferredText` 是推測的說明（Term），`inferredLabel` 換掉「推測」這個詞。
 - 放在卡片上。直接放在頁面底色上時，外層加 `style: { '--ui-graph-bg': 'var(--bg)' }`。
@@ -27,6 +33,27 @@
   selected={selected}
   onSelect={setSelected}
 />
+```
+
+點線在旁邊顯示細節：
+
+```tsx
+const [box, setBox] = useState<string | null>(null);
+const [edge, setEdge] = useState<string | null>(null);
+
+<Grid columns={2}>
+  <Card>
+    <LayerGraph
+      nodes={nodes}
+      edges={[{ id: 'shm', from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' }, { from: 'cli', to: 'lib', count: 7 }]}
+      selected={box}
+      onSelect={setBox}
+      selectedEdge={edge}
+      onSelectEdge={setEdge}
+    />
+  </Card>
+  <Card title="關係">{edge ? <DetailList items={details[edge]} /> : '選一條線查看細節。'}</Card>
+</Grid>
 ```
 
 從舊版升級：`fns` 改名 `size`，原本寫死的「N 個函式」「被 N 個元件呼叫」改用 `sizeLabel`、`sharedMeta` 傳入。
