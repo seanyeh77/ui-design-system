@@ -4294,7 +4294,11 @@ html.ui-theme-fade * {
 }
 .ui-tour-card {
   width: 320px;
-  max-width: calc(100vw - 24px);
+  max-width: calc(100vw - 2 * var(--space-3));
+  /* Never taller than the window: the text scrolls, the buttons stay. */
+  max-height: calc(100dvh - 2 * var(--space-3));
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
   padding: var(--space-4);
   border-radius: var(--radius-lg);
@@ -4303,6 +4307,10 @@ html.ui-theme-fade * {
   font-size: 15px;
   line-height: 1.55;
   animation: ui-pop-fade 200ms ease both;
+}
+.ui-tour-body {
+  min-height: 0;
+  overflow-y: auto;
 }
 .ui-tour-count {
   font-size: 13px;
@@ -4313,6 +4321,7 @@ html.ui-theme-fade * {
   font-weight: 700;
 }
 .ui-tour-actions {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: var(--space-2);

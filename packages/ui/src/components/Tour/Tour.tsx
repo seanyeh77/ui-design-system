@@ -13,7 +13,8 @@ export interface TourStep {
   title: string;
   /** What it does, 1 short sentence; `backticks` are code. */
   text: string;
-  /** Default 'bottom'; flips when there is no room. */
+  /** Default 'bottom'; flips when there is no room. When neither side fits (a target about as tall as the window),
+   *  the card sits inside the target, at the bottom center of the window. */
   side?: 'bottom' | 'top';
   /** Space around the highlighted part in px. Default 6. */
   padding?: number;
@@ -62,6 +63,35 @@ interface Box {
   height: number;
 }
 
+const GAP = 12;
+
+/** The space kept between the card and the window edges: the --space-3 token. */
+function edge() {
+  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--space-3')) || 12;
+}
+
+/** Where the card goes for a highlighted box: the preferred side, the other side, or inside the box at the bottom
+ *  center of the window when neither side has room. Returns the anchor line the card is placed against. */
+function placeCard(rect: Box | null, cardH: number, prefer: 'bottom' | 'top') {
+  const margin = typeof document === 'undefined' ? 12 : edge();
+  const vh = typeof window === 'undefined' ? 0 : window.innerHeight;
+  const fits = (side: 'bottom' | 'top') =>
+    rect ? (side === 'bottom' ? rect.top + rect.height + GAP + cardH + margin <= vh : rect.top - GAP - cardH - margin >= 0) : false;
+  if (!rect) {
+    // No target: centered in the window.
+    const top = Math.max(margin + cardH, vh / 2 + cardH / 2);
+    return { mode: 'center', side: 'top' as const, offset: 0, margin, line: { left: 0, top, width: window.innerWidth, height: 0 } };
+  }
+  const other = prefer === 'bottom' ? 'top' : 'bottom';
+  const side = fits(prefer) ? prefer : fits(other) ? other : null;
+  if (side) return { mode: side, side, offset: GAP, margin, line: rect };
+  // Inside the target, at its bottom edge or the window's (the box is clipped a few px inside the window), minus the
+  // margin, never above the window's top margin.
+  const end = rect.top + rect.height;
+  const bottom = Math.max(margin + cardH, end >= vh - margin ? vh - margin : end - margin);
+  return { mode: 'inside', side: 'top' as const, offset: 0, margin, line: { left: rect.left, top: bottom, width: rect.width, height: 0 } };
+}
+
 /** The first-use walkthrough: the page goes dark except the part being introduced, with a card beside it. */
 export function Tour({ open, steps, onClose, skippable = true, step: controlled, onStepChange }: TourProps) {
   const [inner, setInner] = React.useState(0);
@@ -69,6 +99,8 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
   const step = steps[i];
   const [rect, setRect] = React.useState<Box | null>(null);
   const next = React.useRef<HTMLButtonElement>(null);
+  const card = React.useRef<HTMLDivElement>(null);
+  const [cardH, setCardH] = React.useState(0);
   const [wasOpen, setWasOpen] = React.useState(open);
   if (open !== wasOpen) {
     setWasOpen(open);
@@ -89,7 +121,9 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
     if (!open || !hasStep) return;
     // A selector is looked up again until it appears (the target may render later), then kept.
     let el = findTarget(target);
-    el?.scrollIntoView?.({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
+    // Bring the target into view first; one taller than the window shows from its top.
+    const tall = (el?.getBoundingClientRect().height ?? 0) > window.innerHeight;
+    el?.scrollIntoView?.({ block: tall ? 'start' : 'center', behavior: reduced() ? 'auto' : 'smooth' });
     let raf = 0;
     let last = '';
     const tick = () => {
@@ -117,12 +151,25 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
     return () => cancelAnimationFrame(raf);
   }, [open, hasStep, i, target, pad]);
 
+  // The card's height decides where it fits; measured on every step and resize.
+  React.useLayoutEffect(() => {
+    const el = card.current;
+    if (!open || !el) return;
+    const measure = () => setCardH(el.offsetHeight);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [open, i]);
+
+  const place = placeCard(rect, cardH, step?.side ?? 'bottom');
+  const line = place.line;
   const anchor = React.useMemo(
     () => ({
       getBoundingClientRect: () =>
-        rect ? new DOMRect(rect.left, rect.top, rect.width, rect.height) : new DOMRect(window.innerWidth / 2, window.innerHeight / 2, 0, 0),
+        line ? new DOMRect(line.left, line.top, line.width, line.height) : new DOMRect(window.innerWidth / 2, window.innerHeight / 2, 0, 0),
     }),
-    [rect],
+    [line?.left, line?.top, line?.width, line?.height], // eslint-disable-line react-hooks/exhaustive-deps
   );
   if (!open || !step) return null;
   const lastStep = i === steps.length - 1;
@@ -142,14 +189,20 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
         <Popover.Positioner
           className="ui-float ui-tour-float"
           anchor={anchor}
-          side={rect ? (step.side ?? 'bottom') : 'bottom'}
+          side={place.side}
           align="center"
-          sideOffset={rect ? 12 : -100}
+          sideOffset={place.offset}
+          collisionPadding={place.margin}
+          // The side is chosen above; Base UI only keeps the card inside the window horizontally.
+          collisionAvoidance={{ side: 'none', align: 'shift', fallbackAxisSide: 'none' }}
         >
-          <Popover.Popup key={i} className="ui-tour-card" initialFocus={next}>
-            <div className="ui-tour-count">{monoNums(tr('{n} / {total}', { n: '\u0001', total: '\u0002' }), [i + 1, steps.length])}</div>
-            <Popover.Title className="ui-tour-title">{step.title}</Popover.Title>
-            <CodeText as="div" className="ui-tour-text" text={step.text} />
+          <Popover.Popup ref={card} key={i} className="ui-tour-card" data-placement={place.mode} initialFocus={next}>
+            {/* Taller than the window (phones): this part scrolls, the buttons stay at the bottom. */}
+            <div className="ui-tour-body">
+              <div className="ui-tour-count">{monoNums(tr('{n} / {total}', { n: '\u0001', total: '\u0002' }), [i + 1, steps.length])}</div>
+              <Popover.Title className="ui-tour-title">{step.title}</Popover.Title>
+              <CodeText as="div" className="ui-tour-text" text={step.text} />
+            </div>
             <div className="ui-tour-actions">
               {skippable && !lastStep ? (
                 <button type="button" className="ui-link-btn is-muted" onClick={() => end('skip')}>

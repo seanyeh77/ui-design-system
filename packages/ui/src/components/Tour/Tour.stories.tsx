@@ -44,3 +44,17 @@ function App() {
   );
 }
 export const Default = { render: () => <App /> };
+
+// A target taller than the window (like a notes panel that fills the page): the card sits inside it, at the bottom.
+function Tall() {
+  const [open, setOpen] = React.useState(true);
+  return (
+    <div style={{ padding: 16 }}>
+      <section data-tour="panel" style={{ ...card, height: '150vh', boxSizing: 'border-box' }}>
+        檢查筆記
+      </section>
+      <UI.Tour open={open} onClose={() => setOpen(false)} steps={[{ target: 'panel', title: '檢查筆記', text: '錯誤的位置附有修正建議，可直接複製。' }]} />
+    </div>
+  );
+}
+export const TallTarget = { render: () => <Tall /> };
