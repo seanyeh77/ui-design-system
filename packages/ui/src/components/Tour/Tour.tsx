@@ -99,7 +99,6 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
   const step = steps[i];
   const [rect, setRect] = React.useState<Box | null>(null);
   const next = React.useRef<HTMLButtonElement>(null);
-  const card = React.useRef<HTMLDivElement>(null);
   const [cardH, setCardH] = React.useState(0);
   const [wasOpen, setWasOpen] = React.useState(open);
   if (open !== wasOpen) {
@@ -151,16 +150,18 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
     return () => cancelAnimationFrame(raf);
   }, [open, hasStep, i, target, pad]);
 
-  // The card's height decides where it fits; measured on every step and resize.
-  React.useLayoutEffect(() => {
-    const el = card.current;
-    if (!open || !el) return;
+  // The card's height decides where it fits. The popup mounts after the first render (in a portal), so it is measured
+  // through a callback ref when it appears, and again on every resize.
+  const observer = React.useRef<ResizeObserver | null>(null);
+  const card = React.useCallback((el: HTMLDivElement | null) => {
+    observer.current?.disconnect();
+    observer.current = null;
+    if (!el) return;
     const measure = () => setCardH(el.offsetHeight);
     measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [open, i]);
+    observer.current = new ResizeObserver(measure);
+    observer.current.observe(el);
+  }, []);
 
   const place = placeCard(rect, cardH, step?.side ?? 'bottom');
   const line = place.line;

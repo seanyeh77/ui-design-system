@@ -61,3 +61,16 @@ test('Tour: on a phone with long text, the text scrolls and the buttons stay ins
   const done = screen.getByRole('button', { name: '完成' }).getBoundingClientRect();
   expect(done.bottom).toBeLessThanOrEqual(innerHeight - MARGIN + 0.5);
 });
+
+test('Tour: a target almost as tall as the window, under a top bar, puts the card inside it', async () => {
+  await page.viewport(1280, 800);
+  render(
+    <div>
+      <div style={{ height: 56 }} />
+      <div data-tour="part" style={{ height: 690, margin: '0 16px' }} />
+      <Tour open steps={steps} />
+    </div>,
+  );
+  const card = await cardInside();
+  await waitFor(() => expect(card.dataset.placement).toBe('inside'));
+});

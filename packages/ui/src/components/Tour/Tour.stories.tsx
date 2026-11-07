@@ -58,3 +58,28 @@ function Tall() {
   );
 }
 export const TallTarget = { render: () => <Tall /> };
+
+// A target almost as tall as the window, under the top bar (one card filling the page): neither side has room,
+// so the card sits inside it at the bottom of the window.
+function NearlyFull() {
+  const [open, setOpen] = React.useState(true);
+  return (
+    <div>
+      <UI.TopBar title="檢查筆記" onSearch={() => {}} />
+      <div style={{ padding: 16 }}>
+        <section data-tour="notes" style={{ ...card, height: 'calc(100vh - 56px - 48px)', boxSizing: 'border-box', marginBottom: 0 }}>
+          檢查筆記
+        </section>
+      </div>
+      <UI.Tour
+        open={open}
+        onClose={() => setOpen(false)}
+        steps={[
+          { target: 'search', title: '搜尋', text: '搜尋函式、檔案、元件與環境變數。快捷鍵 Ctrl K。' },
+          { target: 'notes', title: '檢查筆記', text: '錯誤的位置附有修正建議，可直接複製。' },
+        ]}
+      />
+    </div>
+  );
+}
+export const NearlyFullTarget = { render: () => <NearlyFull /> };
