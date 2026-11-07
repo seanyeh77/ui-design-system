@@ -73,3 +73,40 @@ function Demo() {
   );
 }
 export const Default = { render: () => <Demo /> };
+
+// Click a line (or its label) and the app shows its details beside the diagram. One inferred line and one plain call.
+const nodes4 = [
+  { id: 'ibmon', name: 'src/ibmon', layer: 0, size: 91 },
+  { id: 'cli', name: 'src/cli', layer: 0, size: 18 },
+  { id: 'lib', name: 'src/libibtrace', layer: 1, size: 114 },
+];
+const edges4 = [
+  { id: 'shm', from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
+  { from: 'cli', to: 'lib', count: 7 },
+];
+const DETAILS: Record<string, { label: string; value: React.ReactNode }[]> = {
+  shm: [
+    { label: '關係', value: '環境變數 IBTRACE_SHM' },
+    { label: '設定', value: <UI.InlineCode href="#child.c:141">child.c:141</UI.InlineCode> },
+    { label: '讀取', value: <UI.InlineCode href="#shm.c:58">shm.c:58</UI.InlineCode> },
+  ],
+  'cli->lib': [
+    { label: '關係', value: '函式呼叫' },
+    { label: '次數', value: '7 次' },
+  ],
+};
+function SelectEdge() {
+  const [box, setBox] = React.useState<string | null>(null);
+  const [edge, setEdge] = React.useState<string | null>('shm');
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-start' }}>
+      <div style={{ ...card, flex: '1 1 460px', minWidth: 0, marginBottom: 0 }}>
+        <UI.LayerGraph nodes={nodes4} edges={edges4} selected={box} onSelect={setBox} selectedEdge={edge} onSelectEdge={setEdge} legend={false} />
+      </div>
+      <div style={{ ...card, flex: '1 1 260px', marginBottom: 0 }}>
+        {edge ? <UI.DetailList items={DETAILS[edge]} /> : <span style={{ color: 'var(--ink-muted)' }}>選一條線查看細節。</span>}
+      </div>
+    </div>
+  );
+}
+export const SelectEdges = { render: () => <SelectEdge /> };

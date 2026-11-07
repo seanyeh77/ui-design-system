@@ -158,3 +158,16 @@ KPI 數字加迷你折線 · 箭頭加彩色文字 · 31 px · Geist Mono · 從
 - 8B：保留 Tailwind 內建的顏色、圓角和陰影，ESLint 規則 `no-tailwind-defaults` 抓出來並提示對應的 token class。
 - 9B：DataTable 和 KpiCard 的 `percent` 都只決定一位小數，不加 %，% 一律由 `unit` 傳入。
 - 10A：所有勾選框的勾號統一用描繪的線條勾。
+
+## LayerGraph 選線
+
+使用者的要求（codemap 架構圖上推測的關係，例如 `src/ibmon` → `src/libibtrace` 的「環境變數 `IBTRACE_SHM`」：點線後由 app 在右側面板顯示誰設定、誰讀取和「看這一行」）：
+
+- `LayerGraphEdge` 加上選填的 `id`，預設 `` `${from}->${to}` ``；`LayerGraph` 加上受控的 `selectedEdge` 和 `onSelectEdge`。沒有傳 `onSelectEdge` 時線不能點。
+- 點線或線上的標籤選取；再點一次同一條線或點圖的空白處取消。
+- 一次只選一個：選線時清掉方框的選取，選方框時清掉線的選取（使用者的建議，和既有規則沒有衝突：選方框時相關的線本來就會一起變色，同時選一條線會分不清楚是哪一個選取）。
+- 選到的線用強調色加粗、箭頭用強調色、標籤用 `is-related` 的顏色；線兩端的方框維持原狀，其他方框和線淡化。
+- 每條線疊一條看不見、約 12 px 寬的點擊路徑；有標籤的線標籤也能點，觸控螢幕上至少 48 px；沒有標籤的線在手機上難點到，可以接受，寫進 README。滑鼠移上去時游標變成 pointer、線稍微變深。
+- 每條可點的線可以用 Tab 移到，Enter 或 Space 選取，Escape 取消；焦點樣式和方框相同；`aria-label` 寫「`from` → `to`，`label`」或「`from` → `to`，N 次」；選到時 `aria-pressed="true"`。
+
+Claude 定的細節（待確認）：線在 Tab 順序中排在所有方框之後；選到的線沒有標籤時（一般呼叫）也在箭頭旁寫「N 次」，和選方框時一樣；滑鼠移上時線的顏色是 `graph-edge` 混入 35% `ink`；`ui check` 把這些線列為豁免的觸控目標（不算錯誤），因為標籤才是觸控用的目標。

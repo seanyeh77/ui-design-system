@@ -72,6 +72,12 @@ export function measure(): Findings {
       }
     }
     if (w >= 47.5 && h >= 47.5) continue;
+    // A selectable line in a LayerGraph: its label is the touch target; a line without one is hard to tap on phones,
+    // which its README accepts. Listed with the exempt targets, not as a failure.
+    if (el.matches('.ui-lg-hit')) {
+      out.inline.push(`${describe(el)} line`);
+      continue;
+    }
     (isInline(el, cs) ? out.inline : out.small).push(`${describe(el)} ${Math.round(w)} x ${Math.round(h)} px`);
   }
 

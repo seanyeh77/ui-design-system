@@ -1,4 +1,4 @@
-<!-- @dsCard group="Data" height=1240 -->
+<!-- @dsCard group="Data" height=1640 -->
 <!doctype html>
 <html lang="zh-Hant">
   <head>
@@ -70,6 +70,45 @@
         background: 'var(--surface)',
         boxShadow: 'var(--shadow-card)',
       };
+      // Selectable lines: click a line or its label, details show beside the diagram.
+      var nodes4 = [
+        { id: 'ibmon', name: 'src/ibmon', layer: 0, size: 91 },
+        { id: 'cli', name: 'src/cli', layer: 0, size: 18 },
+        { id: 'lib', name: 'src/libibtrace', layer: 1, size: 114 },
+      ];
+      var edges4 = [
+        { id: 'shm', from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
+        { from: 'cli', to: 'lib', count: 7 },
+      ];
+      var details = {
+        shm: [
+          { label: '關係', value: '環境變數 IBTRACE_SHM' },
+          { label: '設定', value: h(U.InlineCode, { href: '#child.c:141' }, 'child.c:141') },
+          { label: '讀取', value: h(U.InlineCode, { href: '#shm.c:58' }, 'shm.c:58') },
+        ],
+        'cli->lib': [
+          { label: '關係', value: '函式呼叫' },
+          { label: '次數', value: '7 次' },
+        ],
+      };
+      function Edges() {
+        var b = React.useState(null),
+          e = React.useState('shm');
+        return h(
+          'div',
+          { style: { display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-start', maxWidth: 640, marginBottom: 16 } },
+          h(
+            'div',
+            { style: Object.assign({}, card, { flex: '1 1 340px', minWidth: 0, marginBottom: 0 }) },
+            h(U.LayerGraph, { nodes: nodes4, edges: edges4, selected: b[0], onSelect: b[1], selectedEdge: e[0], onSelectEdge: e[1], legend: false }),
+          ),
+          h(
+            'div',
+            { style: Object.assign({}, card, { flex: '1 1 220px', marginBottom: 0 }) },
+            e[0] ? h(U.DetailList, { items: details[e[0]] }) : h('span', { style: { color: 'var(--ink-muted)' } }, '選一條線查看細節。'),
+          ),
+        );
+      }
       function Demo() {
         var s = React.useState('net');
         return h(
@@ -82,6 +121,7 @@
           ),
           h('div', { style: card }, h(U.LayerGraph, { nodes: nodes2, edges: edges2, legend: false })),
           h('div', { style: card }, h(U.LayerGraph, { nodes: nodes3, edges: edges3, legend: false })),
+          h(Edges),
         );
       }
       ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
