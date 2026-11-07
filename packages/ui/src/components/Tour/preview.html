@@ -1,0 +1,71 @@
+<!-- @dsCard group="Overlays" height=440 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>Tour — preview</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      var card = {
+        background: 'var(--surface)',
+        borderRadius: 'var(--radius-lg)',
+        boxShadow: 'var(--shadow-card)',
+        padding: 16,
+        marginBottom: 12,
+        fontSize: 15,
+      };
+      function App() {
+        var s = React.useState(true),
+          open = s[0],
+          setOpen = s[1];
+        return h(
+          'div',
+          null,
+          h(U.TopBar, { title: '流程', onSearch: function () {} }),
+          h(
+            'div',
+            { style: { padding: 16, maxWidth: 560 } },
+            h(
+              'section',
+              { 'data-tour': 'tree', style: card },
+              h('strong', null, 'trace_post_send'),
+              h('div', { style: { color: 'var(--ink-muted)', fontSize: 14 } }, '呼叫 3 個函式'),
+            ),
+            h('section', { 'data-tour': 'note', style: card }, '檢查筆記：1 個錯誤'),
+            h(
+              'p',
+              { style: { fontSize: 14, color: 'var(--ink-muted)' } },
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'ui-link-btn',
+                  onClick: function () {
+                    setOpen(true);
+                  },
+                },
+                '重看導覽',
+              ),
+            ),
+          ),
+          h(U.Tour, {
+            open: open,
+            onClose: function () {
+              setOpen(false);
+            },
+            steps: [
+              { target: 'search', title: '搜尋', text: '搜尋函式、檔案、元件與環境變數。快捷鍵 Ctrl K。' },
+              { target: 'tree', title: '流程樹', text: '名稱旁的標籤是關係的來源，點選問號查看依據。' },
+              { target: 'note', title: '檢查筆記', text: '錯誤的位置附有修正建議，可直接複製。' },
+            ],
+          }),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+    </script>
+  </body>
+</html>

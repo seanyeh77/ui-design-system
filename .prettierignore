@@ -1,0 +1,9 @@
+**/dist/
+pnpm-lock.yaml
+labs/
+site/
+**/icons/data.ts
+*.md
+*.html
+packages/tokens/fonts/
+.changeset/

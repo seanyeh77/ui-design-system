@@ -1,0 +1,46 @@
+<!-- @dsCard group="Pages" height=440 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>ErrorPage — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      function D() {
+        var c = React.useState(404);
+        return h(
+          'div',
+          { style: { height: 420, display: 'flex', flexDirection: 'column' } },
+          h(
+            'div',
+            { style: { display: 'flex', gap: 6, padding: 12 } },
+            [404, 500, 403].map(function (x) {
+              return h(
+                U.Button,
+                {
+                  key: x,
+                  variant: x === c[0] ? 'primary' : 'secondary',
+                  onClick: function () {
+                    c[1](x);
+                  },
+                },
+                String(x),
+              );
+            }),
+          ),
+          h('div', { style: { flex: '1 1 auto' } }, h(U.ErrorPage, { code: c[0], onBack: function () {}, onHome: function () {} })),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+    </script>
+  </body>
+</html>

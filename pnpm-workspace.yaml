@@ -1,0 +1,9 @@
+packages:
+  - packages/*
+  - apps/*
+packageExtensions:
+  recast:
+    dependencies:
+      tslib: '*'
+onlyBuiltDependencies:
+  - esbuild

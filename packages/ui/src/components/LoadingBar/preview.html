@@ -1,0 +1,29 @@
+<!-- @dsCard group="Data" height=120 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>LoadingBar — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      function D() {
+        return h(
+          'div',
+          { style: { padding: 20, maxWidth: 420 } },
+          h('div', { className: 'ui-field-label', style: { marginBottom: 8 } }, '載入資料中'),
+          h(U.LoadingBar, {}),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+    </script>
+  </body>
+</html>

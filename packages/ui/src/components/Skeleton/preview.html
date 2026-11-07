@@ -1,0 +1,40 @@
+<!-- @dsCard group="Feedback" height=150 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>Skeleton — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      ReactDOM.createRoot(document.getElementById('root')).render(
+        h(
+          'div',
+          { className: 'ui-stack' },
+          [
+            ['32%', '18%'],
+            ['44%', '14%'],
+            ['26%', '20%'],
+            ['38%', '16%'],
+          ].map(function (w, i) {
+            return h(
+              'div',
+              { key: i, style: { display: 'flex', gap: 16 } },
+              h(U.Skeleton, { width: w[0] }),
+              h(U.Skeleton, { width: w[1] }),
+              h(U.Skeleton, { width: '12%' }),
+            );
+          }),
+        ),
+      );
+    </script>
+  </body>
+</html>

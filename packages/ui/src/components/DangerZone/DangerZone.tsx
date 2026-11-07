@@ -1,0 +1,34 @@
+import { tr } from '../../i18n';
+import { cx } from '../../internal/util';
+import { Button, type DangerConfirm } from '../Button/Button';
+
+export interface DangerZoneProps {
+  /** Default 「危險操作」. */
+  title?: string;
+  /** What the action destroys. */
+  description: string;
+  /** Default 「刪除」. */
+  actionLabel?: string;
+  /** Runs after the person confirms. */
+  onAction: () => void;
+  /** The confirm dialog: name the object in the title. */
+  confirm: DangerConfirm;
+  className?: string;
+}
+
+/** A red-bordered block at the bottom of a settings page for delete-type actions; the button asks to confirm. */
+export function DangerZone({ title, description, actionLabel, onAction, confirm, className }: DangerZoneProps) {
+  const label = actionLabel || tr('刪除');
+  return (
+    <section className={cx('ui-danger', className)}>
+      <h2 className="ui-danger-title">{title || tr('危險操作')}</h2>
+      <div className="ui-danger-row">
+        <p>{description}</p>
+        {/* Without a build step nothing enforces confirm: ask anyway. */}
+        <Button variant="danger" confirm={confirm ?? { title: `${label}？` }} onClick={onAction}>
+          {label}
+        </Button>
+      </div>
+    </section>
+  );
+}

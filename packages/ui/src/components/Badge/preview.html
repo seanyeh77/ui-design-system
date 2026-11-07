@@ -1,0 +1,31 @@
+<!-- @dsCard group="Status" height=90 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>Badge — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      ReactDOM.createRoot(document.getElementById('root')).render(
+        h(
+          'div',
+          { className: 'ui-row' },
+          h(U.Badge, { status: 'draft' }),
+          h(U.Badge, { status: 'doing' }),
+          h(U.Badge, { status: 'review' }),
+          h(U.Badge, { status: 'done' }),
+          h(U.Badge, { status: 'fail' }),
+        ),
+      );
+    </script>
+  </body>
+</html>

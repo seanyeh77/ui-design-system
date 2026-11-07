@@ -1,0 +1,52 @@
+<!-- @dsCard group="Pages" height=520 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>AppShell — preview</title>
+  </head>
+  <body style="padding: 0">
+    <div id="root" style="height: 520px"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      function Demo() {
+        var s = React.useState('home'),
+          page = s[0],
+          setPage = s[1];
+        return h(
+          U.AppShell,
+          {
+            nav: [
+              {
+                items: [
+                  { id: 'home', label: '總覽', icon: 'house' },
+                  { id: 'projects', label: '專案', icon: 'folder' },
+                  { id: 'reports', label: '報表', icon: 'chart-bar' },
+                ],
+              },
+              { items: [{ id: 'settings', label: '設定', icon: 'gear' }] },
+            ],
+            value: page,
+            onNavigate: setPage,
+            brand: '專案中心',
+            title: '總覽',
+            onSearch: function () {},
+          },
+          h(
+            U.Page,
+            null,
+            h(
+              U.Grid,
+              { columns: 3 },
+              h(U.KpiCard, { label: '本月營收', value: 12840000, format: 'money', delta: 8.2 }),
+              h(U.KpiCard, { label: '進行中專案', value: 18, unit: '個' }),
+              h(U.KpiCard, { label: '平均回應時間', value: 184, unit: 'ms', delta: -12.5, good: true }),
+            ),
+          ),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+    </script>
+  </body>
+</html>

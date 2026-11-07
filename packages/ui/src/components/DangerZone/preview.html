@@ -1,0 +1,34 @@
+<!-- @dsCard group="Pages" height=160 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>DangerZone — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      function D() {
+        return h(
+          'div',
+          { style: { padding: 20 } },
+          h(U.DangerZone, {
+            title: '刪除帳號',
+            description: '刪除後，所有專案和資料都無法復原。',
+            actionLabel: '刪除帳號',
+            onAction: function () {},
+            confirm: { title: '刪除帳號？', body: '所有專案和資料會一起刪除，無法復原。' },
+          }),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+    </script>
+  </body>
+</html>

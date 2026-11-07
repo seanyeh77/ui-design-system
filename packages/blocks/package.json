@@ -1,0 +1,21 @@
+{
+  "name": "@seanyeh77/blocks",
+  "private": true,
+  "description": "Page templates built from @seanyeh77/ui. Copied into a project with the shadcn registry, then edited there.",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@seanyeh77/ui": "workspace:^"
+  },
+  "peerDependencies": {
+    "react": ">=19"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "react": "19",
+    "react-dom": "^19.3.1"
+  }
+}

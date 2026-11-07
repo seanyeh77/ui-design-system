@@ -1,0 +1,128 @@
+<!-- @dsCard group="Data" height=820 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>DataTable — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      var NAMES = [
+        '叢集監控',
+        '帳號整合',
+        '資料備份',
+        '成本報表',
+        '日誌搜尋',
+        '告警通知',
+        '權限管理',
+        '容器部署',
+        '效能分析',
+        '使用者回饋',
+        'API 閘道',
+        '排程系統',
+        '檔案上傳',
+        '計費模組',
+        '行動版首頁',
+        '搜尋最佳化',
+        '設計系統',
+        '資料匯入',
+        '安全稽核',
+        '文件網站',
+        '模型推論',
+        '儲存擴充',
+        '網路拓樸',
+        '測試平台',
+      ];
+      var OWN = ['王小明', '李小華', '陳大同', '林美玲', '張志豪', '黃雅婷'],
+        ST = ['draft', 'doing', 'review', 'done', 'fail'];
+      var rows = NAMES.map(function (n, i) {
+        return {
+          id: i + 1,
+          name: n,
+          owner: OWN[(i * 5 + 1) % 6],
+          status: ST[(i * 7 + 2) % 5],
+          progress: [12, 64, 88, 100, 40, 25, 72, 100, 55, 90, 33, 100, 8, 61, 100, 47, 79, 18, 100, 66, 52, 95, 30, 84][i],
+          budget: (((i * 137) % 23) + 2) * 85000,
+        };
+      });
+      var STL = { draft: '草稿', doing: '進行中', review: '審核中', done: '完成', fail: '失敗' };
+      function D() {
+        return h(
+          'div',
+          { style: { padding: 20 } },
+          h(U.DataTable, {
+            caption: '專案',
+            rows: rows,
+            selectable: true,
+            search: { placeholder: '搜尋名稱、負責人、狀態' },
+            filters: [
+              {
+                key: 'status',
+                label: '狀態',
+                options: ST.map(function (s) {
+                  return { value: s, label: STL[s] };
+                }),
+              },
+              { key: 'owner', label: '負責人' },
+              { key: 'budget', label: '預算', type: 'range', scale: 10000, unitLabel: '單位：萬' },
+            ],
+            totals: { budget: 'sum', progress: 'avg' },
+            bulkActions: function (ids, clear) {
+              return [
+                h(U.Button, { key: 'e', variant: 'secondary', onClick: clear }, '匯出'),
+                h(
+                  U.Button,
+                  { key: 'd', variant: 'danger', confirm: { title: '刪除 ' + ids.length + ' 筆專案？', body: '刪除後無法復原。' }, onClick: clear },
+                  '刪除',
+                ),
+              ];
+            },
+            rowActions: function (r) {
+              return [
+                h(U.IconButton, { key: 'e', label: '編輯 ' + r.name, icon: U.icons['pencil-simple'] }),
+                h(U.IconButton, { key: 'd', label: '刪除 ' + r.name, icon: U.icons.trash }),
+              ];
+            },
+            columns: [
+              {
+                key: 'name',
+                label: '名稱',
+                width: 140,
+                grow: 1.6,
+                render: function (r) {
+                  return h('strong', null, r.name);
+                },
+              },
+              { key: 'owner', label: '負責人', width: 96 },
+              {
+                key: 'status',
+                label: '狀態',
+                width: 120,
+                sortValue: function (r) {
+                  return ST.indexOf(r.status);
+                },
+                searchText: function (r) {
+                  return STL[r.status];
+                },
+                render: function (r) {
+                  return h(U.Badge, { status: r.status });
+                },
+              },
+              { key: 'progress', label: '進度', format: 'percent', decimals: 0, unit: '%' },
+              { key: 'budget', label: '預算', format: 'money', width: 132 },
+            ],
+          }),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+    </script>
+  </body>
+</html>

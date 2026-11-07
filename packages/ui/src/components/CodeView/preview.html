@@ -1,0 +1,29 @@
+<!-- @dsCard group="Data" height=420 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>CodeView — preview</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      var code = [
+        'int trace_post_send(struct ibv_qp *qp, struct ibv_send_wr *wr, struct ibv_send_wr **bad_wr)',
+        '{',
+        '    struct ibt_hook_context *h = ibt_hook_context_get(qp->context, IBT_HOOK_POST_SEND, __func__);',
+        '    int ret;',
+        '    ibt_span_begin(ctx, OP_POST_SEND);',
+        '    ret = h->post_send(qp, wr, bad_wr); /* original */',
+        '    ibt_span_end_args(ctx, OP_POST_SEND, wr->num_sge, ret);',
+        '    return ret;',
+        '}',
+      ].join('\n');
+      ReactDOM.createRoot(document.getElementById('root')).render(
+        h('div', { style: { maxWidth: 620 } }, h(U.CodeView, { file: 'src/libibtrace/hooks/ops.c', fileHref: '#', code: code, start: 70, target: 75 })),
+      );
+    </script>
+  </body>
+</html>

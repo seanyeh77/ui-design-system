@@ -1,3 +1,7 @@
+node_modules/
+dist/
 site/
-__pycache__/
+*.tsbuildinfo
 .DS_Store
+.vitest/
+*.tgz

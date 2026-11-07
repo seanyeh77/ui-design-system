@@ -1,0 +1,30 @@
+<!-- @dsCard group="Status" height=380 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>Alert — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      ReactDOM.createRoot(document.getElementById('root')).render(
+        h(
+          'div',
+          { className: 'ui-stack' },
+          h(U.Alert, { tone: 'info', title: '有新版本', actionLabel: '重新整理', onDismiss: function () {} }, '重新整理後即可使用新功能。'),
+          h(U.Alert, { tone: 'success', title: '已儲存變更', onDismiss: function () {} }, '所有成員都會看到更新。'),
+          h(U.Alert, { tone: 'warning', title: '空間即將用完', actionLabel: '管理' }, '目前已使用 92%。'),
+          h(U.Alert, { tone: 'danger', title: '連線失敗', actionLabel: '重試' }, '請檢查網路後再試一次。'),
+        ),
+      );
+    </script>
+  </body>
+</html>
