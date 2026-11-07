@@ -4871,9 +4871,44 @@ html.ui-theme-fade * {
 }
 
 /* LayerGraph */
+.ui-lg-scroller {
+  position: relative;
+}
 .ui-lg-scroll {
   overflow-x: auto;
   overscroll-behavior-x: contain;
+}
+/* Wider than its box: a fade on the right edge while more is to the right. */
+.ui-lg-scroller::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 48px;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, var(--ui-graph-bg, var(--surface)));
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.ui-lg-scroller.has-more::after {
+  opacity: 1;
+}
+.ui-lg-hint {
+  position: absolute;
+  right: 6px;
+  bottom: 4px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 12px;
+  line-height: 20px;
+  pointer-events: none;
 }
 .ui-lg-canvas {
   position: relative;
@@ -4941,6 +4976,9 @@ html.ui-theme-fade * {
 .ui-lg-label.is-clickable {
   pointer-events: auto;
   cursor: pointer;
+}
+.ui-lg-label.is-clickable.is-hover {
+  text-decoration: underline;
 }
 /* Hover on a line or its label: the line gets a little darker. */
 .ui-lg-edge.is-hover:not(.is-related) {
