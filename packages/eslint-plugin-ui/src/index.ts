@@ -71,6 +71,26 @@ const hasJsxClassAncestor = (n: Node) => {
   }
   return false;
 };
+const CLASS_CALL = new RegExp(`^(${CLASS_FNS})$`);
+// Whether a string ends up as a class: it reaches className or a class helper as a value, not as a comparison
+// (v === 'shadow'), an argument to another function, a lookup key or an object's key.
+const isClassValue = (n: Node) => {
+  for (let c: Node = n, p = n.parent; p; c = p, p = p.parent) {
+    const a = p as unknown as { type: string; key?: unknown; computed?: boolean; property?: unknown; callee?: { name?: string }; name?: { name?: string } };
+    if (a.type === 'JSXAttribute') return a.name?.name === 'className' || a.name?.name === 'class';
+    if (a.type === 'CallExpression') return CLASS_CALL.test(a.callee?.name ?? '');
+    if (a.type === 'BinaryExpression' || a.type === 'SwitchCase') return false;
+    if (a.type === 'MemberExpression' && a.computed && a.property === c) return false;
+    // { 'bg-gray-100': on } in clsx is a class; { shadow: 'lg' } in cva variants is a name.
+    if (a.type === 'Property' && a.key === c) return hasClassCallParent(p);
+  }
+  return false;
+};
+// An object key is a class only in a clsx-style object passed straight to a class helper.
+const hasClassCallParent = (prop: Node) => {
+  const obj = prop.parent as unknown as { type: string; parent?: { type: string; callee?: { name?: string } } } | null;
+  return obj?.type === 'ObjectExpression' && obj.parent?.type === 'CallExpression' && CLASS_CALL.test(obj.parent.callee?.name ?? '');
+};
 const TOKEN_HINT: Record<string, string> = {
   text: 'text-ink, text-ink-muted, text-accent-text, text-danger-text, text-on-accent',
   bg: 'bg-surface, bg-surface-sub, bg-accent, bg-accent-soft, bg-danger-soft',
@@ -109,16 +129,16 @@ const noTailwindDefaults: Rule.RuleModule = {
     return {
       'JSXAttribute[name.name=/^(className|class)$/] Literal'(node: Node) {
         const v = valueOf(node);
-        if (typeof v === 'string') check(node, v);
+        if (typeof v === 'string' && isClassValue(node)) check(node, v);
       },
       'JSXAttribute[name.name=/^(className|class)$/] TemplateElement'(node: Node) {
         check(node, (node as unknown as { value: { cooked: string | null } }).value.cooked ?? '');
       },
       // Class strings built outside JSX: cn(), clsx(), cva() and friends.
       [`CallExpression[callee.name=/^(${CLASS_FNS})$/] Literal`](node: Node) {
-        if (node.parent?.type === 'MemberExpression' || hasJsxClassAncestor(node)) return;
+        if (hasJsxClassAncestor(node)) return;
         const v = valueOf(node);
-        if (typeof v === 'string') check(node, v);
+        if (typeof v === 'string' && isClassValue(node)) check(node, v);
       },
     };
   },
