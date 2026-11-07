@@ -45,10 +45,9 @@
               onClose: close,
               title: '編輯專案',
               dirty: d[0],
-              actions: [
-                h(U.Button, { key: 'c', variant: 'secondary', onClick: close }, '取消'),
-                h(U.Button, { key: 's', variant: 'primary', onClick: close }, '儲存'),
-              ],
+              actions: function (requestClose) {
+                return [h(U.Button, { key: 'c', onClick: requestClose }, '取消'), h(U.Button, { key: 's', variant: 'primary', onClick: close }, '儲存')];
+              },
             },
             h(U.TextField, {
               label: '名稱',

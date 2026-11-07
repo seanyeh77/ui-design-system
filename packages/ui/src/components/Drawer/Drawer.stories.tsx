@@ -28,16 +28,14 @@ function D() {
         onClose={close}
         title="編輯專案"
         dirty={dirty}
-        actions={
+        actions={(requestClose) => (
           <>
-            <UI.Button variant="secondary" onClick={close}>
-              取消
-            </UI.Button>
+            <UI.Button onClick={requestClose}>取消</UI.Button>
             <UI.Button variant="primary" onClick={close}>
               儲存
             </UI.Button>
           </>
-        }
+        )}
       >
         <UI.TextField
           label="名稱"

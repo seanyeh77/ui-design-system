@@ -100,7 +100,7 @@ function D() {
               return <UI.Badge status={r.status} />;
             },
           },
-          { key: 'progress', label: '進度', format: 'percent', decimals: 0 },
+          { key: 'progress', label: '進度', format: 'percent', decimals: 0, unit: '%' },
           { key: 'budget', label: '預算', format: 'money', width: 132 },
         ]}
       />

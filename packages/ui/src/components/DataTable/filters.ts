@@ -14,8 +14,13 @@ export function cellText<R extends Row>(c: DataTableColumn<R>, v: unknown): stri
   if (c.format === 'date') return format.date(asDate());
   if (c.format === 'datetime') return format.dateTime(asDate());
   if (c.format === 'relative') return format.relative(asDate());
-  if (c.format === 'percent') return format.percent(Number(v), c.decimals);
-  const n = c.numeric && typeof v === 'number' ? format.number(v, c.decimals ?? (c.unit === 'GB' || c.unit === 'MB' ? 'size' : 0)) : String(v);
+  // percent fixes the decimals only; the % comes from unit, as in KpiCard.
+  const n =
+    c.format === 'percent'
+      ? format.number(Number(v), c.decimals ?? 'percent')
+      : c.numeric && typeof v === 'number'
+        ? format.number(v, c.decimals ?? (c.unit === 'GB' || c.unit === 'MB' ? 'size' : 0))
+        : String(v);
   return c.unit ? `${n} ${c.unit}` : n;
 }
 

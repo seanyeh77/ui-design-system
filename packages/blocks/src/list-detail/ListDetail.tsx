@@ -85,9 +85,9 @@ export function ListDetail({ items, owners, onSave }: ListDetailProps) {
         onClose={close}
         dirty={dirty}
         title={editing ? `編輯 ${editing.name}` : ''}
-        actions={
+        actions={(requestClose) => (
           <>
-            <Button onClick={close}>取消</Button>
+            <Button onClick={requestClose}>取消</Button>
             <Button
               variant="primary"
               disabled={!dirty || !draft?.name.trim()}
@@ -99,7 +99,7 @@ export function ListDetail({ items, owners, onSave }: ListDetailProps) {
               儲存
             </Button>
           </>
-        }
+        )}
       >
         {draft ? (
           <FormGrid>

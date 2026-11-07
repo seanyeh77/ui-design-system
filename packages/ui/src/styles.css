@@ -541,10 +541,6 @@ body {
   background: none;
   border: 0;
 }
-.ui-menu-item.is-on {
-  color: var(--accent-text);
-  font-weight: 600;
-}
 .ui-sidenav.is-collapsed {
   width: var(--sidebar-collapsed);
 }

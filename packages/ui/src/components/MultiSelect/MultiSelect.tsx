@@ -3,7 +3,7 @@ import { Combobox } from '@base-ui/react/combobox';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
-import { FieldLabel } from '../../internal/Field';
+import { CheckMark, FieldLabel } from '../../internal/Field';
 
 export interface MultiSelectOption {
   value: string;
@@ -97,7 +97,7 @@ export function MultiSelect({ label, options, value, onChange, creatable, maxChi
                   ) : (
                     <Combobox.Item key={v} value={v} className={cx('ui-select-opt', 'ui-ms-opt', value.includes(v) && 'is-on')}>
                       <span className={cx('ui-check-box', value.includes(v) && 'is-on')} aria-hidden="true">
-                        {value.includes(v) ? <Icon name="check" size={14} /> : null}
+                        <CheckMark v={value.includes(v)} draw />
                       </span>
                       <span>{labelOf(v)}</span>
                     </Combobox.Item>

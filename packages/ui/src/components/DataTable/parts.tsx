@@ -4,6 +4,7 @@ import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
 import { FloatingPanel } from '../../internal/FloatingPanel';
+import { CheckMark } from '../../internal/Field';
 import type { DataTableColumn, FilterValue, RangeValue, ResolvedFilter, Row } from './types';
 
 /** Marks the first match of q in text. */
@@ -51,7 +52,7 @@ export function ColumnMenu<R extends Row>({
         return (
           <button key={c.key} type="button" role="checkbox" aria-checked={on} disabled={i === 0} className="ui-menu-item" onClick={() => onToggle(c.key)}>
             <span className={cx('ui-check-box', on && 'is-on')} aria-hidden="true">
-              {on ? <Icon name="check" size={14} /> : null}
+              <CheckMark v={on} draw />
             </span>
             <span className="ui-menu-label">{c.label}</span>
           </button>
@@ -148,7 +149,7 @@ export function FilterButton<R extends Row>({ filters, values, activeCount, coun
                     onClick={() => onChange(f.key, next)}
                   >
                     <span className={cx(f.multiple ? 'ui-check-box' : 'ui-radio-ring', on && 'is-on')} aria-hidden="true">
-                      {on ? f.multiple ? <Icon name="check" size={14} /> : <span className="ui-radio-dot" /> : null}
+                      {f.multiple ? <CheckMark v={on} draw /> : on ? <span className="ui-radio-dot" /> : null}
                     </span>
                     <span className="ui-dt-opt-label">{o.label}</span>
                     <span className="ui-dt-opt-n">{format.number(n)}</span>

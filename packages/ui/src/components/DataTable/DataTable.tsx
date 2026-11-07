@@ -123,9 +123,9 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     // eslint-disable-next-line react-hooks/exhaustive-deps -- written when the conditions change, not when the filter list is rebuilt
   }, [valuesKey, q]);
   devWarn(
-    cols.some((c) => c.format === 'percent' && c.unit),
+    cols.some((c) => c.format === 'percent' && !c.unit),
     'DataTable',
-    "format: 'percent' already adds the % sign; remove unit from that column.",
+    "format: 'percent' sets 1 decimal and shows no % sign; add unit: '%' to that column.",
   );
   devWarn(
     rows.length > 1 && rows.every((r) => get(r, 'id') == null) && selectable,
@@ -170,9 +170,11 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     const id = get(x.r, 'id');
     return id != null ? String(id) : String(x.i);
   };
-  // Only rows that still exist: a row removed from rows (after a delete) must not reach bulkActions.
-  const present = new Set(rows.map((r, i) => idOf({ r, i })));
+  // Only rows the filters, search, view and summary still show (any page) stay selected: rows filtered out or
+  // deleted are unchecked, so bulkActions acts only on what the person can see.
+  const present = new Set(list.map(idOf));
   const selIds = Object.keys(sel).filter((k) => sel[k] && present.has(k));
+  if (Object.keys(sel).some((k) => sel[k] && !present.has(k))) setSel(Object.fromEntries(selIds.map((k) => [k, true])));
   const visIds = vis.map(idOf);
   const selVis = visIds.filter((id) => sel[id]).length;
   const allOn = visIds.length > 0 && selVis === visIds.length;

@@ -13,6 +13,7 @@ import {
   Popover,
   ProjectSwitcher,
   Select,
+  SideNav,
   Term,
   TextField,
   Tooltip,
@@ -306,4 +307,45 @@ test('a menu inside a dialog is painted above it', async () => {
   const item = await screen.findByRole('menuitem', { name: '重新命名' });
   const r = item.getBoundingClientRect();
   expect(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)?.closest('[role="menuitem"]')).toBe(item);
+});
+
+test('Drawer: the footer 取消 from requestClose asks before discarding changes', async () => {
+  const onClose = vi.fn();
+  render(
+    <Drawer open dirty onClose={onClose} title="編輯" actions={(requestClose) => <Button onClick={requestClose}>取消</Button>}>
+      <TextField label="名稱" />
+    </Drawer>,
+  );
+  await user.click(await screen.findByRole('button', { name: '取消' }));
+  expect(onClose).not.toHaveBeenCalled();
+  expect(await screen.findByRole('dialog', { name: '放棄未儲存的變更？' })).toBeTruthy();
+});
+
+test('SideNav collapsed: a parent opens its first page', async () => {
+  const onChange = vi.fn();
+  render(
+    <SideNav
+      collapsed
+      value="home"
+      onChange={onChange}
+      sections={[
+        {
+          items: [
+            { id: 'home', label: '總覽', icon: 'house' },
+            {
+              id: 'proj',
+              label: '專案',
+              icon: 'folder',
+              children: [
+                { id: 'p1', label: '進行中' },
+                { id: 'p2', label: '封存' },
+              ],
+            },
+          ],
+        },
+      ]}
+    />,
+  );
+  await user.click(screen.getByRole('button', { name: '專案' }));
+  expect(onChange).toHaveBeenCalledWith('p1');
 });

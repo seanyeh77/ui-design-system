@@ -8,8 +8,9 @@ export interface DrawerProps {
   open: boolean;
   onClose: () => void;
   title: string;
-  /** Footer buttons: secondary first, primary last. */
-  actions?: React.ReactNode;
+  /** Footer buttons: secondary first, primary last. Pass a function to get requestClose for your 取消 button: it
+   *  asks before discarding unsaved changes, like ✕ and Esc. */
+  actions?: React.ReactNode | ((requestClose: () => void) => React.ReactNode);
   /** Unsaved changes: closing asks 「放棄未儲存的變更？」 first. */
   dirty?: boolean;
   /** px. Default 400. */
@@ -41,7 +42,7 @@ export function Drawer({ open, onClose, title, actions, dirty, width, confirmTit
             </button>
           </div>
           <div className="ui-drawer-body">{children}</div>
-          {actions ? <div className="ui-drawer-foot">{actions}</div> : null}
+          {actions ? <div className="ui-drawer-foot">{typeof actions === 'function' ? actions(request) : actions}</div> : null}
           <Dialog
             open={asking}
             onClose={() => setAsking(false)}

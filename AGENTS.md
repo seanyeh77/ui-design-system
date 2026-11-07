@@ -13,7 +13,7 @@ SeanYeh's design system: typed React 19 components, design tokens, page template
 | --- | --- |
 | `@seanyeh77/ui` | The components (ES module with types), `styles.css`, `bundle.js` for pages without a build step, and every README under `docs/` |
 | `@seanyeh77/tokens` | `tokens.css`, a Tailwind v4 theme (`tailwind.css`), typed token names with `cssVar()`, the fonts |
-| `@seanyeh77/eslint-plugin-ui` | Lint rules: token colors only, no native controls, no card in a card, danger actions confirmed, one primary button, verb labels |
+| `@seanyeh77/eslint-plugin-ui` | Lint rules: token colors only (no Tailwind default palette, radii or shadows), no native controls, no card in a card, danger actions confirmed, one primary button, verb labels |
 | `@seanyeh77/ui-cli` | `ui check <page>` (the automatic checks below), `ui docs <Name>`, `ui list`. Run it as `npx @seanyeh77/ui-cli …`: plain `npx ui` runs an unrelated npm package when the CLI is not installed. |
 | Registry `…/r/<name>.json` | Page templates to copy into a project: `dashboard`, `list-detail`, `settings`, `login` |
 

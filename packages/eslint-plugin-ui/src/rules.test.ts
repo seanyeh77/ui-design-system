@@ -69,3 +69,16 @@ describe('configs.recommended', () => {
     if (out.length !== 1 || out[0].ruleId !== 'ui/no-native-controls') throw new Error(JSON.stringify(out));
   });
 });
+
+tester.run('no-tailwind-defaults', rules['no-tailwind-defaults'], {
+  valid: [
+    '<div className="bg-surface text-ink-muted rounded-md shadow-card border-line" />',
+    '<div className="text-neutral-500 rounded-full shadow-overlay hover:bg-accent-soft" />',
+    '<div className={`p-4 ${a ? "bg-surface" : "bg-surface-sub"}`} />',
+  ],
+  invalid: [
+    { code: '<div className="bg-white rounded-xl shadow-lg p-4" />', errors: 3 },
+    { code: '<p className="text-gray-500 hover:text-blue-600/80" />', errors: 2 },
+    { code: '<div className={`border-t-slate-200 ${x}`} />', errors: 1 },
+  ],
+});

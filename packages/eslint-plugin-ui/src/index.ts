@@ -53,6 +53,61 @@ function textOf(el: JSXElementNode): string {
     .trim();
 }
 
+// Tailwind's own palette, radii and shadows still compile next to the design system's theme. The theme keeps
+// neutral-*, rounded-sm/chip/md/lg/full and shadow-sm/chip/card/card-hover/overlay; everything below is Tailwind's.
+const TW_PALETTE = 'slate|gray|zinc|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose';
+const TW_COLOR = new RegExp(
+  `^(bg|text|border(?:-[trblxyse])?|ring(?:-offset)?|outline|divide|fill|stroke|from|via|to|placeholder|decoration|caret|accent|shadow|inset-shadow)-(?:(?:${TW_PALETTE})-(?:50|[1-9]00|950)|white|black)(?:/\\d+)?$`,
+);
+const TW_RADIUS = /^rounded(?:-[trblse]{1,2})?-(?:xs|xl|2xl|3xl|4xl)$/;
+const TW_SHADOW = /^(?:shadow|drop-shadow|inset-shadow)-(?:2xs|xs|md|lg|xl|2xl|inner)$/;
+const TOKEN_HINT: Record<string, string> = {
+  text: 'text-ink, text-ink-muted, text-accent-text, text-danger-text, text-on-accent',
+  bg: 'bg-surface, bg-surface-sub, bg-accent, bg-accent-soft, bg-danger-soft',
+  border: 'border-line, border-line-strong, border-accent',
+};
+const twClasses = (v: string) =>
+  v
+    .split(/\s+/)
+    .filter(Boolean)
+    // hover:dark:!bg-gray-100 → bg-gray-100
+    .map((c) => c.slice(c.lastIndexOf(':') + 1).replace(/^!/, ''));
+
+const noTailwindDefaults: Rule.RuleModule = {
+  meta: {
+    type: 'suggestion',
+    docs: { description: "Disallow Tailwind's default palette, radii and shadows: use the design system's token classes." },
+    schema: [],
+  },
+  create(context) {
+    const check = (node: Node, v: string) => {
+      for (const c of twClasses(v)) {
+        const color = TW_COLOR.exec(c);
+        if (color) {
+          const kind = color[1].startsWith('border') ? 'border' : color[1];
+          context.report({
+            node,
+            message: "{{c}} is Tailwind's palette, not a design-system color. Use a token class: {{hint}}.",
+            data: { c, hint: TOKEN_HINT[kind] ?? `${color[1]}-ink, ${color[1]}-accent, ${color[1]}-line` },
+          });
+        } else if (TW_RADIUS.test(c))
+          context.report({ node, message: '{{c}} is not a design-system radius. Use rounded-sm, rounded-md or rounded-lg.', data: { c } });
+        else if (TW_SHADOW.test(c))
+          context.report({ node, message: '{{c}} is not a design-system shadow. Use shadow-card, shadow-overlay or shadow-sm.', data: { c } });
+      }
+    };
+    return {
+      'JSXAttribute[name.name=/^(className|class)$/] Literal'(node: Node) {
+        const v = valueOf(node);
+        if (typeof v === 'string') check(node, v);
+      },
+      'JSXAttribute[name.name=/^(className|class)$/] TemplateElement'(node: Node) {
+        check(node, (node as unknown as { value: { cooked: string | null } }).value.cooked ?? '');
+      },
+    };
+  },
+};
+
 const noRawColor: Rule.RuleModule = {
   meta: { type: 'problem', docs: { description: 'Colors come from tokens: var(--ink) or cssVar("ink"), never a hex, rgb() or hsl() value.' }, schema: [] },
   create(context) {
@@ -239,6 +294,7 @@ const dangerConfirm: Rule.RuleModule = {
 
 const rules = {
   'no-raw-color': noRawColor,
+  'no-tailwind-defaults': noTailwindDefaults,
   'no-native-controls': noNativeControls,
   'no-nested-card': noNestedCard,
   'one-primary-button': onePrimary,
@@ -260,6 +316,7 @@ plugin.configs.recommended = {
   languageOptions: { parser: tsParser, parserOptions: { ecmaFeatures: { jsx: true } } },
   rules: {
     'ui/no-raw-color': 'error',
+    'ui/no-tailwind-defaults': 'error',
     'ui/no-native-controls': 'error',
     'ui/no-nested-card': 'error',
     'ui/danger-confirm': 'error',

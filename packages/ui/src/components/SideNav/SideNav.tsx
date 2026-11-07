@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Menu } from '@base-ui/react/menu';
 import { tr } from '../../i18n';
 import { Icon, IconOf, type IconSource } from '../../icons/Icon';
 import { dropTransition, useMoving } from '../../motion';
@@ -68,52 +67,25 @@ export function SideNav({ sections, value, onChange, collapsed = false, onToggle
     const hasKids = kids.length > 0 && !collapsed;
     const isOpen = !closed[it.id];
     const selected = value === it.id || ((!hasKids || !isOpen) && kids.some((c) => c.id === value));
-    const flyout = collapsed && kids.length > 0 && !sub;
-    const inner = (
-      <>
-        {it.icon && !sub ? <IconOf icon={it.icon} size={22} filled={selected} className="ui-nav-icon" /> : null}
-        {collapsed ? null : <span className="ui-nav-label">{it.label}</span>}
-        {hasKids ? <Icon name="caret-right" size={16} className={cx('ui-nav-chev', isOpen && 'is-open')} /> : null}
-      </>
-    );
-    const ref = (n: HTMLButtonElement | null) => {
-      refs.current[it.id] = n;
-    };
-    const itemClass = cx('ui-nav-item', sub && 'is-sub', selected && 'is-selected');
     const out: React.ReactNode[] = [
       <div key={it.id} className="ui-nav-row">
-        {flyout ? (
-          // Collapsed: a parent opens its second level beside the bar.
-          <Menu.Root>
-            <Menu.Trigger ref={ref} className={itemClass} aria-current={selected ? 'page' : undefined} aria-label={it.label}>
-              {inner}
-            </Menu.Trigger>
-            <Menu.Portal>
-              <Menu.Positioner className="ui-float" side="right" align="start" sideOffset={8}>
-                <Menu.Popup className="ui-menu" aria-label={it.label}>
-                  {kids.map((c) => (
-                    <Menu.Item key={c.id} className={cx('ui-menu-item', c.id === value && 'is-on')} onClick={() => onChange?.(c.id)}>
-                      <span className="ui-menu-label">{c.label}</span>
-                    </Menu.Item>
-                  ))}
-                </Menu.Popup>
-              </Menu.Positioner>
-            </Menu.Portal>
-          </Menu.Root>
-        ) : (
-          <button
-            type="button"
-            ref={ref}
-            className={itemClass}
-            aria-current={selected ? 'page' : undefined}
-            aria-expanded={hasKids ? isOpen : undefined}
-            aria-label={collapsed ? it.label : undefined}
-            onClick={() => (hasKids ? setClosed({ ...closed, [it.id]: isOpen }) : onChange?.(it.id))}
-          >
-            {inner}
-          </button>
-        )}
-        {collapsed && !flyout ? (
+        <button
+          type="button"
+          ref={(n) => {
+            refs.current[it.id] = n;
+          }}
+          className={cx('ui-nav-item', sub && 'is-sub', selected && 'is-selected')}
+          aria-current={selected ? 'page' : undefined}
+          aria-expanded={hasKids ? isOpen : undefined}
+          aria-label={collapsed ? it.label : undefined}
+          // Collapsed, a parent opens its first page; the page switches between its siblings itself.
+          onClick={() => (hasKids ? setClosed({ ...closed, [it.id]: isOpen }) : onChange?.(kids[0]?.id ?? it.id))}
+        >
+          {it.icon && !sub ? <IconOf icon={it.icon} size={22} filled={selected} className="ui-nav-icon" /> : null}
+          {collapsed ? null : <span className="ui-nav-label">{it.label}</span>}
+          {hasKids ? <Icon name="caret-right" size={16} className={cx('ui-nav-chev', isOpen && 'is-open')} /> : null}
+        </button>
+        {collapsed ? (
           <span className="ui-nav-tip" role="tooltip">
             {it.label}
           </span>
