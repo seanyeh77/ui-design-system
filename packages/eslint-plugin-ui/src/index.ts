@@ -75,6 +75,7 @@ const CLASS_CALL = new RegExp(`^(${CLASS_FNS})$`);
 // Whether a string ends up as a class: it reaches className or a class helper as a value, not as a comparison
 // (v === 'shadow'), an argument to another function, a lookup key or an object's key.
 const isClassValue = (n: Node) => {
+  let innerKey: string | undefined;
   for (let c: Node = n, p = n.parent; p; c = p, p = p.parent) {
     const a = p as unknown as { type: string; key?: unknown; computed?: boolean; property?: unknown; callee?: { name?: string }; name?: { name?: string } };
     if (a.type === 'JSXAttribute') return a.name?.name === 'className' || a.name?.name === 'class';
@@ -83,13 +84,28 @@ const isClassValue = (n: Node) => {
     if (a.type === 'MemberExpression' && a.computed && a.property === c) return false;
     // { 'bg-gray-100': on } in clsx is a class; { shadow: 'lg' } in cva variants is a name.
     if (a.type === 'Property' && a.key === c) return hasClassCallParent(p);
+    if (a.type === 'Property') {
+      const k = keyName(a.key);
+      innerKey ??= k;
+      // cva / tv: defaultVariants hold variant names; compoundVariants hold names except under class.
+      if (k === 'defaultVariants') return false;
+      if ((k === 'compoundVariants' || k === 'compoundSlots') && innerKey !== 'class' && innerKey !== 'className') return false;
+    }
   }
   return false;
 };
 // An object key is a class only in a clsx-style object passed straight to a class helper.
 const hasClassCallParent = (prop: Node) => {
-  const obj = prop.parent as unknown as { type: string; parent?: { type: string; callee?: { name?: string } } } | null;
-  return obj?.type === 'ObjectExpression' && obj.parent?.type === 'CallExpression' && CLASS_CALL.test(obj.parent.callee?.name ?? '');
+  const obj = prop.parent as unknown as { type: string; parent?: unknown } | null;
+  if (obj?.type !== 'ObjectExpression') return false;
+  // clsx(['p-2', { 'rounded-2xl': on }]) nests the object in arrays.
+  let up = obj.parent as { type: string; parent?: unknown; callee?: { name?: string } } | undefined;
+  while (up?.type === 'ArrayExpression') up = up.parent as typeof up;
+  return up?.type === 'CallExpression' && CLASS_CALL.test(up.callee?.name ?? '');
+};
+const keyName = (k: unknown) => {
+  const key = k as { type?: string; name?: string; value?: unknown } | undefined;
+  return key?.type === 'Identifier' ? key.name : typeof key?.value === 'string' ? key.value : undefined;
 };
 const TOKEN_HINT: Record<string, string> = {
   text: 'text-ink, text-ink-muted, text-accent-text, text-danger-text, text-on-accent',
@@ -132,7 +148,10 @@ const noTailwindDefaults: Rule.RuleModule = {
         if (typeof v === 'string' && isClassValue(node)) check(node, v);
       },
       'JSXAttribute[name.name=/^(className|class)$/] TemplateElement'(node: Node) {
-        check(node, (node as unknown as { value: { cooked: string | null } }).value.cooked ?? '');
+        if (isClassValue(node)) check(node, (node as unknown as { value: { cooked: string | null } }).value.cooked ?? '');
+      },
+      [`CallExpression[callee.name=/^(${CLASS_FNS})$/] TemplateElement`](node: Node) {
+        if (!hasJsxClassAncestor(node) && isClassValue(node)) check(node, (node as unknown as { value: { cooked: string | null } }).value.cooked ?? '');
       },
       // Class strings built outside JSX: cn(), clsx(), cva() and friends.
       [`CallExpression[callee.name=/^(${CLASS_FNS})$/] Literal`](node: Node) {

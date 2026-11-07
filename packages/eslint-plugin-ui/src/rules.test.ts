@@ -79,6 +79,7 @@ tester.run('no-tailwind-defaults', rules['no-tailwind-defaults'], {
     "const c = cn(p.elevation === 'shadow' && 'shadow-card');",
     "<div className={cn(variant === 'rounded' && 'rounded-md', fmt(x, 'rounded'))} />",
     'const b = cva("p-2", { variants: { shadow: { none: "shadow-none" } } });',
+    'const b = cva("p-2", { defaultVariants: { shape: "rounded" }, compoundVariants: [{ shape: "rounded", class: "rounded-md" }] });',
   ],
   invalid: [
     { code: '<div className="bg-white rounded-xl shadow-lg p-4" />', errors: 3 },
@@ -88,5 +89,8 @@ tester.run('no-tailwind-defaults', rules['no-tailwind-defaults'], {
     { code: 'const b = cva("rounded-md", { variants: { tone: { info: "bg-blue-50 text-blue-700" } } });', errors: 2 },
     { code: '<div className={cn("p-4", "text-zinc-500")} />', errors: 1 },
     { code: '<div className={clsx({ "bg-gray-100": on })} />', errors: 1 },
+    { code: 'const c = clsx(["p-2", { "rounded-2xl": on }]);', errors: 1 },
+    { code: 'const c = cn(`p-2 rounded-xl ${x}`);', errors: 1 },
+    { code: 'const b = cva("p-2", { compoundVariants: [{ shape: "rounded", class: "shadow-lg" }] });', errors: 1 },
   ],
 });
