@@ -1,5 +1,17 @@
 # @seanyeh77/ui
 
+## 0.4.0
+
+### Minor Changes
+
+- 9dc8165: LayerGraph: selectable edges. `LayerGraphEdge.id` (default `${from}->${to}`), controlled `selectedEdge` and `onSelectEdge`. A click on a line or its label selects it; again, or on the empty diagram, clears it. Tab, Enter or Space and Escape work on lines. Selecting a line clears the selected box and the other way round. Without `onSelectEdge` nothing changes.
+  
+  ui check lists LayerGraph's selectable lines as exempt touch targets: the label is the touch target.
+
+### Patch Changes
+
+- 5c08281: Tour: the card always stays inside the window, 12 px (`--space-3`) from every edge. When neither side of the target has room, it sits inside the target at the bottom center of the window; a card taller than the window scrolls its text and keeps the buttons at the bottom. A target taller than the window scrolls into view from its top.
+
 ## 0.3.0
 
 ### Minor Changes
