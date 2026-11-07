@@ -17,8 +17,6 @@ export interface CheckboxProps {
 /** A check box with a drawn check mark. The whole row is the touch target. */
 export function Checkbox({ checked, onChange, label, disabled, className, ...aria }: CheckboxProps) {
   const v = checked === 'mixed' ? 'mixed' : !!checked;
-  // Draw the check mark only when it changes after the first render, not on page load.
-  const [drawn, setDrawn] = React.useState(false);
   return (
     <button
       type="button"
@@ -27,13 +25,10 @@ export function Checkbox({ checked, onChange, label, disabled, className, ...ari
       aria-label={aria['aria-label']}
       disabled={disabled}
       className={cx('ui-check', v && 'is-on', className)}
-      onClick={() => {
-        setDrawn(true);
-        onChange?.(v !== true);
-      }}
+      onClick={() => onChange?.(v !== true)}
     >
       <span className="ui-check-box" aria-hidden="true">
-        <CheckMark v={v} draw={drawn} />
+        <CheckMark v={v} />
       </span>
       {label ? <span>{label}</span> : null}
     </button>

@@ -1,4 +1,4 @@
-import type * as React from 'react';
+import * as React from 'react';
 import { CHECK } from '../icons/Icon';
 import { cx } from './util';
 
@@ -17,8 +17,15 @@ export function FieldLabel({ htmlFor, id, required, children }: { htmlFor?: stri
   );
 }
 
-/** The mark inside a check box: a drawn check, a dash for 'mixed', or nothing. */
-export function CheckMark({ v, draw }: { v: boolean | 'mixed'; draw?: boolean }) {
+/** The mark inside a check box: a drawn check, a dash for 'mixed', or nothing. The check draws itself only when it
+ *  turns on after mount, never when a list or menu opens with it already on. */
+export function CheckMark({ v }: { v: boolean | 'mixed' }) {
+  const [prev, setPrev] = React.useState(v);
+  const [draw, setDraw] = React.useState(false);
+  if (prev !== v) {
+    setPrev(v);
+    setDraw(v === true);
+  }
   if (v === 'mixed') return <span className="ui-check-dash" />;
   if (!v) return null;
   return (

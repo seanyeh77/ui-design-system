@@ -75,10 +75,14 @@ tester.run('no-tailwind-defaults', rules['no-tailwind-defaults'], {
     '<div className="bg-surface text-ink-muted rounded-md shadow-card border-line" />',
     '<div className="text-neutral-500 rounded-full shadow-overlay hover:bg-accent-soft" />',
     '<div className={`p-4 ${a ? "bg-surface" : "bg-surface-sub"}`} />',
+    'const c = cn("bg-surface", tone["red"]);',
   ],
   invalid: [
     { code: '<div className="bg-white rounded-xl shadow-lg p-4" />', errors: 3 },
     { code: '<p className="text-gray-500 hover:text-blue-600/80" />', errors: 2 },
     { code: '<div className={`border-t-slate-200 ${x}`} />', errors: 1 },
+    { code: '<div className="hover:bg-gray-100! bg-gray-100/12.5 rounded shadow" />', errors: 4 },
+    { code: 'const b = cva("rounded-md", { variants: { tone: { info: "bg-blue-50 text-blue-700" } } });', errors: 2 },
+    { code: '<div className={cn("p-4", "text-zinc-500")} />', errors: 1 },
   ],
 });

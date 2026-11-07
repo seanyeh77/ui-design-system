@@ -57,10 +57,20 @@ function textOf(el: JSXElementNode): string {
 // neutral-*, rounded-sm/chip/md/lg/full and shadow-sm/chip/card/card-hover/overlay; everything below is Tailwind's.
 const TW_PALETTE = 'slate|gray|zinc|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose';
 const TW_COLOR = new RegExp(
-  `^(bg|text|border(?:-[trblxyse])?|ring(?:-offset)?|outline|divide|fill|stroke|from|via|to|placeholder|decoration|caret|accent|shadow|inset-shadow)-(?:(?:${TW_PALETTE})-(?:50|[1-9]00|950)|white|black)(?:/\\d+)?$`,
+  `^(bg|text|border(?:-[trblxyse])?|ring(?:-offset)?|inset-ring|outline|divide(?:-[xy])?|fill|stroke|from|via|to|placeholder|decoration|caret|accent|shadow|inset-shadow|drop-shadow|text-shadow)-(?:(?:${TW_PALETTE})-(?:50|[1-9]00|950)|white|black)(?:/(?:[\\d.]+|\\[[^\\]]+\\]|\\([^)]+\\)))?$`,
 );
-const TW_RADIUS = /^rounded(?:-[trblse]{1,2})?-(?:xs|xl|2xl|3xl|4xl)$/;
-const TW_SHADOW = /^(?:shadow|drop-shadow|inset-shadow)-(?:2xs|xs|md|lg|xl|2xl|inner)$/;
+// The bare rounded and shadow are Tailwind's fixed defaults too.
+const TW_RADIUS = /^rounded(?:-[trblse]{1,2})?(?:-(?:xs|xl|2xl|3xl|4xl))?$/;
+const TW_SHADOW = /^(?:shadow|drop-shadow|inset-shadow)(?:-(?:2xs|xs|md|lg|xl|2xl|inner))?$/;
+const CLASS_FNS = 'cn|clsx|cx|cva|twMerge|twJoin|tv|classnames';
+// A literal inside className={cn(…)} is already checked by the JSX visitor.
+const hasJsxClassAncestor = (n: Node) => {
+  for (let p: Node | null = n.parent; p; p = p.parent) {
+    const a = p as unknown as { type: string; name?: { name?: string } };
+    if (a.type === 'JSXAttribute') return a.name?.name === 'className' || a.name?.name === 'class';
+  }
+  return false;
+};
 const TOKEN_HINT: Record<string, string> = {
   text: 'text-ink, text-ink-muted, text-accent-text, text-danger-text, text-on-accent',
   bg: 'bg-surface, bg-surface-sub, bg-accent, bg-accent-soft, bg-danger-soft',
@@ -70,8 +80,8 @@ const twClasses = (v: string) =>
   v
     .split(/\s+/)
     .filter(Boolean)
-    // hover:dark:!bg-gray-100 → bg-gray-100
-    .map((c) => c.slice(c.lastIndexOf(':') + 1).replace(/^!/, ''));
+    // hover:dark:!bg-gray-100 and bg-gray-100! → bg-gray-100
+    .map((c) => c.slice(c.lastIndexOf(':') + 1).replace(/^!|!$/g, ''));
 
 const noTailwindDefaults: Rule.RuleModule = {
   meta: {
@@ -103,6 +113,12 @@ const noTailwindDefaults: Rule.RuleModule = {
       },
       'JSXAttribute[name.name=/^(className|class)$/] TemplateElement'(node: Node) {
         check(node, (node as unknown as { value: { cooked: string | null } }).value.cooked ?? '');
+      },
+      // Class strings built outside JSX: cn(), clsx(), cva() and friends.
+      [`CallExpression[callee.name=/^(${CLASS_FNS})$/] Literal`](node: Node) {
+        if (node.parent?.type === 'MemberExpression' || hasJsxClassAncestor(node)) return;
+        const v = valueOf(node);
+        if (typeof v === 'string') check(node, v);
       },
     };
   },

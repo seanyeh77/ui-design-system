@@ -97,7 +97,7 @@ export function MultiSelect({ label, options, value, onChange, creatable, maxChi
                   ) : (
                     <Combobox.Item key={v} value={v} className={cx('ui-select-opt', 'ui-ms-opt', value.includes(v) && 'is-on')}>
                       <span className={cx('ui-check-box', value.includes(v) && 'is-on')} aria-hidden="true">
-                        <CheckMark v={value.includes(v)} draw />
+                        <CheckMark v={value.includes(v)} />
                       </span>
                       <span>{labelOf(v)}</span>
                     </Combobox.Item>

@@ -108,7 +108,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const [sel, setSel] = React.useState<Record<string, boolean>>({});
   const [sumVal, setSumVal] = React.useState('all');
   const [resetKey, setResetKey] = React.useState(p.resetKey);
-  if (resetKey !== p.resetKey) {
+  const resetting = resetKey !== p.resetKey;
+  if (resetting) {
     setResetKey(p.resetKey);
     setQ('');
     setValues({});
@@ -174,7 +175,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   // deleted are unchecked, so bulkActions acts only on what the person can see.
   const present = new Set(list.map(idOf));
   const selIds = Object.keys(sel).filter((k) => sel[k] && present.has(k));
-  if (Object.keys(sel).some((k) => sel[k] && !present.has(k))) setSel(Object.fromEntries(selIds.map((k) => [k, true])));
+  // Skipped while resetting: the reset above already cleared the selection, and this call would win over it.
+  if (!resetting && Object.keys(sel).some((k) => sel[k] && !present.has(k))) setSel(Object.fromEntries(selIds.map((k) => [k, true])));
   const visIds = vis.map(idOf);
   const selVis = visIds.filter((id) => sel[id]).length;
   const allOn = visIds.length > 0 && selVis === visIds.length;
