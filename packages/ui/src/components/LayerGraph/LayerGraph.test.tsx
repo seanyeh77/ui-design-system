@@ -54,7 +54,7 @@ test('LayerGraph: clicking a line selects it, again clears it; the label works t
   expect(onEdge).toHaveBeenLastCalledWith(null);
   await user.click(screen.getByText('IBTRACE_SHM'));
   expect(onEdge).toHaveBeenLastCalledWith('shm');
-  expect(screen.getByRole('button', { name: 'src/ibmon → src/libibtrace，環境變數 `IBTRACE_SHM`' }).getAttribute('aria-pressed')).toBe('true');
+  expect(screen.getByRole('button', { name: 'src/ibmon → src/libibtrace，環境變數 IBTRACE_SHM' }).getAttribute('aria-pressed')).toBe('true');
 });
 
 test('LayerGraph: a line and a box are never selected together', async () => {
@@ -75,7 +75,7 @@ test('LayerGraph: Tab reaches the lines after the boxes; Enter selects, Escape c
   const onEdge = vi.fn();
   render(<Demo onEdge={onEdge} onBox={() => {}} />);
   for (let k = 0; k < 4; k++) await user.tab();
-  expect(document.activeElement?.getAttribute('aria-label')).toBe('src/ibmon → src/libibtrace，環境變數 `IBTRACE_SHM`');
+  expect(document.activeElement?.getAttribute('aria-label')).toBe('src/ibmon → src/libibtrace，環境變數 IBTRACE_SHM');
   await user.keyboard('{Enter}');
   expect(onEdge).toHaveBeenLastCalledWith('shm');
   await user.keyboard('{Escape}');
@@ -103,7 +103,7 @@ test('LayerGraph: hovering a selectable line makes it darker and 2 px thicker; i
   const { container } = render(<Demo onEdge={() => {}} onBox={() => {}} />);
   const line = container.querySelectorAll<SVGPathElement>('.ui-lg-edge')[0];
   const before = Number(line.getAttribute('stroke-width'));
-  await user.hover(screen.getByRole('button', { name: 'src/ibmon → src/libibtrace，環境變數 `IBTRACE_SHM`' }));
+  await user.hover(screen.getByRole('button', { name: 'src/ibmon → src/libibtrace，環境變數 IBTRACE_SHM' }));
   expect(line.classList.contains('is-hover')).toBe(true);
   expect(Number(line.getAttribute('stroke-width'))).toBe(before + 2);
   expect(container.querySelector('.ui-lg-label')?.classList.contains('is-hover')).toBe(true);
@@ -119,11 +119,14 @@ test('LayerGraph: wider than its box, it shows a fade and a hint until scrolled'
   const box = container.querySelector<HTMLElement>('.ui-lg-scroll');
   if (!outer || !box) throw new Error('no scroller');
   await waitFor(() => expect(outer.classList.contains('has-more')).toBe(true));
-  expect(screen.getByText('左右滑動')).toBeTruthy();
+  const hint = screen.getByText('左右滑動');
+  // Under the diagram, never over a box.
+  expect(hint.getBoundingClientRect().top).toBeGreaterThanOrEqual(outer.getBoundingClientRect().bottom);
   box.scrollLeft = box.scrollWidth;
   box.dispatchEvent(new Event('scroll'));
   await waitFor(() => expect(outer.classList.contains('has-more')).toBe(false));
-  expect(screen.queryByText('左右滑動')).toBeNull();
+  expect(hint.classList.contains('is-done')).toBe(true);
+  expect(getComputedStyle(hint).visibility).toBe('hidden');
 });
 
 test('LayerGraph: no fade or hint when it fits', async () => {
@@ -132,4 +135,35 @@ test('LayerGraph: no fade or hint when it fits', async () => {
   await new Promise((r) => setTimeout(r, 50));
   expect(container.querySelector('.ui-lg-scroller')?.classList.contains('has-more')).toBe(false);
   expect(screen.queryByText('左右滑動')).toBeNull();
+});
+
+test('LayerGraph: the legend lists only the kinds of line drawn', () => {
+  const { container, rerender } = render(<LayerGraph nodes={nodes} edges={[edges[0]]} />);
+  const legend = () => container.querySelector('.ui-graph-legend')?.textContent ?? '';
+  expect(legend()).toContain('推測的關係');
+  expect(legend()).not.toContain('次數越多線越粗');
+  rerender(<LayerGraph nodes={nodes} edges={[edges[1]]} />);
+  expect(legend()).toContain('次數越多線越粗');
+  expect(legend()).not.toContain('推測的關係');
+  rerender(<LayerGraph nodes={nodes} edges={[]} />);
+  expect(container.querySelector('.ui-graph-legend')).toBeNull();
+});
+
+test('LayerGraph: a shared item is a selectable box; the boxes that use it say how often', async () => {
+  const onSelect = vi.fn();
+  const withShared = [...nodes, { id: 'common', name: 'src/common', shared: true }];
+  const uses: LayerGraphEdge[] = [...edges, { from: 'ibmon', to: 'common', count: 6 }, { from: 'lib', to: 'common', count: 3 }];
+  const { container, rerender } = render(<LayerGraph nodes={withShared} edges={uses} selected={null} onSelect={onSelect} />);
+  const chip = screen.getByRole('button', { name: /src\/common/ });
+  expect(chip.getAttribute('aria-pressed')).toBe('false');
+  await user.click(chip);
+  expect(onSelect).toHaveBeenLastCalledWith('common');
+  rerender(<LayerGraph nodes={withShared} edges={uses} selected="common" onSelect={onSelect} />);
+  expect(chip.classList.contains('is-selected')).toBe(true);
+  const badges = [...container.querySelectorAll('.ui-lg-use')].map((n) => n.textContent);
+  expect(badges).toEqual(['使用 6 次', '使用 3 次']);
+  const cli = screen.getByRole('button', { name: /src\/cli/ });
+  expect(cli.classList.contains('is-dim')).toBe(true);
+  await user.click(chip);
+  expect(onSelect).toHaveBeenLastCalledWith(null);
 });

@@ -50,7 +50,8 @@ export function languageOf(file: string | undefined): CodeLanguage {
   return (m && EXT[m[1].toLowerCase()]) || 'plain';
 }
 
-export const LANGUAGE_NAMES: Record<string, string> = { c: 'C', js: 'JavaScript', py: 'Python', sh: 'Shell' };
+/** Header labels. A bare 「C」 reads like a button, so C is 「C 語言」. */
+export const LANGUAGE_NAMES: Record<string, string> = { c: 'C 語言', js: 'JavaScript', py: 'Python', sh: 'Shell' };
 
 /** The built-in tokenizer: keywords, CONSTANTS and numbers, comments, strings for C-like, JS, Python and shell. */
 export const tokenize: Tokenizer = (lines, lang) => {

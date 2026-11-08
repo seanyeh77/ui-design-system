@@ -21,7 +21,7 @@ export interface CodeViewProps {
   title?: string;
   /** 'c' | 'js' | 'py' | 'sh' | 'plain', or any language your tokenizer knows. Default: from the file extension. */
   language?: string;
-  /** Label at the right of the header; false hides it. */
+  /** The language, as plain muted text at the right of the header (C is 「C 語言」); false hides it. */
   languageLabel?: string | false;
   /** false: no syntax colors. */
   highlight?: boolean;
@@ -115,7 +115,13 @@ export function CodeView({
         ) : (
           <span className="ui-cv-title">{title}</span>
         )}
-        {languageLabel !== false && lang !== 'plain' ? <span className="ui-cv-lang">{languageLabel || LANGUAGE_NAMES[lang] || lang}</span> : null}
+        {languageLabel !== false && lang !== 'plain' ? (
+          // Plain text, not a control: the screen reader hears 「程式語言：C 語言」.
+          <span className="ui-cv-lang">
+            <span className="ui-visually-hidden">{tr('程式語言')}：</span>
+            {tr(languageLabel || LANGUAGE_NAMES[lang] || lang)}
+          </span>
+        ) : null}
       </div>
     ) : null;
   return (

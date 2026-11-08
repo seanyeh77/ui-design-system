@@ -108,3 +108,86 @@ function D() {
   );
 }
 export const Default = { render: () => <D /> };
+
+// A results list on one page: the summary counts carry their unit, and the count above the table is the only count
+// (no 「第 1–6 筆，共 6 筆」 below it).
+const NOTES = [
+  { id: 'n1', loc: 'src/ibmon/main.c:42', text: '找不到 child.c，完整路徑應為 src/ibmon/child.c:86', status: 'fail' },
+  { id: 'n2', loc: 'src/libibtrace/shm.c:58', text: '環境變數 IBTRACE_SHM 由 child.c:141 設定，在這裡讀取', status: 'review' },
+  { id: 'n3', loc: 'src/cli/args.c:17', text: '參數順序與說明文件一致', status: 'done' },
+  { id: 'n4', loc: 'src/libibtrace/hooks/ops.c:74', text: 'ops 表格的第 3 項是 NULL，請在 ops.c:70 加上判斷', status: 'fail' },
+  { id: 'n5', loc: 'include/ibtrace.h:12', text: '巨集名稱重複定義', status: 'review' },
+  { id: 'n6', loc: 'src/ibmon/child.c:141', text: '設定 IBTRACE_SHM', status: 'done' },
+];
+const NOTE_STATUS: Record<UI.BadgeStatus, string> = { draft: '草稿', doing: '進行中', fail: '錯誤', review: '要確認', done: '通過' };
+export const OnePageSummary = {
+  render: () => (
+    <div style={{ maxWidth: 960 }}>
+      <UI.DataTable
+        caption="檢查筆記"
+        rows={NOTES}
+        urlSync={false}
+        summary={{
+          key: 'status',
+          unit: '則',
+          items: [
+            { value: 'fail', label: '錯誤' },
+            { value: 'review', label: '要確認' },
+          ],
+        }}
+        columns={[
+          { key: 'loc', label: '位置', width: 220, render: (r) => <UI.InlineCode href={'#' + r.loc}>{r.loc}</UI.InlineCode>, searchText: (r) => r.loc },
+          { key: 'text', label: '說明', long: true, grow: 2 },
+          {
+            key: 'status',
+            label: '狀態',
+            width: 120,
+            mobile: 'status',
+            render: (r) => <UI.Badge status={r.status as UI.BadgeStatus}>{NOTE_STATUS[r.status as UI.BadgeStatus]}</UI.Badge>,
+            searchText: (r) => NOTE_STATUS[r.status as UI.BadgeStatus],
+          },
+        ]}
+      />
+    </div>
+  ),
+};
+
+// A table beside a 440 px detail panel: about 530 px left for five columns. It scrolls, with a fade on the right and a
+// 「左右滑動」 hint under it.
+const CALLERS = [
+  { id: 'c1', fn: 'ibtrace_init', file: 'src/libibtrace/init.c', n: 12, via: '直接呼叫', dist: 1 },
+  { id: 'c2', fn: 'shm_open_ring', file: 'src/libibtrace/shm.c', n: 7, via: '函式指標', dist: 2 },
+  { id: 'c3', fn: 'child_spawn', file: 'src/ibmon/child.c', n: 4, via: '直接呼叫', dist: 1 },
+  { id: 'c4', fn: 'ucp_hook_progress', file: 'src/libibtrace/hooks/ops.c', n: 17, via: '攔截', dist: 3 },
+];
+export const BesidePanel = {
+  render: () => (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'flex-start', maxWidth: 1000 }}>
+      <div style={{ flex: '1 1 300px', minWidth: 0 }}>
+        <UI.DataTable
+          caption="呼叫者"
+          rows={CALLERS}
+          urlSync={false}
+          search={false}
+          columns={[
+            { key: 'fn', label: '函式', width: 160 },
+            { key: 'file', label: '檔案', width: 220, render: (r) => <UI.InlineCode href={'#' + r.file}>{r.file}</UI.InlineCode>, searchText: (r) => r.file },
+            { key: 'n', label: '呼叫次數', numeric: true, unit: '次', width: 112 },
+            { key: 'via', label: '經由', width: 120 },
+            { key: 'dist', label: '距離', numeric: true, unit: '層', width: 96 },
+          ]}
+        />
+      </div>
+      <div
+        style={{ flex: '0 1 440px', minWidth: 0, padding: 16, borderRadius: 'var(--radius-lg)', background: 'var(--surface)', boxShadow: 'var(--shadow-card)' }}
+      >
+        <UI.DetailList
+          items={[
+            { label: '函式', value: 'ibtrace_init' },
+            { label: '檔案', value: 'src/libibtrace/init.c' },
+          ]}
+        />
+      </div>
+    </div>
+  ),
+};

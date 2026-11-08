@@ -8,6 +8,7 @@ import { Icon, type CustomIcon } from '../../icons/Icon';
 import { cx, monoNums, reduced } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { CheckMark } from '../../internal/Field';
+import { ScrollHint, useScrollHint } from '../../internal/scrollHint';
 import { cellText, isActive, matches, readUrl, resolveFilters, searchHit, writeUrl } from './filters';
 import { ColumnMenu, FilterButton, LongText, markMatch } from './parts';
 import type { DataTableColumn, DataTableFilter, DataTableView, FilterOption, FilterValue, ResolvedFilter, Row, RowKey, Total } from './types';
@@ -20,8 +21,9 @@ export interface DataTableProps<R extends Row = Record<string, unknown>> {
   rows: R[];
   /** Title above the table, also its accessible name. */
   caption?: string;
-  /** Segmented summary above the table: 「全部」 plus one tab per status with its count; picking one filters the rows. */
-  summary?: { key: RowKey<R>; items: { value: string; label: string }[]; label?: string };
+  /** Segmented summary above the table: 「全部」 plus one tab per status with its count; picking one filters the rows.
+   *  `unit` follows every count; default 「筆」. */
+  summary?: { key: RowKey<R>; items: { value: string; label: string }[]; label?: string; unit?: string };
   /** aria-label when there is no caption. */
   label?: string;
   /** Rows per page. Default 10. */
@@ -135,6 +137,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   );
 
   const shownCols = cols.filter((c, i) => i === 0 || !hidden[c.key]);
+  const { ref: scrollRef, more: scrollMore, overflows, scrolled, onScroll } = useScrollHint();
   const bodyRef = React.useRef<HTMLDivElement>(null);
   const rowEls = React.useRef<Record<string, HTMLDivElement | null>>({});
   const snap = React.useRef<Snapshot | null>(null);
@@ -388,7 +391,10 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                 }}
               >
                 {v.label}
-                <span className="ui-dt-view-n">{format.number(rows.filter((r) => !v.filter || v.filter(r)).length)}</span>
+                <span className="ui-dt-view-n">
+                  {format.number(rows.filter((r) => !v.filter || v.filter(r)).length)}
+                  <span className="ui-unit"> {tr('筆')}</span>
+                </span>
               </button>
             );
           })}
@@ -398,6 +404,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         <Tabs
           className="ui-dt-summary"
           label={summary.label || tr('依狀態篩選')}
+          unit={summary.unit || '筆'}
           value={sumVal}
           onChange={(v) => {
             capture('sort');
@@ -450,74 +457,78 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
           <ColumnMenu cols={cols} hidden={hidden} onToggle={(k) => setHidden({ ...hidden, [k]: !hidden[k] })} />
         ) : null}
       </div>
-      <div className="ui-dt-scroll">
-        <div className="ui-dt-table" role="table" aria-label={p.label || p.caption}>
-          {head}
-          <div ref={bodyRef} className="ui-dt-body" role="rowgroup">
-            {vis.length ? (
-              vis.map((x, i) => {
-                const id = visIds[i];
-                const on = !!sel[id];
-                return (
-                  <div
-                    key={id}
-                    data-rid={id}
-                    ref={(el) => {
-                      rowEls.current[id] = el;
-                    }}
-                    role="row"
-                    className={cx('ui-dt-row', i % 2 && 'is-even', on && 'is-selected', selectable && 'has-sel')}
-                    style={gridStyle}
-                  >
-                    {selectable ? (
-                      <div className="ui-dt-cell ui-dt-sel" role="cell">
-                        <RowCheck v={on} label={tr('選取第 {n} 筆', { n: start + i + 1 })} onClick={() => toggle([id], !on)} />
-                      </div>
-                    ) : null}
-                    {shownCols.map((c, ci) => (
-                      <div
-                        key={c.key}
-                        role="cell"
-                        data-label={c.label}
-                        className={cellClass(c, ci, c.long && 'is-long', mobileClass(c, ci))}
-                        style={stickyStyle(ci)}
-                      >
-                        {cell(x.r, c)}
-                      </div>
-                    ))}
-                    {hasAct ? (
-                      <div className="ui-dt-cell ui-dt-acts" role="cell">
-                        {p.rowActions?.(x.r)}
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              })
-            ) : (
-              <div className="ui-dt-empty">
-                {p.emptyText || tr('沒有符合的資料')}
-                {q || activeN ? (
-                  <div>
-                    <Button onClick={clearFilters}>{tr('清除篩選')}</Button>
-                  </div>
-                ) : null}
-              </div>
-            )}
-          </div>
-          {p.totals && list.length ? (
-            <div className="ui-dt-row ui-dt-total" role="row" style={gridStyle}>
-              {selectable ? <div className="ui-dt-cell" role="cell" /> : null}
-              {shownCols.map((c, ci) => (
-                <div key={c.key} role="cell" className={cellClass(c, ci)} style={stickyStyle(ci)}>
-                  {total(c, ci)}
+      <div className={cx('ui-dt-scroller', scrollMore && 'has-more')}>
+        <div className="ui-dt-scroll" ref={scrollRef} onScroll={onScroll}>
+          <div className="ui-dt-table" role="table" aria-label={p.label || p.caption}>
+            {head}
+            <div ref={bodyRef} className="ui-dt-body" role="rowgroup">
+              {vis.length ? (
+                vis.map((x, i) => {
+                  const id = visIds[i];
+                  const on = !!sel[id];
+                  return (
+                    <div
+                      key={id}
+                      data-rid={id}
+                      ref={(el) => {
+                        rowEls.current[id] = el;
+                      }}
+                      role="row"
+                      className={cx('ui-dt-row', i % 2 && 'is-even', on && 'is-selected', selectable && 'has-sel')}
+                      style={gridStyle}
+                    >
+                      {selectable ? (
+                        <div className="ui-dt-cell ui-dt-sel" role="cell">
+                          <RowCheck v={on} label={tr('選取第 {n} 筆', { n: start + i + 1 })} onClick={() => toggle([id], !on)} />
+                        </div>
+                      ) : null}
+                      {shownCols.map((c, ci) => (
+                        <div
+                          key={c.key}
+                          role="cell"
+                          data-label={c.label}
+                          className={cellClass(c, ci, c.long && 'is-long', mobileClass(c, ci))}
+                          style={stickyStyle(ci)}
+                        >
+                          {cell(x.r, c)}
+                        </div>
+                      ))}
+                      {hasAct ? (
+                        <div className="ui-dt-cell ui-dt-acts" role="cell">
+                          {p.rowActions?.(x.r)}
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="ui-dt-empty">
+                  {p.emptyText || tr('沒有符合的資料')}
+                  {q || activeN ? (
+                    <div>
+                      <Button onClick={clearFilters}>{tr('清除篩選')}</Button>
+                    </div>
+                  ) : null}
                 </div>
-              ))}
-              {hasAct ? <div className="ui-dt-cell" role="cell" /> : null}
+              )}
             </div>
-          ) : null}
+            {p.totals && list.length ? (
+              <div className="ui-dt-row ui-dt-total" role="row" style={gridStyle}>
+                {selectable ? <div className="ui-dt-cell" role="cell" /> : null}
+                {shownCols.map((c, ci) => (
+                  <div key={c.key} role="cell" className={cellClass(c, ci)} style={stickyStyle(ci)}>
+                    {total(c, ci)}
+                  </div>
+                ))}
+                {hasAct ? <div className="ui-dt-cell" role="cell" /> : null}
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
-      {list.length > 0 ? (
+      <ScrollHint show={overflows} done={scrolled} />
+      {/* One page: the count above the table already says how many rows there are, so no range and no page numbers. */}
+      {pages > 1 ? (
         <div className="ui-dt-foot">
           <span className="ui-dt-range">
             {monoNums(tr('第 {a}–{b} 筆，共 {n} 筆', { a: '\u0001', b: '\u0002', n: '\u0003' }), [
@@ -526,27 +537,25 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
               format.number(list.length),
             ])}
           </span>
-          {pages > 1 ? (
-            <nav className="ui-dt-pages" aria-label={tr('分頁')}>
-              <button type="button" className="ui-dt-page" aria-label={tr('上一頁')} disabled={pageNow === 0} onClick={() => goPage(pageNow - 1)}>
-                ‹
+          <nav className="ui-dt-pages" aria-label={tr('分頁')}>
+            <button type="button" className="ui-dt-page" aria-label={tr('上一頁')} disabled={pageNow === 0} onClick={() => goPage(pageNow - 1)}>
+              ‹
+            </button>
+            {Array.from({ length: pages }, (_, i) => (
+              <button
+                key={i}
+                type="button"
+                className={cx('ui-dt-page', i === pageNow && 'is-on')}
+                aria-current={i === pageNow ? 'page' : undefined}
+                onClick={() => goPage(i)}
+              >
+                {String(i + 1)}
               </button>
-              {Array.from({ length: pages }, (_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  className={cx('ui-dt-page', i === pageNow && 'is-on')}
-                  aria-current={i === pageNow ? 'page' : undefined}
-                  onClick={() => goPage(i)}
-                >
-                  {String(i + 1)}
-                </button>
-              ))}
-              <button type="button" className="ui-dt-page" aria-label={tr('下一頁')} disabled={pageNow >= pages - 1} onClick={() => goPage(pageNow + 1)}>
-                ›
-              </button>
-            </nav>
-          ) : null}
+            ))}
+            <button type="button" className="ui-dt-page" aria-label={tr('下一頁')} disabled={pageNow >= pages - 1} onClick={() => goPage(pageNow + 1)}>
+              ›
+            </button>
+          </nav>
         </div>
       ) : null}
     </div>

@@ -110,3 +110,53 @@ function SelectEdge() {
   );
 }
 export const SelectEdges = { render: () => <SelectEdge /> };
+
+// Only inferred lines, as in a diagram built from rules: the legend lists 「推測的關係」 alone.
+const edges5 = [
+  { from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
+  { from: 'cli', to: 'lib', inferred: true, label: '攔截 17 個 `ucp` 呼叫' },
+];
+export const InferredOnly = {
+  render: () => (
+    <div style={card}>
+      <UI.LayerGraph nodes={nodes4} edges={edges5} sizeLabel="{n} 個函式" inferredText="由規則推得，編譯器無法確認。" />
+    </div>
+  ),
+};
+
+// A phone-width box: the diagram scrolls, with the fade on the right and the hint under it, clear of the boxes.
+export const Narrow = {
+  render: () => (
+    <div style={{ ...card, maxWidth: 326 }}>
+      <UI.LayerGraph nodes={nodes4} edges={edges4} sizeLabel="{n} 個函式" />
+    </div>
+  ),
+};
+
+// Shared items are boxes under the diagram, selected like the others: the boxes that use it say how often.
+const nodes6 = [...nodes4, { id: 'common', name: 'src/common', shared: true }, { id: 'inc', name: 'include/ibtrace.h', shared: true }];
+const edges6 = [
+  ...edges4,
+  { from: 'ibmon', to: 'common', count: 6 },
+  { from: 'lib', to: 'common', count: 3 },
+  { from: 'ibmon', to: 'inc', count: 2 },
+  { from: 'cli', to: 'inc', count: 1 },
+  { from: 'lib', to: 'inc', count: 9 },
+];
+function SharedSelect() {
+  const [s, setS] = React.useState<string | null>('common');
+  return (
+    <div style={card}>
+      <UI.LayerGraph
+        nodes={nodes6}
+        edges={edges6}
+        selected={s}
+        onSelect={setS}
+        sizeLabel="{n} 個函式"
+        sharedLabel="共用元件"
+        sharedMeta="{a} 個元件使用，共 {b} 次"
+      />
+    </div>
+  );
+}
+export const SharedItems = { render: () => <SharedSelect /> };
