@@ -50,20 +50,34 @@ export function useFocusRescue(ref: React.RefObject<HTMLElement | null>, fallbac
       last = e.target;
       index = Array.from(box.querySelectorAll<HTMLElement>(FOCUSABLE)).indexOf(last);
     };
-    const mo = new MutationObserver(() => {
-      // Gone, or still there but disabled (a disabled control drops focus too).
-      if (!last || (last.isConnected && !last.matches(':disabled')) || !lost()) return;
+    const rescue = () => {
       const now = list();
       const next = fb.current?.() ?? now[Math.min(index, now.length - 1)] ?? null;
       last = null;
       if (next) next.focus();
       else focusMain();
+    };
+    let frame = 0;
+    const mo = new MutationObserver(() => {
+      // Gone, or still there but disabled (a disabled control drops focus too).
+      if (!last || (last.isConnected && !last.matches(':disabled'))) return;
+      if (lost()) return rescue();
+      // The browser moves focus off a control it just disabled at its next rendering update, not at once: look again
+      // then. Rescue when focus fell to the page, or still sits on the dead control; not when it went somewhere else.
+      const dead = last;
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        frame = requestAnimationFrame(() => {
+          if (last === dead && (lost() || document.activeElement === dead)) rescue();
+        });
+      });
     });
     box.addEventListener('focusin', onIn);
     mo.observe(box, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled'] });
     return () => {
       box.removeEventListener('focusin', onIn);
       mo.disconnect();
+      cancelAnimationFrame(frame);
     };
   }, [ref]);
 }
