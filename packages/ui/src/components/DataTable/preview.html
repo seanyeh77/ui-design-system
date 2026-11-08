@@ -51,6 +51,8 @@
           status: ST[(i * 7 + 2) % 5],
           progress: [12, 64, 88, 100, 40, 25, 72, 100, 55, 90, 33, 100, 8, 61, 100, 47, 79, 18, 100, 66, 52, 95, 30, 84][i],
           budget: (((i * 137) % 23) + 2) * 85000,
+          // 2026/10/01 to 2026/11/04, one per row
+          updated: '2026-' + (i < 10 ? '10-' + String(i * 3 + 1).padStart(2, '0') : '11-0' + ((i % 4) + 1)),
         };
       });
       var STL = { draft: '草稿', doing: '進行中', review: '審核中', done: '完成', fail: '失敗' };
@@ -118,6 +120,8 @@
               },
               { key: 'progress', label: '進度', format: 'percent', decimals: 0, unit: '%' },
               { key: 'budget', label: '預算', format: 'money', width: 132 },
+              // Off at first: turn it on in 「欄位」.
+              { key: 'updated', label: '更新日期', format: 'date', hidden: true, width: 150 },
             ],
           }),
         );

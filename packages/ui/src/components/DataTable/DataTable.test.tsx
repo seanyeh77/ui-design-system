@@ -112,3 +112,29 @@ test('a table whose minimum widths fit does not scroll, however long a cell is',
   expect(container.querySelector('.ui-dt-scroller')?.classList.contains('has-more')).toBe(false);
   expect(screen.queryByText(/左右滑動|向右捲動/)).toBeNull();
 });
+
+test('a hidden column starts off, can be turned on in 「欄位」, and is off again after a new resetKey', async () => {
+  await page.viewport(1280, 800);
+  const columns = [
+    { key: 'name' as const, label: '名稱' },
+    { key: 'owner' as const, label: '負責人' },
+    { key: 'path' as const, label: '路徑', hidden: true },
+  ];
+  const rows = [{ id: 'a', name: 'alpha', owner: 'Sean', path: 'src/a.c' }];
+  const headers = () => [...document.querySelectorAll('[role="columnheader"]')].map((th) => th.textContent?.trim()).filter(Boolean);
+  const { rerender } = render(<DataTable columns={columns} rows={rows} urlSync={false} resetKey={1} />);
+  expect(headers()).toEqual(['名稱', '負責人']);
+  const user = userEvent.setup();
+  await user.click(screen.getByRole('button', { name: '欄位' }));
+  const box = await screen.findByRole('checkbox', { name: '路徑' });
+  expect(box.getAttribute('aria-checked')).toBe('false');
+  await user.click(box);
+  expect(box.getAttribute('aria-checked')).toBe('true');
+  await waitFor(() => expect(headers()).toEqual(['名稱', '負責人', '路徑']));
+  // Turning off a column shown by default is reset too.
+  await user.click(screen.getByRole('checkbox', { name: '負責人' }));
+  await waitFor(() => expect(headers()).toEqual(['名稱', '路徑']));
+  await user.keyboard('{Escape}');
+  rerender(<DataTable columns={columns} rows={rows} urlSync={false} resetKey={2} />);
+  await waitFor(() => expect(headers()).toEqual(['名稱', '負責人']));
+});
