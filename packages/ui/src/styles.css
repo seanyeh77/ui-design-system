@@ -2067,6 +2067,10 @@ body {
 .ui-tooltip {
   transform-origin: var(--transform-origin);
 }
+/* Closing: no animation left to wait for, so the popup leaves at once (an entrance still running kept it on screen). */
+.ui-tooltip[data-ending-style] {
+  animation: none;
+}
 .ui-tooltip.is-wrap {
   max-width: min(360px, calc(100vw - 2 * var(--space-3)));
   font-weight: 400;
@@ -5139,7 +5143,8 @@ html.ui-theme-fade * {
   margin-top: var(--space-1);
 }
 .ui-lg .ui-lg-chip {
-  position: static;
+  /* In the flow, but still positioned: the touch area (::after, sized in %) must measure against the box itself. */
+  position: relative;
   gap: 0;
   min-height: 48px;
   max-width: 100%;

@@ -12,7 +12,7 @@ import { measure } from './measure';
 
 const HELP = `ui check <file or URL>... [--shots DIR] [--strict] [--wait MS]
   Opens each page at 390 px and 1280 px, light and dark, and fails (exit 1) on:
-  console errors, horizontal overflow at 390 px, touch targets under 48 px, a card inside a card,
+  console errors, horizontal overflow at 390 px, touch targets under 48 px, touch areas that spill past their control, a card inside a card,
   raw Markdown, native controls the design system replaces, and wrapped buttons, tabs, headers or headings.
   Exits 2 when a page cannot be checked at all: it does not load, or the check itself crashes.
 ui docs [Name]   prints the README of a component (Button, DataTable…) or a guide (guidelines, layout, motion)
@@ -129,6 +129,7 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
           if (res.wrapped.length) problems.push('text that must stay on one line wraps: ' + res.wrapped.join('; '));
           if (phone) {
             if (res.overflow.length) problems.push('horizontal overflow: ' + res.overflow.join('; '));
+            if (res.escaped.length) problems.push('touch area larger than its control (covers other controls): ' + res.escaped.join('; '));
             if (res.small.length)
               problems.push(
                 `touch targets under 48 px: ${res.small.slice(0, 12).join('; ')}${res.small.length > 12 ? ` (+${res.small.length - 12} more)` : ''}`,

@@ -88,7 +88,7 @@ No native `<select>`, `<table>` or checkbox (use Select, DataTable, Checkbox); o
 
 ### Before you finish
 
-Run `npx @seanyeh77/ui-cli check <file or URL>`. It opens the page at 390 px and 1280 px, light and dark, and fails on console errors, horizontal overflow at 390 px, touch targets under 48 px, a card inside a card, raw Markdown, native controls the system replaces, and wrapped buttons, tabs, headers or headings. Add `--shots shots/` and look at the screenshots for the rest of this list:
+Run `npx @seanyeh77/ui-cli check <file or URL>`. It opens the page at 390 px and 1280 px, light and dark, and fails on console errors, horizontal overflow at 390 px, touch targets under 48 px, touch areas that spill past their control, a card inside a card, raw Markdown, native controls the system replaces, and wrapped buttons, tabs, headers or headings. Add `--shots shots/` and look at the screenshots for the rest of this list:
 
 - Components: wherever `@seanyeh77/ui` has a component for the job, it is used and its README was read. Nothing is hand-built that a component covers.
 - Fonts: Geist Mono only on numbers, code, file paths and IDs, never on a Chinese sentence or a whole meta line.

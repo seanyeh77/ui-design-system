@@ -7,10 +7,12 @@ export interface Findings {
   markdown: string[];
   native: string[];
   wrapped: string[];
+  /** Touch areas (::before / ::after) larger than their own control: on a static element they size against an ancestor. */
+  escaped: string[];
 }
 
 export function measure(): Findings {
-  const out: Findings = { overflow: [], small: [], inline: [], nested: [], markdown: [], native: [], wrapped: [] };
+  const out: Findings = { overflow: [], small: [], inline: [], nested: [], markdown: [], native: [], wrapped: [], escaped: [] };
   const describe = (el: Element) => {
     let s = el.tagName.toLowerCase();
     const cls = [...el.classList].filter((c) => c.startsWith('ui-')).slice(0, 2);
@@ -67,8 +69,16 @@ export function measure(): Findings {
     for (const pe of ['::before', '::after']) {
       const ps = getComputedStyle(el, pe);
       if (ps.content && ps.content !== 'none' && ps.position === 'absolute' && ps.pointerEvents !== 'none') {
-        w = Math.max(w, parseFloat(ps.width) || 0);
-        h = Math.max(h, parseFloat(ps.height) || 0);
+        const pw = parseFloat(ps.width) || 0;
+        const ph = parseFloat(ps.height) || 0;
+        // An area bigger than the control and the 48 px target is measured against an ancestor (the control is not
+        // positioned): it covers other controls, up to the whole page. It does not count as this control's target.
+        if (cs.position === 'static' || pw > Math.max(r.width, 48) + 1 || ph > Math.max(r.height, 48) + 1) {
+          if (out.escaped.length < 8) out.escaped.push(`${describe(el)}${pe} ${Math.round(pw)} x ${Math.round(ph)} px`);
+          continue;
+        }
+        w = Math.max(w, pw);
+        h = Math.max(h, ph);
       }
     }
     if (w >= 47.5 && h >= 47.5) continue;
