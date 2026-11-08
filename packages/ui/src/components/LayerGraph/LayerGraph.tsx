@@ -2,6 +2,7 @@ import * as React from 'react';
 import { GraphLegend, type GraphLegendItem } from '../Graph/Graph';
 import { tr } from '../../i18n';
 import { cx, monoNums } from '../../internal/util';
+import { Icon } from '../../icons/Icon';
 import { devWarn } from '../../internal/dev';
 
 export interface LayerGraphNode {
@@ -181,6 +182,27 @@ export function LayerGraph(p: LayerGraphProps) {
   const edgeId = (e: LayerGraphEdge) => e.id ?? `${e.from}->${e.to}`;
   const pickEdge = p.onSelectEdge;
   const [hover, setHover] = React.useState<string | null>(null);
+  // Wider than its box: a fade on the right while more is to the right, and a 「左右滑動」 hint until the first scroll.
+  const scroller = React.useRef<HTMLDivElement>(null);
+  const [more, setMore] = React.useState(false);
+  const [scrolled, setScrolled] = React.useState(false);
+  const [overflows, setOverflows] = React.useState(false);
+  const measureScroll = React.useCallback(() => {
+    const el = scroller.current;
+    if (!el) return;
+    const wide = el.scrollWidth > el.clientWidth + 1;
+    setOverflows(wide);
+    setMore(wide && el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  }, []);
+  React.useLayoutEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    measureScroll();
+    const ro = new ResizeObserver(measureScroll);
+    ro.observe(el);
+    if (el.firstElementChild) ro.observe(el.firstElementChild);
+    return () => ro.disconnect();
+  }, [measureScroll]);
   const selEdge = (pickEdge && edges.find((e) => edgeId(e) === p.selectedEdge)) || null;
   // A selected box highlights its edges; a selected edge highlights itself, and both of its boxes stay undimmed.
   const related = (e: LayerGraphEdge) => (selEdge ? e === selEdge : !!sel && (e.from === sel || e.to === sel));
@@ -241,12 +263,14 @@ export function LayerGraph(p: LayerGraphProps) {
     const r = related(e);
     const dim = focus && !r;
     const picked = e === selEdge;
-    const w = (e.inferred ? 1.5 : 1.5 + 5.5 * ((e.count || 0) / maxCount)) + (picked ? 1.5 : 0);
+    const hovered = !!pickEdge && hover === edgeId(e) && !r;
+    // Hover on a selectable line: darker and 2 px thicker.
+    const w = (e.inferred ? 1.5 : 1.5 + 5.5 * ((e.count || 0) / maxCount)) + (picked ? 1.5 : 0) + (hovered ? 2 : 0);
     const d = route(clean(pts), 10);
     paths.push(
       <path
         key={'p' + idx}
-        className={cx('ui-lg-edge', e.inferred && 'is-inferred', r && 'is-related', dim && 'is-dim', pickEdge && hover === edgeId(e) && 'is-hover')}
+        className={cx('ui-lg-edge', e.inferred && 'is-inferred', r && 'is-related', dim && 'is-dim', hovered && 'is-hover')}
         d={d}
         strokeWidth={w}
       />,
@@ -309,7 +333,7 @@ export function LayerGraph(p: LayerGraphProps) {
         // With onSelectEdge the label selects its edge too (a mouse and touch target; keyboard uses the line itself).
         <span
           key={'l' + m.idx}
-          className={cx('ui-lg-label', pickEdge && 'is-clickable', m.r && 'is-related', m.dim && 'is-dim')}
+          className={cx('ui-lg-label', pickEdge && 'is-clickable', pickEdge && hover === edgeId(m.e) && 'is-hover', m.r && 'is-related', m.dim && 'is-dim')}
           style={{ left: x0, top }}
           onClick={
             pickEdge
@@ -377,26 +401,41 @@ export function LayerGraph(p: LayerGraphProps) {
   });
   return (
     <div className={cx('ui-graph ui-lg', p.className)}>
-      <div className="ui-lg-scroll">
+      <div className={cx('ui-lg-scroller', more && 'has-more')}>
         <div
-          className="ui-lg-canvas"
-          style={{ width: W, height: H }}
-          role="group"
-          aria-label={p.label || tr('架構圖')}
-          // A click on the empty diagram clears the selected edge.
-          onClick={pickEdge && p.selectedEdge != null ? () => pickEdge(null) : undefined}
+          className="ui-lg-scroll"
+          ref={scroller}
+          onScroll={() => {
+            setScrolled(true);
+            measureScroll();
+          }}
         >
-          <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
-            {paths}
-          </svg>
-          {nodes}
-          {labels}
-          {hitPaths.length ? (
-            <svg className="ui-lg-hits" width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
-              {hitPaths}
+          <div
+            className="ui-lg-canvas"
+            style={{ width: W, height: H }}
+            role="group"
+            aria-label={p.label || tr('架構圖')}
+            // A click on the empty diagram clears the selected edge.
+            onClick={pickEdge && p.selectedEdge != null ? () => pickEdge(null) : undefined}
+          >
+            <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+              {paths}
             </svg>
-          ) : null}
+            {nodes}
+            {labels}
+            {hitPaths.length ? (
+              <svg className="ui-lg-hits" width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
+                {hitPaths}
+              </svg>
+            ) : null}
+          </div>
         </div>
+        {overflows && !scrolled ? (
+          <span className="ui-lg-hint" aria-hidden="true">
+            <Icon name="arrow-right" size={14} />
+            {tr('左右滑動')}
+          </span>
+        ) : null}
       </div>
       {shared.length ? (
         <div className="ui-lg-shared">

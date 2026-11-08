@@ -53,6 +53,7 @@ export const I18N: I18nState = {
       '日期格式不正確，請寫成 2026/11/14': 'Invalid date. Use 2026/11/14.',
       更多操作: 'More actions',
       更多: 'More',
+      左右滑動: 'Scroll sideways',
       全部頁面: 'All pages',
       '最近 30 天': 'Last 30 days',
       '最近 7 天': 'Last 7 days',

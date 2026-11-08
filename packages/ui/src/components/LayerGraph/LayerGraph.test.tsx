@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { expect, test, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { page } from 'vitest/browser';
+import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { LayerGraph, type LayerGraphEdge } from '../../index';
 
@@ -96,4 +97,39 @@ test('LayerGraph: a click on the empty diagram clears the selected line', async 
     coords: { x: canvas.getBoundingClientRect().left + 2, y: canvas.getBoundingClientRect().top + 2 },
   });
   expect(onEdge).toHaveBeenLastCalledWith(null);
+});
+
+test('LayerGraph: hovering a selectable line makes it darker and 2 px thicker; its label underlines', async () => {
+  const { container } = render(<Demo onEdge={() => {}} onBox={() => {}} />);
+  const line = container.querySelectorAll<SVGPathElement>('.ui-lg-edge')[0];
+  const before = Number(line.getAttribute('stroke-width'));
+  await user.hover(screen.getByRole('button', { name: 'src/ibmon → src/libibtrace，環境變數 `IBTRACE_SHM`' }));
+  expect(line.classList.contains('is-hover')).toBe(true);
+  expect(Number(line.getAttribute('stroke-width'))).toBe(before + 2);
+  expect(container.querySelector('.ui-lg-label')?.classList.contains('is-hover')).toBe(true);
+});
+
+test('LayerGraph: wider than its box, it shows a fade and a hint until scrolled', async () => {
+  const { container } = render(
+    <div style={{ width: 326 }}>
+      <LayerGraph nodes={nodes} edges={edges} legend={false} />
+    </div>,
+  );
+  const outer = container.querySelector<HTMLElement>('.ui-lg-scroller');
+  const box = container.querySelector<HTMLElement>('.ui-lg-scroll');
+  if (!outer || !box) throw new Error('no scroller');
+  await waitFor(() => expect(outer.classList.contains('has-more')).toBe(true));
+  expect(screen.getByText('左右滑動')).toBeTruthy();
+  box.scrollLeft = box.scrollWidth;
+  box.dispatchEvent(new Event('scroll'));
+  await waitFor(() => expect(outer.classList.contains('has-more')).toBe(false));
+  expect(screen.queryByText('左右滑動')).toBeNull();
+});
+
+test('LayerGraph: no fade or hint when it fits', async () => {
+  await page.viewport(1280, 900);
+  const { container } = render(<LayerGraph nodes={nodes} edges={edges} legend={false} />);
+  await new Promise((r) => setTimeout(r, 50));
+  expect(container.querySelector('.ui-lg-scroller')?.classList.contains('has-more')).toBe(false);
+  expect(screen.queryByText('左右滑動')).toBeNull();
 });
