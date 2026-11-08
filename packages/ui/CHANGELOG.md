@@ -1,5 +1,11 @@
 # @seanyeh77/ui
 
+## 0.6.1
+
+### Patch Changes
+
+- 2e8d631: MobileTabBar: back to icons only (T0), as before 0.6.0: no names under the icons, each tab named by its `aria-label`, the bar 60 px tall.
+
 ## 0.6.0
 
 ### Minor Changes
