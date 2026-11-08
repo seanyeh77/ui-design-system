@@ -15,13 +15,15 @@ export interface DrawerProps {
   dirty?: boolean;
   /** px. Default 400. */
   width?: number;
+  /** Which edge it slides in from. Default 'right'; 'left' for navigation opened from a menu button at the left. */
+  side?: 'right' | 'left';
   confirmTitle?: string;
   confirmText?: string;
   children?: React.ReactNode;
 }
 
 /** A 400 px panel from the right for editing one item without leaving the page. */
-export function Drawer({ open, onClose, title, actions, dirty, width, confirmTitle, confirmText, children }: DrawerProps) {
+export function Drawer({ open, onClose, title, actions, dirty, width, side = 'right', confirmTitle, confirmText, children }: DrawerProps) {
   const [asking, setAsking] = React.useState(false);
   const request = () => (dirty ? setAsking(true) : onClose());
   const panel = React.useRef<HTMLDivElement>(null);
@@ -34,7 +36,7 @@ export function Drawer({ open, onClose, title, actions, dirty, width, confirmTit
     <Base.Root open={open} onOpenChange={(next) => !next && request()}>
       <Base.Portal>
         <Base.Backdrop className="ui-drawer-backdrop" />
-        <Base.Popup ref={panel} initialFocus={firstField} className="ui-drawer" style={width ? { width } : undefined}>
+        <Base.Popup ref={panel} initialFocus={firstField} className={side === 'left' ? 'ui-drawer is-left' : 'ui-drawer'} style={width ? { width } : undefined}>
           <div className="ui-drawer-head">
             <Base.Title className="ui-drawer-title">{title}</Base.Title>
             <button type="button" className="ui-drawer-close ui-dialog-close" aria-label={tr('關閉')} onClick={request}>
