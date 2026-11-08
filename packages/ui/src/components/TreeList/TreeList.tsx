@@ -8,6 +8,7 @@ import { fileSize, format } from '../../format';
 import { tr } from '../../i18n';
 import { Icon, IconOf, type IconSource } from '../../icons/Icon';
 import { cx, digits, reduced } from '../../internal/util';
+import { announce } from '../../announce';
 import { devWarn } from '../../internal/dev';
 import { CheckMark } from '../../internal/Field';
 
@@ -169,6 +170,7 @@ export function TreeList(p: TreeListProps) {
     if (!p.selected) setOwnSel(v);
     p.onSelectChange?.(v);
   };
+  const uid = React.useId().replace(/:/g, '');
   const [focusId, setFocusId] = React.useState<string | null>(null);
   const refs = React.useRef<Record<string, HTMLDivElement | null>>({});
   const want = React.useRef<string | null>(null);
@@ -203,6 +205,9 @@ export function TreeList(p: TreeListProps) {
       Object.keys(o).filter((k) => o[k]),
     );
     if (!p.open) setOwnOpen(o);
+    // Screen readers hear what happened and how many children opened.
+    const c = will ? kids(n) : null;
+    announce(will ? (c ? tr('已展開，{n} 個子項目', { n: c.length }) : tr('已展開')) : tr('已收合'));
   };
   const checkState = (n: TreeNode): boolean | 'mixed' => {
     const fl = filesUnder(n);
@@ -287,6 +292,8 @@ export function TreeList(p: TreeListProps) {
     'aria-posinset': r.pos,
     'aria-setsize': r.size,
     'aria-expanded': r.isF ? r.open : undefined,
+    // The children's group sits after the row (the row is a grid); aria-owns ties it to this item.
+    'aria-owns': r.isF && r.open ? `${uid}-g-${r.n.id}` : undefined,
     style: vars({ '--d': r.depth }),
     onFocus: () => focusId !== r.n.id && setFocusId(r.n.id),
   });
@@ -299,6 +306,8 @@ export function TreeList(p: TreeListProps) {
       <div
         key={n.id}
         {...itemProps(r, idx)}
+        // Only the item's own words: name, meta, then the full path (the shortened one would read 「…」 aloud).
+        aria-label={[n.name, n.meta, n.path].filter(Boolean).join('，')}
         aria-selected={p.onSelect ? on : undefined}
         className={cx('ui-tree-row', 'is-plain', on && 'is-current', n.muted && 'is-muted', r.fresh && 'ui-tree-in')}
         onClick={() => {
@@ -312,7 +321,8 @@ export function TreeList(p: TreeListProps) {
           type="button"
           tabIndex={-1}
           className={cx('ui-tree-caret', 'ui-tree-caretbtn', r.open && 'is-open', !isF && 'is-leaf')}
-          aria-label={`${r.open ? tr('收合') : tr('展開')} ${n.name}`}
+          // A mouse target only: the item itself says whether it is expanded.
+          aria-hidden="true"
           onClick={(e) => {
             e.stopPropagation();
             if (isF) toggle(n);
@@ -546,6 +556,27 @@ export function TreeList(p: TreeListProps) {
         </span>
       </div>
     ) : null;
+  // The flat rows nested again: each open item's children in a role="group" right after it.
+  const render1 = (r: NodeRow | ExtraRow) => (r.x ? extraRow(r) : plain ? plainRow(r, rows.indexOf(r)) : fileRow(r, rows.indexOf(r)));
+  const nest = (start: number, depth: number): [React.ReactNode[], number] => {
+    const out: React.ReactNode[] = [];
+    let i = start;
+    while (i < every.length && every[i].depth >= depth) {
+      const r = every[i];
+      out.push(render1(r));
+      i++;
+      if (!r.x && r.open && i < every.length && every[i].depth > depth) {
+        const [kidsOut, next] = nest(i, depth + 1);
+        out.push(
+          <div key={'g-' + r.n.id} id={`${uid}-g-${r.n.id}`} role="group" className="ui-tree-group">
+            {kidsOut}
+          </div>,
+        );
+        i = next;
+      }
+    }
+    return [out, i];
+  };
   return (
     <section
       className={cx(
@@ -569,7 +600,7 @@ export function TreeList(p: TreeListProps) {
           className="ui-tree-list"
           onKeyDown={onKey}
         >
-          {every.map((r) => (r.x ? extraRow(r) : plain ? plainRow(r, rows.indexOf(r)) : fileRow(r, rows.indexOf(r))))}
+          {nest(0, 0)[0]}
         </div>
       ) : (
         <p className="ui-tree-empty">{p.emptyText || (plain ? tr('沒有項目') : tr('這裡還沒有檔案'))}</p>

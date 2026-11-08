@@ -41,9 +41,10 @@ export function Term({ children, title, text, content, code, action, refHref, on
   const heading = title || (typeof children === 'string' ? children : '');
   const trigger = (
     <button type="button" ref={ref} className={cx('ui-term', inline && 'is-inline', open && 'is-open', className)}>
+      {/* Read as 「說明 caller」: what the button does, then the word. */}
+      <span className="ui-visually-hidden">{tr('說明') + ' '}</span>
       {children}
       <Icon name="question" size={14} className="ui-term-q" />
-      <span className="ui-visually-hidden">{tr('（說明）')}</span>
     </button>
   );
   const body = (Title: typeof Popover.Title | typeof Dialog.Title, Close: typeof Popover.Close | typeof Dialog.Close) => (

@@ -3,6 +3,8 @@ import { format } from '../../format';
 import { dropTransition, useMoving } from '../../motion';
 import { cx } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
+import { useFocusRescue } from '../../internal/focus';
+import { announce } from '../../announce';
 import { tr } from '../../i18n';
 
 export interface TabItem<V extends string = string> {
@@ -32,6 +34,17 @@ export function Tabs<V extends string = string>({ items, value, onChange, label,
   const [box, setBox] = React.useState<{ left: number; right: number } | null>(null);
   const [forward, setForward] = React.useState(true);
   const [moving, bump] = useMoving();
+  // The focused tab re-rendered away (new items, the app swapped the list): focus goes to the selected tab.
+  useFocusRescue(
+    track,
+    () =>
+      refs.current[
+        Math.max(
+          0,
+          items.findIndex((t) => t.id === value),
+        )
+      ],
+  );
   devWarn(
     items.some((t) => t.count != null && !(t.unit || unit)),
     'Tabs',
@@ -58,6 +71,10 @@ export function Tabs<V extends string = string>({ items, value, onChange, label,
     setForward(i > idx);
     bump();
     onChange?.(items[i].id);
+    announce(
+      items[i].label +
+        (items[i].count != null ? ' ' + format.number(items[i].count ?? 0) + (items[i].unit || unit ? ' ' + tr(items[i].unit || unit || '') : '') : ''),
+    );
   };
   return (
     <div ref={track} className={cx('ui-tabs', className)} role="tablist" aria-label={label}>
@@ -89,10 +106,17 @@ export function Tabs<V extends string = string>({ items, value, onChange, label,
           }}
         >
           {t.label}
+          {/* A space between the name and its count, also for screen readers: 「全部 26 個」. */}
+          {t.count != null ? ' ' : null}
           {t.count != null ? (
             <span className="ui-tab-count">
               {format.number(t.count)}
-              {t.unit || unit ? <span className="ui-unit"> {tr(t.unit || unit || '')}</span> : null}
+              {t.unit || unit ? (
+                <>
+                  {' '}
+                  <span className="ui-unit">{tr(t.unit || unit || '')}</span>
+                </>
+              ) : null}
             </span>
           ) : null}
         </button>

@@ -278,3 +278,35 @@ Claude 定的細節（待確認）：
 使用者的要求：「要是 T0」
 
 - T0：手機底部分頁列只有圖示，名稱只在 `aria-label`，分頁列 60 px 高。取代「TARA」裡的 TA（0.6.0 的每格加名稱）；RA 不變。
+
+## codemap 第三輪角色試用（螢幕閱讀器、平板、手機）
+
+使用者的要求（節錄）：焦點不能掉回 `body`（Tour 完成或略過、CommandPalette 選取或 Escape、Tabs 切換、ActionBar 按鈕被移除或換掉）；提供 polite live region 和 `UI.announce(text)`，TreeList 展開、DataTable 篩選或搜尋、CommandPalette 結果、Tabs 和 SideNav 換頁要播報；AppShell 要有 `main` landmark 和「跳到主要內容」；LayerGraph 改用 `group` 或 list 語意；CodeView 每一行是獨立節點、行號另外標示、target 有 `aria-current`、app 可以把焦點移到 target；TreeList 名稱只有「名稱，meta，path」並用 `role="group"`；Term 念「說明 caller」、Tour 念「第 1 步，共 5 步」、Tabs 的數字前有空格；觸控裝置上點別處或捲動時關掉 Tooltip。
+
+Claude 定的細節（待確認）：
+
+- `focusMain()` 的目標順序：`main` 裡第一個 `h1`／`h2`、頂部列的標題、`main` 本身；沒有 `tabindex` 時加上 `tabindex="-1"`。
+- 「跳到主要內容」平常移出畫面，聚焦時出現在左上角（白底、強調色字、浮起陰影）。
+- 焦點遞補：被移除、換掉或變成不能按的按鈕，焦點給同一個位置的按鈕，沒有時給前一個，再沒有時 `focusMain()`。Tabs 則一律給選中的分頁。
+- 播報的時機：DataTable 和 CommandPalette 在輸入停下 400 ms 後；SideNav 在 `value` 改變時念新頁名稱；Tabs 念分頁名稱和數字。
+- CodeView：每行是 `listitem`，「第 62 行：」用看不見、不能選取的文字放在行首；`pre` 叫「程式碼」；`ref.focusTarget()`。
+- TreeList 子項目的 group 放在列的後面，用 `aria-owns` 連到上層項目（列本身是格線排版）。
+- SideNav 和 MobileTabBar 原本就有 `aria-current="page"`，這次加了測試。
+
+LayerGraph 文字版、平板側邊欄、架構圖旁邊有面板、手機上往上的線的標籤：見下一節的選擇。
+
+## 架構圖文字版、平板側邊欄、架構圖旁邊有面板、手機上往上的線的標籤
+
+XCFBNBPB
+
+- XC：LayerGraph 右上角有「圖／清單」切換，預設是圖；清單列出每個方框和每條線，所有人都能用，也能點選。（其他選項：一直放在圖的下方、只給螢幕閱讀器。）
+- FB：架構圖比外框寬時維持原尺寸捲動，切換區塊再回來時回到上次的捲動位置。（其他選項：維持現狀、縮放到能完整顯示。）
+- NB：1024 px 以下改成抽屜：沒有側邊欄，頂部列左邊的選單按鈕打開完整導覽。（其他選項：照現在的規則、1024 px 以下預設收合。）
+- PB：往上的線的標籤放在線旁邊、兩層之間的空隙，不另外加寬。（其他選項：一行放在通道外側、窄螢幕時換行、簡短標籤點了看全文。）
+
+Claude 定的細節（待確認）：
+
+- XC 的切換用 Tabs（分段控制），文字「圖」「清單」；清單標題預設「項目」「關係」，推測的線寫「標籤（推測）」；清單模式時隱藏共用項目和圖例。
+- FB 的記憶以 `scrollKey`（預設是所有方框的 id）為準，存在這一頁的記憶體裡，重新整理後不保留；清單和圖之間切換也會記住。
+- NB 的範圍是 600 到 1024 px；手機（小於 600 px）維持底部分頁列。選單按鈕在頂部列最左邊，圖示是 `list-bullets`，抽屜標題「全部頁面」。
+- PB 套用在所有寬度（不只手機）。標籤避開方框、其他標籤和其他線；如果兩層之間沒有不壓到線的位置（例如往下的線穿過整個空隙），允許蓋在線上（標籤有白底），但仍不壓到方框和其他標籤。

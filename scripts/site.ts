@@ -53,7 +53,9 @@ for (const name of readdirSync(compDir).sort()) {
   if (existsSync(preview)) {
     const src = readFileSync(preview, 'utf8');
     group = /group="([^"]+)"/.exec(src)?.[1] ?? 'Other';
-    const body = src.slice(src.indexOf('<body>') + 6, src.indexOf('</body>'));
+    // <body> may carry attributes (<body style="padding: 0">): start after the tag, whatever it holds.
+    const open = /<body[^>]*>/.exec(src);
+    const body = src.slice(open ? open.index + open[0].length : 0, src.indexOf('</body>'));
     writeFileSync(new URL(`preview/${name}.html`, site), head(name) + body + '</body>\n</html>\n');
   }
   if (existsSync(readme)) {

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { tr } from '../../i18n';
 import { Icon, IconOf, type IconSource } from '../../icons/Icon';
 import { dropTransition, useMoving } from '../../motion';
+import { announce } from '../../announce';
 import { cx } from '../../internal/util';
 
 export interface NavItem {
@@ -40,6 +41,16 @@ export function SideNav({ sections, value, onChange, collapsed = false, onToggle
   const [bar, setBar] = React.useState({ top: 0, bottom: 0, show: false, down: true });
   const last = React.useRef<{ top: number; bottom: number } | null>(null);
   const [moving, bump] = useMoving();
+  // A page change is announced (not the first page): screen readers hear where they are now.
+  const firstValue = React.useRef<string | undefined>(value);
+  React.useEffect(() => {
+    if (value === firstValue.current) return;
+    firstValue.current = undefined;
+    const all = sections.flatMap((sec) => sec.items.flatMap((it) => [it, ...(it.children ?? [])]));
+    const it = all.find((x) => x.id === value);
+    if (it) announce(it.label);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the page changes
+  }, [value]);
   const [closed, setClosed] = React.useState<Record<string, boolean>>({});
   const closedKey = Object.keys(closed)
     .filter((k) => closed[k])

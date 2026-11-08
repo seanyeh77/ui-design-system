@@ -90,3 +90,51 @@ test('touch: a link inside a sentence keeps its line', async () => {
   await new Promise((r) => setTimeout(r, 50));
   expect(container.querySelector('.ui-code')?.classList.contains('is-inline')).toBe(true);
 });
+
+test('touch: a Tooltip opened by tapping a cut-off cell closes on a tap elsewhere and on scroll', async () => {
+  const LONG = '找不到 child.c，完整路徑應為 src/ibmon/child.c:86，請改成完整路徑後重新執行檢查，再確認 IBTRACE_SHM 的設定';
+  await page.viewport(820, 700);
+  const { container } = render(
+    <div style={{ width: 760, height: 1600 }}>
+      <UI.DataTable
+        urlSync={false}
+        search={false}
+        rows={[
+          { id: '1', name: 'main.c', t: LONG },
+          { id: '2', name: 'shm.c', t: LONG },
+        ]}
+        columns={[
+          { key: 'name', label: '名稱' },
+          { key: 't', label: '說明', long: true },
+        ]}
+      />
+      <button type="button">別處</button>
+    </div>,
+  );
+  const tips = () => document.querySelectorAll('.ui-tooltip').length;
+  const cell = await new Promise<HTMLElement>((ok, fail) => {
+    const t0 = Date.now();
+    const look = () => {
+      const el = container.querySelector<HTMLElement>('.ui-dt-long.is-cut');
+      if (el) ok(el);
+      else if (Date.now() - t0 > 2000) fail(new Error('no cut cell'));
+      else setTimeout(look, 50);
+    };
+    look();
+  });
+  cell.focus();
+  await new Promise((r) => setTimeout(r, 100));
+  expect(tips()).toBe(1);
+  // A tap on something else.
+  document.querySelector('button')?.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+  await new Promise((r) => setTimeout(r, 100));
+  expect(tips()).toBe(0);
+  cell.blur();
+  cell.focus();
+  await new Promise((r) => setTimeout(r, 100));
+  expect(tips()).toBe(1);
+  window.dispatchEvent(new Event('scroll'));
+  document.dispatchEvent(new Event('scroll'));
+  await new Promise((r) => setTimeout(r, 100));
+  expect(tips()).toBe(0);
+});

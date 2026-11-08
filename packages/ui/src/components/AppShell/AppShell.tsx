@@ -7,6 +7,8 @@ import { tr } from '../../i18n';
 import type { BreadcrumbItem } from '../Breadcrumb/Breadcrumb';
 import { cx, store, useMedia, useNarrow } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
+import { ensureAnnouncer } from '../../announce';
+import { focusMain } from '../../internal/focusMain';
 
 export interface AppShellProps {
   /** Sidebar groups. On phones, top-level items with an icon become bottom tabs; pages they cannot reach go under 「更多」. */
@@ -29,15 +31,19 @@ export interface AppShellProps {
 }
 
 const COLLAPSE_KEY = 'ui-nav-collapsed';
+
+export { focusMain };
 const MORE = '\u0000more';
 
-/** The dashboard frame: sidebar (240 px, 72 px collapsed and on tablets), top bar, and bottom tabs on phones.
+/** The dashboard frame: sidebar (240 px, 72 px collapsed) above 1024 px, a drawer from the top bar's menu button from
+ *  600 to 1024 px, and bottom tabs on phones.
  *  The top bar hides while scrolling down and returns when scrolling up. */
 export function AppShell({ nav, value, onNavigate, brand, title, breadcrumb, onSearch, actions, children, className }: AppShellProps) {
   const phone = useNarrow();
-  const tablet = useMedia('(min-width: 600px) and (max-width: 959px)');
+  // 600 to 1024 px (tablets, narrow windows): no sidebar; the top bar's menu button opens the whole nav in a drawer.
+  const tablet = useMedia('(min-width: 600px) and (max-width: 1024px)');
   const [userCollapsed, setUserCollapsed] = React.useState(() => store(COLLAPSE_KEY) === '1');
-  const collapsed = tablet || userCollapsed;
+  const collapsed = userCollapsed;
   const top = nav.flatMap((s) => s.items);
   const parentOf = (id: string) => top.find((it) => it.children?.some((c) => c.id === id));
   // Phones: top-level items with an icon become tabs (a group opens its first page).
@@ -74,35 +80,51 @@ export function AppShell({ nav, value, onNavigate, brand, title, breadcrumb, onS
     return () => el.removeEventListener('scroll', onScroll);
   }, []);
 
+  React.useEffect(() => {
+    ensureAnnouncer();
+  }, []);
   return (
     <div className={cx('ui-shell', phone && 'is-phone', className)}>
-      {phone ? null : (
+      {/* First stop for the keyboard: skips the navigation. */}
+      <a
+        className="ui-skip"
+        href="#main"
+        onClick={(e) => {
+          e.preventDefault();
+          focusMain();
+        }}
+      >
+        {tr('跳到主要內容')}
+      </a>
+      {phone || tablet ? null : (
         <SideNav
           sections={nav}
           value={value}
           onChange={onNavigate}
           brand={brand}
           collapsed={collapsed}
-          onToggle={
-            tablet
-              ? undefined
-              : () => {
-                  store(COLLAPSE_KEY, userCollapsed ? '0' : '1');
-                  setUserCollapsed(!userCollapsed);
-                }
-          }
+          onToggle={() => {
+            store(COLLAPSE_KEY, userCollapsed ? '0' : '1');
+            setUserCollapsed(!userCollapsed);
+          }}
         />
       )}
       <div className="ui-shell-body">
-        <TopBar className={cx('ui-shell-top', hidden && 'is-hidden')} title={title} breadcrumb={breadcrumb} onSearch={onSearch ?? false}>
+        <TopBar
+          className={cx('ui-shell-top', hidden && 'is-hidden')}
+          title={title}
+          breadcrumb={breadcrumb}
+          onSearch={onSearch ?? false}
+          onMenu={tablet ? () => setMoreOpen(true) : undefined}
+        >
           {actions}
         </TopBar>
-        <main ref={main} className="ui-shell-main">
+        <main ref={main} className="ui-shell-main" tabIndex={-1}>
           {children}
         </main>
         {phone && tabs.length ? <MobileTabBar items={tabs} value={tabValue} onChange={onTab} /> : null}
-        {phone ? (
-          <Drawer open={moreOpen} onClose={() => setMoreOpen(false)} title={tr('全部頁面')}>
+        {phone || tablet ? (
+          <Drawer open={moreOpen} onClose={() => setMoreOpen(false)} title={tr('全部頁面')} side={tablet ? 'left' : 'right'} width={tablet ? 300 : undefined}>
             <SideNav
               className="ui-shell-allnav"
               sections={nav}

@@ -15,13 +15,16 @@ export interface TopBarProps {
   searchLabel?: string;
   /** Right side: NotificationBell, ProjectSwitcher, the account menu. */
   children?: React.ReactNode;
+  /** A menu button at the left that opens the navigation (AppShell from 600 to 1024 px). */
+  onMenu?: () => void;
   className?: string;
 }
 
 /** The bar at the top of a dashboard page: title or breadcrumb on the left, search and tools on the right. */
-export function TopBar({ title, breadcrumb, onSearch, searchLabel, children, className }: TopBarProps) {
+export function TopBar({ title, breadcrumb, onSearch, searchLabel, children, onMenu, className }: TopBarProps) {
   return (
     <header className={cx('ui-topbar', className)}>
+      {onMenu ? <IconButton className="ui-topbar-menu" icon="list-bullets" label={tr('開啟導覽')} onClick={onMenu} /> : null}
       {title ? <h1 className="ui-topbar-title">{title}</h1> : null}
       {breadcrumb ? <Breadcrumb items={breadcrumb} /> : null}
       <div className="ui-topbar-end">

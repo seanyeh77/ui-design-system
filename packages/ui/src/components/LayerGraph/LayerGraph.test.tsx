@@ -74,7 +74,8 @@ test('LayerGraph: a line and a box are never selected together', async () => {
 test('LayerGraph: Tab reaches the lines after the boxes; Enter selects, Escape clears', async () => {
   const onEdge = vi.fn();
   render(<Demo onEdge={onEdge} onBox={() => {}} />);
-  for (let k = 0; k < 4; k++) await user.tab();
+  // The 「圖／清單」 switch, the three boxes, then the lines.
+  for (let k = 0; k < 5; k++) await user.tab();
   expect(document.activeElement?.getAttribute('aria-label')).toBe('src/ibmon → src/libibtrace，環境變數 IBTRACE_SHM');
   await user.keyboard('{Enter}');
   expect(onEdge).toHaveBeenLastCalledWith('shm');
@@ -245,4 +246,35 @@ test('LayerGraph: a line up can be selected, hovered and used from the keyboard'
   expect(onEdge).toHaveBeenCalledTimes(2);
   await user.click(screen.getByText('src/common'));
   expect(onEdge).toHaveBeenCalledTimes(3);
+});
+
+test('LayerGraph: the list view shows every box and line as text, selectable like the diagram', async () => {
+  const onEdge = vi.fn();
+  const onBox = vi.fn();
+  const { container } = render(<LayerGraph nodes={nodes} edges={edges} onSelect={onBox} onSelectEdge={onEdge} sizeLabel="{n} 個函式" />);
+  await user.click(screen.getByRole('tab', { name: '清單' }));
+  const list = container.querySelector('.ui-lg-list');
+  expect(list?.textContent).toContain('src/ibmon，91 個函式');
+  expect(list?.textContent).toContain('src/ibmon → src/libibtrace：環境變數 IBTRACE_SHM（推測）');
+  expect(list?.textContent).toContain('src/cli → src/libibtrace：7 次');
+  await user.click(screen.getByRole('button', { name: 'src/cli → src/libibtrace' }));
+  expect(onEdge).toHaveBeenLastCalledWith('cli->lib');
+  await user.click(screen.getByRole('button', { name: 'src/ibmon' }));
+  expect(onBox).toHaveBeenLastCalledWith('ibmon');
+  expect(container.querySelector('.ui-lg-scroller')?.classList.contains('is-hidden')).toBe(true);
+});
+
+test('LayerGraph: the sideways scroll comes back with the diagram', async () => {
+  await page.viewport(1280, 900);
+  const wide = (k: boolean) => (
+    <div style={{ width: 300 }}>{k ? <LayerGraph nodes={nodes} edges={edges} legend={false} listView={false} scrollKey="keep" /> : <p>其他區塊</p>}</div>
+  );
+  const { container, rerender } = render(wide(true));
+  const box = container.querySelector<HTMLElement>('.ui-lg-scroll');
+  if (!box) throw new Error('no scroller');
+  box.scrollLeft = 120;
+  box.dispatchEvent(new Event('scroll'));
+  rerender(wide(false));
+  rerender(wide(true));
+  expect(container.querySelector<HTMLElement>('.ui-lg-scroll')?.scrollLeft).toBe(120);
 });

@@ -2253,6 +2253,13 @@ body {
   transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
   transition-duration: 300ms;
 }
+.ui-drawer.is-left {
+  right: auto;
+  left: 0;
+}
+.ui-drawer.is-left:is([data-starting-style], [data-ending-style]) {
+  transform: translateX(-105%);
+}
 .ui-drawer-head {
   flex: 0 0 auto;
   display: flex;
@@ -3774,7 +3781,8 @@ html.ui-theme-fade * {
   box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .ui-tab-count {
-  margin-left: 6px;
+  /* With the space before it: about 6 px from the name. */
+  margin-left: 2px;
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--ink-muted);
@@ -4743,6 +4751,17 @@ html.ui-theme-fade * {
      reads as the next line of code. Nothing shows on a line that fits. */
   background: linear-gradient(var(--line-strong), var(--line-strong)) no-repeat 1.5ch 20px / 2px calc(100% - 20px);
 }
+/* 「第 62 行」 for screen readers only: never selected or copied with the code. */
+.ui-cv-sr {
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ui-cv-line.is-target:focus {
+  outline: none;
+  box-shadow:
+    inset 3px 0 0 var(--accent),
+    inset 0 0 0 2px var(--focus-ring);
+}
 /* An operator never splits across lines (-> stays ->). */
 .ui-cv-op {
   white-space: nowrap;
@@ -4921,6 +4940,64 @@ html.ui-theme-fade * {
 /* LayerGraph */
 .ui-lg-scroller {
   position: relative;
+}
+/* The list view keeps the diagram mounted (its scroll stays) but out of sight. */
+.ui-lg-scroller.is-hidden {
+  display: none;
+}
+.ui-lg-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-3);
+}
+.ui-lg-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.ui-lg-list ul {
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ui-lg-listtitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-muted);
+}
+.ui-lg-li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  min-height: 32px;
+  font-size: 14px;
+  transition: opacity 0.15s ease;
+}
+.ui-lg-libtn {
+  min-height: 32px;
+  padding: 0 var(--space-1);
+  margin-left: calc(-1 * var(--space-1));
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--accent-text);
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.ui-lg-libtn.is-selected {
+  background: var(--accent-soft);
+  font-weight: 700;
+}
+.ui-lg-libtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.ui-lg-limeta {
+  color: var(--ink);
 }
 .ui-lg-scroll {
   overflow-x: auto;
@@ -5343,6 +5420,37 @@ html.ui-theme-fade * {
 }
 .ui-shell-top.is-hidden {
   transform: translateY(-100%);
+}
+.ui-topbar-menu {
+  flex: 0 0 auto;
+  margin-left: calc(-1 * var(--space-2));
+}
+.ui-skip {
+  position: fixed;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: var(--touch-target);
+  left: var(--space-3);
+  top: var(--space-3);
+  z-index: 1000;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--accent-text);
+  box-shadow: var(--shadow-overlay);
+  font-weight: 600;
+  transform: translateY(calc(-100% - var(--space-6)));
+}
+.ui-skip:focus {
+  transform: none;
+  outline: none;
+  box-shadow:
+    var(--shadow-overlay),
+    0 0 0 3px var(--focus-ring);
+}
+.ui-shell-main:focus {
+  outline: none;
 }
 .ui-shell-main {
   flex: 1 1 auto;

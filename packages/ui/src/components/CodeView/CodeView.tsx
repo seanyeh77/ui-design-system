@@ -30,6 +30,13 @@ export interface CodeViewProps {
   /** Scrolls inside the box and keeps the target in view, e.g. '420px'. */
   maxHeight?: string;
   className?: string;
+  /** focusTarget() moves keyboard and screen-reader focus to the target line. */
+  ref?: React.Ref<CodeViewHandle>;
+}
+
+export interface CodeViewHandle {
+  /** Focuses the first target line (scrolled into view); nothing happens without a target. */
+  focusTarget: () => void;
 }
 
 // Where a long line may wrap: after these, never inside them. Multi-character operators stay whole.
@@ -76,6 +83,7 @@ export function CodeView({
   tokenizer = builtIn,
   maxHeight,
   className,
+  ref,
 }: CodeViewProps) {
   const lines = React.useMemo(
     () =>
@@ -99,6 +107,9 @@ export function CodeView({
   const from = windowed ? Math.max(0, ta - start - context) : 0;
   const to = windowed ? Math.min(lines.length, tb - start + context + 1) : lines.length;
   const body = React.useRef<HTMLPreElement>(null);
+  React.useImperativeHandle(ref, () => ({
+    focusTarget: () => body.current?.querySelector<HTMLElement>('.is-target')?.focus(),
+  }));
   React.useEffect(() => {
     const b = body.current;
     const el = b?.querySelector<HTMLElement>('.is-target');
@@ -111,11 +122,19 @@ export function CodeView({
     const n = start + i;
     const on = ta != null && tb != null && n >= ta && n <= tb;
     rows.push(
-      <div key={i} className={cx('ui-cv-line', on && 'is-target')} aria-current={on && n === ta ? 'location' : undefined}>
-        <span className="ui-cv-num" style={{ width: digits + 2 + 'ch' }}>
+      // One list item per line, so a screen reader moves line by line; 「第 62 行」 is said, not shown or copied.
+      <div
+        key={i}
+        role="listitem"
+        className={cx('ui-cv-line', on && 'is-target')}
+        aria-current={on && n === ta ? 'location' : undefined}
+        tabIndex={on && n === ta ? -1 : undefined}
+      >
+        <span className="ui-cv-num" style={{ width: digits + 2 + 'ch' }} aria-hidden="true">
           {n}
         </span>
         <span className="ui-cv-text">
+          <span className="ui-visually-hidden ui-cv-sr">{tr('第 {n} 行', { n }) + '：'}</span>
           {toks[i].map(([cls, text], j) =>
             cls ? (
               <span key={j} className={cls}>
@@ -155,8 +174,8 @@ export function CodeView({
   return (
     <div className={cx('ui-cv', className)} role="region" aria-label={file || title || tr('原始碼')}>
       {head}
-      <pre ref={body} className="ui-cv-body" style={maxHeight ? { maxHeight } : undefined} tabIndex={0}>
-        <code>{rows}</code>
+      <pre ref={body} className="ui-cv-body" style={maxHeight ? { maxHeight } : undefined} tabIndex={0} aria-label={tr('程式碼')}>
+        <code role="list">{rows}</code>
       </pre>
       {narrow && canWindow ? (
         <button type="button" className="ui-link-btn ui-cv-more" onClick={() => setAll(!all)}>

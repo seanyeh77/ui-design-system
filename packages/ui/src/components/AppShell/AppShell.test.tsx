@@ -53,3 +53,33 @@ test('phones: a tab for a group opens its first page', async () => {
   await user.click(await screen.findByRole('button', { name: '專案' }));
   expect(onNavigate).toHaveBeenCalledWith('p1');
 });
+
+test('AppShell from 600 to 1024 px: no sidebar; the top bar menu opens the navigation in a drawer', async () => {
+  await page.viewport(820, 900);
+  const onNavigate = vi.fn();
+  const { container } = render(
+    <AppShell
+      nav={[
+        {
+          items: [
+            { id: 'home', label: '總覽', icon: 'house' },
+            { id: 'graph', label: '架構', icon: 'share-network' },
+          ],
+        },
+      ]}
+      value="graph"
+      onNavigate={onNavigate}
+      title="src/libibtrace 的呼叫關係"
+    >
+      <p>內容</p>
+    </AppShell>,
+  );
+  expect(container.querySelector('.ui-sidenav')).toBeNull();
+  expect(container.querySelector('.ui-tabbar')).toBeNull();
+  await userEvent.setup().click(screen.getByRole('button', { name: '開啟導覽' }));
+  const current = await screen.findByRole('button', { name: '架構' });
+  expect(current.getAttribute('aria-current')).toBe('page');
+  await userEvent.setup().click(screen.getByRole('button', { name: '總覽' }));
+  expect(onNavigate).toHaveBeenCalledWith('home');
+  await page.viewport(1280, 900);
+});

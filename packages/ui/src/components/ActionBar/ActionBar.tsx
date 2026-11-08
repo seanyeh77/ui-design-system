@@ -1,5 +1,7 @@
+import * as React from 'react';
 import { tr } from '../../i18n';
 import type { IconSource } from '../../icons/Icon';
+import { useFocusRescue } from '../../internal/focus';
 import { cx } from '../../internal/util';
 import { Button, type DangerConfirm } from '../Button/Button';
 import { Menu, type MenuItem } from '../Menu/Menu';
@@ -32,6 +34,9 @@ export interface ActionBarProps {
 
 /** A card's actions in a row. Under 600 px the primary one fills the width and the rest go into 「更多」. */
 export function ActionBar({ actions, className }: ActionBarProps) {
+  // A button that is removed, replaced or disabled after a press hands focus to its neighbour.
+  const box = React.useRef<HTMLDivElement>(null);
+  useFocusRescue(box);
   const main = actions.find((a) => a.primary) ?? actions.find((a) => !a.danger);
   const others = actions.filter((a) => a !== main);
   const button = (a: ActionBarAction, i: number, wide: boolean) =>
@@ -57,7 +62,7 @@ export function ActionBar({ actions, className }: ActionBarProps) {
       : { label: a.label, icon: a.icon, onSelect: a.onClick, disabled: a.disabled },
   );
   return (
-    <div className={cx('ui-actbar', className)}>
+    <div ref={box} className={cx('ui-actbar', className)}>
       <div className="ui-actbar-wide">{(main ? [main, ...others] : others).map((a, i) => button(a, i, false))}</div>
       <div className="ui-actbar-narrow">
         {main ? button(main, 0, true) : null}

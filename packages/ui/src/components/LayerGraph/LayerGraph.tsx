@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { GraphLegend, type GraphLegendItem } from '../Graph/Graph';
+import { Tabs } from '../Tabs/Tabs';
 import { tr } from '../../i18n';
 import { cx, monoNums } from '../../internal/util';
 import { ScrollHint, useScrollHint } from '../../internal/scrollHint';
@@ -64,8 +65,19 @@ export interface LayerGraphProps {
   legendItems?: GraphLegendItem[];
   /** Default 「架構圖」. */
   label?: string;
+  /** The 「圖／清單」 switch above the diagram; the list shows every box and line as text, also for screen readers.
+   *  false hides the switch. */
+  listView?: boolean;
+  /** Headings of the list: { nodes, edges }. Default 「項目」 and 「關係」. */
+  listLabels?: { nodes?: string; edges?: string };
+  /** Remembers the sideways scroll under this name when the diagram unmounts and comes back (another block, another
+   *  tab). Default: the box ids. */
+  scrollKey?: string;
   className?: string;
 }
+
+// Sideways scroll of each diagram, kept while the page lives.
+const scrollMemory = new Map<string, number>();
 
 // Label width before layout: text in the sans font, `code` and numbers in the mono font, as labelParts draws them.
 let measure: CanvasRenderingContext2D | null | undefined;
@@ -208,6 +220,20 @@ export function LayerGraph(p: LayerGraphProps) {
   const [hover, setHover] = React.useState<string | null>(null);
   // Wider than its box: a fade on the right while more is to the right, and a 「左右滑動」 hint until the first scroll.
   const { ref: scrollRef, more: scrollMore, overflows, scrolled, onScroll } = useScrollHint();
+  const uid = React.useId().replace(/:/g, '');
+  const [view, setView] = React.useState<'graph' | 'list'>('graph');
+  const memKey = p.scrollKey ?? all.map((n) => n.id).join('|');
+  // Back to the same diagram: where it was scrolled to (FB).
+  React.useLayoutEffect(() => {
+    const el = scrollRef.current;
+    const x = scrollMemory.get(memKey);
+    if (el && x) el.scrollLeft = x;
+  }, [memKey, view, scrollRef]);
+  const onScrollKeep = () => {
+    const el = scrollRef.current;
+    if (el) scrollMemory.set(memKey, el.scrollLeft);
+    onScroll();
+  };
   const selEdge = (pickEdge && edges.find((e) => edgeId(e) === p.selectedEdge)) || null;
   // How often each box uses each shared item (edges into a shared item are not drawn).
   const uses: Record<string, Record<string, number>> = {};
@@ -229,23 +255,21 @@ export function LayerGraph(p: LayerGraphProps) {
   };
   const nameOf = (id: string) => all.find((n) => n.id === id)?.name || id;
   const countText = (e: LayerGraphEdge) => (p.countLabel ?? tr('{n} 次')).replace('{n}', String(e.count ?? 0));
-  // Room beside the boxes for the lanes and their labels (the longer of the label and 「N 次」, which shows when
-  // selected): the left side shifts every box right, the right side widens the diagram.
-  const upW = (list: LayerGraphEdge[]) =>
-    Math.max(0, ...list.map((e) => Math.ceil(Math.max(labelWidth(e.inferred ? e.label || p.inferredLabel || tr('推測') : ''), labelWidth(countText(e))))));
+  // Room beside the boxes for the lanes only: the labels sit beside the lane, between the layers (PB), so they do not
+  // widen the diagram. The left side shifts every box right, the right side widens it.
   if (upsL.length) {
     const left0 = Math.min(...main.map((n) => pos[n.id].x));
-    const shift = Math.max(0, PAD + upW(upsL) + 8 + (upsL.length - 1) * LANE_STEP + LANE - left0);
+    const shift = Math.max(0, PAD + (upsL.length - 1) * LANE_STEP + LANE - left0);
     for (const id in pos) pos[id] = { x: pos[id].x + shift, y: pos[id].y };
     W += shift;
   }
   const boxesLeft = Math.min(...main.map((n) => pos[n.id].x));
   const boxesRight = Math.max(0, ...main.map((n) => pos[n.id].x + NW));
   const laneX = (e: LayerGraphEdge) => (onLeft(e) ? boxesLeft - LANE - upsL.indexOf(e) * LANE_STEP : boxesRight + LANE + upsR.indexOf(e) * LANE_STEP);
-  // Labels sit outside every lane on their side: x where a right label starts, or where a left label ends.
-  const upLabelX = boxesRight + LANE + Math.max(0, upsR.length - 1) * LANE_STEP + 8;
-  const upLabelEndL = boxesLeft - LANE - Math.max(0, upsL.length - 1) * LANE_STEP - 8;
-  if (upsR.length) W = Math.max(W, upLabelX + upW(upsR) + PAD);
+  // A label starts just inside the innermost lane on the left, or ends just inside it on the right.
+  const upLabelX = boxesLeft - LANE + 8;
+  const upLabelEndL = boxesRight + LANE - 8;
+  if (upsR.length) W = Math.max(W, boxesRight + LANE + (upsR.length - 1) * LANE_STEP + PAD);
   const choose = (e: LayerGraphEdge) => {
     const id = edgeId(e);
     const next = p.selectedEdge === id ? null : id;
@@ -258,6 +282,8 @@ export function LayerGraph(p: LayerGraphProps) {
   const marks: { idx: number; e: LayerGraphEdge; text: string; tx: number; ty: number; left: boolean; r: boolean; dim: boolean; up?: boolean }[] = [];
   // Lines that labels must not cover: the horizontal runs of the up lines, as [left, right, top, bottom].
   const runs: number[][] = [];
+  // Every straight piece of every line, for the labels of up lines.
+  const segs: { idx: number; box: number[] }[] = [];
   const arrows: number[][] = [];
   const hitPaths: React.ReactNode[] = [];
   edges.forEach((e, idx) => {
@@ -318,7 +344,7 @@ export function LayerGraph(p: LayerGraphProps) {
       runs.push([Math.min(sx0, lx), Math.max(sx0, lx), y0 - 3, y0 + 3]);
       if (e.inferred || r) {
         const text = e.inferred ? e.label || p.inferredLabel || tr('推測') : countText(e);
-        marks.push({ idx, e, text, tx: L ? upLabelEndL : upLabelX, ty: Math.round((y0 + y1) / 2), left: L, r, dim, up: true });
+        marks.push({ idx, e, text, tx: L ? upLabelX : upLabelEndL, ty: Math.round((y0 + y1) / 2), left: !L, r, dim, up: true });
       }
     } else {
       const oi = outs[e.from].indexOf(e);
@@ -358,7 +384,13 @@ export function LayerGraph(p: LayerGraphProps) {
     }
     // Hover on a selectable line: darker and 2 px thicker.
     const w = (e.inferred ? 1.5 : 1.5 + 5.5 * ((e.count || 0) / maxCount)) + (picked ? 1.5 : 0) + (hovered ? 2 : 0);
-    const d = route(clean(pts), 10);
+    const cpts = clean(pts);
+    for (let k = 1; k < cpts.length; k++) {
+      const [ax, ay] = cpts[k - 1];
+      const [bx, by] = cpts[k];
+      segs.push({ idx, box: [Math.min(ax, bx) - 3, Math.max(ax, bx) + 3, Math.min(ay, by) - 3, Math.max(ay, by) + 3] });
+    }
+    const d = route(cpts, 10);
     paths.push(
       <path
         key={'p' + idx}
@@ -404,12 +436,16 @@ export function LayerGraph(p: LayerGraphProps) {
   // Labels sit beside their arrowheads, inside the diagram; one that would touch a placed label or an arrowhead moves up 18 px.
   // Obstacles are [left, right, top, bottom, gap].
   const placed = [...arrows, ...runs];
+  // Boxes, which the labels of up lines (placed in the gaps beside the lanes) must not cover.
+  const boxRects = main.map((n) => [pos[n.id].x, pos[n.id].x + NW, pos[n.id].y, pos[n.id].y + NH]);
   const hits = (x0: number, x1: number, y0: number, y1: number) =>
     placed.some((q) => x0 < q[1] + (q[4] || 0) && q[0] < x1 + (q[4] || 0) && y0 < q[3] && q[2] < y1);
   const labelEl = (m: (typeof marks)[number], x0: number, top: number) => (
     // With onSelectEdge the label selects its edge too (a mouse and touch target; keyboard uses the line itself).
     <span
       key={'l' + m.idx}
+      // The line's own button carries this text; read once, not again beside it.
+      aria-hidden={pickEdge ? true : undefined}
       className={cx('ui-lg-label', pickEdge && 'is-clickable', pickEdge && hover === edgeId(m.e) && 'is-hover', m.r && 'is-related', m.dim && 'is-dim')}
       style={{ left: x0, top }}
       onClick={
@@ -431,11 +467,23 @@ export function LayerGraph(p: LayerGraphProps) {
     .forEach((m) => {
       const w = Math.ceil(labelWidth(m.text));
       if (m.up) {
-        // Beside the lanes, halfway up; moved up (then down) off anything placed, inside the diagram.
-        const x0 = m.left ? m.tx - w : m.tx;
-        let top = Math.max(10, Math.min(H - 10, m.ty));
-        for (let k = 0; k < 8 && hits(x0, x0 + w, top - 8, top + 8) && top - 18 >= 10; k++) top -= 18;
-        for (let k = 0; k < 16 && hits(x0, x0 + w, top - 8, top + 8) && top + 18 <= H - 10; k++) top += 18;
+        // Beside its lane, halfway between the two ends (the gap between layers); moved up, then down, off boxes,
+        // lines and labels already placed, and kept inside the diagram.
+        const x0 = Math.max(PAD / 2, Math.min(W - PAD / 2 - w, m.left ? m.tx - w : m.tx));
+        const over = (q: number[], y0: number, y1: number) => x0 < q[1] + 4 && q[0] < x0 + w + 4 && y0 < q[3] + 4 && q[2] < y1 + 4;
+        // Never on a box or a placed label; off other lines too when there is room (else over a line, on its white ground).
+        const blocked = (y0: number, y1: number) => hits(x0, x0 + w, y0, y1) || boxRects.some((q) => over(q, y0, y1));
+        const crosses = (y0: number, y1: number) => segs.some((g) => g.idx !== m.idx && over(g.box, y0, y1));
+        const start = Math.max(10, Math.min(H - 10, m.ty));
+        const find = (bad: (y0: number, y1: number) => boolean) => {
+          for (let k = 0; k <= 16; k++)
+            for (const dir of k ? [-1, 1] : [0]) {
+              const t = start + dir * k * 18;
+              if (t >= 10 && t <= H - 10 && !bad(t - 8, t + 8)) return t;
+            }
+          return null;
+        };
+        const top = find((y0, y1) => blocked(y0, y1) || crosses(y0, y1)) ?? find(blocked) ?? start;
         placed.push([x0, x0 + w, top - 8, top + 8, 6]);
         labels.push(labelEl(m, x0, top));
         return;
@@ -501,10 +549,84 @@ export function LayerGraph(p: LayerGraphProps) {
       </button>
     );
   });
+  // The list: every box (name, size) and every line (「A → B：label」), selectable like the diagram (XC).
+  const edgeText = (e: LayerGraphEdge) =>
+    e.inferred ? (e.label ? `${e.label}（${p.inferredLabel || tr('推測')}）` : p.inferredLabel || tr('推測')) : countText(e);
+  const listItem = (key: string, on: boolean, dim: boolean, onClick: (() => void) | undefined, head: React.ReactNode, rest: React.ReactNode) => (
+    <li key={key} className={cx('ui-lg-li', dim && 'is-dim')}>
+      {onClick ? (
+        <button type="button" className={cx('ui-lg-libtn', on && 'is-selected')} aria-pressed={on} onClick={onClick}>
+          {head}
+        </button>
+      ) : (
+        <span className="ui-lg-lihead">{head}</span>
+      )}
+      {rest}
+    </li>
+  );
+  const nodeIds = new Set(all.map((n) => n.id));
+  const list = (
+    <div className="ui-lg-list">
+      <section aria-labelledby={`${uid}-ln`}>
+        <h3 id={`${uid}-ln`} className="ui-lg-listtitle">
+          {p.listLabels?.nodes ?? tr('項目')}
+        </h3>
+        <ul>
+          {all.map((n) => {
+            const size = sizeOf(n);
+            return listItem(
+              n.id,
+              n.id === sel,
+              !near(n.id),
+              p.onSelect ? () => pick(n.id, n.id === sel) : undefined,
+              <span className="ui-lg-code">{n.name || n.id}</span>,
+              size != null ? <span className="ui-lg-limeta">，{monoNums(sizeText.replace('{n}', '\u0001'), [size])}</span> : null,
+            );
+          })}
+        </ul>
+      </section>
+      <section aria-labelledby={`${uid}-le`}>
+        <h3 id={`${uid}-le`} className="ui-lg-listtitle">
+          {p.listLabels?.edges ?? tr('關係')}
+        </h3>
+        <ul>
+          {p.edges
+            .filter((e) => nodeIds.has(e.from) && nodeIds.has(e.to))
+            .map((e, i) =>
+              listItem(
+                edgeId(e) + ':' + i,
+                e === selEdge,
+                focus && !related(e) && !(selShared && e.to === selShared),
+                pickEdge && edges.includes(e) ? () => choose(e) : undefined,
+                <>
+                  <span className="ui-lg-code">{nameOf(e.from)}</span> → <span className="ui-lg-code">{nameOf(e.to)}</span>
+                </>,
+                <span className="ui-lg-limeta">：{labelParts(edgeText(e))}</span>,
+              ),
+            )}
+        </ul>
+      </section>
+    </div>
+  );
+  const showList = p.listView !== false && view === 'list';
   return (
     <div className={cx('ui-graph ui-lg', p.className)}>
-      <div className={cx('ui-lg-scroller', scrollMore && 'has-more')}>
-        <div className="ui-lg-scroll" ref={scrollRef} onScroll={onScroll}>
+      {p.listView === false ? null : (
+        <div className="ui-lg-bar">
+          <Tabs
+            label={tr('顯示方式')}
+            value={view}
+            onChange={setView}
+            items={[
+              { id: 'graph', label: tr('圖') },
+              { id: 'list', label: tr('清單') },
+            ]}
+          />
+        </div>
+      )}
+      {showList ? list : null}
+      <div className={cx('ui-lg-scroller', scrollMore && 'has-more', showList && 'is-hidden')}>
+        <div className="ui-lg-scroll" ref={scrollRef} onScroll={onScrollKeep}>
           <div
             className="ui-lg-canvas"
             style={{ width: W, height: H }}
@@ -519,21 +641,22 @@ export function LayerGraph(p: LayerGraphProps) {
             {nodes}
             {labels}
             {hitPaths.length ? (
-              <svg className="ui-lg-hits" width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
+              // A group, not the default image: screen readers would hide the line buttons inside an image.
+              <svg className="ui-lg-hits" width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="group" aria-label={tr('關係')}>
                 {hitPaths}
               </svg>
             ) : null}
           </div>
         </div>
       </div>
-      <ScrollHint show={overflows} done={scrolled} />
-      {shared.length ? (
+      {showList ? null : <ScrollHint show={overflows} done={scrolled} />}
+      {shared.length && !showList ? (
         <div className="ui-lg-shared">
           <div className="ui-lg-shared-title">{p.sharedLabel || tr('共用項目')}</div>
           <div className="ui-lg-chips">{sharedBoxes}</div>
         </div>
       ) : null}
-      {p.legend === false || (!p.legendItems && !edges.some((e) => pos[e.from] && pos[e.to])) ? null : (
+      {showList || p.legend === false || (!p.legendItems && !edges.some((e) => pos[e.from] && pos[e.to])) ? null : (
         <GraphLegend
           items={
             p.legendItems || [
