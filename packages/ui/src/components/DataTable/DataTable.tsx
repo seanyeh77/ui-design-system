@@ -107,7 +107,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const [q, setQ] = React.useState(() => fromUrl().q);
   const [values, setValues] = React.useState<Record<string, FilterValue>>(() => fromUrl().values);
   const [view, setView] = React.useState(p.views?.[0]?.id ?? null);
-  const [hidden, setHidden] = React.useState<Record<string, boolean>>({});
+  // Columns people turned on or off in the 「欄位」 menu; the others follow their own `hidden`.
+  const [toggled, setToggled] = React.useState<Record<string, boolean>>({});
   const [sel, setSel] = React.useState<Record<string, boolean>>({});
   const [sumVal, setSumVal] = React.useState('all');
   const [resetKey, setResetKey] = React.useState(p.resetKey);
@@ -120,6 +121,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     setSel({});
     setSumVal('all');
     setSort({ key: null, dir: 'desc' });
+    setToggled({});
   }
   const valuesKey = JSON.stringify(values);
   React.useEffect(() => {
@@ -137,7 +139,15 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     'rows have no id, so a selection follows the position, not the row. Add an id to each row.',
   );
 
-  const shownCols = cols.filter((c, i) => i === 0 || !hidden[c.key]);
+  devWarn(!!cols[0]?.hidden, 'DataTable', 'the first column is always shown, so its hidden: true does nothing. Move the column, or drop hidden.');
+  devWarn(
+    (p.columnMenu === false || cols.length <= 2) && cols.some((c, i) => i > 0 && c.hidden),
+    'DataTable',
+    'a column has hidden: true but there is no 「欄位」 menu (columnMenu is false, or the table has 2 columns or fewer), so nobody can turn it on. Turn the menu on, or leave the column out.',
+  );
+  const hidden: Record<string, boolean> = {};
+  cols.forEach((c, i) => (hidden[c.key] = i > 0 && (toggled[c.key] ?? !!c.hidden)));
+  const shownCols = cols.filter((c) => !hidden[c.key]);
   const { ref: scrollRef, more: scrollMore, overflows, scrolled, onScroll } = useScrollHint();
   const bodyRef = React.useRef<HTMLDivElement>(null);
   const rowEls = React.useRef<Record<string, HTMLDivElement | null>>({});
@@ -464,7 +474,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
           {monoNums(tr('{n} / {total} 筆', { n: '\u0001', total: '\u0002' }), [format.number(list.length), format.number(baseCount)])}
         </span>
         {p.columnMenu !== false && cols.length > 2 ? (
-          <ColumnMenu cols={cols} hidden={hidden} onToggle={(k) => setHidden({ ...hidden, [k]: !hidden[k] })} />
+          <ColumnMenu cols={cols} hidden={hidden} onToggle={(k) => setToggled({ ...toggled, [k]: !hidden[k] })} />
         ) : null}
       </div>
       <div className={cx('ui-dt-scroller', scrollMore && 'has-more')}>
