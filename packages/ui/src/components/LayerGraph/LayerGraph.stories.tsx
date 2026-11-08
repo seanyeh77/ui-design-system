@@ -205,3 +205,27 @@ function BothWays() {
   );
 }
 export const BothDirections = { render: () => <BothWays /> };
+
+// The same pair both ways in a phone-width box: the label of the line up stays off the line down. It goes on one line
+// when a spot is clear, else on 2 to 4 lines, else the gap between the layers grows.
+const nodes8 = [
+  { id: 'ibmon', name: 'src/ibmon', layer: 0, size: 91 },
+  { id: 'ucx', name: 'src/ucx_ib_test', layer: 0, size: 22 },
+  { id: 'lib', name: 'src/libibtrace', layer: 1, size: 114 },
+  { id: 'common', name: 'src/common', shared: true },
+];
+const edges8 = [
+  { id: 'env', from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
+  { id: 'hook', from: 'ucx', to: 'lib', inferred: true, label: '攔截 17 個 `ucp` 呼叫' },
+  { from: 'ibmon', to: 'common', count: 6 },
+  upLine,
+];
+function BothWaysNarrow() {
+  const [edge, setEdge] = React.useState<string | null>(null);
+  return (
+    <div style={{ ...card, maxWidth: 358 }}>
+      <UI.LayerGraph nodes={nodes8} edges={edges8} selectedEdge={edge} onSelectEdge={setEdge} sizeLabel="{n} 個函式" />
+    </div>
+  );
+}
+export const BothDirectionsNarrow = { render: () => <BothWaysNarrow /> };

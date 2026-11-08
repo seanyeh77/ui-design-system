@@ -278,3 +278,80 @@ test('LayerGraph: the sideways scroll comes back with the diagram', async () => 
   rerender(wide(true));
   expect(container.querySelector<HTMLElement>('.ui-lg-scroll')?.scrollLeft).toBe(120);
 });
+
+// Every label clear of every line (its own too), of every box and of every other label (2 px apart), inside the diagram.
+function expectLabelsClear(container: HTMLElement) {
+  const canvas = container.querySelector<HTMLElement>('.ui-lg-canvas');
+  if (!canvas) throw new Error('no canvas');
+  const c = canvas.getBoundingClientRect();
+  const boxes = [...container.querySelectorAll<HTMLElement>('.ui-lg-canvas .ui-lg-node')].map((n) => n.getBoundingClientRect());
+  const labels = [...container.querySelectorAll<HTMLElement>('.ui-lg-label')];
+  const rects = labels.map((l) => l.getBoundingClientRect());
+  const lines = [...container.querySelectorAll<SVGPathElement>('.ui-lg-hit')];
+  labels.forEach((label, i) => {
+    const r = rects[i];
+    const text = label.textContent;
+    expect(r.left, text ?? '').toBeGreaterThanOrEqual(c.left - 0.5);
+    expect(r.right, text ?? '').toBeLessThanOrEqual(c.right + 0.5);
+    expect(r.top, text ?? '').toBeGreaterThanOrEqual(c.top - 0.5);
+    expect(r.bottom, text ?? '').toBeLessThanOrEqual(c.bottom + 0.5);
+    for (const b of boxes) expect(overlap(r, b), `${text} on a box`).toBe(false);
+    rects.forEach(
+      (o, j) =>
+        j !== i &&
+        expect(r.left < o.right + 2 && o.left < r.right + 2 && r.top < o.bottom + 2 && o.top < r.bottom + 2, `${text} touches ${labels[j].textContent}`).toBe(
+          false,
+        ),
+    );
+    for (const line of lines) {
+      const m = line.getScreenCTM();
+      if (!m) throw new Error('no CTM');
+      for (let t = 0; t <= line.getTotalLength(); t += 2) {
+        const q = line.getPointAtLength(t);
+        const x = q.x * m.a + m.e;
+        const y = q.y * m.d + m.f;
+        expect(x > r.left && x < r.right && y > r.top && y < r.bottom, `${text} on ${line.dataset.edge}`).toBe(false);
+      }
+    }
+  });
+}
+
+// The same pair both ways (an environment variable down, a data channel back up), on a phone and a tablet: the label
+// of the line up wraps, or the gap grows, rather than lie on the line down.
+const pair = [
+  { id: 'ibmon', name: 'src/ibmon', layer: 0, size: 91 },
+  { id: 'ucx', name: 'src/ucx_ib_test', layer: 0, size: 22 },
+  { id: 'lib', name: 'src/libibtrace', layer: 1, size: 114 },
+  { id: 'common', name: 'src/common', shared: true },
+];
+const pairEdges: LayerGraphEdge[] = [
+  { id: 'env', from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
+  { id: 'hook', from: 'ucx', to: 'lib', inferred: true, label: '攔截 17 個 `ucp` 呼叫' },
+  { from: 'ibmon', to: 'common', count: 6 },
+  { id: 'ring', from: 'lib', to: 'ibmon', inferred: true, label: '經由 `src/common` 傳資料（ring）' },
+];
+test.each([
+  [390, 844],
+  [768, 1024],
+])('LayerGraph: lines both ways between one pair keep every label off every line at %i px', async (w, h) => {
+  await page.viewport(w, h);
+  const { container } = render(<LayerGraph nodes={pair} edges={pairEdges} onSelectEdge={() => {}} />);
+  expect(container.querySelectorAll('.ui-lg-label').length).toBe(3);
+  expectLabelsClear(container);
+});
+
+test.each([
+  ['the leftmost box (left lane)', 'ibmon'],
+  ['the rightmost box (right lane)', 'ucx'],
+  ['a box in the middle (from below)', 'cli'],
+])('LayerGraph: a label of a line up to %s lies on no line', async (_, to) => {
+  await page.viewport(390, 844);
+  const { container } = render(
+    <LayerGraph
+      nodes={top3}
+      edges={[{ from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' }, { from: 'cli', to: 'hook', count: 4 }, ring(to)]}
+      onSelectEdge={() => {}}
+    />,
+  );
+  expectLabelsClear(container);
+});
