@@ -10,6 +10,13 @@
 - 大數字：只有 KPI 卡片縮寫，單位用萬、億（`1,284 萬`）；表格和明細寫完整數字。`UI.format.compact(v)`。
 - 金額：`NT$ 1,280`，負數用減號 `-NT$ 1,280`。`UI.format.money(v)`。
 - 小數位數依單位：金額 0 位、百分比 1 位、容量（GB、MB）1 位、數量 0 位。`UI.format.number(v, 'money' | 'percent' | 'size' | 'count')`。
+- 分數和進度：畫面上寫「1 / 1 個」「6 / 6 筆」，`UI.format.fraction(n, total, unit?)`；螢幕閱讀器會把「/」念成「斜線」，所以同時給 `UI.format.fractionLabel(n, total, unit?)`，念「1 個中的 1 個」「6 筆中的 6 筆」（沒有單位時「5 中的 1」，英文「1 of 5」）。用法：顯示的文字加 `aria-hidden="true"`，旁邊放一個 `ui-visually-hidden` 的 `fractionLabel`；或整個元素用 `aria-label={fractionLabel(...)}`。
+
+  ```tsx
+  <span aria-hidden="true">{UI.format.fraction(1, 1, '個')}</span>
+  <span className="ui-visually-hidden">{UI.format.fractionLabel(1, 1, '個')}</span>
+  ```
+
 - 日期輸入框一律用 `YYYY/MM/DD`，不分語系，避免月日順序看錯。
 
 ## 國際化（i18n）

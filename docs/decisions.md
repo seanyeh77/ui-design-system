@@ -335,3 +335,16 @@ Claude 定的細節（待確認）：
 - `resetKey` 重設所有欄位的勾選，包括使用者自己關掉的一般欄位（之前 `resetKey` 不重設欄位）。
 - 手機不顯示「欄位」按鈕，所以 `hidden: true` 的欄位在手機卡片上一直不顯示。
 - 第一欄設 `hidden: true`，或沒有「欄位」選單時（`columnMenu={false}`、2 欄以下）設了 `hidden: true`：開發時 console 警告，第一欄照常顯示。
+
+## codemap 第三輪試用：元件問題
+
+使用者的要求（節錄）：Tour 開著時 Tab 會經過沒有名稱的 focus guard、到 BODY、再到「跳到主要內容」，請把 Tab 循環限制在對話框內，Escape 關閉後焦點回到開啟前的元素。TreeList 的 Alt+左方向鍵被當成收合，攔住了瀏覽器的上一頁，請略過帶 Alt、Meta、Ctrl 的方向鍵。TopBar 在觸控裝置（pointer: coarse 或沒有實體鍵盤）隱藏快捷鍵提示，macOS 顯示 ⌘K。「1 / 1 個」「6 / 6 筆」會被念成「斜線」，UI.format 請輸出「1 個中的 1 個」這類 aria 文字，沒有的話請加一個。
+
+DataTable 窄欄長文字看全文、`focusMain()` 的焦點框：做成選項，見「表格長文字與頁面標題焦點實驗室」。
+
+Claude 定的細節（待確認）：
+
+- 帶 Alt、Meta、Ctrl 的方向鍵也不給 Tabs 和 RadioGroup 處理（同一個問題）。Shift 照常處理。
+- 觸控裝置的判斷是 `(pointer: coarse), (hover: none)`；瀏覽器無法得知有沒有實體鍵盤，接了鍵盤的平板仍不顯示快捷鍵。
+- 分數的函式名稱 `format.fraction` 和 `format.fractionLabel`；沒有單位時念「5 中的 1」。TextArea 的字數也改成念「200 字中的 12 字」。
+

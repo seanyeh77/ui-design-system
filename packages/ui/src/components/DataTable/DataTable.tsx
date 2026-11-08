@@ -471,7 +471,11 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
           />
         ) : null}
         <span className="ui-dt-result">
-          {monoNums(tr('{n} / {total} 筆', { n: '\u0001', total: '\u0002' }), [format.number(list.length), format.number(baseCount)])}
+          {/* Shown 「6 / 6 筆」; read 「6 筆中的 6 筆」, not 「6 斜線 6 筆」. */}
+          <span aria-hidden="true">
+            {monoNums(tr('{n} / {total} 筆', { n: '\u0001', total: '\u0002' }), [format.number(list.length), format.number(baseCount)])}
+          </span>
+          <span className="ui-visually-hidden">{format.fractionLabel(list.length, baseCount, tr('筆'))}</span>
         </span>
         {p.columnMenu !== false && cols.length > 2 ? (
           <ColumnMenu cols={cols} hidden={hidden} onToggle={(k) => setToggled({ ...toggled, [k]: !hidden[k] })} />

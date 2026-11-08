@@ -42,7 +42,9 @@ test('rows hidden by a search are unchecked', async () => {
 test('one page: the count above the table only, no range below', () => {
   const rows = Array.from({ length: 6 }, (_, i) => ({ id: String(i), name: 'row ' + i }));
   const { container, rerender } = render(<DataTable columns={cols} rows={rows} urlSync={false} />);
-  expect(container.querySelector('.ui-dt-result')?.textContent).toBe('6 / 6 筆');
+  expect(container.querySelector('.ui-dt-result [aria-hidden="true"]')?.textContent).toBe('6 / 6 筆');
+  // Read without the slash.
+  expect(container.querySelector('.ui-dt-result .ui-visually-hidden')?.textContent).toBe('6 筆中的 6 筆');
   expect(container.querySelector('.ui-dt-foot')).toBeNull();
   rerender(<DataTable columns={cols} rows={rows} urlSync={false} pageSize={4} />);
   expect(container.querySelector('.ui-dt-range')?.textContent).toBe('第 1–4 筆，共 6 筆');

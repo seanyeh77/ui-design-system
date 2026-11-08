@@ -7,7 +7,7 @@ import { DOC_SHAPE, FILE_KIND, fileExt, findNode, foldersOf, latest, pathTo, sor
 import { fileSize, format } from '../../format';
 import { tr } from '../../i18n';
 import { Icon, IconOf, type IconSource } from '../../icons/Icon';
-import { cx, digits, reduced } from '../../internal/util';
+import { cx, digits, reduced, browserKey } from '../../internal/util';
 import { announce } from '../../announce';
 import { devWarn } from '../../internal/dev';
 import { CheckMark } from '../../internal/Field';
@@ -254,7 +254,7 @@ export function TreeList(p: TreeListProps) {
     setFocusId(rows[j].n.id);
   };
   const onKey = (e: React.KeyboardEvent) => {
-    if ((e.target as HTMLElement).getAttribute('role') !== 'treeitem' || !rows.length) return;
+    if ((e.target as HTMLElement).getAttribute('role') !== 'treeitem' || !rows.length || browserKey(e)) return;
     const r = rows[cur];
     const k = e.key;
     const handled = ['ArrowDown', 'ArrowUp', 'Home', 'End', 'ArrowRight', 'ArrowLeft', 'Enter'].includes(k) || (k === ' ' && selectable);

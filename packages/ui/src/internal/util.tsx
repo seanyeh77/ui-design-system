@@ -37,7 +37,10 @@ export function reduced(): boolean {
   return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-export const IS_MAC = /Mac|iPhone|iPad/.test((typeof navigator !== 'undefined' && (navigator.platform || navigator.userAgent)) || '');
+const nav = typeof navigator !== 'undefined' ? (navigator as Navigator & { userAgentData?: { platform?: string } }) : undefined;
+export const IS_MAC = /mac|iphone|ipad/i.test(nav?.userAgentData?.platform || nav?.platform || nav?.userAgent || '');
+/** A touch screen as the main input (phones, tablets): no keyboard to press a shortcut with. */
+export const TOUCH_ONLY = '(pointer: coarse), (hover: none)';
 export const SHORTCUT = IS_MAC ? '⌘K' : 'Ctrl K';
 
 /** Matches a media query and follows changes. */
@@ -94,3 +97,6 @@ export function digits(text: string, numbers = /(\d[\d,.:/]*)/): React.ReactNode
     ),
   );
 }
+
+/** Alt, Meta or Ctrl held: the key belongs to the browser or the system (Alt+← goes back a page), not to the widget. */
+export const browserKey = (e: { altKey: boolean; metaKey: boolean; ctrlKey: boolean }): boolean => e.altKey || e.metaKey || e.ctrlKey;

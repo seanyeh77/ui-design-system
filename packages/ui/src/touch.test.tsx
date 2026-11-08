@@ -121,3 +121,9 @@ test('touch: the scroll hint says 「左右滑動」', async () => {
   await new Promise((r) => setTimeout(r, 100));
   expect(container.querySelector('.ui-scroll-hint')?.textContent).toBe('左右滑動');
 });
+
+test('touch: the search box shows no keyboard shortcut', async () => {
+  const { container } = render(<UI.TopBar title="架構" onSearch={() => {}} />);
+  expect(container.querySelector('.ui-search kbd')).toBeNull();
+  expect(container.querySelector('.ui-search-icon')?.getAttribute('aria-label')).toBe('搜尋');
+});

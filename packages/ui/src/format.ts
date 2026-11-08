@@ -1,4 +1,4 @@
-import { I18N, isZhTW } from './i18n';
+import { I18N, isZhTW, tr } from './i18n';
 
 /* Dates and numbers for the current locale (setLocale). zh-TW follows the design system's rules
    (2026/11/04（三）, 24-hour clock, NT$ 1,280, 萬 and 億 in KPI cards); other locales use Intl's conventions. */
@@ -156,8 +156,37 @@ function path(p: string | null | undefined, o: { head?: number; tail?: number } 
   return parts.length > head + tail ? `${parts.slice(0, head).join('/')}/…/${parts.slice(-tail).join('/')}` : String(p ?? '');
 }
 
+/** A part of a whole, as shown: 「1 / 1 個」「6 / 6 筆」, or 「1 / 5」 without a unit. Give screen readers
+ *  `fractionLabel` with it: they read the slash as 「斜線」. */
+function fraction(n: number, total: number, unit?: string): string {
+  return tr(unit ? '{n} / {total} {unit}' : '{n} / {total}', { n: number(n), total: number(total), unit: unit ?? '' });
+}
+
+/** The same fraction as read aloud: 「1 個中的 1 個」「6 筆中的 6 筆」, or 「5 中的 1」 without a unit (English:
+ *  「1 of 1」). For `aria-label`, or for visually hidden text beside the shown fraction. */
+function fractionLabel(n: number, total: number, unit?: string): string {
+  return tr(unit ? '{total} {unit}中的 {n} {unit}' : '{total} 中的 {n}', { n: number(n), total: number(total), unit: unit ?? '' });
+}
+
 /** Every date, number, amount, size and path shown in the UI goes through these. */
-export const format = { locale, date, time, dateTime, relative, month, weekdays, firstDay, number, percent, compact, money, fileSize, path };
+export const format = {
+  locale,
+  date,
+  time,
+  dateTime,
+  relative,
+  month,
+  weekdays,
+  firstDay,
+  number,
+  percent,
+  compact,
+  money,
+  fileSize,
+  path,
+  fraction,
+  fractionLabel,
+};
 
 /* Calendar helpers (local dates, no time). */
 export const fmtDate = (d: Date | null | undefined): string => (d ? `${d.getFullYear()}/${pad2(d.getMonth() + 1)}/${pad2(d.getDate())}` : '');
