@@ -1,4 +1,4 @@
-<!-- @dsCard group="Data" height=1640 -->
+<!-- @dsCard group="Data" height=2000 -->
 <!doctype html>
 <html lang="zh-Hant">
   <head>
@@ -109,6 +109,27 @@
           ),
         );
       }
+      // the same pair both ways, phone width: the label of the line up wraps rather than lie on the line down
+      var nodes8 = [
+        { id: 'ibmon', name: 'src/ibmon', layer: 0, size: 91 },
+        { id: 'ucx', name: 'src/ucx_ib_test', layer: 0, size: 22 },
+        { id: 'lib', name: 'src/libibtrace', layer: 1, size: 114 },
+        { id: 'common', name: 'src/common', shared: true },
+      ];
+      var edges8 = [
+        { id: 'env', from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
+        { id: 'hook', from: 'ucx', to: 'lib', inferred: true, label: '攔截 17 個 `ucp` 呼叫' },
+        { from: 'ibmon', to: 'common', count: 6 },
+        { id: 'ring', from: 'lib', to: 'ibmon', inferred: true, label: '經由 `src/common` 傳資料（ring）' },
+      ];
+      function BothWays() {
+        var e = React.useState(null);
+        return h(
+          'div',
+          { style: Object.assign({}, card, { maxWidth: 358 }) },
+          h(U.LayerGraph, { nodes: nodes8, edges: edges8, selectedEdge: e[0], onSelectEdge: e[1], sizeLabel: '{n} 個函式' }),
+        );
+      }
       function Demo() {
         var s = React.useState('net');
         return h(
@@ -122,6 +143,7 @@
           h('div', { style: card }, h(U.LayerGraph, { nodes: nodes2, edges: edges2, legend: false })),
           h('div', { style: card }, h(U.LayerGraph, { nodes: nodes3, edges: edges3, legend: false })),
           h(Edges),
+          h(BothWays),
         );
       }
       ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));

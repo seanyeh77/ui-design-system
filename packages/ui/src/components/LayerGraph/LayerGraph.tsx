@@ -98,6 +98,55 @@ function labelWidth(text: string): number {
   }, 0);
 }
 
+// A label of a line up that does not fit on one line: taller gaps, GROW px at a time, up to GROW_MAX px more.
+const GROW = 24;
+const GROW_MAX = 144;
+
+/** The label on 1 line, then wrapped onto 2, 3 and 4 lines as evenly as it goes. Breaks between Chinese characters
+ *  and at spaces; never inside `code`, a word or a number, between a number and the word after it, before a closing
+ *  mark or after an opening one. */
+function wraps(text: string): string[][] {
+  const atoms: string[] = [];
+  for (const t of text.match(/`[^`]+`|[A-Za-z0-9_./:#@-]+|\s+|[\s\S]/gu) ?? []) {
+    const prev = atoms[atoms.length - 1];
+    // A number keeps the word after it (「3 次」).
+    const unit = /\d\s*$/.test(prev ?? '') && !/^[A-Za-z0-9_]/.test(t);
+    if (prev != null && (unit || /^[）」』、，。：；！？)\]]/.test(t) || /[（「『([]$/.test(prev))) atoms[atoms.length - 1] = prev + t;
+    else atoms.push(t);
+  }
+  const fill = (max: number) => {
+    const lines: string[] = [];
+    let cur = '';
+    for (const a of atoms) {
+      if (/^\s+$/.test(a)) {
+        if (cur) cur += a;
+        continue;
+      }
+      if (cur && labelWidth(cur.trimEnd() + a) > max) {
+        lines.push(cur.trimEnd());
+        cur = a;
+      } else cur += a;
+    }
+    if (cur.trim()) lines.push(cur.trimEnd());
+    return lines;
+  };
+  const full = labelWidth(text);
+  const out: string[][] = [[text]];
+  for (let n = 2; n <= 4; n++) {
+    // The narrowest width that still needs no more than n lines.
+    let lo = Math.max(...atoms.filter((a) => a.trim()).map(labelWidth)) - 1;
+    let hi = full;
+    while (hi - lo > 1) {
+      const mid = (lo + hi) / 2;
+      if (fill(mid).length <= n) hi = mid;
+      else lo = mid;
+    }
+    const lines = fill(hi);
+    if (lines.length > out[out.length - 1].length) out.push(lines);
+  }
+  return out;
+}
+
 function labelParts(text: string): React.ReactNode[] {
   return text
     .split(SPLIT)
@@ -172,17 +221,24 @@ export function LayerGraph(p: LayerGraphProps) {
   const layers = [...byLayer.keys()].sort((a, b) => a - b);
   const cols = Math.max(1, ...layers.map((l) => byLayer.get(l)?.length ?? 0));
   let W = PAD * 2 + cols * NW + (cols - 1) * COL;
-  const H = PAD * 2 + layers.length * NH + Math.max(0, layers.length - 1) * GAP;
+  // The gap under each layer: GAP, or more where the label of a line up needs the room (see the placement below).
+  const gaps = layers.map(() => GAP);
+  let H = 0;
   const pos: Record<string, { x: number; y: number }> = {};
   const layerIndex: Record<string, number> = {};
   layers.forEach((l, k) => {
     const row = byLayer.get(l) ?? [];
     const off = (W - (row.length * NW + (row.length - 1) * COL)) / 2;
     row.forEach((n, i) => {
-      pos[n.id] = { x: off + i * (NW + COL), y: PAD + k * (NH + GAP) };
+      pos[n.id] = { x: off + i * (NW + COL), y: 0 };
       layerIndex[n.id] = k;
     });
   });
+  const rowTop = (k: number) => PAD + k * NH + gaps.slice(0, k).reduce((a, b) => a + b, 0);
+  const placeRows = () => {
+    for (const id in pos) pos[id].y = rowTop(layerIndex[id]);
+    H = rowTop(layers.length - 1) + NH + PAD;
+  };
   const maxSize = Math.max(1, ...main.map((n) => sizeOf(n) || 0));
   const maxCount = Math.max(1, ...edges.map((e) => e.count || 0));
   // A line to a higher layer (a data channel back up): it leaves the source's right side, runs up a lane along the
@@ -277,227 +333,318 @@ export function LayerGraph(p: LayerGraphProps) {
     pickEdge?.(next);
   };
 
-  const paths: React.ReactNode[] = [];
-  const labels: React.ReactNode[] = [];
-  const marks: { idx: number; e: LayerGraphEdge; text: string; tx: number; ty: number; left: boolean; r: boolean; dim: boolean; up?: boolean }[] = [];
-  // Lines that labels must not cover: the horizontal runs of the up lines, as [left, right, top, bottom].
-  const runs: number[][] = [];
-  // Every straight piece of every line, for the labels of up lines.
-  const segs: { idx: number; box: number[] }[] = [];
-  const arrows: number[][] = [];
-  const hitPaths: React.ReactNode[] = [];
-  edges.forEach((e, idx) => {
-    const a = pos[e.from];
-    const b = pos[e.to];
-    if (!a || !b) return;
-    const r = related(e);
-    const dim = focus && !r;
-    const picked = e === selEdge;
-    const hovered = !!pickEdge && hover === edgeId(e) && !r;
-    const up = isUp(e);
-    let pts: Pt[];
-    let tx: number;
-    let ty: number;
-    let arrow: string;
-    let inn = 1;
-    if (up) {
-      const lx = laneX(e);
-      const L = onLeft(e);
-      const si = upOut[e.from].indexOf(e);
-      const sn = upOut[e.from].length;
-      const ti = upIn[e.to].indexOf(e);
-      const tn = upIn[e.to].length;
-      const start: Pt[] = [];
-      let y0: number;
-      if (L ? leftmost(e.from) : rightmost(e.from)) {
-        // From the right side, a little apart when several leave the same box.
-        y0 = Math.round(a.y + NH / 2 + (si - (sn - 1) / 2) * 10);
-        start.push([L ? a.x : a.x + NW, y0], [lx, y0]);
+  // Draws every line and places every label. A label of a line up that finds no spot clear of every line, even
+  // wrapped, asks for a taller gap; the diagram is then drawn again with it.
+  const draw = () => {
+    const paths: React.ReactNode[] = [];
+    const labels: React.ReactNode[] = [];
+    const need = new Set<number>();
+    const marks: { idx: number; e: LayerGraphEdge; text: string; tx: number; ty: number; left: boolean; r: boolean; dim: boolean; up?: boolean }[] = [];
+    // Lines that labels must not cover: the horizontal runs of the up lines, as [left, right, top, bottom].
+    const runs: number[][] = [];
+    // Every straight piece of every line, for the labels of up lines.
+    const segs: { idx: number; box: number[] }[] = [];
+    const arrows: number[][] = [];
+    const hitPaths: React.ReactNode[] = [];
+    edges.forEach((e, idx) => {
+      const a = pos[e.from];
+      const b = pos[e.to];
+      if (!a || !b) return;
+      const r = related(e);
+      const dim = focus && !r;
+      const picked = e === selEdge;
+      const hovered = !!pickEdge && hover === edgeId(e) && !r;
+      const up = isUp(e);
+      let pts: Pt[];
+      let tx: number;
+      let ty: number;
+      let arrow: string;
+      let inn = 1;
+      if (up) {
+        const lx = laneX(e);
+        const L = onLeft(e);
+        const si = upOut[e.from].indexOf(e);
+        const sn = upOut[e.from].length;
+        const ti = upIn[e.to].indexOf(e);
+        const tn = upIn[e.to].length;
+        const start: Pt[] = [];
+        let y0: number;
+        if (L ? leftmost(e.from) : rightmost(e.from)) {
+          // From the right side, a little apart when several leave the same box.
+          y0 = Math.round(a.y + NH / 2 + (si - (sn - 1) / 2) * 10);
+          start.push([L ? a.x : a.x + NW, y0], [lx, y0]);
+        } else {
+          // A box to its right: leave from the top edge, just under the lines of the gap above.
+          const px = L ? a.x + 20 + si * 10 : a.x + NW - 20 - si * 10;
+          y0 = a.y - 12 - si * 6;
+          start.push([px, a.y], [px, y0], [lx, y0]);
+        }
+        let y1: number;
+        if (L || rightmost(e.to)) {
+          // Into the side facing the lane, the arrow pointing at the box.
+          y1 = Math.round(b.y + NH / 2 + (ti - (tn - 1) / 2) * 10);
+          tx = L ? b.x : b.x + NW;
+          ty = y1;
+          const back = L ? tx - 9 : tx + 9;
+          pts = [...start, [lx, y1], [back, y1]];
+          arrow = `M${back} ${ty - 5} L${back} ${ty + 5} L${tx} ${ty} Z`;
+          arrows.push([Math.min(tx, back), Math.max(tx, back), ty - 5, ty + 5]);
+          runs.push([Math.min(tx, lx), Math.max(tx, lx), y1 - 3, y1 + 3]);
+        } else {
+          // A box to its right: come in from below, into the bottom edge.
+          tx = b.x + NW - 20 - ti * 10;
+          y1 = b.y + NH + 12 + ti * 6;
+          ty = b.y + NH;
+          pts = [...start, [lx, y1], [tx, y1], [tx, ty + 9]];
+          arrow = `M${tx - 5} ${ty + 9} L${tx + 5} ${ty + 9} L${tx} ${ty} Z`;
+          arrows.push([tx - 5, tx + 5, ty, ty + 9]);
+          runs.push([tx, lx, y1 - 3, y1 + 3]);
+        }
+        const sx0 = start[start.length - 2][0];
+        runs.push([Math.min(sx0, lx), Math.max(sx0, lx), y0 - 3, y0 + 3]);
+        if (e.inferred || r) {
+          const text = e.inferred ? e.label || p.inferredLabel || tr('推測') : countText(e);
+          marks.push({ idx, e, text, tx: L ? upLabelX : upLabelEndL, ty: Math.round((y0 + y1) / 2), left: !L, r, dim, up: true });
+        }
       } else {
-        // A box to its right: leave from the top edge, just under the lines of the gap above.
-        const px = L ? a.x + 20 + si * 10 : a.x + NW - 20 - si * 10;
-        y0 = a.y - 12 - si * 6;
-        start.push([px, a.y], [px, y0], [lx, y0]);
+        const oi = outs[e.from].indexOf(e);
+        const on = outs[e.from].length;
+        const ii = ins[e.to].indexOf(e);
+        inn = ins[e.to].length;
+        const sx = Math.round(a.x + (NW * (oi + 1)) / (on + 1));
+        const sy = a.y + NH;
+        tx = Math.round(b.x + (NW * (ii + 1)) / (inn + 1));
+        ty = b.y;
+        const off = (oi - (on - 1) / 2) * 6;
+        const y1 = sy + gaps[layerIndex[e.from]] / 2 + off;
+        if (layerIndex[e.to] - layerIndex[e.from] > 1) {
+          // Skipping a layer: go down a channel between the boxes of the next layer, the one nearest the middle.
+          const next = (byLayer.get(layers[layerIndex[e.from] + 1]) ?? []).map((n) => pos[n.id]);
+          const mid = (sx + tx) / 2;
+          const chans = [next[0].x - COL / 2, ...next.map((q) => q.x + NW + COL / 2)].map((c) => Math.max(PAD / 2, Math.min(W - PAD / 2, c)));
+          const chx = chans.reduce((best, c) => (Math.abs(c - mid) < Math.abs(best - mid) ? c : best), chans[0]) + off;
+          const y2 = ty - gaps[layerIndex[e.to] - 1] / 2 + off;
+          pts = [
+            [sx, sy],
+            [sx, y1],
+            [chx, y1],
+            [chx, y2],
+            [tx, y2],
+            [tx, ty - 8],
+          ];
+        } else
+          pts = [
+            [sx, sy],
+            [sx, y1],
+            [tx, y1],
+            [tx, ty - 8],
+          ];
+        arrow = `M${tx - 5} ${ty - 9} L${tx + 5} ${ty - 9} L${tx} ${ty} Z`;
+        arrows.push([tx - 5, tx + 5, ty - 9, ty]);
       }
-      let y1: number;
-      if (L || rightmost(e.to)) {
-        // Into the side facing the lane, the arrow pointing at the box.
-        y1 = Math.round(b.y + NH / 2 + (ti - (tn - 1) / 2) * 10);
-        tx = L ? b.x : b.x + NW;
-        ty = y1;
-        const back = L ? tx - 9 : tx + 9;
-        pts = [...start, [lx, y1], [back, y1]];
-        arrow = `M${back} ${ty - 5} L${back} ${ty + 5} L${tx} ${ty} Z`;
-        arrows.push([Math.min(tx, back), Math.max(tx, back), ty - 5, ty + 5]);
-        runs.push([Math.min(tx, lx), Math.max(tx, lx), y1 - 3, y1 + 3]);
-      } else {
-        // A box to its right: come in from below, into the bottom edge.
-        tx = b.x + NW - 20 - ti * 10;
-        y1 = b.y + NH + 12 + ti * 6;
-        ty = b.y + NH;
-        pts = [...start, [lx, y1], [tx, y1], [tx, ty + 9]];
-        arrow = `M${tx - 5} ${ty + 9} L${tx + 5} ${ty + 9} L${tx} ${ty} Z`;
-        arrows.push([tx - 5, tx + 5, ty, ty + 9]);
-        runs.push([tx, lx, y1 - 3, y1 + 3]);
+      // Hover on a selectable line: darker and 2 px thicker.
+      const w = (e.inferred ? 1.5 : 1.5 + 5.5 * ((e.count || 0) / maxCount)) + (picked ? 1.5 : 0) + (hovered ? 2 : 0);
+      const cpts = clean(pts);
+      for (let k = 1; k < cpts.length; k++) {
+        const [ax, ay] = cpts[k - 1];
+        const [bx, by] = cpts[k];
+        segs.push({ idx, box: [Math.min(ax, bx) - 3, Math.max(ax, bx) + 3, Math.min(ay, by) - 3, Math.max(ay, by) + 3] });
       }
-      const sx0 = start[start.length - 2][0];
-      runs.push([Math.min(sx0, lx), Math.max(sx0, lx), y0 - 3, y0 + 3]);
-      if (e.inferred || r) {
-        const text = e.inferred ? e.label || p.inferredLabel || tr('推測') : countText(e);
-        marks.push({ idx, e, text, tx: L ? upLabelX : upLabelEndL, ty: Math.round((y0 + y1) / 2), left: !L, r, dim, up: true });
-      }
-    } else {
-      const oi = outs[e.from].indexOf(e);
-      const on = outs[e.from].length;
-      const ii = ins[e.to].indexOf(e);
-      inn = ins[e.to].length;
-      const sx = Math.round(a.x + (NW * (oi + 1)) / (on + 1));
-      const sy = a.y + NH;
-      tx = Math.round(b.x + (NW * (ii + 1)) / (inn + 1));
-      ty = b.y;
-      const off = (oi - (on - 1) / 2) * 6;
-      const y1 = sy + GAP / 2 + off;
-      if (layerIndex[e.to] - layerIndex[e.from] > 1) {
-        // Skipping a layer: go down a channel between the boxes of the next layer, the one nearest the middle.
-        const next = (byLayer.get(layers[layerIndex[e.from] + 1]) ?? []).map((n) => pos[n.id]);
-        const mid = (sx + tx) / 2;
-        const chans = [next[0].x - COL / 2, ...next.map((q) => q.x + NW + COL / 2)].map((c) => Math.max(PAD / 2, Math.min(W - PAD / 2, c)));
-        const chx = chans.reduce((best, c) => (Math.abs(c - mid) < Math.abs(best - mid) ? c : best), chans[0]) + off;
-        const y2 = ty - GAP / 2 + off;
-        pts = [
-          [sx, sy],
-          [sx, y1],
-          [chx, y1],
-          [chx, y2],
-          [tx, y2],
-          [tx, ty - 8],
-        ];
-      } else
-        pts = [
-          [sx, sy],
-          [sx, y1],
-          [tx, y1],
-          [tx, ty - 8],
-        ];
-      arrow = `M${tx - 5} ${ty - 9} L${tx + 5} ${ty - 9} L${tx} ${ty} Z`;
-      arrows.push([tx - 5, tx + 5, ty - 9, ty]);
-    }
-    // Hover on a selectable line: darker and 2 px thicker.
-    const w = (e.inferred ? 1.5 : 1.5 + 5.5 * ((e.count || 0) / maxCount)) + (picked ? 1.5 : 0) + (hovered ? 2 : 0);
-    const cpts = clean(pts);
-    for (let k = 1; k < cpts.length; k++) {
-      const [ax, ay] = cpts[k - 1];
-      const [bx, by] = cpts[k];
-      segs.push({ idx, box: [Math.min(ax, bx) - 3, Math.max(ax, bx) + 3, Math.min(ay, by) - 3, Math.max(ay, by) + 3] });
-    }
-    const d = route(cpts, 10);
-    paths.push(
-      <path
-        key={'p' + idx}
-        className={cx('ui-lg-edge', e.inferred && 'is-inferred', r && 'is-related', dim && 'is-dim', hovered && 'is-hover')}
-        d={d}
-        strokeWidth={w}
-      />,
-    );
-    if (pickEdge) {
-      // An invisible 12 px path over the line: the click and keyboard target.
-      hitPaths.push(
+      const d = route(cpts, 10);
+      paths.push(
         <path
-          key={'h' + idx}
-          className="ui-lg-hit"
-          data-edge={edgeId(e)}
+          key={'p' + idx}
+          className={cx('ui-lg-edge', e.inferred && 'is-inferred', r && 'is-related', dim && 'is-dim', hovered && 'is-hover')}
           d={d}
-          role="button"
-          tabIndex={0}
-          aria-label={`${nameOf(e.from)} → ${nameOf(e.to)}，${(e.inferred ? e.label || p.inferredLabel || tr('推測') : countText(e)).replace(/`/g, '')}`}
-          aria-pressed={picked}
-          onClick={(ev) => {
-            ev.stopPropagation();
-            choose(e);
-          }}
-          onPointerEnter={() => setHover(edgeId(e))}
-          onPointerLeave={() => setHover(null)}
-          onKeyDown={(ev) => {
-            if (ev.key === 'Enter' || ev.key === ' ') {
-              ev.preventDefault();
-              choose(e);
-            } else if (ev.key === 'Escape' && picked) pickEdge(null);
-          }}
+          strokeWidth={w}
         />,
       );
-    }
-    paths.push(<path key={'a' + idx} className={cx('ui-lg-arrow', r && 'is-related', dim && 'is-dim')} d={arrow} />);
-    if (!up && (e.inferred || r)) {
-      const text = e.inferred ? e.label || p.inferredLabel || tr('推測') : countText(e);
-      // Several arrows into one box: an arrow in the left half puts its label on its left.
-      marks.push({ idx, e, text, tx, ty, left: inn > 1 && tx < b.x + NW / 2, r, dim });
-    }
-  });
-  // Labels sit beside their arrowheads, inside the diagram; one that would touch a placed label or an arrowhead moves up 18 px.
-  // Obstacles are [left, right, top, bottom, gap].
-  const placed = [...arrows, ...runs];
-  // Boxes, which the labels of up lines (placed in the gaps beside the lanes) must not cover.
-  const boxRects = main.map((n) => [pos[n.id].x, pos[n.id].x + NW, pos[n.id].y, pos[n.id].y + NH]);
-  const hits = (x0: number, x1: number, y0: number, y1: number) =>
-    placed.some((q) => x0 < q[1] + (q[4] || 0) && q[0] < x1 + (q[4] || 0) && y0 < q[3] && q[2] < y1);
-  const labelEl = (m: (typeof marks)[number], x0: number, top: number) => (
-    // With onSelectEdge the label selects its edge too (a mouse and touch target; keyboard uses the line itself).
-    <span
-      key={'l' + m.idx}
-      // The line's own button carries this text; read once, not again beside it.
-      aria-hidden={pickEdge ? true : undefined}
-      className={cx('ui-lg-label', pickEdge && 'is-clickable', pickEdge && hover === edgeId(m.e) && 'is-hover', m.r && 'is-related', m.dim && 'is-dim')}
-      style={{ left: x0, top }}
-      onClick={
-        pickEdge
-          ? (ev) => {
+      if (pickEdge) {
+        // An invisible 12 px path over the line: the click and keyboard target.
+        hitPaths.push(
+          <path
+            key={'h' + idx}
+            className="ui-lg-hit"
+            data-edge={edgeId(e)}
+            d={d}
+            role="button"
+            tabIndex={0}
+            aria-label={`${nameOf(e.from)} → ${nameOf(e.to)}，${(e.inferred ? e.label || p.inferredLabel || tr('推測') : countText(e)).replace(/`/g, '')}`}
+            aria-pressed={picked}
+            onClick={(ev) => {
               ev.stopPropagation();
-              choose(m.e);
-            }
-          : undefined
+              choose(e);
+            }}
+            onPointerEnter={() => setHover(edgeId(e))}
+            onPointerLeave={() => setHover(null)}
+            onKeyDown={(ev) => {
+              if (ev.key === 'Enter' || ev.key === ' ') {
+                ev.preventDefault();
+                choose(e);
+              } else if (ev.key === 'Escape' && picked) pickEdge(null);
+            }}
+          />,
+        );
       }
-      onPointerEnter={pickEdge ? () => setHover(edgeId(m.e)) : undefined}
-      onPointerLeave={pickEdge ? () => setHover(null) : undefined}
-    >
-      {labelParts(m.text)}
-    </span>
-  );
-  marks
-    .sort((m, n) => m.ty - n.ty || m.tx - n.tx)
-    .forEach((m) => {
-      const w = Math.ceil(labelWidth(m.text));
-      if (m.up) {
-        // Beside its lane, halfway between the two ends (the gap between layers); moved up, then down, off boxes,
-        // lines and labels already placed, and kept inside the diagram.
-        const x0 = Math.max(PAD / 2, Math.min(W - PAD / 2 - w, m.left ? m.tx - w : m.tx));
-        const over = (q: number[], y0: number, y1: number) => x0 < q[1] + 4 && q[0] < x0 + w + 4 && y0 < q[3] + 4 && q[2] < y1 + 4;
-        // Never on a box or a placed label; off other lines too when there is room (else over a line, on its white ground).
-        const blocked = (y0: number, y1: number) => hits(x0, x0 + w, y0, y1) || boxRects.some((q) => over(q, y0, y1));
-        const crosses = (y0: number, y1: number) => segs.some((g) => g.idx !== m.idx && over(g.box, y0, y1));
-        const start = Math.max(10, Math.min(H - 10, m.ty));
-        const find = (bad: (y0: number, y1: number) => boolean) => {
-          for (let k = 0; k <= 16; k++)
-            for (const dir of k ? [-1, 1] : [0]) {
-              const t = start + dir * k * 18;
-              if (t >= 10 && t <= H - 10 && !bad(t - 8, t + 8)) return t;
-            }
-          return null;
-        };
-        const top = find((y0, y1) => blocked(y0, y1) || crosses(y0, y1)) ?? find(blocked) ?? start;
-        placed.push([x0, x0 + w, top - 8, top + 8, 6]);
-        labels.push(labelEl(m, x0, top));
-        return;
+      paths.push(<path key={'a' + idx} className={cx('ui-lg-arrow', r && 'is-related', dim && 'is-dim')} d={arrow} />);
+      if (!up && (e.inferred || r)) {
+        const text = e.inferred ? e.label || p.inferredLabel || tr('推測') : countText(e);
+        // Several arrows into one box: an arrow in the left half puts its label on its left.
+        marks.push({ idx, e, text, tx, ty, left: inn > 1 && tx < b.x + NW / 2, r, dim });
       }
-      let left = m.left;
-      if (left && m.tx - 8 - w < 0) left = false;
-      else if (!left && m.tx + 8 + w > W) left = m.tx - 8 - w >= 0;
-      const x0 = left ? m.tx - 8 - w : Math.min(m.tx + 8, W - w);
-      const x1 = x0 + w;
-      let top = m.ty - 16;
-      for (let k = 0; k < 8 && hits(x0, x1, top - 8, top + 8); k++) top -= 18;
-      placed.push([x0, x1, top - 8, top + 8, 6]);
-      labels.push(labelEl(m, x0, top));
     });
+    // Labels sit beside their arrowheads, inside the diagram; one that would touch a placed label or an arrowhead moves up 18 px.
+    // Obstacles are [left, right, top, bottom, gap].
+    const placed = [...arrows, ...runs];
+    // Boxes, which the labels of up lines (placed in the gaps beside the lanes) must not cover.
+    const boxRects = main.map((n) => [pos[n.id].x, pos[n.id].x + NW, pos[n.id].y, pos[n.id].y + NH]);
+    const hits = (x0: number, x1: number, y0: number, y1: number) =>
+      placed.some((q) => x0 < q[1] + (q[4] || 0) && q[0] < x1 + (q[4] || 0) && y0 < q[3] && q[2] < y1);
+    // On its own line: the line itself, not the room around it, since the label sits beside its own arrowhead and lane.
+    const cross = (q: number[], x0: number, lw: number, y0: number, y1: number) => x0 < q[1] - 1 && q[0] + 1 < x0 + lw && y0 < q[3] - 1 && q[2] + 1 < y1;
+    const labelEl = (m: (typeof marks)[number], x0: number, top: number, lines: string[] = [m.text]) => (
+      // With onSelectEdge the label selects its edge too (a mouse and touch target; keyboard uses the line itself).
+      <span
+        key={'l' + m.idx}
+        // The line's own button carries this text; read once, not again beside it.
+        aria-hidden={pickEdge ? true : undefined}
+        className={cx('ui-lg-label', pickEdge && 'is-clickable', pickEdge && hover === edgeId(m.e) && 'is-hover', m.r && 'is-related', m.dim && 'is-dim')}
+        style={{ left: x0, top }}
+        onClick={
+          pickEdge
+            ? (ev) => {
+                ev.stopPropagation();
+                choose(m.e);
+              }
+            : undefined
+        }
+        onPointerEnter={pickEdge ? () => setHover(edgeId(m.e)) : undefined}
+        onPointerLeave={pickEdge ? () => setHover(null) : undefined}
+      >
+        {lines.map((t, i) => (
+          <React.Fragment key={i}>
+            {i ? <br /> : null}
+            {labelParts(t)}
+          </React.Fragment>
+        ))}
+      </span>
+    );
+    marks
+      // Labels beside arrowheads first: their spot is fixed; the labels of lines up then look for room around them.
+      .sort((m, n) => Number(!!m.up) - Number(!!n.up) || m.ty - n.ty || m.tx - n.tx)
+      .forEach((m) => {
+        const w = Math.ceil(labelWidth(m.text));
+        if (m.up) {
+          // Beside its lane, halfway between the two ends (the gap between layers); moved up, then down, off boxes,
+          // lines and labels already placed, and kept inside the diagram. On one line when a spot is clear of every
+          // line; else wrapped onto 2 to 4 lines, narrower so it fits between the lane and the next line; else the gap
+          // grows and it is tried again. Only when the gap cannot grow further may it cover a line, on its white ground.
+          const x0Of = (lw: number) => Math.max(PAD / 2, Math.min(W - PAD / 2 - lw, m.left ? m.tx - lw : m.tx));
+          const start0 = Math.max(10, Math.min(H - 10, m.ty));
+          const find = (x0: number, lw: number, lh: number, withLines: boolean) => {
+            const over = (q: number[], y0: number, y1: number) => x0 < q[1] + 4 && q[0] < x0 + lw + 4 && y0 < q[3] + 4 && q[2] < y1 + 4;
+            const bad = (y0: number, y1: number) =>
+              hits(x0, x0 + lw, y0 - 4, y1 + 4) ||
+              boxRects.some((q) => over(q, y0, y1)) ||
+              (withLines && segs.some((g) => (g.idx === m.idx ? cross(g.box, x0, lw, y0, y1) : over(g.box, y0, y1))));
+            for (let k = 0; k <= 16; k++)
+              for (const dir of k ? [-1, 1] : [0]) {
+                const t = start0 + dir * k * 18;
+                if (t - lh / 2 >= 2 && t + lh / 2 <= H - 2 && !bad(t - lh / 2, t + lh / 2)) return t;
+              }
+            return null;
+          };
+          let spot: { x0: number; top: number; lw: number; lh: number; lines: string[] } | null = null;
+          for (const lines of wraps(m.text)) {
+            const lw = Math.ceil(Math.max(...lines.map(labelWidth)));
+            const lh = lines.length * 16;
+            const x0 = x0Of(lw);
+            const top = find(x0, lw, lh, true);
+            if (top != null) {
+              spot = { x0, top, lw, lh, lines };
+              break;
+            }
+          }
+          if (!spot) {
+            // The gap the label sits in: the one around its middle, else the one just above the line's source.
+            const g = Math.max(
+              0,
+              Math.min(
+                layers.length - 2,
+                layers.findIndex((_, k) => k < layers.length - 1 && m.ty < rowTop(k + 1)),
+              ),
+            );
+            need.add(g);
+            const x0 = x0Of(w);
+            spot = { x0, top: find(x0, w, 16, false) ?? start0, lw: w, lh: 16, lines: [m.text] };
+          }
+          // 4 px above and below too, so a label placed later does not sit flush against it.
+          placed.push([spot.x0, spot.x0 + spot.lw, spot.top - spot.lh / 2 - 4, spot.top + spot.lh / 2 + 4, 6]);
+          labels.push(labelEl(m, spot.x0, spot.top, spot.lines));
+          return;
+        }
+        // Beside its arrowhead, on its side (see left), moved up 18 px at a time off labels and arrowheads. Clear of
+        // every other line and every box too: else on the other side of the arrowhead, then wrapped onto 2 to 4 lines,
+        // then the gap above the arrowhead grows and the diagram is drawn again.
+        const g = layerIndex[m.e.to] - 1;
+        const sideOf = (lw: number) => {
+          let left = m.left;
+          if (left && m.tx - 8 - lw < 0) left = false;
+          else if (!left && m.tx + 8 + lw > W) left = m.tx - 8 - lw >= 0;
+          return left;
+        };
+        const at = (left: boolean, lw: number) => (left ? m.tx - 8 - lw : Math.min(m.tx + 8, W - lw));
+        const clear = (x0: number, lw: number, y0: number, y1: number) => {
+          const over = (q: number[]) => x0 < q[1] + 2 && q[0] < x0 + lw + 2 && y0 < q[3] + 2 && q[2] < y1 + 2;
+          return !hits(x0, x0 + lw, y0, y1) && !boxRects.some(over) && !segs.some((sg) => (sg.idx === m.idx ? cross(sg.box, x0, lw, y0, y1) : over(sg.box)));
+        };
+        let spot: { x0: number; top: number; lw: number; lh: number; lines: string[] } | null = null;
+        for (const lines of wraps(m.text)) {
+          const lw = Math.ceil(Math.max(...lines.map(labelWidth)));
+          const lh = lines.length * 16;
+          const pref = sideOf(lw);
+          for (const left of [pref, !pref]) {
+            const x0 = at(left, lw);
+            if (x0 < 0 || x0 + lw > W) continue;
+            for (let k = 0; k < 8 && !spot; k++) {
+              const top = m.ty - 8 - lh / 2 - k * 18;
+              if (top - lh / 2 < 2) break;
+              if (clear(x0, lw, top - lh / 2, top + lh / 2)) spot = { x0, top, lw, lh, lines };
+            }
+            if (spot) break;
+          }
+          if (spot) break;
+        }
+        if (!spot) {
+          // As before this rule: on its side, moved up off labels only; the gap grows while it can.
+          if (g >= 0) need.add(g);
+          const x0 = at(sideOf(w), w);
+          let top = m.ty - 16;
+          for (let k = 0; k < 8 && hits(x0, x0 + w, top - 8, top + 8); k++) top -= 18;
+          spot = { x0, top, lw: w, lh: 16, lines: [m.text] };
+        }
+        placed.push([spot.x0, spot.x0 + spot.lw, spot.top - spot.lh / 2, spot.top + spot.lh / 2, 6]);
+        labels.push(labelEl(m, spot.x0, spot.top, spot.lines));
+      });
+    return { paths, labels, hitPaths, need };
+  };
+  placeRows();
+  let drawn = draw();
+  // At most GROW_MAX / GROW redraws: each one widens every gap that a label asked for.
+  const grows = () => [...drawn.need].filter((g) => gaps[g] < GAP + GROW_MAX);
+  for (let k = 0; k < GROW_MAX / GROW && grows().length; k++) {
+    for (const g of grows()) gaps[g] = Math.min(GAP + GROW_MAX, gaps[g] + GROW);
+    placeRows();
+    drawn = draw();
+  }
+  // A gap that grew to the most and still did not help goes back to GAP: the room bought nothing.
+  const stuck = [...drawn.need].filter((g) => gaps[g] >= GAP + GROW_MAX);
+  if (stuck.length) {
+    for (const g of stuck) gaps[g] = GAP;
+    placeRows();
+    drawn = draw();
+  }
+  const { paths, labels, hitPaths } = drawn;
   const sizeText = p.sizeLabel ?? tr('{n} 個項目');
   const useText = p.useLabel ?? tr('使用 {n} 次');
   const nodes = main.map((n) => {
