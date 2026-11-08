@@ -7,7 +7,7 @@ import { DOC_SHAPE, FILE_KIND, fileExt, findNode, foldersOf, latest, pathTo, sor
 import { fileSize, format } from '../../format';
 import { tr } from '../../i18n';
 import { Icon, IconOf, type IconSource } from '../../icons/Icon';
-import { cx, digits, reduced, browserKey } from '../../internal/util';
+import { cx, digits, reduced, browserKey, nodeText } from '../../internal/util';
 import { announce } from '../../announce';
 import { devWarn } from '../../internal/dev';
 import { CheckMark } from '../../internal/Field';
@@ -28,8 +28,11 @@ export interface TreeNode {
   path?: string;
   /** kind="plain": text under the name instead of path; its numbers are in Geist Mono. */
   meta?: string;
-  /** kind="plain": category tags after the name. Tag only what differs from most items. */
+  /** kind="plain": category tags after the name. Tag only what differs from most items. Their words are read as part
+   *  of the item's name, after the name; give `ariaLabel` when a tag is an element whose words cannot be read off it. */
   tags?: React.ReactNode[];
+  /** The whole name screen readers read for this item, instead of 「name，tags，meta，path」. */
+  ariaLabel?: string;
   /** Expandable before its children are loaded (with loadChildren). */
   hasChildren?: boolean;
   /** kind="plain": name in the secondary color. */
@@ -276,8 +279,10 @@ export function TreeList(p: TreeListProps) {
             break;
           }
     } else if (k === 'Enter') {
-      if (plain) p.onSelect?.(r.n);
-      else if (r.isF) toggle(r.n);
+      if (plain) {
+        p.onSelect?.(r.n);
+        if (r.isF) toggle(r.n);
+      } else if (r.isF) toggle(r.n);
       else openFile(r.n);
     } else checkToggle(r.n);
   };
@@ -306,14 +311,15 @@ export function TreeList(p: TreeListProps) {
       <div
         key={n.id}
         {...itemProps(r, idx)}
-        // Only the item's own words: name, meta, then the full path (the shortened one would read 「…」 aloud).
-        aria-label={[n.name, n.meta, n.path].filter(Boolean).join('，')}
+        // Only the item's own words: name, tags, meta, then the full path (the shortened one would read 「…」 aloud).
+        aria-label={n.ariaLabel ?? [n.name, ...(n.tags ?? []).map(nodeText), n.meta, n.path].filter(Boolean).join('，')}
         aria-selected={p.onSelect ? on : undefined}
         className={cx('ui-tree-row', 'is-plain', on && 'is-current', n.muted && 'is-muted', r.fresh && 'ui-tree-in')}
+        // A click anywhere on the row selects it and, when it has children, opens or closes it too.
         onClick={() => {
           setFocusId(n.id);
-          if (p.onSelect) p.onSelect(n);
-          else if (isF) toggle(n);
+          p.onSelect?.(n);
+          if (isF) toggle(n);
         }}
       >
         <Guides guides={r.guides} />
@@ -408,6 +414,7 @@ export function TreeList(p: TreeListProps) {
       <div
         key={n.id}
         {...itemProps(r, idx)}
+        aria-label={n.ariaLabel}
         aria-selected={selectable ? ck === true : undefined}
         className={cx('ui-tree-row', isF && 'is-folder', ck === true && 'is-selected', r.fresh && 'ui-tree-in')}
         onClick={() => {

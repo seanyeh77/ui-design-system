@@ -291,9 +291,12 @@ export function LayerGraph(p: LayerGraphProps) {
     onScroll();
   };
   const selEdge = (pickEdge && edges.find((e) => edgeId(e) === p.selectedEdge)) || null;
-  // How often each box uses each shared item (edges into a shared item are not drawn).
+  const nodeIdsAll = new Set(all.map((n) => n.id));
+  // How often each item uses each shared item (edges into a shared item are not drawn). Other shared items count too,
+  // so the shared item's line and the list (which shows every edge) give the same numbers.
   const uses: Record<string, Record<string, number>> = {};
-  for (const e of p.edges) if (sharedIds.has(e.to) && !sharedIds.has(e.from)) (uses[e.to] ??= {})[e.from] = (uses[e.to]?.[e.from] ?? 0) + (e.count || 0);
+  for (const e of p.edges)
+    if (sharedIds.has(e.to) && e.from !== e.to && nodeIdsAll.has(e.from)) (uses[e.to] ??= {})[e.from] = (uses[e.to]?.[e.from] ?? 0) + (e.count || 0);
   const selShared = !selEdge && sel != null && sharedIds.has(sel) ? sel : null;
   // A selected box highlights its edges; a selected edge highlights itself, and both of its boxes stay undimmed;
   // a selected shared item keeps the boxes that use it and dims every line.
@@ -681,8 +684,9 @@ export function LayerGraph(p: LayerGraphProps) {
     const by = uses[s.id] ?? {};
     const total = Object.values(by).reduce((a, b) => a + b, 0);
     const on = s.id === sel;
-    // A selected box dims the shared items it does not use.
-    const dim = !!selEdge || (sel != null && !on && (selShared != null || !(sel in by)));
+    // A selected box dims the shared items it does not use; a selected shared item keeps the shared items it uses or
+    // that use it.
+    const dim = !!selEdge || (sel != null && !on && (selShared != null ? !(s.id in (uses[selShared] ?? {})) && !(selShared in by) : !(sel in by)));
     return (
       <button
         key={s.id}

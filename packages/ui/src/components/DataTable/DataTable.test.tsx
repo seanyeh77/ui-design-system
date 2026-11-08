@@ -140,3 +140,42 @@ test('a hidden column starts off, can be turned on in 「欄位」, and is off a
   rerender(<DataTable columns={columns} rows={rows} urlSync={false} resetKey={2} />);
   await waitFor(() => expect(headers()).toEqual(['名稱', '負責人']));
 });
+
+test('long columns: the caret on the left opens the row, its long columns in full below it; a new resetKey closes it', async () => {
+  await page.viewport(1280, 800);
+  const columns = [
+    { key: 'fn' as const, label: '函式' },
+    { key: 'note' as const, label: '筆記內容', long: true, width: 160 },
+    { key: 'desc' as const, label: '說明', long: true, width: 160 },
+  ];
+  const note = '先 fork 再 execve，子行程繼承 IBTRACE_SHM；父行程等到 ring 建好才回傳，避免子行程搶先寫入。';
+  const rows = [{ id: 'a', fn: 'ibmon_spawn', note, desc: '預測和實際呼叫順序一致。' }];
+  const { container, rerender } = render(
+    <div style={{ width: 600 }}>
+      <DataTable columns={columns} rows={rows} urlSync={false} resetKey={1} />
+    </div>,
+  );
+  const caret = screen.getByRole('button', { name: '展開 ibmon_spawn' });
+  expect(caret.getAttribute('aria-expanded')).toBe('false');
+  await userEvent.setup().click(caret);
+  expect(caret.getAttribute('aria-expanded')).toBe('true');
+  expect(caret.getAttribute('aria-label')).toBe('收合 ibmon_spawn');
+  const detail = document.getElementById(caret.getAttribute('aria-controls') ?? '');
+  expect(detail?.getAttribute('role')).toBe('row');
+  expect([...(detail?.querySelectorAll('.ui-dt-detail-label') ?? [])].map((e) => e.textContent)).toEqual(['筆記內容', '說明']);
+  expect(detail?.querySelector('.ui-dt-detail-text')?.textContent).toBe(note);
+  // Whole: as tall as its text needs, nothing cut off.
+  const text = detail?.querySelector<HTMLElement>('.ui-dt-detail-text');
+  expect(text && text.scrollWidth <= text.clientWidth + 1).toBe(true);
+  rerender(
+    <div style={{ width: 600 }}>
+      <DataTable columns={columns} rows={rows} urlSync={false} resetKey={2} />
+    </div>,
+  );
+  await waitFor(() => expect(container.querySelector('.ui-dt-detail')).toBeNull());
+  expect(screen.getByRole('button', { name: '展開 ibmon_spawn' }).getAttribute('aria-expanded')).toBe('false');
+  // Phone cards keep 「顯示全部」 and have no caret.
+  await page.viewport(390, 844);
+  await waitFor(() => expect(container.querySelector('.ui-dt-exp-btn')).toBeNull());
+  await page.viewport(1280, 800);
+});

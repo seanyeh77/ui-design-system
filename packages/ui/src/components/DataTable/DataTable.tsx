@@ -5,7 +5,7 @@ import { Tabs } from '../Tabs/Tabs';
 import { format } from '../../format';
 import { tr } from '../../i18n';
 import { Icon, type CustomIcon } from '../../icons/Icon';
-import { cx, monoNums, reduced } from '../../internal/util';
+import { cx, monoNums, reduced, useNarrow } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { CheckMark } from '../../internal/Field';
 import { announce } from '../../announce';
@@ -109,6 +109,10 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const [view, setView] = React.useState(p.views?.[0]?.id ?? null);
   // Columns people turned on or off in the 「欄位」 menu; the others follow their own `hidden`.
   const [toggled, setToggled] = React.useState<Record<string, boolean>>({});
+  // Rows opened with the caret on the left: their long columns in full, below the row.
+  const [opened, setOpened] = React.useState<Record<string, boolean>>({});
+  const narrow = useNarrow();
+  const uid = React.useId();
   const [sel, setSel] = React.useState<Record<string, boolean>>({});
   const [sumVal, setSumVal] = React.useState('all');
   const [resetKey, setResetKey] = React.useState(p.resetKey);
@@ -122,6 +126,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     setSumVal('all');
     setSort({ key: null, dir: 'desc' });
     setToggled({});
+    setOpened({});
   }
   const valuesKey = JSON.stringify(values);
   React.useEffect(() => {
@@ -308,16 +313,21 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     const m = c.mobile || (!hasTitle && ci === 0 ? 'title' : null);
     return m ? 'is-m-' + m : null;
   };
+  // A caret on the left of each row when there are long columns (desktop; phone cards have 「顯示全部」).
+  const longCols = shownCols.filter((c) => c.long);
+  const expander = longCols.length > 0 && !narrow;
+  const EXP = 40;
   const template = [
+    expander ? EXP + 'px' : null,
     selectable ? '46px' : null,
     ...shownCols.map((c) => (c.width ? `minmax(${c.width}px, ${c.grow || 1}fr)` : c.numeric ? 'minmax(96px, .8fr)' : 'minmax(120px, 1fr)')),
     hasAct ? actW + 'px' : null,
   ]
     .filter(Boolean)
     .join(' ');
-  const minW = (selectable ? 46 : 0) + shownCols.reduce((a, c) => a + (c.width || (c.numeric ? 96 : 120)), 0) + (hasAct ? actW : 0);
+  const minW = (expander ? EXP : 0) + (selectable ? 46 : 0) + shownCols.reduce((a, c) => a + (c.width || (c.numeric ? 96 : 120)), 0) + (hasAct ? actW : 0);
   const gridStyle = { gridTemplateColumns: template, minWidth: minW };
-  const stickyStyle = (ci: number) => (ci === 0 && sticky ? { left: selectable ? 46 : 0 } : undefined);
+  const stickyStyle = (ci: number) => (ci === 0 && sticky ? { left: (expander ? EXP : 0) + (selectable ? 46 : 0) } : undefined);
   const cellClass = (c: DataTableColumn<R>, ci: number, ...more: unknown[]) =>
     cx('ui-dt-cell', isNum(c) && 'is-num', ci === 0 && sticky && 'is-sticky', ...more);
 
@@ -335,6 +345,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
       </div>
     ) : (
       <div className="ui-dt-row ui-dt-head" role="row" style={gridStyle}>
+        {expander ? <div className="ui-dt-cell ui-dt-exp" role="columnheader" aria-label={tr('詳細')} /> : null}
         {selectable ? (
           <div className="ui-dt-cell ui-dt-sel" role="columnheader">
             <RowCheck v={allOn ? true : mixed ? 'mixed' : false} label={tr('全選')} onClick={() => toggle(visIds, !allOn)} />
@@ -366,7 +377,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     );
 
   const mark = searching ? q : '';
-  const cell = (r: R, c: DataTableColumn<R>) => {
+  const cellInner = (r: R, c: DataTableColumn<R>) => {
     const raw = get(r, c.key);
     let v: React.ReactNode;
     if (c.render) v = c.render(r);
@@ -377,8 +388,9 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         </>
       );
     else v = markMatch(cellText(c, raw), mark);
-    return c.long ? <LongText>{v}</LongText> : v;
+    return v;
   };
+  const cell = (r: R, c: DataTableColumn<R>) => (c.long ? <LongText>{cellInner(r, c)}</LongText> : cellInner(r, c));
   const total = (c: DataTableColumn<R>, ci: number): React.ReactNode => {
     const how = p.totals?.[c.key];
     const rowsAll = list.map((x) => x.r);
@@ -490,39 +502,69 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                 vis.map((x, i) => {
                   const id = visIds[i];
                   const on = !!sel[id];
+                  const open = expander && !!opened[id];
+                  const detailId = `${uid}-d-${id}`;
+                  const rowName = shownCols[0] ? String(cellText(shownCols[0], get(x.r, shownCols[0].key)) ?? '') : '';
                   return (
-                    <div
-                      key={id}
-                      data-rid={id}
-                      ref={(el) => {
-                        rowEls.current[id] = el;
-                      }}
-                      role="row"
-                      className={cx('ui-dt-row', i % 2 && 'is-even', on && 'is-selected', selectable && 'has-sel')}
-                      style={gridStyle}
-                    >
-                      {selectable ? (
-                        <div className="ui-dt-cell ui-dt-sel" role="cell">
-                          <RowCheck v={on} label={tr('選取第 {n} 筆', { n: start + i + 1 })} onClick={() => toggle([id], !on)} />
+                    <React.Fragment key={id}>
+                      <div
+                        data-rid={id}
+                        ref={(el) => {
+                          rowEls.current[id] = el;
+                        }}
+                        role="row"
+                        className={cx('ui-dt-row', i % 2 && 'is-even', on && 'is-selected', selectable && 'has-sel')}
+                        style={gridStyle}
+                      >
+                        {expander ? (
+                          <div className="ui-dt-cell ui-dt-exp" role="cell">
+                            <button
+                              type="button"
+                              className={cx('ui-dt-exp-btn', open && 'is-open')}
+                              aria-expanded={open}
+                              aria-controls={open ? detailId : undefined}
+                              aria-label={tr(open ? '收合 {name}' : '展開 {name}', { name: rowName })}
+                              onClick={() => setOpened({ ...opened, [id]: !open })}
+                            >
+                              <Icon name="caret-right" size={16} />
+                            </button>
+                          </div>
+                        ) : null}
+                        {selectable ? (
+                          <div className="ui-dt-cell ui-dt-sel" role="cell">
+                            <RowCheck v={on} label={tr('選取第 {n} 筆', { n: start + i + 1 })} onClick={() => toggle([id], !on)} />
+                          </div>
+                        ) : null}
+                        {shownCols.map((c, ci) => (
+                          <div
+                            key={c.key}
+                            role="cell"
+                            data-label={c.label}
+                            className={cellClass(c, ci, c.long && 'is-long', mobileClass(c, ci))}
+                            style={stickyStyle(ci)}
+                          >
+                            {cell(x.r, c)}
+                          </div>
+                        ))}
+                        {hasAct ? (
+                          <div className="ui-dt-cell ui-dt-acts" role="cell">
+                            {p.rowActions?.(x.r)}
+                          </div>
+                        ) : null}
+                      </div>
+                      {open ? (
+                        <div id={detailId} role="row" className={cx('ui-dt-detail', i % 2 && 'is-even')} style={{ minWidth: minW }}>
+                          <div role="cell" className="ui-dt-detail-cell" style={{ paddingLeft: EXP + (selectable ? 46 : 0) + 12 }}>
+                            {longCols.map((c) => (
+                              <div key={c.key} className="ui-dt-detail-item">
+                                <div className="ui-dt-detail-label">{c.label}</div>
+                                <div className="ui-dt-detail-text">{cellInner(x.r, c)}</div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       ) : null}
-                      {shownCols.map((c, ci) => (
-                        <div
-                          key={c.key}
-                          role="cell"
-                          data-label={c.label}
-                          className={cellClass(c, ci, c.long && 'is-long', mobileClass(c, ci))}
-                          style={stickyStyle(ci)}
-                        >
-                          {cell(x.r, c)}
-                        </div>
-                      ))}
-                      {hasAct ? (
-                        <div className="ui-dt-cell ui-dt-acts" role="cell">
-                          {p.rowActions?.(x.r)}
-                        </div>
-                      ) : null}
-                    </div>
+                    </React.Fragment>
                   );
                 })
               ) : (
@@ -538,6 +580,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
             </div>
             {p.totals && list.length ? (
               <div className="ui-dt-row ui-dt-total" role="row" style={gridStyle}>
+                {expander ? <div className="ui-dt-cell" role="cell" /> : null}
                 {selectable ? <div className="ui-dt-cell" role="cell" /> : null}
                 {shownCols.map((c, ci) => (
                   <div key={c.key} role="cell" className={cellClass(c, ci)} style={stickyStyle(ci)}>

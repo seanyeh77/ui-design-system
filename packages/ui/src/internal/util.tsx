@@ -39,8 +39,10 @@ export function reduced(): boolean {
 
 const nav = typeof navigator !== 'undefined' ? (navigator as Navigator & { userAgentData?: { platform?: string } }) : undefined;
 export const IS_MAC = /mac|iphone|ipad/i.test(nav?.userAgentData?.platform || nav?.platform || nav?.userAgent || '');
-/** A touch screen as the main input (phones, tablets): no keyboard to press a shortcut with. */
-export const TOUCH_ONLY = '(pointer: coarse), (hover: none)';
+/** A touch screen as the main input (phones, tablets): no keyboard to press a shortcut with, no hover. Phones and
+ *  tablets report (pointer: coarse); (hover: none) alone is not used, since Chromium keeps it after touch emulation is
+ *  turned off and a mouse would then lose its Tooltips. */
+export const TOUCH_ONLY = '(pointer: coarse)';
 export const SHORTCUT = IS_MAC ? '⌘K' : 'Ctrl K';
 
 /** Matches a media query and follows changes. */
@@ -100,3 +102,16 @@ export function digits(text: string, numbers = /(\d[\d,.:/]*)/): React.ReactNode
 
 /** Alt, Meta or Ctrl held: the key belongs to the browser or the system (Alt+← goes back a page), not to the widget. */
 export const browserKey = (e: { altKey: boolean; metaKey: boolean; ctrlKey: boolean }): boolean => e.altKey || e.metaKey || e.ctrlKey;
+
+/** The words in a React node, as a screen reader would read them: strings and numbers, through elements' children. */
+export function nodeText(node: React.ReactNode): string {
+  if (node == null || typeof node === 'boolean') return '';
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(nodeText).join('');
+  if (React.isValidElement(node)) {
+    const props = node.props as { 'aria-label'?: string; label?: unknown; children?: React.ReactNode };
+    if (typeof props['aria-label'] === 'string') return props['aria-label'];
+    return nodeText(props.children) || (typeof props.label === 'string' ? props.label : '');
+  }
+  return '';
+}

@@ -127,3 +127,28 @@ test('touch: the search box shows no keyboard shortcut', async () => {
   expect(container.querySelector('.ui-search kbd')).toBeNull();
   expect(container.querySelector('.ui-search-icon')?.getAttribute('aria-label')).toBe('搜尋');
 });
+
+test('touch: a cut-off long cell has no hover Tooltip (the row caret shows it in full)', async () => {
+  // A tablet: the table layout (600 px and up), not phone cards.
+  await page.viewport(1024, 768);
+  const { container } = render(
+    <div style={{ width: 700 }}>
+      <UI.DataTable
+        urlSync={false}
+        columns={[
+          { key: 'fn', label: '函式' },
+          { key: 'note', label: '筆記內容', long: true, width: 160 },
+        ]}
+        rows={[{ id: 'a', fn: 'ring_push', note: '以為滿了會覆蓋最舊的資料，實際上回傳 -EAGAIN 並丟掉新的一筆，呼叫端沒有檢查回傳值。'.repeat(2) }]}
+      />
+    </div>,
+  );
+  await new Promise((r) => setTimeout(r, 100));
+  const long = container.querySelector<HTMLElement>('.ui-dt-long');
+  expect(long?.classList.contains('is-cut')).toBe(false);
+  long?.dispatchEvent(new PointerEvent('pointerenter', { bubbles: true }));
+  await new Promise((r) => setTimeout(r, 200));
+  expect(document.querySelector('.ui-tooltip')).toBeNull();
+  expect(container.querySelector('.ui-dt-exp-btn')).not.toBeNull();
+  await page.viewport(390, 844);
+});

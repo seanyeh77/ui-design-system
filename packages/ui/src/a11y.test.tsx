@@ -411,3 +411,69 @@ test('format.fraction and fractionLabel: shown with a slash, read without it', (
   expect(UI.format.fraction(1, 5)).toBe('1 / 5');
   expect(UI.format.fractionLabel(1, 5)).toBe('5 中的 1');
 });
+
+test('focusMain(): no focus ring on the heading; a left bar after a key press, nothing after a mouse click', async () => {
+  function Demo() {
+    const [n, setN] = React.useState(0);
+    React.useEffect(() => {
+      if (n) UI.focusMain();
+    }, [n]);
+    return (
+      <div>
+        <button type="button" onClick={() => setN(n + 1)}>
+          換頁
+        </button>
+        <main>
+          <h1>{n % 2 ? '呼叫圖' : '架構'}</h1>
+        </main>
+      </div>
+    );
+  }
+  render(<Demo />);
+  const go = screen.getByRole('button', { name: '換頁' });
+  const bar = (h: Element) => getComputedStyle(h, '::before');
+  await keys.click(go);
+  const h1 = screen.getByRole('heading', { level: 1 });
+  await waitFor(() => expect(document.activeElement).toBe(h1));
+  expect(h1.getAttribute('data-ui-main-focus')).toBe('pointer');
+  expect(getComputedStyle(h1).outlineStyle).toBe('none');
+  expect(bar(h1).content).toBe('none');
+  go.focus();
+  await keys.keyboard('{Enter}');
+  await waitFor(() => expect(document.activeElement).toBe(h1));
+  expect(h1.getAttribute('data-ui-main-focus')).toBe('key');
+  expect(getComputedStyle(h1).outlineStyle).toBe('none');
+  expect(bar(h1).width).toBe('3px');
+});
+
+test('TreeList: tags are read in the name, ariaLabel replaces it, and a click on a row with children opens and closes it', async () => {
+  const picked: string[] = [];
+  render(
+    <UI.TreeList
+      kind="plain"
+      label="呼叫者"
+      onSelect={(n) => picked.push(n.id)}
+      items={[
+        {
+          id: 'hook',
+          name: 'hook_of',
+          tags: ['推測（規則）', <span key="n">×4</span>],
+          path: 'src/libibtrace/hooks/ops.c:58',
+          children: [{ id: 'a', name: 'ucp_put_nbx', ariaLabel: 'ucp_put_nbx，外部函式' }],
+        },
+      ]}
+    />,
+  );
+  const item = screen.getByRole('treeitem', { name: 'hook_of，推測（規則），×4，src/libibtrace/hooks/ops.c:58' });
+  expect(item.getAttribute('aria-expanded')).toBe('false');
+  await user.click(screen.getByText('hook_of'));
+  expect(picked).toEqual(['hook']);
+  await waitFor(() => expect(item.getAttribute('aria-expanded')).toBe('true'));
+  expect(screen.getByRole('treeitem', { name: 'ucp_put_nbx，外部函式' })).toBeTruthy();
+  await user.click(screen.getByText('hook_of'));
+  await waitFor(() => expect(item.getAttribute('aria-expanded')).toBe('false'));
+  // Enter does the same.
+  item.focus();
+  await user.keyboard('{Enter}');
+  await waitFor(() => expect(item.getAttribute('aria-expanded')).toBe('true'));
+});
