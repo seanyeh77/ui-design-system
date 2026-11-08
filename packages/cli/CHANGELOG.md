@@ -1,5 +1,16 @@
 # @seanyeh77/ui-cli
 
+## 0.6.0
+
+### Patch Changes
+
+- 76f204a: LayerGraph: on touch screens the shared-item boxes no longer cover the whole page. Their enlarged touch area (::after) measured against the window because the box was `position: static`; it is `relative` now. Tooltip: closes when its trigger loses focus, only one is open at a time, and a closing Tooltip leaves at once instead of waiting for its entrance animation, so tabbing through cut-off DataTable cells no longer leaves Tooltips stacked. ui check: reports touch areas larger than their own control (they cover other controls) and no longer counts them as big enough targets.
+- Updated dependencies [8f9e284]
+- Updated dependencies [4e7a669]
+- Updated dependencies [f920576]
+- Updated dependencies [76f204a]
+  - @seanyeh77/ui@0.6.0
+
 ## 0.5.0
 
 ### Patch Changes
