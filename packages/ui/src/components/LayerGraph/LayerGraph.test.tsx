@@ -167,3 +167,82 @@ test('LayerGraph: a shared item is a selectable box; the boxes that use it say h
   await user.click(chip);
   expect(onSelect).toHaveBeenLastCalledWith(null);
 });
+
+// Lines to a higher layer (a data channel back up). Whatever the layout, the line and its label stay inside the
+// diagram, the line passes through no box, and the label covers no box and no other label.
+const top3 = [
+  { id: 'ibmon', name: 'src/ibmon', layer: 0, size: 91 },
+  { id: 'cli', name: 'src/cli', layer: 0, size: 18 },
+  { id: 'ucx', name: 'src/ucx_ib_test', layer: 0, size: 22 },
+  { id: 'lib', name: 'src/libibtrace', layer: 1, size: 114 },
+  { id: 'hook', name: 'src/hooks', layer: 1, size: 40 },
+];
+const ring = (to: string): LayerGraphEdge => ({ id: 'up', from: 'lib', to, inferred: true, label: '經由 `src/common` 傳資料（ring）' });
+const overlap = (a: DOMRect, b: DOMRect, pad = 0) => a.left < b.right - pad && b.left < a.right - pad && a.top < b.bottom - pad && b.top < a.bottom - pad;
+
+test.each([
+  ['the leftmost box (left lane)', 'ibmon'],
+  ['the rightmost box (right lane)', 'ucx'],
+  ['a box in the middle (from below)', 'cli'],
+])('LayerGraph: a line up to %s stays inside and clear of boxes and labels', async (_, to) => {
+  await page.viewport(1280, 900);
+  const { container } = render(
+    <LayerGraph
+      nodes={top3}
+      edges={[{ from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' }, { from: 'cli', to: 'hook', count: 4 }, ring(to)]}
+      onSelectEdge={() => {}}
+    />,
+  );
+  const canvas = container.querySelector<HTMLElement>('.ui-lg-canvas');
+  if (!canvas) throw new Error('no canvas');
+  const c = canvas.getBoundingClientRect();
+  const boxes = [...container.querySelectorAll<HTMLElement>('.ui-lg-node')].map((n) => [n.textContent ?? '', n.getBoundingClientRect()] as const);
+  const labels = [...container.querySelectorAll<HTMLElement>('.ui-lg-label')].map((n) => n.getBoundingClientRect());
+  expect(labels.length).toBe(2);
+  for (const l of labels) {
+    expect(l.left).toBeGreaterThanOrEqual(c.left - 0.5);
+    expect(l.right).toBeLessThanOrEqual(c.right + 0.5);
+    expect(l.top).toBeGreaterThanOrEqual(c.top - 0.5);
+    expect(l.bottom).toBeLessThanOrEqual(c.bottom + 0.5);
+    for (const [, b] of boxes) expect(overlap(l, b)).toBe(false);
+  }
+  expect(overlap(labels[0], labels[1])).toBe(false);
+  // The up line: every point inside the diagram and outside every box (a few px of slack where it meets its two boxes).
+  const hit = container.querySelector<SVGPathElement>('.ui-lg-hit[data-edge="up"]');
+  if (!hit) throw new Error('no up line');
+  const len = hit.getTotalLength();
+  const m = hit.getScreenCTM();
+  if (!m) throw new Error('no CTM');
+  for (let t = 0; t <= len; t += 4) {
+    const q = hit.getPointAtLength(t);
+    const x = q.x * m.a + m.e;
+    const y = q.y * m.d + m.f;
+    expect(x).toBeGreaterThanOrEqual(c.left - 0.5);
+    expect(x).toBeLessThanOrEqual(c.right + 0.5);
+    expect(y).toBeGreaterThanOrEqual(c.top - 0.5);
+    expect(y).toBeLessThanOrEqual(c.bottom + 0.5);
+    for (const [, b] of boxes) expect(x > b.left + 2 && x < b.right - 2 && y > b.top + 2 && y < b.bottom - 2).toBe(false);
+  }
+});
+
+test('LayerGraph: a line up can be selected, hovered and used from the keyboard', async () => {
+  const onEdge = vi.fn();
+  const { container } = render(
+    <LayerGraph
+      nodes={nodes}
+      edges={[...edges, { id: 'ring', from: 'lib', to: 'ibmon', inferred: true, label: '經由 `src/common` 傳資料' }]}
+      onSelectEdge={onEdge}
+    />,
+  );
+  const line = screen.getByRole('button', { name: 'src/libibtrace → src/ibmon，經由 src/common 傳資料' });
+  await user.click(line);
+  expect(onEdge).toHaveBeenLastCalledWith('ring');
+  await user.hover(line);
+  const drawn = [...container.querySelectorAll('.ui-lg-edge')].find((p) => p.classList.contains('is-hover'));
+  expect(drawn).toBeTruthy();
+  line.focus();
+  await user.keyboard('{Enter}');
+  expect(onEdge).toHaveBeenCalledTimes(2);
+  await user.click(screen.getByText('src/common'));
+  expect(onEdge).toHaveBeenCalledTimes(3);
+});
