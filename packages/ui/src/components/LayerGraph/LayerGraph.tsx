@@ -410,6 +410,8 @@ export function LayerGraph(p: LayerGraphProps) {
     // With onSelectEdge the label selects its edge too (a mouse and touch target; keyboard uses the line itself).
     <span
       key={'l' + m.idx}
+      // The line's own button carries this text; read once, not again beside it.
+      aria-hidden={pickEdge ? true : undefined}
       className={cx('ui-lg-label', pickEdge && 'is-clickable', pickEdge && hover === edgeId(m.e) && 'is-hover', m.r && 'is-related', m.dim && 'is-dim')}
       style={{ left: x0, top }}
       onClick={
@@ -519,7 +521,8 @@ export function LayerGraph(p: LayerGraphProps) {
             {nodes}
             {labels}
             {hitPaths.length ? (
-              <svg className="ui-lg-hits" width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
+              // A group, not the default image: screen readers would hide the line buttons inside an image.
+              <svg className="ui-lg-hits" width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="group" aria-label={tr('關係')}>
                 {hitPaths}
               </svg>
             ) : null}

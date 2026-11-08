@@ -1,3 +1,4 @@
+import { ensureAnnouncer } from './announce';
 import { reduced, store } from './internal/util';
 
 /* Theme and accent color. 'auto' follows prefers-color-scheme; colors cross-fade for 300 ms on a change.
@@ -105,6 +106,7 @@ let following = false;
 /** Applies the stored theme and accent; call once when the page starts. */
 export function initTheme(): void {
   setTheme(storedTheme());
+  ensureAnnouncer();
   if (following || typeof window.matchMedia !== 'function') return;
   following = true;
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {

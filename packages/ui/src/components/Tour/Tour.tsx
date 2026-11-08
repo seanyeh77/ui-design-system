@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useReturnFocus } from '../../internal/focus';
 import { Popover } from '@base-ui/react/popover';
 import { CodeText } from '../InlineCode/InlineCode';
 import { Button } from '../Button/Button';
@@ -133,6 +134,7 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
     if (controlled == null) setInner(n);
   };
   const end = (why: 'done' | 'skip') => onClose?.(why);
+  useReturnFocus(open);
 
   // Follow the target while it moves (scrolling, layout changes).
   // Depends on the step's fields, not the object: inline steps arrays are new on every render.
@@ -231,7 +233,11 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
           <Popover.Popup ref={card} key={i} className="ui-tour-card" data-placement={place.mode} initialFocus={next}>
             {/* Taller than the window (phones): this part scrolls, the buttons stay at the bottom. */}
             <div className="ui-tour-body">
-              <div className="ui-tour-count">{monoNums(tr('{n} / {total}', { n: '\u0001', total: '\u0002' }), [i + 1, steps.length])}</div>
+              <div className="ui-tour-count">
+                <span aria-hidden="true">{monoNums(tr('{n} / {total}', { n: '\u0001', total: '\u0002' }), [i + 1, steps.length])}</span>
+                {/* Not 「1 斜線 5」. */}
+                <span className="ui-visually-hidden">{tr('第 {a} 步，共 {b} 步', { a: i + 1, b: steps.length })}</span>
+              </div>
               <Popover.Title className="ui-tour-title">{step.title}</Popover.Title>
               <CodeText as="div" className="ui-tour-text" text={step.text} />
             </div>

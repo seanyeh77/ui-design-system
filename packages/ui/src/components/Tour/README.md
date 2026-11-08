@@ -27,3 +27,8 @@ h(UI.Tour, {
 h('section', { 'data-tour': 'tree' }, …),
 h('button', { className: 'ui-link-btn', onClick: tour.start }, '重看導覽')
 ```
+
+## 無障礙
+
+- 「1 / 5」念成「第 1 步，共 5 步」。
+- 按「完成」或「略過」後，焦點回到打開導覽前所在的元素；那個元素已經不在時，移到內容（`focusMain()`）。

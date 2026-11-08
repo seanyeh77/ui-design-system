@@ -272,3 +272,10 @@ Slidev 教材投影片使用 `data-theme="teaching"`。投影片的 CSS 只讀 t
 - 只有淺色。
 
 `accent-hover`、`accent-press`、`accent-soft` 依「自訂強調色的換算」由 `#0f766e` 算出。版面、字級與投影片規則見 `teaching-materials-style`。
+
+## 無障礙
+
+- 焦點不會掉回頁面最上方：Tour、CommandPalette 關閉時焦點回到打開它的元素；按鈕被移除或換掉時移到旁邊的按鈕；換頁後 app 呼叫 `focusMain()` 把焦點移到新頁的標題。
+- 變化用 `announce(text)` 經由頁面唯一的 polite live region 念出，元件自己會播報展開、篩選後的筆數、搜尋結果數和換頁。
+- 頁面有「跳到主要內容」連結和 `main` landmark；目前頁有 `aria-current="page"`。
+- 名稱照口語：「說明 caller」、「第 1 步，共 5 步」、「全部 26 個」；項目名稱不含按鈕文字和「…」。

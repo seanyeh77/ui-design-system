@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { useReturnFocus } from '../../internal/focus';
+import { announce } from '../../announce';
 import { Dialog } from '@base-ui/react/dialog';
 import { CodeText } from '../InlineCode/InlineCode';
 import { tr } from '../../i18n';
@@ -82,6 +84,7 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
   } = props;
   const [q, setQ] = React.useState(defaultQuery);
   const [active, setActive] = React.useState(0);
+  useReturnFocus(open);
   // Every open starts from the default query; opens come from the open prop, so compare during render.
   const [wasOpen, setWasOpen] = React.useState(open);
   if (open !== wasOpen) {
@@ -164,6 +167,14 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
     );
   };
   const empty = query ? tr('找不到符合「{q}」的結果', { q: q.trim() }) : emptyText || tr('輸入名稱開始搜尋');
+  // The page's live region reads the result count (or 「找不到…」) after typing settles; a message inserted fresh
+  // into the dialog is not read by most screen readers.
+  const said = !open ? '' : !query ? '' : loading ? tr('搜尋中') : shown.length ? tr('找到 {n} 筆結果', { n: shown.length }) : empty;
+  React.useEffect(() => {
+    if (!said) return;
+    const t = setTimeout(() => announce(said), 400);
+    return () => clearTimeout(t);
+  }, [said]);
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -222,9 +233,7 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
               ))}
             </ul>
           ) : (
-            <p className="ui-pal-empty" role="status">
-              {loading ? tr('搜尋中') : empty}
-            </p>
+            <p className="ui-pal-empty">{loading ? tr('搜尋中') : empty}</p>
           )}
           <div className="ui-pal-keys" aria-hidden="true">
             <span>

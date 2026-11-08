@@ -7,6 +7,8 @@ import { tr } from '../../i18n';
 import type { BreadcrumbItem } from '../Breadcrumb/Breadcrumb';
 import { cx, store, useMedia, useNarrow } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
+import { ensureAnnouncer } from '../../announce';
+import { focusMain } from '../../internal/focusMain';
 
 export interface AppShellProps {
   /** Sidebar groups. On phones, top-level items with an icon become bottom tabs; pages they cannot reach go under 「更多」. */
@@ -29,6 +31,8 @@ export interface AppShellProps {
 }
 
 const COLLAPSE_KEY = 'ui-nav-collapsed';
+
+export { focusMain };
 const MORE = '\u0000more';
 
 /** The dashboard frame: sidebar (240 px, 72 px collapsed and on tablets), top bar, and bottom tabs on phones.
@@ -74,8 +78,22 @@ export function AppShell({ nav, value, onNavigate, brand, title, breadcrumb, onS
     return () => el.removeEventListener('scroll', onScroll);
   }, []);
 
+  React.useEffect(() => {
+    ensureAnnouncer();
+  }, []);
   return (
     <div className={cx('ui-shell', phone && 'is-phone', className)}>
+      {/* First stop for the keyboard: skips the navigation. */}
+      <a
+        className="ui-skip"
+        href="#main"
+        onClick={(e) => {
+          e.preventDefault();
+          focusMain();
+        }}
+      >
+        {tr('跳到主要內容')}
+      </a>
       {phone ? null : (
         <SideNav
           sections={nav}
@@ -97,7 +115,7 @@ export function AppShell({ nav, value, onNavigate, brand, title, breadcrumb, onS
         <TopBar className={cx('ui-shell-top', hidden && 'is-hidden')} title={title} breadcrumb={breadcrumb} onSearch={onSearch ?? false}>
           {actions}
         </TopBar>
-        <main ref={main} className="ui-shell-main">
+        <main ref={main} className="ui-shell-main" tabIndex={-1}>
           {children}
         </main>
         {phone && tabs.length ? <MobileTabBar items={tabs} value={tabValue} onChange={onTab} /> : null}

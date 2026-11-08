@@ -28,3 +28,10 @@ Dashboard 類頁面的外框：側邊欄、頂部列和內容區。頁面都從�
   <Page>…</Page>
 </AppShell>
 ```
+
+## 無障礙
+
+- 第一個可以 Tab 到的是「跳到主要內容」連結，平常看不到，聚焦時出現在左上角；按了把焦點移到內容。
+- 內容區是 `main` landmark。
+- `focusMain()`：把焦點移到內容的第一個標題（`main` 裡的 `h1`／`h2`，沒有時用頂部列的標題），再沒有時移到 `main`。app 換頁後呼叫，例如從 CommandPalette 選了結果打開另一頁。
+- `announce(text)`：用頁面上唯一的 polite live region 告訴螢幕閱讀器發生了什麼，不移動焦點，例如 `announce('已儲存')`。元件自己會播報：TreeList 展開、DataTable 篩選或搜尋後的筆數、CommandPalette 的結果數、Tabs 和 SideNav 換頁。

@@ -8,6 +8,7 @@ import { Icon, type CustomIcon } from '../../icons/Icon';
 import { cx, monoNums, reduced } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { CheckMark } from '../../internal/Field';
+import { announce } from '../../announce';
 import { ScrollHint, useScrollHint } from '../../internal/scrollHint';
 import { cellText, isActive, matches, readUrl, resolveFilters, searchHit, writeUrl } from './filters';
 import { ColumnMenu, FilterButton, LongText, markMatch } from './parts';
@@ -166,6 +167,16 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
       return c * d || a.i - b.i;
     });
   }
+  // After the search, a filter, the summary or the view changes (not on first render): 「顯示 6 筆」.
+  const shownKey = `${q}|${valuesKey}|${sumVal}|${view}`;
+  const firstKey = React.useRef(shownKey);
+  const shownN = list.length;
+  React.useEffect(() => {
+    if (shownKey === firstKey.current) return;
+    firstKey.current = '';
+    const t = setTimeout(() => announce(tr('顯示 {n} 筆', { n: format.number(shownN) })), 400);
+    return () => clearTimeout(t);
+  }, [shownKey, shownN]);
   const pages = Math.max(1, Math.ceil(list.length / pageSize));
   const pageNow = Math.min(page, pages - 1);
   const start = pageNow * pageSize;
@@ -392,8 +403,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
               >
                 {v.label}
                 <span className="ui-dt-view-n">
-                  {format.number(rows.filter((r) => !v.filter || v.filter(r)).length)}
-                  <span className="ui-unit"> {tr('筆')}</span>
+                  {format.number(rows.filter((r) => !v.filter || v.filter(r)).length)} <span className="ui-unit">{tr('筆')}</span>
                 </span>
               </button>
             );

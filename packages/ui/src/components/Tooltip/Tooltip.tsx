@@ -26,6 +26,21 @@ export function Tooltip({ label, side = 'top', describe = true, wrap = false, di
   const [open, setOpen] = React.useState(false);
   const close = React.useCallback(() => setOpen(false), []);
   const shown = open && !disabled;
+  // A tap elsewhere or any scroll closes it: on a touch screen the trigger keeps focus after a tap, so focus alone
+  // would leave the Tooltip over the next row.
+  React.useEffect(() => {
+    if (!shown) return;
+    const away = (e: Event) => {
+      const t = e.target;
+      if (!(t instanceof Element) || !t.closest(`[data-ui-tip="${id}"]`)) close();
+    };
+    document.addEventListener('pointerdown', away, true);
+    document.addEventListener('scroll', close, true);
+    return () => {
+      document.removeEventListener('pointerdown', away, true);
+      document.removeEventListener('scroll', close, true);
+    };
+  }, [shown, close, id]);
   React.useEffect(() => {
     if (!shown) return;
     for (const other of openNow) if (other !== close) other();
@@ -36,7 +51,7 @@ export function Tooltip({ label, side = 'top', describe = true, wrap = false, di
   }, [shown, close]);
   return (
     <Base.Root disabled={disabled} open={shown} onOpenChange={setOpen}>
-      <Base.Trigger delay={0} render={children} aria-describedby={describe && !disabled ? id : undefined} onBlur={close} />
+      <Base.Trigger delay={0} render={children} aria-describedby={describe && !disabled ? id : undefined} onBlur={close} data-ui-tip={id} />
       {describe && !disabled ? (
         <span id={id} hidden>
           {label}

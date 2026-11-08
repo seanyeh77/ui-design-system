@@ -3774,7 +3774,8 @@ html.ui-theme-fade * {
   box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .ui-tab-count {
-  margin-left: 6px;
+  /* With the space before it: about 6 px from the name. */
+  margin-left: 2px;
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--ink-muted);
@@ -4743,6 +4744,17 @@ html.ui-theme-fade * {
      reads as the next line of code. Nothing shows on a line that fits. */
   background: linear-gradient(var(--line-strong), var(--line-strong)) no-repeat 1.5ch 20px / 2px calc(100% - 20px);
 }
+/* 「第 62 行」 for screen readers only: never selected or copied with the code. */
+.ui-cv-sr {
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ui-cv-line.is-target:focus {
+  outline: none;
+  box-shadow:
+    inset 3px 0 0 var(--accent),
+    inset 0 0 0 2px var(--focus-ring);
+}
 /* An operator never splits across lines (-> stays ->). */
 .ui-cv-op {
   white-space: nowrap;
@@ -5343,6 +5355,29 @@ html.ui-theme-fade * {
 }
 .ui-shell-top.is-hidden {
   transform: translateY(-100%);
+}
+.ui-skip {
+  position: fixed;
+  left: var(--space-3);
+  top: var(--space-3);
+  z-index: 1000;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--accent-text);
+  box-shadow: var(--shadow-overlay);
+  font-weight: 600;
+  transform: translateY(calc(-100% - var(--space-6)));
+}
+.ui-skip:focus {
+  transform: none;
+  outline: none;
+  box-shadow:
+    var(--shadow-overlay),
+    0 0 0 3px var(--focus-ring);
+}
+.ui-shell-main:focus {
+  outline: none;
 }
 .ui-shell-main {
   flex: 1 1 auto;
