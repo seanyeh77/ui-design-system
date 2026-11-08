@@ -17,14 +17,28 @@ export function useReturnFocus(open: boolean): void {
     if (!open && wasOpen.current) {
       const back = opener.current;
       opener.current = null;
-      // After the overlay's own focus handling and the app's page change have run.
-      const t = setTimeout(() => {
-        if (!lost()) return;
-        if (back?.isConnected) back.focus();
-        else focusMain();
-      }, 0);
+      // The overlay is removed only after its closing animation, and focus falls to the page then, not now: look every
+      // frame (for 2 s at most) while focus stays where it was or inside a closing overlay. Fallen to the page: back to
+      // the opener, else to the main content. Moved somewhere that stays (the overlay gave it back, or the app moved
+      // it): left there.
+      const held = document.activeElement;
+      const until = performance.now() + 2000;
+      let frame = 0;
+      const look = () => {
+        if (lost()) {
+          if (back?.isConnected) back.focus();
+          else focusMain();
+          return;
+        }
+        // Still where it was, or on something in an overlay that is closing (both about to go): keep looking.
+        const at = document.activeElement;
+        const going = at === held || !!at?.closest('[data-ending-style]');
+        if (!going || performance.now() > until) return;
+        frame = requestAnimationFrame(look);
+      };
+      frame = requestAnimationFrame(look);
       wasOpen.current = open;
-      return () => clearTimeout(t);
+      return () => cancelAnimationFrame(frame);
     }
     wasOpen.current = open;
   }, [open]);
