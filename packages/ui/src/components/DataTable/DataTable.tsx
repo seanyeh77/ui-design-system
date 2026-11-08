@@ -68,6 +68,9 @@ const ARROWS: Record<'asc' | 'desc' | 'none', CustomIcon> = { asc: 'M12 19V5M6 1
 const get = (row: Row, key: string): unknown => (row as Record<string, unknown>)[key];
 const isNum = (c: DataTableColumn<never>) => c.numeric || c.format === 'money' || c.format === 'percent';
 
+// What a row click leaves alone: links, buttons, fields, checkboxes and anything else that acts on its own.
+const ROW_CONTROLS = 'a, button, input, select, textarea, label, [role="checkbox"], [role="button"], [role="menuitem"], [role="link"], [contenteditable]';
+
 function RowCheck({ v, label, onClick }: { v: boolean | 'mixed'; label: string; onClick: () => void }) {
   return (
     <button
@@ -519,8 +522,20 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                           rowEls.current[id] = el;
                         }}
                         role="row"
-                        className={cx('ui-dt-row', i % 2 && 'is-even', on && 'is-selected', selectable && 'has-sel')}
+                        className={cx('ui-dt-row', i % 2 && 'is-even', on && 'is-selected', selectable && 'has-sel', expander && 'has-exp')}
                         style={gridStyle}
+                        // EC: a click anywhere on the row opens or closes its details, except on its own controls
+                        // and when the click ends a text selection. Keyboard users have the caret button.
+                        onClick={
+                          expander
+                            ? (e) => {
+                                const t = e.target as Element;
+                                if (t.closest(ROW_CONTROLS) && t.closest(ROW_CONTROLS) !== e.currentTarget) return;
+                                if (String(window.getSelection() ?? '')) return;
+                                setOpened({ ...opened, [id]: !open });
+                              }
+                            : undefined
+                        }
                       >
                         {expander ? (
                           <div className="ui-dt-cell ui-dt-exp" role="cell">

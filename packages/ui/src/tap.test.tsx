@@ -91,7 +91,7 @@ test('touch: a link inside a sentence keeps its line', async () => {
   expect(container.querySelector('.ui-code')?.classList.contains('is-inline')).toBe(true);
 });
 
-test('touch: a cut-off cell opens no Tooltip; the caret on the left shows the whole text', async () => {
+test('touch: a cut-off cell opens no Tooltip; a tap on the row shows the whole text', async () => {
   const LONG = '找不到 child.c，完整路徑應為 src/ibmon/child.c:86，請改成完整路徑後重新執行檢查，再確認 IBTRACE_SHM 的設定';
   await page.viewport(820, 700);
   const { container } = render(
@@ -116,9 +116,11 @@ test('touch: a cut-off cell opens no Tooltip; the caret on the left shows the wh
   cell?.click();
   await new Promise((r) => setTimeout(r, 150));
   expect(document.querySelectorAll('.ui-tooltip').length).toBe(0);
+  // The tap on the row opened its details (EC); the caret closes them.
+  expect(container.querySelector('.ui-dt-detail-text')?.textContent).toBe(LONG);
   container.querySelector<HTMLButtonElement>('.ui-dt-exp-btn')?.click();
   await new Promise((r) => setTimeout(r, 50));
-  expect(container.querySelector('.ui-dt-detail-text')?.textContent).toBe(LONG);
+  expect(container.querySelector('.ui-dt-detail')).toBeNull();
 });
 
 test('touch: a Tooltip closes on a tap elsewhere and on scroll', async () => {

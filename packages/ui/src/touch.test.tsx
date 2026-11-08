@@ -106,8 +106,9 @@ test('touch: every enlarged hit area stays on its own control', async () => {
 });
 
 test('touch: the scroll hint says 「左右滑動」', async () => {
+  // Narrower than two 120 px boxes at 0.75: it scrolls.
   const { container } = render(
-    <div style={{ width: 300 }}>
+    <div style={{ width: 180 }}>
       <UI.LayerGraph
         nodes={[
           { id: 'a', name: 'src/ibmon', layer: 0 },

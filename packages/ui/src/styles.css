@@ -1639,6 +1639,10 @@ body {
 .ui-dt-body .ui-dt-row:hover {
   background: var(--accent-soft);
 }
+/* EC: rows with details are clickable as a whole; the hover above already shows it. */
+.ui-dt-body .ui-dt-row.has-exp {
+  cursor: pointer;
+}
 .ui-dt-body .ui-dt-row.is-selected {
   background: var(--accent-soft);
 }
@@ -5677,12 +5681,53 @@ html.ui-theme-fade * {
   width: 3px;
   background: var(--accent);
 }
+/* GB: a white pill, 10 x 40 px, with a line-color outline and 3 dots; accent while hovered, dragged or focused. */
+.ui-split-grip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 10px;
+  height: 40px;
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface);
+  pointer-events: none;
+  transition: border-color 0.15s ease;
+}
+.ui-split-grip i {
+  display: block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  transition: background 0.15s ease;
+}
+.ui-split-handle:hover .ui-split-grip,
+.ui-split.is-dragging .ui-split-grip,
+.ui-split-handle:focus-visible .ui-split-grip {
+  border-color: var(--accent);
+}
+.ui-split-handle:hover .ui-split-grip i,
+.ui-split.is-dragging .ui-split-grip i,
+.ui-split-handle:focus-visible .ui-split-grip i {
+  background: var(--accent);
+}
 .ui-split.is-dragging {
   cursor: col-resize;
   user-select: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .ui-split-handle::after {
+  .ui-split-handle::after,
+  .ui-split-grip,
+  .ui-split-grip i {
     transition: none;
   }
 }

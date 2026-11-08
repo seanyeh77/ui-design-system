@@ -101,3 +101,21 @@ test('SplitPane: under 960 px the areas stack, panel below, without the separato
   expect(b && a && b.top >= a.bottom).toBe(true);
   expect(Math.round(b?.width ?? 0)).toBe(800);
 });
+
+test('SplitPane: a small handle sits in the middle of the line and turns accent on keyboard focus (GB)', async () => {
+  await page.viewport(1280, 800);
+  const { container } = render(<Split />);
+  const sep = await screen.findByRole('separator');
+  const grip = container.querySelector<HTMLElement>('.ui-split-grip');
+  if (!grip) throw new Error('no handle');
+  const g = grip.getBoundingClientRect();
+  const s = sep.getBoundingClientRect();
+  expect(g.width).toBe(10);
+  expect(g.height).toBe(40);
+  expect(Math.abs(g.top + g.height / 2 - (s.top + s.height / 2))).toBeLessThanOrEqual(1);
+  expect(grip.querySelectorAll('i')).toHaveLength(3);
+  const before = getComputedStyle(grip).borderTopColor;
+  sep.focus();
+  await userEvent.setup().keyboard('{ArrowLeft}');
+  await waitFor(() => expect(getComputedStyle(grip).borderTopColor).not.toBe(before));
+});

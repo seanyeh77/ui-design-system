@@ -111,8 +111,9 @@ test('LayerGraph: hovering a selectable line makes it darker and 2 px thicker; i
 });
 
 test('LayerGraph: wider than its box, it shows a fade and a hint until scrolled', async () => {
+  // Too narrow even with 120 px boxes at 0.75: it scrolls.
   const { container } = render(
-    <div style={{ width: 326 }}>
+    <div style={{ width: 180 }}>
       <LayerGraph nodes={nodes} edges={edges} legend={false} />
     </div>,
   );
@@ -267,16 +268,50 @@ test('LayerGraph: the list view shows every box and line as text, selectable lik
 test('LayerGraph: the sideways scroll comes back with the diagram', async () => {
   await page.viewport(1280, 900);
   const wide = (k: boolean) => (
-    <div style={{ width: 300 }}>{k ? <LayerGraph nodes={nodes} edges={edges} legend={false} listView={false} scrollKey="keep" /> : <p>其他區塊</p>}</div>
+    <div style={{ width: 180 }}>{k ? <LayerGraph nodes={nodes} edges={edges} legend={false} listView={false} scrollKey="keep" /> : <p>其他區塊</p>}</div>
   );
   const { container, rerender } = render(wide(true));
   const box = container.querySelector<HTMLElement>('.ui-lg-scroll');
   if (!box) throw new Error('no scroller');
-  box.scrollLeft = 120;
+  box.scrollLeft = 100;
   box.dispatchEvent(new Event('scroll'));
   rerender(wide(false));
   rerender(wide(true));
-  expect(container.querySelector<HTMLElement>('.ui-lg-scroll')?.scrollLeft).toBe(120);
+  expect(container.querySelector<HTMLElement>('.ui-lg-scroll')?.scrollLeft).toBe(100);
+});
+
+test('LayerGraph: a little too wide, the boxes narrow and nothing scrolls (PM)', async () => {
+  await page.viewport(1280, 900);
+  const { container } = render(
+    <div style={{ width: 380 }}>
+      <LayerGraph nodes={nodes} edges={edges} legend={false} listView={false} />
+    </div>,
+  );
+  const box = container.querySelector<HTMLElement>('.ui-lg-scroll');
+  const canvas = container.querySelector<HTMLElement>('.ui-lg-canvas');
+  if (!box || !canvas) throw new Error('no canvas');
+  await waitFor(() => expect(box.scrollWidth).toBeLessThanOrEqual(box.clientWidth + 1));
+  expect(canvas.style.transform).toBe('');
+  const w = container.querySelector<HTMLElement>('.ui-lg-node')?.getBoundingClientRect().width ?? 0;
+  expect(w).toBeLessThan(200);
+  expect(w).toBeGreaterThanOrEqual(120);
+});
+
+test('LayerGraph: still too wide with 120 px boxes, the diagram scales, not below 0.75 (PM)', async () => {
+  await page.viewport(1280, 900);
+  const { container } = render(
+    <div style={{ width: 250 }}>
+      <LayerGraph nodes={nodes} edges={edges} legend={false} listView={false} />
+    </div>,
+  );
+  const box = container.querySelector<HTMLElement>('.ui-lg-scroll');
+  const canvas = container.querySelector<HTMLElement>('.ui-lg-canvas');
+  if (!box || !canvas) throw new Error('no canvas');
+  await waitFor(() => expect(canvas.style.transform).toMatch(/^scale\(/));
+  const s = Number(canvas.style.transform.slice(6, -1));
+  expect(s).toBeGreaterThanOrEqual(0.75);
+  expect(s).toBeLessThan(1);
+  expect(box.scrollWidth).toBeLessThanOrEqual(box.clientWidth + 1);
 });
 
 // Every label clear of every line (its own too), of every box and of every other label (2 px apart), inside the diagram.
@@ -440,5 +475,55 @@ test('LayerGraph list in English: ASCII separators, no full-width punctuation', 
     expect(text.join('')).not.toMatch(/[，：（）]/);
   } finally {
     setLocale('zh-TW');
+  }
+});
+
+// MA: several labelled lines into one box, long English labels: each label next to its own line, no line through any
+// label, nothing cut off.
+const intercepts: LayerGraphEdge[] = [
+  { id: 'verbs', from: 'app', to: 'lib', inferred: true, label: 'Interposes infiniband (18 functions)' },
+  { id: 'ucp', from: 'app', to: 'lib', inferred: true, label: 'Interposes ucp (12 functions)' },
+  { id: 'uct', from: 'app', to: 'lib', inferred: true, label: 'Interposes uct (9 functions)' },
+  { id: 'env', from: 'ibmon', to: 'lib', inferred: true, label: 'Environment variable `IBTRACE_SHM`' },
+  { from: 'ibmon', to: 'common', count: 6 },
+];
+test.each([
+  [1280, 900],
+  [390, 844],
+])('LayerGraph: several labelled lines into one box keep every label by its own line, whole, at %i px', async (w, h) => {
+  await page.viewport(w, h);
+  const { container } = render(
+    <LayerGraph
+      nodes={[
+        { id: 'app', name: 'traced program', external: true },
+        { id: 'ibmon', name: 'src/ibmon', layer: 0, size: 91 },
+        { id: 'lib', name: 'src/libibtrace', layer: 1, size: 114 },
+        { id: 'common', name: 'src/common', shared: true },
+      ]}
+      edges={intercepts}
+      onSelectEdge={() => {}}
+    />,
+  );
+  expect(container.querySelectorAll('.ui-lg-label').length).toBe(4);
+  expectLabelsClear(container);
+  for (const label of container.querySelectorAll<HTMLElement>('.ui-lg-label')) {
+    const text = label.textContent ?? '';
+    expect(text).not.toContain('…');
+    // Its own line passes within 12 px of it.
+    const own = [...container.querySelectorAll<SVGPathElement>('.ui-lg-hit')].find((p) =>
+      (p.getAttribute('aria-label') ?? '').replace(/\s/g, '').endsWith(text.replace(/\s/g, '')),
+    );
+    if (!own) throw new Error('no line for ' + text);
+    const r = label.getBoundingClientRect();
+    const m = own.getScreenCTM();
+    if (!m) throw new Error('no CTM');
+    let near = Infinity;
+    for (let t = 0; t <= own.getTotalLength(); t += 2) {
+      const q = own.getPointAtLength(t);
+      const x = q.x * m.a + m.e;
+      const y = q.y * m.d + m.f;
+      near = Math.min(near, Math.hypot(Math.max(r.left - x, 0, x - r.right), Math.max(r.top - y, 0, y - r.bottom)));
+    }
+    expect(near, text).toBeLessThanOrEqual(12);
   }
 });
