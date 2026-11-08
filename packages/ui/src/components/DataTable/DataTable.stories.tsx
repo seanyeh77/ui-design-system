@@ -178,7 +178,9 @@ export const BesidePanel = {
           ]}
         />
       </div>
-      <div style={{ flex: '0 1 440px', minWidth: 0, padding: 16, borderRadius: 'var(--radius-lg)', background: 'var(--surface)', boxShadow: 'var(--shadow-card)' }}>
+      <div
+        style={{ flex: '0 1 440px', minWidth: 0, padding: 16, borderRadius: 'var(--radius-lg)', background: 'var(--surface)', boxShadow: 'var(--shadow-card)' }}
+      >
         <UI.DetailList
           items={[
             { label: '函式', value: 'ibtrace_init' },
