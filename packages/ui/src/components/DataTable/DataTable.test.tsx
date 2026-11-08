@@ -95,7 +95,7 @@ test('a table wider than its box shows a fade and a scroll hint', async () => {
   );
   const outer = container.querySelector<HTMLElement>('.ui-dt-scroller');
   await waitFor(() => expect(outer?.classList.contains('has-more')).toBe(true));
-  expect(screen.getByText('左右滑動')).toBeTruthy();
+  expect(screen.getByText('向右捲動')).toBeTruthy();
 });
 
 test('a table whose minimum widths fit does not scroll, however long a cell is', async () => {
@@ -110,5 +110,5 @@ test('a table whose minimum widths fit does not scroll, however long a cell is',
   const box = container.querySelector<HTMLElement>('.ui-dt-scroll');
   expect(box && box.scrollWidth <= box.clientWidth + 1).toBe(true);
   expect(container.querySelector('.ui-dt-scroller')?.classList.contains('has-more')).toBe(false);
-  expect(screen.queryByText('左右滑動')).toBeNull();
+  expect(screen.queryByText(/左右滑動|向右捲動/)).toBeNull();
 });

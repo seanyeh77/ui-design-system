@@ -83,3 +83,47 @@ function NearlyFull() {
   );
 }
 export const NearlyFullTarget = { render: () => <NearlyFull /> };
+
+// Inside AppShell on a phone: steps 3 and 4 introduce a tall card and the bottom tabs. The card scrolls up under the
+// top bar and the Tour card sits below it, above the tabs; for the tabs the Tour card sits just above them.
+const NAV: UI.NavSection[] = [
+  {
+    items: [
+      { id: 'home', label: '總覽', icon: 'house' },
+      { id: 'graph', label: '架構', icon: 'share-network' },
+      { id: 'notes', label: '檢查', icon: 'check-square' },
+      { id: 'search', label: '搜尋', icon: 'magnifying-glass' },
+    ],
+  },
+];
+function InShell() {
+  const [page, setPage] = React.useState('home');
+  const [step, setStep] = React.useState(2);
+  const [open, setOpen] = React.useState(true);
+  return (
+    <div style={{ height: '100vh' }}>
+      <UI.AppShell nav={NAV} value={page} onNavigate={setPage} title="總覽">
+        <section data-tour="errors" style={{ ...card, height: 120 }}>
+          待處理的錯誤：<span className="ui-num">3</span> 個
+        </section>
+        <section data-tour="graph" style={{ ...card, height: 340 }}>
+          架構
+        </section>
+        <section style={{ ...card, height: 220 }}>檢查筆記</section>
+      </UI.AppShell>
+      <UI.Tour
+        open={open}
+        step={step}
+        onStepChange={setStep}
+        onClose={() => setOpen(false)}
+        steps={[
+          { title: '歡迎', text: '這裡整理專案的架構和檢查結果。' },
+          { target: 'errors', title: '待處理的錯誤', text: '需要修正的項目會先列在這裡。' },
+          { target: 'graph', title: '架構', text: '各個元件的分層和呼叫關係；點方框或線可以看細節。' },
+          { target: '.ui-tabbar', title: '底部分頁', text: '總覽、架構、檢查和搜尋都在這裡切換。' },
+        ]}
+      />
+    </div>
+  );
+}
+export const PhoneInShell = { render: () => <InShell /> };

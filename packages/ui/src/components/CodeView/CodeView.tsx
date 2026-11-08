@@ -32,6 +32,34 @@ export interface CodeViewProps {
   className?: string;
 }
 
+// Where a long line may wrap: after these, never inside them. Multi-character operators stay whole.
+const OPS = /(->|::|==|!=|<=|>=|&&|\|\||\+\+|--|<<|>>|=>|\+=|-=|\*=|\/=)/;
+const AFTER = /([,.([{;])/;
+
+/** A piece of code with soft break points after commas, dots and opening brackets, and operators kept together. */
+function breakable(text: string): React.ReactNode {
+  if (!OPS.test(text) && !AFTER.test(text)) return text;
+  const out: React.ReactNode[] = [];
+  text.split(OPS).forEach((part, i) => {
+    if (!part) return;
+    if (i % 2) {
+      out.push(
+        <span key={i} className="ui-cv-op">
+          {part}
+        </span>,
+        <wbr key={i + 'w'} />,
+      );
+      return;
+    }
+    part.split(AFTER).forEach((bit, k) => {
+      if (!bit) return;
+      out.push(bit);
+      if (k % 2) out.push(<wbr key={i + '.' + k} />);
+    });
+  });
+  return out;
+}
+
 /** Source with line numbers and an optional target line: soft accent background, long lines wrap, light syntax colors. */
 export function CodeView({
   code,
@@ -91,10 +119,10 @@ export function CodeView({
           {toks[i].map(([cls, text], j) =>
             cls ? (
               <span key={j} className={cls}>
-                {text}
+                {breakable(text)}
               </span>
             ) : (
-              text
+              <React.Fragment key={j}>{breakable(text)}</React.Fragment>
             ),
           )}
         </span>

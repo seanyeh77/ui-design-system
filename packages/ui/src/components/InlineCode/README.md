@@ -33,3 +33,8 @@ h(UI.CodeText, {
 - `refHref(ref)` 回傳網址就是連結；回傳 `undefined` 表示這個引用沒有目標，顯示成一般的行內程式碼。
 - `onRef(ref, event)`：點擊時呼叫，元件會先 `preventDefault()`，網址和 hash 不會改變；按住 Ctrl、⌘、Shift 或用滑鼠中鍵時仍照 `href` 開新分頁。
 - `isRef(span)`：決定哪些反引號內容算引用，預設是 `檔名.副檔名:行號`。`UI.Suggestion` 和 `UI.Term` 也接受同樣的 `refHref`、`onRef`、`isRef`。
+
+## 觸控
+
+- 觸控螢幕上，單獨出現的連結（旁邊沒有文字，例如卡片裡一行只有 `child.c:86`）點擊範圍擴大到至少 48 × 48 px，外觀不變；句子裡的連結維持行高，照 WCAG 2.2 的行內例外。
+- 深色模式的連結文字色混入 25% 的 `ink`，在淺灰底上對比至少 4.5:1。

@@ -3,7 +3,7 @@ import { Popover } from '@base-ui/react/popover';
 import { CodeText } from '../InlineCode/InlineCode';
 import { Button } from '../Button/Button';
 import { tr } from '../../i18n';
-import { cx, monoNums, reduced, store } from '../../internal/util';
+import { cx, monoNums, store } from '../../internal/util';
 
 export interface TourStep {
   /** A data-tour name ('search' matches [data-tour="search"]), a CSS selector (first visible match), a ref or an element.
@@ -70,16 +70,39 @@ function edge() {
   return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--space-3')) || 12;
 }
 
+const narrowNow = () => typeof window !== 'undefined' && window.innerWidth < 600;
+
+/** The part of the window between a phone's fixed top bar and bottom tab bar (when the target is not one of them):
+ *  the card stays inside it and never covers either bar. The whole window elsewhere. */
+function bounds(target: Element | null): { top: number; bottom: number } {
+  const vh = typeof window === 'undefined' ? 0 : window.innerHeight;
+  if (!narrowNow()) return { top: 0, bottom: vh };
+  let top = 0;
+  let bottom = vh;
+  const head = document.querySelector('.ui-shell-top');
+  const bar = document.querySelector('.ui-tabbar');
+  if (head && !(target && head.contains(target))) {
+    const r = head.getBoundingClientRect();
+    if (r.height && r.bottom > 0 && r.bottom < vh / 2) top = r.bottom;
+  }
+  if (bar && !(target && bar.contains(target))) {
+    const r = bar.getBoundingClientRect();
+    if (r.height && r.top > vh / 2 && r.top < vh) bottom = r.top;
+  }
+  return { top, bottom };
+}
+
 /** Where the card goes for a highlighted box: the preferred side, the other side, or inside the box at the bottom
  *  center of the window when neither side has room. Returns the anchor line the card is placed against. */
-function placeCard(rect: Box | null, cardH: number, prefer: 'bottom' | 'top') {
+function placeCard(rect: Box | null, cardH: number, prefer: 'bottom' | 'top', area?: { top: number; bottom: number }) {
   const margin = typeof document === 'undefined' ? 12 : edge();
-  const vh = typeof window === 'undefined' ? 0 : window.innerHeight;
+  const vh = area?.bottom ?? (typeof window === 'undefined' ? 0 : window.innerHeight);
+  const vt = area?.top ?? 0;
   const fits = (side: 'bottom' | 'top') =>
-    rect ? (side === 'bottom' ? rect.top + rect.height + GAP + cardH + margin <= vh : rect.top - GAP - cardH - margin >= 0) : false;
+    rect ? (side === 'bottom' ? rect.top + rect.height + GAP + cardH + margin <= vh : rect.top - GAP - cardH - margin >= vt) : false;
   if (!rect) {
     // No target: centered in the window.
-    const top = Math.max(margin + cardH, vh / 2 + cardH / 2);
+    const top = Math.max(vt + margin + cardH, (vt + vh) / 2 + cardH / 2);
     return { mode: 'center', side: 'top' as const, offset: 0, margin, line: { left: 0, top, width: window.innerWidth, height: 0 } };
   }
   const other = prefer === 'bottom' ? 'top' : 'bottom';
@@ -88,7 +111,7 @@ function placeCard(rect: Box | null, cardH: number, prefer: 'bottom' | 'top') {
   // Inside the target, at its bottom edge or the window's (the box is clipped a few px inside the window), minus the
   // margin, never above the window's top margin.
   const end = rect.top + rect.height;
-  const bottom = Math.max(margin + cardH, end >= vh - margin ? vh - margin : end - margin);
+  const bottom = Math.max(vt + margin + cardH, end >= vh - margin ? vh - margin : end - margin);
   return { mode: 'inside', side: 'top' as const, offset: 0, margin, line: { left: rect.left, top: bottom, width: rect.width, height: 0 } };
 }
 
@@ -120,9 +143,16 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
     if (!open || !hasStep) return;
     // A selector is looked up again until it appears (the target may render later), then kept.
     let el = findTarget(target);
-    // Bring the target into view first; one taller than the window shows from its top.
+    // Bring the target into view first; one taller than the window shows from its top. On a phone the target goes
+    // to the top, just under the top bar, so the card fits below it instead of covering it. The jump is instant: the
+    // modal's scroll lock stops a smooth scroll halfway; the spotlight's own transition shows the move.
     const tall = (el?.getBoundingClientRect().height ?? 0) > window.innerHeight;
-    el?.scrollIntoView?.({ block: tall ? 'start' : 'center', behavior: reduced() ? 'auto' : 'smooth' });
+    if (el instanceof HTMLElement && narrowNow()) {
+      const keep = el.style.scrollMarginTop;
+      el.style.scrollMarginTop = bounds(el).top + edge() + pad + 'px';
+      el.scrollIntoView?.({ block: 'start', behavior: 'auto' });
+      el.style.scrollMarginTop = keep;
+    } else el?.scrollIntoView?.({ block: tall ? 'start' : 'center', behavior: 'auto' });
     let raf = 0;
     let last = '';
     const tick = () => {
@@ -163,7 +193,8 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
     observer.current.observe(el);
   }, []);
 
-  const place = placeCard(rect, cardH, step?.side ?? 'bottom');
+  const area = open && step ? bounds(findTarget(step.target)) : undefined;
+  const place = placeCard(rect, cardH, step?.side ?? 'bottom', area);
   const line = place.line;
   const anchor = React.useMemo(
     () => ({

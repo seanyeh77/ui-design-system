@@ -11,16 +11,28 @@ export interface InlineCodeProps {
 
 /** Code inside a sentence: monospace on a light gray chip. A span that points somewhere is a link. */
 export function InlineCode({ children, href, onClick, className }: InlineCodeProps) {
-  const cls = cx('ui-code', (href || onClick) && 'is-link', typeof children === 'string' && children.length <= 24 && 'is-short', className);
+  // Like Term: a link inside a sentence (text beside it) keeps its line height; on its own it gets the 48 px touch area.
+  const [inline, setInline] = React.useState(false);
+  const link = React.useCallback((el: HTMLElement | null) => {
+    const par = el?.parentNode;
+    setInline(!!par && Array.from(par.childNodes).some((n) => n.nodeType === 3 && !!n.textContent?.trim()));
+  }, []);
+  const cls = cx(
+    'ui-code',
+    (href || onClick) && 'is-link',
+    (href || onClick) && inline && 'is-inline',
+    typeof children === 'string' && children.length <= 24 && 'is-short',
+    className,
+  );
   if (href)
     return (
-      <a className={cls} href={href} onClick={onClick}>
+      <a ref={link} className={cls} href={href} onClick={onClick}>
         {children}
       </a>
     );
   if (onClick)
     return (
-      <button type="button" className={cls} onClick={onClick}>
+      <button ref={link} type="button" className={cls} onClick={onClick}>
         {children}
       </button>
     );
