@@ -104,3 +104,20 @@ test('touch: every enlarged hit area stays on its own control', async () => {
   const hit = document.elementFromPoint(50, 820);
   expect(hit?.closest('.ui-lg-chip')).toBeNull();
 });
+
+test('touch: the scroll hint says 「左右滑動」', async () => {
+  const { container } = render(
+    <div style={{ width: 300 }}>
+      <UI.LayerGraph
+        nodes={[
+          { id: 'a', name: 'src/ibmon', layer: 0 },
+          { id: 'b', name: 'src/cli', layer: 0 },
+        ]}
+        edges={[]}
+        legend={false}
+      />
+    </div>,
+  );
+  await new Promise((r) => setTimeout(r, 100));
+  expect(container.querySelector('.ui-scroll-hint')?.textContent).toBe('左右滑動');
+});

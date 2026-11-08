@@ -3765,6 +3765,10 @@ html.ui-theme-fade * {
 .ui-code.is-link:hover {
   text-decoration-thickness: 2px;
 }
+/* Dark: accent-text on the chip's surface-sub is 3.9:1; a quarter of ink brings it to 5:1 (at least 4.5:1 for 14 px text). */
+[data-theme='dark'] .ui-code.is-link {
+  color: color-mix(in srgb, var(--accent-text), var(--ink) 25%);
+}
 .ui-code.is-link:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px var(--focus-ring);
@@ -4610,10 +4614,8 @@ html.ui-theme-fade * {
     [role='menuitem'],
     .ui-crumb a,
     a.ui-crumb,
-    .ui-dt-cell .ui-code.is-link,
-    .ui-dl-item dd > .ui-code.is-link,
-    .ui-term:not(.is-inline),
-    .ui-cv-head .ui-code.is-link
+    .ui-code.is-link:not(.is-inline),
+    .ui-term:not(.is-inline)
   ) {
     position: relative;
   }
@@ -4626,10 +4628,8 @@ html.ui-theme-fade * {
     [role='menuitem'],
     .ui-crumb a,
     a.ui-crumb,
-    .ui-dt-cell .ui-code.is-link,
-    .ui-dl-item dd > .ui-code.is-link,
-    .ui-term:not(.is-inline),
-    .ui-cv-head .ui-code.is-link
+    .ui-code.is-link:not(.is-inline),
+    .ui-term:not(.is-inline)
   )::after {
     content: '';
     position: absolute;
@@ -4739,6 +4739,13 @@ html.ui-theme-fade * {
   text-indent: -4ch;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  /* Continuation of a wrapped line: a 2 px bar in the 4ch hanging indent, from the second line down, so it never
+     reads as the next line of code. Nothing shows on a line that fits. */
+  background: linear-gradient(var(--line-strong), var(--line-strong)) no-repeat 1.5ch 20px / 2px calc(100% - 20px);
+}
+/* An operator never splits across lines (-> stays ->). */
+.ui-cv-op {
+  white-space: nowrap;
 }
 .ui-cv .is-keyword {
   color: var(--code-keyword);

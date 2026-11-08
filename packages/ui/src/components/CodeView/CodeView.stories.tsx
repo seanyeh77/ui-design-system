@@ -21,3 +21,18 @@ export const Default = {
     </div>
   ),
 };
+
+// A narrow column: long lines wrap; the continuation has a bar in its indent and never splits an operator.
+const ring = [
+  'static struct ibt_ring_entry *ring_next(struct ibt_ring_desc *rd)',
+  '{',
+  '    return &rd->ring->entries[(rd->ring->head + 1) % rd->ring->capacity];',
+  '}',
+].join('\n');
+export const NarrowWrap = {
+  render: () => (
+    <div style={{ maxWidth: 300 }}>
+      <UI.CodeView file="src/libibtrace/ring.c" fileHref="#" code={ring} start={40} target={42} />
+    </div>
+  ),
+};

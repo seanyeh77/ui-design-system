@@ -119,7 +119,7 @@ test('LayerGraph: wider than its box, it shows a fade and a hint until scrolled'
   const box = container.querySelector<HTMLElement>('.ui-lg-scroll');
   if (!outer || !box) throw new Error('no scroller');
   await waitFor(() => expect(outer.classList.contains('has-more')).toBe(true));
-  const hint = screen.getByText('左右滑動');
+  const hint = screen.getByText('向右捲動');
   // Under the diagram, never over a box.
   expect(hint.getBoundingClientRect().top).toBeGreaterThanOrEqual(outer.getBoundingClientRect().bottom);
   box.scrollLeft = box.scrollWidth;
@@ -134,7 +134,7 @@ test('LayerGraph: no fade or hint when it fits', async () => {
   const { container } = render(<LayerGraph nodes={nodes} edges={edges} legend={false} />);
   await new Promise((r) => setTimeout(r, 50));
   expect(container.querySelector('.ui-lg-scroller')?.classList.contains('has-more')).toBe(false);
-  expect(screen.queryByText('左右滑動')).toBeNull();
+  expect(screen.queryByText(/左右滑動|向右捲動/)).toBeNull();
 });
 
 test('LayerGraph: the legend lists only the kinds of line drawn', () => {
