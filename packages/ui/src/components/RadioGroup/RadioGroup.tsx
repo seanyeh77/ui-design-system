@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cx } from '../../internal/util';
+import { cx, browserKey } from '../../internal/util';
 
 export interface RadioOption<V extends string = string> {
   value: V;
@@ -53,6 +53,7 @@ export function RadioGroup<V extends string = string>({ label, value, onChange, 
             className={cx('ui-radio', on && 'is-on')}
             onClick={() => onChange?.(o.value)}
             onKeyDown={(e) => {
+              if (browserKey(e)) return;
               if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
                 e.preventDefault();
                 move(i, 1);

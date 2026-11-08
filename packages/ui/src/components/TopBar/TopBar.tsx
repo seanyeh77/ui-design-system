@@ -1,7 +1,7 @@
 import type * as React from 'react';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
-import { IS_MAC, SHORTCUT, cx } from '../../internal/util';
+import { IS_MAC, SHORTCUT, TOUCH_ONLY, cx, useMedia } from '../../internal/util';
 import { Breadcrumb, type BreadcrumbItem } from '../Breadcrumb/Breadcrumb';
 import { IconButton } from '../IconButton/IconButton';
 
@@ -22,6 +22,7 @@ export interface TopBarProps {
 
 /** The bar at the top of a dashboard page: title or breadcrumb on the left, search and tools on the right. */
 export function TopBar({ title, breadcrumb, onSearch, searchLabel, children, onMenu, className }: TopBarProps) {
+  const touch = useMedia(TOUCH_ONLY);
   return (
     <header className={cx('ui-topbar', className)}>
       {onMenu ? <IconButton className="ui-topbar-menu" icon="list-bullets" label={tr('開啟導覽')} onClick={onMenu} /> : null}
@@ -33,9 +34,16 @@ export function TopBar({ title, breadcrumb, onSearch, searchLabel, children, onM
             <button type="button" className="ui-search" data-tour="search" onClick={onSearch} aria-keyshortcuts={IS_MAC ? 'Meta+K' : 'Control+K'}>
               <Icon name="magnifying-glass" size={16} />
               <span>{searchLabel || tr('搜尋')}</span>
-              <kbd>{SHORTCUT}</kbd>
+              {/* No keyboard on a touch screen: no shortcut to show. */}
+              {touch ? null : <kbd>{SHORTCUT}</kbd>}
             </button>
-            <IconButton className="ui-search-icon" data-tour="search" icon="magnifying-glass" label={tr('搜尋（{k}）', { k: SHORTCUT })} onClick={onSearch} />
+            <IconButton
+              className="ui-search-icon"
+              data-tour="search"
+              icon="magnifying-glass"
+              label={touch ? tr('搜尋') : tr('搜尋（{k}）', { k: SHORTCUT })}
+              onClick={onSearch}
+            />
           </>
         ) : null}
         {children}

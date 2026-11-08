@@ -2,7 +2,7 @@ import * as React from 'react';
 import { format } from '../../format';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
-import { cx, useNarrow } from '../../internal/util';
+import { TOUCH_ONLY, cx, useMedia, useNarrow } from '../../internal/util';
 import { Tooltip } from '../Tooltip/Tooltip';
 import { FloatingPanel } from '../../internal/FloatingPanel';
 import { CheckMark } from '../../internal/Field';
@@ -165,12 +165,14 @@ export function FilterButton<R extends Row>({ filters, values, activeCount, coun
   );
 }
 
-/** Long text in a cell. Phone cards: at most 2 lines with 「顯示全部」. Desktop: one line; when it is cut off, hover or
- *  focus shows the whole text in a Tooltip. */
+/** Long text in a cell. Phone cards: at most 2 lines with 「顯示全部」. Desktop: one line; the row's caret shows it in
+ *  full below the row, and with a mouse, hover or focus on a cut-off cell shows it in a Tooltip. No Tooltip on a touch
+ *  screen: a tap would leave it over the next rows. */
 export function LongText({ children }: { children: React.ReactNode }) {
   const box = React.useRef<HTMLSpanElement>(null);
   const ref = React.useRef<HTMLSpanElement>(null);
   const narrow = useNarrow();
+  const touch = useMedia(TOUCH_ONLY);
   const [open, setOpen] = React.useState(false);
   const [over, setOver] = React.useState(false);
   const [cut, setCut] = React.useState('');
@@ -181,13 +183,13 @@ export function LongText({ children }: { children: React.ReactNode }) {
     const check = () => {
       setOver(el.scrollHeight > el.clientHeight + 1);
       // Desktop: the outer span holds one line with an ellipsis.
-      setCut(!narrow && outer.scrollWidth > outer.clientWidth + 1 ? (outer.textContent ?? '') : '');
+      setCut(!narrow && !touch && outer.scrollWidth > outer.clientWidth + 1 ? (outer.textContent ?? '') : '');
     };
     check();
     const ro = new ResizeObserver(check);
     ro.observe(outer);
     return () => ro.disconnect();
-  }, [open, children, narrow]);
+  }, [open, children, narrow, touch]);
   const body = (
     <span ref={box} className={cx('ui-dt-long', !!cut && 'is-cut')} tabIndex={cut ? 0 : undefined}>
       <span ref={ref} className={cx('ui-dt-long-text', !open && 'is-clamped')}>

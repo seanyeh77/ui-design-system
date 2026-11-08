@@ -18,6 +18,10 @@ export interface LayerGraphNode {
   /** Used by most others: not drawn as a layer; shown as a small box under the diagram with how often it is used.
    *  Selectable like the other boxes (same selected and onSelect): the boxes that use it show 「使用 N 次」. */
   shared?: boolean;
+  /** Outside the repository (a traced program, a library): drawn above every layer with a dashed outline and
+   *  「repo 外」 (externalLabel) under the name. Not in any layer and no size bar; its lines, selection and list entry
+   *  work like any box's. */
+  external?: boolean;
 }
 
 export interface LayerGraphEdge {
@@ -50,6 +54,8 @@ export interface LayerGraphProps {
   sizeLabel?: string;
   /** Label of a selected edge; {n} is its count. Default 「{n} 次」. */
   countLabel?: string;
+  /** Under the name of an external box, and after it in the list. Default 「repo 外」. */
+  externalLabel?: string;
   /** Heading of the shared list. Default 「共用項目」. */
   sharedLabel?: string;
   /** A shared item's line; {a} is how many items use it, {b} the total count. Default 「{a} 個項目使用，共 {b} 次」. */
@@ -208,14 +214,22 @@ export function LayerGraph(p: LayerGraphProps) {
     'LayerGraph',
     'fns is renamed size; pass size and, for the text under the bar, sizeLabel such as 「{n} 個函式」.',
   );
-  const sizeOf = (n: LayerGraphNode) => n.size ?? n.fns;
+  devWarn(
+    all.some((n) => n.external && n.shared),
+    'LayerGraph',
+    'a node is both external and shared; it is drawn as shared. Keep one of the two.',
+  );
+  // External boxes have no size: they are not part of the code being measured.
+  const sizeOf = (n: LayerGraphNode) => (n.external && !n.shared ? undefined : (n.size ?? n.fns));
   const sharedIds = new Set(all.filter((n) => n.shared).map((n) => n.id));
   const main = all.filter((n) => !n.shared);
   const shared = all.filter((n) => n.shared);
   const edges = p.edges.filter((e) => !sharedIds.has(e.from) && !sharedIds.has(e.to));
   const byLayer = new Map<number, LayerGraphNode[]>();
+  // External boxes form a row of their own above every layer; their lines then route like any other.
+  const EXTERNAL = Number.NEGATIVE_INFINITY;
   for (const n of main) {
-    const l = n.layer || 0;
+    const l = n.external ? EXTERNAL : n.layer || 0;
     byLayer.set(l, [...(byLayer.get(l) ?? []), n]);
   }
   const layers = [...byLayer.keys()].sort((a, b) => a - b);
@@ -291,9 +305,12 @@ export function LayerGraph(p: LayerGraphProps) {
     onScroll();
   };
   const selEdge = (pickEdge && edges.find((e) => edgeId(e) === p.selectedEdge)) || null;
-  // How often each box uses each shared item (edges into a shared item are not drawn).
+  const nodeIdsAll = new Set(all.map((n) => n.id));
+  // How often each item uses each shared item (edges into a shared item are not drawn). Other shared items count too,
+  // so the shared item's line and the list (which shows every edge) give the same numbers.
   const uses: Record<string, Record<string, number>> = {};
-  for (const e of p.edges) if (sharedIds.has(e.to) && !sharedIds.has(e.from)) (uses[e.to] ??= {})[e.from] = (uses[e.to]?.[e.from] ?? 0) + (e.count || 0);
+  for (const e of p.edges)
+    if (sharedIds.has(e.to) && e.from !== e.to && nodeIdsAll.has(e.from)) (uses[e.to] ??= {})[e.from] = (uses[e.to]?.[e.from] ?? 0) + (e.count || 0);
   const selShared = !selEdge && sel != null && sharedIds.has(sel) ? sel : null;
   // A selected box highlights its edges; a selected edge highlights itself, and both of its boxes stay undimmed;
   // a selected shared item keeps the boxes that use it and dims every line.
@@ -339,6 +356,8 @@ export function LayerGraph(p: LayerGraphProps) {
     const paths: React.ReactNode[] = [];
     const labels: React.ReactNode[] = [];
     const need = new Set<number>();
+    // Gaps where a label found no spot even covering a line (it would sit on a box or another label).
+    const crowd = new Set<number>();
     const marks: { idx: number; e: LayerGraphEdge; text: string; tx: number; ty: number; left: boolean; r: boolean; dim: boolean; up?: boolean }[] = [];
     // Lines that labels must not cover: the horizontal runs of the up lines, as [left, right, top, bottom].
     const runs: number[][] = [];
@@ -576,7 +595,9 @@ export function LayerGraph(p: LayerGraphProps) {
             );
             need.add(g);
             const x0 = x0Of(w);
-            spot = { x0, top: find(x0, w, 16, false) ?? start0, lw: w, lh: 16, lines: [m.text] };
+            const top = find(x0, w, 16, false);
+            if (top == null) crowd.add(g);
+            spot = { x0, top: top ?? start0, lw: w, lh: 16, lines: [m.text] };
           }
           // 4 px above and below too, so a label placed later does not sit flush against it.
           placed.push([spot.x0, spot.x0 + spot.lw, spot.top - spot.lh / 2 - 4, spot.top + spot.lh / 2 + 4, 6]);
@@ -587,6 +608,8 @@ export function LayerGraph(p: LayerGraphProps) {
         // every other line and every box too: else on the other side of the arrowhead, then wrapped onto 2 to 4 lines,
         // then the gap above the arrowhead grows and the diagram is drawn again.
         const g = layerIndex[m.e.to] - 1;
+        // It stays in the gap right above its arrowhead: moved past the boxes above, it would sit beside other lines.
+        const gapTop = g >= 0 ? rowTop(g) + NH : 0;
         const sideOf = (lw: number) => {
           let left = m.left;
           if (left && m.tx - 8 - lw < 0) left = false;
@@ -608,7 +631,7 @@ export function LayerGraph(p: LayerGraphProps) {
             if (x0 < 0 || x0 + lw > W) continue;
             for (let k = 0; k < 8 && !spot; k++) {
               const top = m.ty - 8 - lh / 2 - k * 18;
-              if (top - lh / 2 < 2) break;
+              if (top - lh / 2 < Math.max(2, gapTop + 2)) break;
               if (clear(x0, lw, top - lh / 2, top + lh / 2)) spot = { x0, top, lw, lh, lines };
             }
             if (spot) break;
@@ -616,17 +639,40 @@ export function LayerGraph(p: LayerGraphProps) {
           if (spot) break;
         }
         if (!spot) {
-          // As before this rule: on its side, moved up off labels only; the gap grows while it can.
+          // No spot clear of every line: the gap grows while it can. Meanwhile, and once it cannot, the same search lets
+          // the label cover a line (on its white ground), never a box or another label; as a last resort, as before
+          // this rule: on its side, moved up off labels only.
           if (g >= 0) need.add(g);
-          const x0 = at(sideOf(w), w);
-          let top = m.ty - 16;
-          for (let k = 0; k < 8 && hits(x0, x0 + w, top - 8, top + 8); k++) top -= 18;
-          spot = { x0, top, lw: w, lh: 16, lines: [m.text] };
+          const offBoxes = (x0: number, lw: number, y0: number, y1: number) =>
+            !hits(x0, x0 + lw, y0, y1) && !boxRects.some((q) => x0 < q[1] + 2 && q[0] < x0 + lw + 2 && y0 < q[3] + 2 && q[2] < y1 + 2);
+          for (const lines of wraps(m.text)) {
+            const lw = Math.ceil(Math.max(...lines.map(labelWidth)));
+            const lh = lines.length * 16;
+            const pref = sideOf(lw);
+            for (const left of [pref, !pref]) {
+              const x0 = at(left, lw);
+              if (x0 < 0 || x0 + lw > W) continue;
+              for (let k = 0; k < 8 && !spot; k++) {
+                const top = m.ty - 8 - lh / 2 - k * 18;
+                if (top - lh / 2 < Math.max(2, gapTop + 2)) break;
+                if (offBoxes(x0, lw, top - lh / 2, top + lh / 2)) spot = { x0, top, lw, lh, lines };
+              }
+              if (spot) break;
+            }
+            if (spot) break;
+          }
+          if (!spot) {
+            if (g >= 0) crowd.add(g);
+            const x0 = at(sideOf(w), w);
+            let top = m.ty - 16;
+            for (let k = 0; k < 8 && hits(x0, x0 + w, top - 8, top + 8); k++) top -= 18;
+            spot = { x0, top, lw: w, lh: 16, lines: [m.text] };
+          }
         }
         placed.push([spot.x0, spot.x0 + spot.lw, spot.top - spot.lh / 2, spot.top + spot.lh / 2, 6]);
         labels.push(labelEl(m, spot.x0, spot.top, spot.lines));
       });
-    return { paths, labels, hitPaths, need };
+    return { paths, labels, hitPaths, need, crowd };
   };
   placeRows();
   let drawn = draw();
@@ -643,9 +689,18 @@ export function LayerGraph(p: LayerGraphProps) {
     for (const g of stuck) gaps[g] = GAP;
     placeRows();
     drawn = draw();
+    // Then only as much room as the labels need to cover a line rather than a box or each other (several labelled
+    // lines into one box, too close together for any label to miss the others' lines).
+    const crowded = () => [...drawn.crowd].filter((g) => stuck.includes(g) && gaps[g] < GAP + GROW_MAX);
+    for (let k = 0; k < GROW_MAX / GROW && crowded().length; k++) {
+      for (const g of crowded()) gaps[g] = Math.min(GAP + GROW_MAX, gaps[g] + GROW);
+      placeRows();
+      drawn = draw();
+    }
   }
   const { paths, labels, hitPaths } = drawn;
   const sizeText = p.sizeLabel ?? tr('{n} 個項目');
+  const externalText = p.externalLabel ?? tr('repo 外');
   const useText = p.useLabel ?? tr('使用 {n} 次');
   const nodes = main.map((n) => {
     const q = pos[n.id];
@@ -656,7 +711,7 @@ export function LayerGraph(p: LayerGraphProps) {
       <button
         key={n.id}
         type="button"
-        className={cx('ui-lg-node', on && 'is-selected', !near(n.id) && 'is-dim')}
+        className={cx('ui-lg-node', n.external && 'is-external', on && 'is-selected', !near(n.id) && 'is-dim')}
         style={{ left: q.x, top: q.y, width: NW, height: NH }}
         aria-pressed={p.onSelect ? on : undefined}
         onClick={p.onSelect ? () => pick(n.id, on) : undefined}
@@ -665,6 +720,7 @@ export function LayerGraph(p: LayerGraphProps) {
           <span className="ui-lg-name">{n.name || n.id}</span>
           {used ? <span className="ui-lg-use">{monoNums(useText.replace('{n}', '\u0001'), [used])}</span> : null}
         </span>
+        {n.external ? <span className="ui-lg-ext">{externalText}</span> : null}
         {size != null ? (
           <span className="ui-lg-size">
             <span className="ui-lg-track" aria-hidden="true">
@@ -681,8 +737,9 @@ export function LayerGraph(p: LayerGraphProps) {
     const by = uses[s.id] ?? {};
     const total = Object.values(by).reduce((a, b) => a + b, 0);
     const on = s.id === sel;
-    // A selected box dims the shared items it does not use.
-    const dim = !!selEdge || (sel != null && !on && (selShared != null || !(sel in by)));
+    // A selected box dims the shared items it does not use; a selected shared item keeps the shared items it uses or
+    // that use it.
+    const dim = !!selEdge || (sel != null && !on && (selShared != null ? !(s.id in (uses[selShared] ?? {})) && !(selShared in by) : !(sel in by)));
     return (
       <button
         key={s.id}
@@ -727,7 +784,11 @@ export function LayerGraph(p: LayerGraphProps) {
               !near(n.id),
               p.onSelect ? () => pick(n.id, n.id === sel) : undefined,
               <span className="ui-lg-code">{n.name || n.id}</span>,
-              size != null ? <span className="ui-lg-limeta">，{monoNums(sizeText.replace('{n}', '\u0001'), [size])}</span> : null,
+              n.external && !n.shared ? (
+                <span className="ui-lg-limeta">，{externalText}</span>
+              ) : size != null ? (
+                <span className="ui-lg-limeta">，{monoNums(sizeText.replace('{n}', '\u0001'), [size])}</span>
+              ) : null,
             );
           })}
         </ul>

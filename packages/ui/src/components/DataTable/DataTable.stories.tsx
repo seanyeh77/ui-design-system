@@ -195,3 +195,47 @@ export const BesidePanel = {
     </div>
   ),
 };
+
+// Long text in narrow columns (a 600 px table): each row has a caret on the left that opens its long columns in full
+// below the row. With a mouse, a cut-off cell also shows its text on hover; on a touch screen there is no Tooltip.
+const CHECKS = [
+  {
+    id: 'k1',
+    fn: 'ibmon_spawn',
+    ok: true,
+    note: '先 fork 再 execve，子行程繼承 IBTRACE_SHM；父行程等到 ring 建好才回傳，避免子行程搶先寫入。',
+    desc: '預測和實際呼叫順序一致。setenv 在 fork 之前，所以子行程一定看得到環境變數。',
+  },
+  {
+    id: 'k2',
+    fn: 'ring_push',
+    ok: false,
+    note: '以為滿了會覆蓋最舊的資料，實際上回傳 -EAGAIN 並丟掉新的一筆，呼叫端沒有檢查回傳值。',
+    desc: '要確認：ucx_ib_test 在 ring 滿時是否需要重試。目前會默默少一筆統計。',
+  },
+  { id: 'k3', fn: 'hook_ucp_put', ok: true, note: '攔截後記錄大小與時間，再呼叫原本的 ucp_put_nbx。', desc: '和讀程式碼的結果相同。' },
+];
+export const NarrowLongText = {
+  render: () => (
+    <div style={{ maxWidth: 600 }}>
+      <UI.DataTable
+        caption="檢查筆記"
+        rows={CHECKS}
+        urlSync={false}
+        search={false}
+        columns={[
+          { key: 'fn', label: '函式', width: 128 },
+          {
+            key: 'ok',
+            label: '結果',
+            width: 88,
+            render: (r) => <UI.Badge status={r.ok ? 'done' : 'fail'}>{r.ok ? '正確' : '錯誤'}</UI.Badge>,
+            searchText: (r) => (r.ok ? '正確' : '錯誤'),
+          },
+          { key: 'note', label: '筆記內容', long: true, width: 160 },
+          { key: 'desc', label: '說明', long: true, width: 160 },
+        ]}
+      />
+    </div>
+  ),
+};

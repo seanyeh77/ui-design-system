@@ -135,6 +135,32 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
   };
   const end = (why: 'done' | 'skip') => onClose?.(why);
   useReturnFocus(open);
+  const cardEl = React.useRef<HTMLDivElement | null>(null);
+  // Tab and Shift+Tab go round the card's buttons only. Base UI's popover leaves focus guards around the card (no
+  // name) that let Tab reach the page; focus that gets out anyway (a click on the dimmed page) comes back to 下一步.
+  const tabbables = () =>
+    Array.from(
+      cardEl.current?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), [tabindex]:not([tabindex="-1"])') ?? [],
+    ).filter((e) => e.getClientRects().length > 0);
+  const onTab = (e: React.KeyboardEvent) => {
+    if (e.key !== 'Tab' || e.altKey || e.ctrlKey || e.metaKey) return;
+    const list = tabbables();
+    if (!list.length) return;
+    e.preventDefault();
+    const at = list.indexOf(document.activeElement as HTMLElement);
+    const to = at < 0 ? 0 : (at + (e.shiftKey ? -1 : 1) + list.length) % list.length;
+    list[to].focus();
+  };
+  React.useEffect(() => {
+    if (!open) return;
+    const back = (e: FocusEvent) => {
+      const box = cardEl.current;
+      if (!box || !(e.target instanceof Node) || box.contains(e.target)) return;
+      (next.current ?? tabbables()[0])?.focus();
+    };
+    document.addEventListener('focusin', back);
+    return () => document.removeEventListener('focusin', back);
+  }, [open]);
 
   // Follow the target while it moves (scrolling, layout changes).
   // Depends on the step's fields, not the object: inline steps arrays are new on every render.
@@ -186,6 +212,7 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
   // through a callback ref when it appears, and again on every resize.
   const observer = React.useRef<ResizeObserver | null>(null);
   const card = React.useCallback((el: HTMLDivElement | null) => {
+    cardEl.current = el;
     observer.current?.disconnect();
     observer.current = null;
     if (!el) return;
@@ -230,7 +257,7 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
           // The side is chosen above; Base UI only keeps the card inside the window horizontally.
           collisionAvoidance={{ side: 'none', align: 'shift', fallbackAxisSide: 'none' }}
         >
-          <Popover.Popup ref={card} key={i} className="ui-tour-card" data-placement={place.mode} initialFocus={next}>
+          <Popover.Popup ref={card} key={i} className="ui-tour-card" data-placement={place.mode} initialFocus={next} onKeyDown={onTab}>
             {/* Taller than the window (phones): this part scrolls, the buttons stay at the bottom. */}
             <div className="ui-tour-body">
               <div className="ui-tour-count">

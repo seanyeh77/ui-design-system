@@ -51,6 +51,8 @@ export { DetailList } from './components/DetailList/DetailList';
 export type { DetailListItem, DetailListProps } from './components/DetailList/DetailList';
 export { Dialog } from './components/Dialog/Dialog';
 export type { DialogProps } from './components/Dialog/Dialog';
+export { SplitPane } from './components/SplitPane/SplitPane';
+export type { SplitPaneProps } from './components/SplitPane/SplitPane';
 export { Drawer } from './components/Drawer/Drawer';
 export type { DrawerProps } from './components/Drawer/Drawer';
 export { EmptyState } from './components/EmptyState/EmptyState';

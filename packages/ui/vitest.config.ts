@@ -7,6 +7,9 @@ export default defineConfig({
   test: {
     include: ['src/**/*.test.tsx'],
     setupFiles: ['src/test/setup.ts'],
+    // One file at a time: touch.test.tsx emulates a touch screen through CDP, which holds for the whole browser page,
+    // so files running beside it would see (pointer: coarse) too.
+    fileParallelism: false,
     browser: {
       enabled: true,
       headless: true,

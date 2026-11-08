@@ -1,0 +1,34 @@
+<!-- @dsCard group="Pages" height=420 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>SplitPane — preview</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      // A code panel beside the diagram: drag the divider, use ← → Home End, or double-click it for 420 px again.
+      var CODE =
+        '/* Ring buffer shared with ibmon through IBTRACE_SHM. When the ring is full the new record is dropped and -EAGAIN is returned; callers count the drop instead of retrying. */\n' +
+        'int ring_push(struct ring *r, const struct rec *x)\n{\n    if (ring_full(r))\n        return -EAGAIN; /* ibmon reads slower than the hooks write: keep the old records, drop this one */\n' +
+        '    r->buf[r->head++ & r->mask] = *x;\n    return 0;\n}';
+      ReactDOM.createRoot(document.getElementById('root')).render(
+        h(
+          'div',
+          { style: { padding: 20 } },
+          h(U.SplitPane, {
+            a: h(U.Card, { title: '架構' }, h('p', { style: { margin: 0 } }, '選一個函式，右邊的面板顯示它的程式碼。')),
+            b: h(U.CodeView, { file: 'src/libibtrace/ring.c', start: 40, target: 45, language: 'c', code: CODE }),
+            defaultB: 420,
+            minA: 360,
+            minB: 280,
+            storageKey: 'preview-split',
+          }),
+        ),
+      );
+    </script>
+  </body>
+</html>

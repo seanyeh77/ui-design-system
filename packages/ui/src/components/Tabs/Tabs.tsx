@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { format } from '../../format';
 import { dropTransition, useMoving } from '../../motion';
-import { cx } from '../../internal/util';
+import { cx, browserKey } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { useFocusRescue } from '../../internal/focus';
 import { announce } from '../../announce';
@@ -98,6 +98,7 @@ export function Tabs<V extends string = string>({ items, value, onChange, label,
           className={cx('ui-tab', i === idx && 'is-selected')}
           onClick={() => go(i)}
           onKeyDown={(e) => {
+            if (browserKey(e)) return;
             const to = e.key === 'ArrowRight' ? (i + 1) % items.length : e.key === 'ArrowLeft' ? (i - 1 + items.length) % items.length : -1;
             if (to < 0) return;
             e.preventDefault();

@@ -335,3 +335,47 @@ Claude 定的細節（待確認）：
 - `resetKey` 重設所有欄位的勾選，包括使用者自己關掉的一般欄位（之前 `resetKey` 不重設欄位）。
 - 手機不顯示「欄位」按鈕，所以 `hidden: true` 的欄位在手機卡片上一直不顯示。
 - 第一欄設 `hidden: true`，或沒有「欄位」選單時（`columnMenu={false}`、2 欄以下）設了 `hidden: true`：開發時 console 警告，第一欄照常顯示。
+
+## codemap 第三輪試用：元件問題
+
+使用者的要求（節錄）：Tour 開著時 Tab 會經過沒有名稱的 focus guard、到 BODY、再到「跳到主要內容」，請把 Tab 循環限制在對話框內，Escape 關閉後焦點回到開啟前的元素。TreeList 的 Alt+左方向鍵被當成收合，攔住了瀏覽器的上一頁，請略過帶 Alt、Meta、Ctrl 的方向鍵。TopBar 在觸控裝置（pointer: coarse 或沒有實體鍵盤）隱藏快捷鍵提示，macOS 顯示 ⌘K。「1 / 1 個」「6 / 6 筆」會被念成「斜線」，UI.format 請輸出「1 個中的 1 個」這類 aria 文字，沒有的話請加一個。
+
+DataTable 窄欄長文字看全文、`focusMain()` 的焦點框：做成選項，見「表格長文字與頁面標題焦點實驗室」。
+
+Claude 定的細節（待確認）：
+
+- 帶 Alt、Meta、Ctrl 的方向鍵也不給 Tabs 和 RadioGroup 處理（同一個問題）。Shift 照常處理。
+- 觸控裝置的判斷是 `(pointer: coarse)`（手機和平板都是）；瀏覽器無法得知有沒有實體鍵盤，接了鍵盤的平板仍不顯示快捷鍵。
+- 分數的函式名稱 `format.fraction` 和 `format.fractionLabel`；沒有單位時念「5 中的 1」。TextArea 的字數也改成念「200 字中的 12 字」。
+
+## 表格長文字與頁面標題焦點
+
+FCLB
+
+- FC：`focusMain()` 移到的標題不畫焦點框；最近一次是用鍵盤操作時，標題左邊出現 3 px 強調色條，用滑鼠或觸控時什麼都不顯示。（其他選項：一律顯示瀏覽器的焦點框、只在鍵盤操作後顯示焦點框、一律用左側色條。）
+- LB：DataTable 有長文字欄位時，每列最左邊有展開箭頭；展開後在列的下方整行列出所有長文字欄位的全文，欄位名稱在上。（其他選項：滑過顯示 Tooltip、點格子在格子內展開、點格子開浮動框、最多 3 行加「顯示全部」。）
+
+Claude 定的細節（待確認）：
+
+- LB 只在 600 px 以上（表格版面）；手機卡片維持「顯示全部」。每一列都有箭頭，不只文字被截掉的列。用滑鼠時被截的格子滑過仍顯示 Tooltip；觸控裝置不用 Tooltip。詳細列只列出目前顯示的長文字欄位。給新的 `resetKey` 時全部收合。
+- FC 的色條在標題左邊 12 px 外，不推動標題文字；標題外面沒有其他樣式。只有 `h1`、`h2` 和頂部列標題有色條，移到 `main` 本身時不顯示。
+
+## codemap 第三輪試用：TreeList 和 LayerGraph
+
+使用者的要求（節錄）：TreeList 的 treeitem 名稱只有 name 和 path，tags 的文字（例如「推測（規則）」「×4」）沒有讀出，請把 tags 的文字加進名稱，或提供 ariaLabel；點檔案名稱這類有子項目的列時，請同時切換展開或收合。LayerGraph 共用元件的 sharedMeta 沒有算其他共用元件的使用，清單檢視卻有算，請兩邊算法一致，或在文字上說明不含共用元件之間的使用。
+
+Claude 定的細節（待確認）：
+
+- TreeList 名稱順序「名稱，標籤，meta，路徑」，並加 `ariaLabel` 整句替換；元件標籤取它的文字（`aria-label` 或子元素的文字）。Enter 和點擊一樣：選取，有子項目時同時展開或收合。
+- LayerGraph 選了「兩邊一致」：共用項目的次數也算其他共用項目的使用。
+
+## LayerGraph repo 外的項目、可拖拉的雙欄分隔線
+
+使用者的要求（節錄）：LayerGraphNode 加上 external?: boolean。external 節點畫在所有 layer 的上方，用虛線外框，名稱下方標示「repo 外」；不算進 layer，也不顯示大小條；連到其他節點的線照一般 edge 畫，inferred 和 label 一樣適用；可以像其他方塊一樣被選取；清單檢視也要列出它，並標示「repo 外」。主要區域和側邊面板之間加一條可以拖拉的分隔線（例如新元件 SplitPane）：role="separator"、aria-orientation="vertical"、aria-valuenow；左右方向鍵每次 16 px，Home、End 跳到最小或最大寬度；拖拉時兩邊都有最小寬度（minA、minB），雙擊回到預設寬度；寬度用 storageKey 記住，讀寫 localStorage 失敗時照常運作；寬度小於 960 px、上下排列時不顯示分隔線。
+
+Claude 定的細節（待確認）：
+
+- external 方框：白底（`surface`）、1.5 px `line-strong` 虛線外框、沒有左側色條；選取時強調色外框加 `accent-soft` 底。名稱下方的文字可以用 `externalLabel` 換掉。external 和 shared 同時設定時當作 shared。
+- 往下的線的標籤：一律留在箭頭正上方的空隙；找不到不壓線的位置、空隙加到上限也沒用時，再加高到標籤能放在不壓方框和其他標籤的位置（可以壓線）。幾條有標籤的線收到同一個方框時（例如三條攔截線），標籤會疊在空隙裡、壓到別的線，看不太出哪個標籤屬於哪條線。
+- SplitPane 是新元件，放在 Pages 分類。`aria-valuenow` 是主要區域的寬度（px）；← 讓面板變寬；Home 讓面板最寬、End 讓面板最窄；另外加了 Enter 回到預設寬度（雙擊的鍵盤版）。預設 `defaultB` 420 px、`minA` 360 px、`minB` 280 px。分隔線是 16 px 的空隙加 1 px 線，滑過、拖拉或鍵盤移到時變成 3 px 強調色；點擊範圍 48 px。960 px 看的是 SplitPane 自己的寬度。上下排列時面板在下面。存在 `localStorage` 的鍵名是 `ui-split:` 加 `storageKey`。
+
