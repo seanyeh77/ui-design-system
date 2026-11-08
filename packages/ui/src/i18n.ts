@@ -54,6 +54,7 @@ export const I18N: I18nState = {
       更多操作: 'More actions',
       更多: 'More',
       左右滑動: 'Scroll sideways',
+      向右捲動: 'Scroll right',
       筆: 'rows',
       'C 語言': 'C',
       程式語言: 'Language',

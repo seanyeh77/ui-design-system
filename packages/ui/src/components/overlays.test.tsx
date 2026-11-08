@@ -203,6 +203,15 @@ test('CommandPalette opens with Ctrl K and picks with Enter', async () => {
   expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ label: '帳單' }));
 });
 
+test('CommandPalette reads each result as kind, then name', async () => {
+  render(<CommandPalette open onOpenChange={() => {}} items={[{ label: 'IBTRACE_SHM', kind: '環境變數', detail: '`child.c:141`' }]} />);
+  const input = await screen.findByRole('combobox');
+  await user.type(input, 'IBT');
+  const option = await screen.findByRole('option');
+  expect(option.textContent?.startsWith('環境變數 IBTRACE_SHM')).toBe(true);
+  expect(option.textContent).not.toContain('，');
+});
+
 test('Term opens its explanation and closes with ×', async () => {
   render(<Term text="一段說明">名詞</Term>);
   await user.click(screen.getByRole('button', { name: /名詞/ }));

@@ -159,7 +159,7 @@ export function LayerGraph(p: LayerGraphProps) {
   }
   const layers = [...byLayer.keys()].sort((a, b) => a - b);
   const cols = Math.max(1, ...layers.map((l) => byLayer.get(l)?.length ?? 0));
-  const W = PAD * 2 + cols * NW + (cols - 1) * COL;
+  let W = PAD * 2 + cols * NW + (cols - 1) * COL;
   const H = PAD * 2 + layers.length * NH + Math.max(0, layers.length - 1) * GAP;
   const pos: Record<string, { x: number; y: number }> = {};
   const layerIndex: Record<string, number> = {};
@@ -173,13 +173,34 @@ export function LayerGraph(p: LayerGraphProps) {
   });
   const maxSize = Math.max(1, ...main.map((n) => sizeOf(n) || 0));
   const maxCount = Math.max(1, ...edges.map((e) => e.count || 0));
+  // A line to a higher layer (a data channel back up): it leaves the source's right side, runs up a lane along the
+  // diagram's right edge and enters the target's right side. The diagram widens on the right for the lanes and labels.
+  const isUp = (e: LayerGraphEdge) => !!pos[e.from] && !!pos[e.to] && layerIndex[e.to] < layerIndex[e.from];
   const outs: Record<string, LayerGraphEdge[]> = {};
   const ins: Record<string, LayerGraphEdge[]> = {};
+  const upOut: Record<string, LayerGraphEdge[]> = {};
+  const upIn: Record<string, LayerGraphEdge[]> = {};
   for (const e of edges) {
     if (!pos[e.from] || !pos[e.to]) continue;
+    if (isUp(e)) {
+      (upOut[e.from] ??= []).push(e);
+      (upIn[e.to] ??= []).push(e);
+      continue;
+    }
     (outs[e.from] ??= []).push(e);
     (ins[e.to] ??= []).push(e);
   }
+  const ups = edges.filter(isUp);
+  const rowOf = (id: string) => byLayer.get(layers[layerIndex[id]]) ?? [];
+  const rightmost = (id: string) => rowOf(id)[rowOf(id).length - 1]?.id === id;
+  const leftmost = (id: string) => rowOf(id)[0]?.id === id;
+  // The lane is on the side where the target is the outermost box, so the line can enter its side; the right one
+  // when both or neither (then it enters from below).
+  const onLeft = (e: LayerGraphEdge) => !rightmost(e.to) && leftmost(e.to);
+  const upsL = ups.filter(onLeft);
+  const upsR = ups.filter((e) => !onLeft(e));
+  const LANE = 20;
+  const LANE_STEP = 12;
   for (const k in outs) outs[k].sort((a, b) => pos[a.to].x - pos[b.to].x);
   for (const k in ins) ins[k].sort((a, b) => pos[a.from].x - pos[b.from].x);
   const edgeId = (e: LayerGraphEdge) => e.id ?? `${e.from}->${e.to}`;
@@ -208,6 +229,23 @@ export function LayerGraph(p: LayerGraphProps) {
   };
   const nameOf = (id: string) => all.find((n) => n.id === id)?.name || id;
   const countText = (e: LayerGraphEdge) => (p.countLabel ?? tr('{n} 次')).replace('{n}', String(e.count ?? 0));
+  // Room beside the boxes for the lanes and their labels (the longer of the label and 「N 次」, which shows when
+  // selected): the left side shifts every box right, the right side widens the diagram.
+  const upW = (list: LayerGraphEdge[]) =>
+    Math.max(0, ...list.map((e) => Math.ceil(Math.max(labelWidth(e.inferred ? e.label || p.inferredLabel || tr('推測') : ''), labelWidth(countText(e))))));
+  if (upsL.length) {
+    const left0 = Math.min(...main.map((n) => pos[n.id].x));
+    const shift = Math.max(0, PAD + upW(upsL) + 8 + (upsL.length - 1) * LANE_STEP + LANE - left0);
+    for (const id in pos) pos[id] = { x: pos[id].x + shift, y: pos[id].y };
+    W += shift;
+  }
+  const boxesLeft = Math.min(...main.map((n) => pos[n.id].x));
+  const boxesRight = Math.max(0, ...main.map((n) => pos[n.id].x + NW));
+  const laneX = (e: LayerGraphEdge) => (onLeft(e) ? boxesLeft - LANE - upsL.indexOf(e) * LANE_STEP : boxesRight + LANE + upsR.indexOf(e) * LANE_STEP);
+  // Labels sit outside every lane on their side: x where a right label starts, or where a left label ends.
+  const upLabelX = boxesRight + LANE + Math.max(0, upsR.length - 1) * LANE_STEP + 8;
+  const upLabelEndL = boxesLeft - LANE - Math.max(0, upsL.length - 1) * LANE_STEP - 8;
+  if (upsR.length) W = Math.max(W, upLabelX + upW(upsR) + PAD);
   const choose = (e: LayerGraphEdge) => {
     const id = edgeId(e);
     const next = p.selectedEdge === id ? null : id;
@@ -217,50 +255,107 @@ export function LayerGraph(p: LayerGraphProps) {
 
   const paths: React.ReactNode[] = [];
   const labels: React.ReactNode[] = [];
-  const marks: { idx: number; e: LayerGraphEdge; text: string; tx: number; ty: number; left: boolean; r: boolean; dim: boolean }[] = [];
+  const marks: { idx: number; e: LayerGraphEdge; text: string; tx: number; ty: number; left: boolean; r: boolean; dim: boolean; up?: boolean }[] = [];
+  // Lines that labels must not cover: the horizontal runs of the up lines, as [left, right, top, bottom].
+  const runs: number[][] = [];
   const arrows: number[][] = [];
   const hitPaths: React.ReactNode[] = [];
   edges.forEach((e, idx) => {
     const a = pos[e.from];
     const b = pos[e.to];
     if (!a || !b) return;
-    const oi = outs[e.from].indexOf(e);
-    const on = outs[e.from].length;
-    const ii = ins[e.to].indexOf(e);
-    const inn = ins[e.to].length;
-    const sx = Math.round(a.x + (NW * (oi + 1)) / (on + 1));
-    const sy = a.y + NH;
-    const tx = Math.round(b.x + (NW * (ii + 1)) / (inn + 1));
-    const ty = b.y;
-    const off = (oi - (on - 1) / 2) * 6;
-    const y1 = sy + GAP / 2 + off;
-    let pts: Pt[];
-    if (layerIndex[e.to] - layerIndex[e.from] > 1) {
-      // Skipping a layer: go down a channel between the boxes of the next layer, the one nearest the middle.
-      const next = (byLayer.get(layers[layerIndex[e.from] + 1]) ?? []).map((n) => pos[n.id]);
-      const mid = (sx + tx) / 2;
-      const chans = [next[0].x - COL / 2, ...next.map((q) => q.x + NW + COL / 2)].map((c) => Math.max(PAD / 2, Math.min(W - PAD / 2, c)));
-      const chx = chans.reduce((best, c) => (Math.abs(c - mid) < Math.abs(best - mid) ? c : best), chans[0]) + off;
-      const y2 = ty - GAP / 2 + off;
-      pts = [
-        [sx, sy],
-        [sx, y1],
-        [chx, y1],
-        [chx, y2],
-        [tx, y2],
-        [tx, ty - 8],
-      ];
-    } else
-      pts = [
-        [sx, sy],
-        [sx, y1],
-        [tx, y1],
-        [tx, ty - 8],
-      ];
     const r = related(e);
     const dim = focus && !r;
     const picked = e === selEdge;
     const hovered = !!pickEdge && hover === edgeId(e) && !r;
+    const up = isUp(e);
+    let pts: Pt[];
+    let tx: number;
+    let ty: number;
+    let arrow: string;
+    let inn = 1;
+    if (up) {
+      const lx = laneX(e);
+      const L = onLeft(e);
+      const si = upOut[e.from].indexOf(e);
+      const sn = upOut[e.from].length;
+      const ti = upIn[e.to].indexOf(e);
+      const tn = upIn[e.to].length;
+      const start: Pt[] = [];
+      let y0: number;
+      if (L ? leftmost(e.from) : rightmost(e.from)) {
+        // From the right side, a little apart when several leave the same box.
+        y0 = Math.round(a.y + NH / 2 + (si - (sn - 1) / 2) * 10);
+        start.push([L ? a.x : a.x + NW, y0], [lx, y0]);
+      } else {
+        // A box to its right: leave from the top edge, just under the lines of the gap above.
+        const px = L ? a.x + 20 + si * 10 : a.x + NW - 20 - si * 10;
+        y0 = a.y - 12 - si * 6;
+        start.push([px, a.y], [px, y0], [lx, y0]);
+      }
+      let y1: number;
+      if (L || rightmost(e.to)) {
+        // Into the side facing the lane, the arrow pointing at the box.
+        y1 = Math.round(b.y + NH / 2 + (ti - (tn - 1) / 2) * 10);
+        tx = L ? b.x : b.x + NW;
+        ty = y1;
+        const back = L ? tx - 9 : tx + 9;
+        pts = [...start, [lx, y1], [back, y1]];
+        arrow = `M${back} ${ty - 5} L${back} ${ty + 5} L${tx} ${ty} Z`;
+        arrows.push([Math.min(tx, back), Math.max(tx, back), ty - 5, ty + 5]);
+        runs.push([Math.min(tx, lx), Math.max(tx, lx), y1 - 3, y1 + 3]);
+      } else {
+        // A box to its right: come in from below, into the bottom edge.
+        tx = b.x + NW - 20 - ti * 10;
+        y1 = b.y + NH + 12 + ti * 6;
+        ty = b.y + NH;
+        pts = [...start, [lx, y1], [tx, y1], [tx, ty + 9]];
+        arrow = `M${tx - 5} ${ty + 9} L${tx + 5} ${ty + 9} L${tx} ${ty} Z`;
+        arrows.push([tx - 5, tx + 5, ty, ty + 9]);
+        runs.push([tx, lx, y1 - 3, y1 + 3]);
+      }
+      const sx0 = start[start.length - 2][0];
+      runs.push([Math.min(sx0, lx), Math.max(sx0, lx), y0 - 3, y0 + 3]);
+      if (e.inferred || r) {
+        const text = e.inferred ? e.label || p.inferredLabel || tr('推測') : countText(e);
+        marks.push({ idx, e, text, tx: L ? upLabelEndL : upLabelX, ty: Math.round((y0 + y1) / 2), left: L, r, dim, up: true });
+      }
+    } else {
+      const oi = outs[e.from].indexOf(e);
+      const on = outs[e.from].length;
+      const ii = ins[e.to].indexOf(e);
+      inn = ins[e.to].length;
+      const sx = Math.round(a.x + (NW * (oi + 1)) / (on + 1));
+      const sy = a.y + NH;
+      tx = Math.round(b.x + (NW * (ii + 1)) / (inn + 1));
+      ty = b.y;
+      const off = (oi - (on - 1) / 2) * 6;
+      const y1 = sy + GAP / 2 + off;
+      if (layerIndex[e.to] - layerIndex[e.from] > 1) {
+        // Skipping a layer: go down a channel between the boxes of the next layer, the one nearest the middle.
+        const next = (byLayer.get(layers[layerIndex[e.from] + 1]) ?? []).map((n) => pos[n.id]);
+        const mid = (sx + tx) / 2;
+        const chans = [next[0].x - COL / 2, ...next.map((q) => q.x + NW + COL / 2)].map((c) => Math.max(PAD / 2, Math.min(W - PAD / 2, c)));
+        const chx = chans.reduce((best, c) => (Math.abs(c - mid) < Math.abs(best - mid) ? c : best), chans[0]) + off;
+        const y2 = ty - GAP / 2 + off;
+        pts = [
+          [sx, sy],
+          [sx, y1],
+          [chx, y1],
+          [chx, y2],
+          [tx, y2],
+          [tx, ty - 8],
+        ];
+      } else
+        pts = [
+          [sx, sy],
+          [sx, y1],
+          [tx, y1],
+          [tx, ty - 8],
+        ];
+      arrow = `M${tx - 5} ${ty - 9} L${tx + 5} ${ty - 9} L${tx} ${ty} Z`;
+      arrows.push([tx - 5, tx + 5, ty - 9, ty]);
+    }
     // Hover on a selectable line: darker and 2 px thicker.
     const w = (e.inferred ? 1.5 : 1.5 + 5.5 * ((e.count || 0) / maxCount)) + (picked ? 1.5 : 0) + (hovered ? 2 : 0);
     const d = route(clean(pts), 10);
@@ -299,11 +394,8 @@ export function LayerGraph(p: LayerGraphProps) {
         />,
       );
     }
-    arrows.push([tx - 5, tx + 5, ty - 9, ty]);
-    paths.push(
-      <path key={'a' + idx} className={cx('ui-lg-arrow', r && 'is-related', dim && 'is-dim')} d={`M${tx - 5} ${ty - 9} L${tx + 5} ${ty - 9} L${tx} ${ty} Z`} />,
-    );
-    if (e.inferred || r) {
+    paths.push(<path key={'a' + idx} className={cx('ui-lg-arrow', r && 'is-related', dim && 'is-dim')} d={arrow} />);
+    if (!up && (e.inferred || r)) {
       const text = e.inferred ? e.label || p.inferredLabel || tr('推測') : countText(e);
       // Several arrows into one box: an arrow in the left half puts its label on its left.
       marks.push({ idx, e, text, tx, ty, left: inn > 1 && tx < b.x + NW / 2, r, dim });
@@ -311,13 +403,43 @@ export function LayerGraph(p: LayerGraphProps) {
   });
   // Labels sit beside their arrowheads, inside the diagram; one that would touch a placed label or an arrowhead moves up 18 px.
   // Obstacles are [left, right, top, bottom, gap].
-  const placed = [...arrows];
+  const placed = [...arrows, ...runs];
   const hits = (x0: number, x1: number, y0: number, y1: number) =>
     placed.some((q) => x0 < q[1] + (q[4] || 0) && q[0] < x1 + (q[4] || 0) && y0 < q[3] && q[2] < y1);
+  const labelEl = (m: (typeof marks)[number], x0: number, top: number) => (
+    // With onSelectEdge the label selects its edge too (a mouse and touch target; keyboard uses the line itself).
+    <span
+      key={'l' + m.idx}
+      className={cx('ui-lg-label', pickEdge && 'is-clickable', pickEdge && hover === edgeId(m.e) && 'is-hover', m.r && 'is-related', m.dim && 'is-dim')}
+      style={{ left: x0, top }}
+      onClick={
+        pickEdge
+          ? (ev) => {
+              ev.stopPropagation();
+              choose(m.e);
+            }
+          : undefined
+      }
+      onPointerEnter={pickEdge ? () => setHover(edgeId(m.e)) : undefined}
+      onPointerLeave={pickEdge ? () => setHover(null) : undefined}
+    >
+      {labelParts(m.text)}
+    </span>
+  );
   marks
     .sort((m, n) => m.ty - n.ty || m.tx - n.tx)
     .forEach((m) => {
       const w = Math.ceil(labelWidth(m.text));
+      if (m.up) {
+        // Beside the lanes, halfway up; moved up (then down) off anything placed, inside the diagram.
+        const x0 = m.left ? m.tx - w : m.tx;
+        let top = Math.max(10, Math.min(H - 10, m.ty));
+        for (let k = 0; k < 8 && hits(x0, x0 + w, top - 8, top + 8) && top - 18 >= 10; k++) top -= 18;
+        for (let k = 0; k < 16 && hits(x0, x0 + w, top - 8, top + 8) && top + 18 <= H - 10; k++) top += 18;
+        placed.push([x0, x0 + w, top - 8, top + 8, 6]);
+        labels.push(labelEl(m, x0, top));
+        return;
+      }
       let left = m.left;
       if (left && m.tx - 8 - w < 0) left = false;
       else if (!left && m.tx + 8 + w > W) left = m.tx - 8 - w >= 0;
@@ -326,26 +448,7 @@ export function LayerGraph(p: LayerGraphProps) {
       let top = m.ty - 16;
       for (let k = 0; k < 8 && hits(x0, x1, top - 8, top + 8); k++) top -= 18;
       placed.push([x0, x1, top - 8, top + 8, 6]);
-      labels.push(
-        // With onSelectEdge the label selects its edge too (a mouse and touch target; keyboard uses the line itself).
-        <span
-          key={'l' + m.idx}
-          className={cx('ui-lg-label', pickEdge && 'is-clickable', pickEdge && hover === edgeId(m.e) && 'is-hover', m.r && 'is-related', m.dim && 'is-dim')}
-          style={{ left: x0, top }}
-          onClick={
-            pickEdge
-              ? (ev) => {
-                  ev.stopPropagation();
-                  choose(m.e);
-                }
-              : undefined
-          }
-          onPointerEnter={pickEdge ? () => setHover(edgeId(m.e)) : undefined}
-          onPointerLeave={pickEdge ? () => setHover(null) : undefined}
-        >
-          {labelParts(m.text)}
-        </span>,
-      );
+      labels.push(labelEl(m, x0, top));
     });
   const sizeText = p.sizeLabel ?? tr('{n} 個項目');
   const useText = p.useLabel ?? tr('使用 {n} 次');

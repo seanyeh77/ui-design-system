@@ -811,15 +811,16 @@ body {
 .ui-tabbar {
   position: relative;
   box-sizing: border-box;
-  height: 60px;
+  height: 64px;
   display: flex;
   background: var(--surface-chrome);
   border-top: 1px solid var(--line);
 }
 .ui-tabbar-pill {
   position: absolute;
-  top: 15px;
-  height: 30px;
+  /* Behind the icon; the name sits under it, clear of it. */
+  top: 7px;
+  height: 28px;
   border-radius: var(--radius-md);
   background: var(--accent-soft);
   pointer-events: none;
@@ -827,17 +828,34 @@ body {
 .ui-tabbar-item {
   position: relative;
   flex: 1 1 0;
+  min-width: 0;
   min-height: var(--touch-target);
+  padding: 0 2px;
   border: 0;
   background: transparent;
   color: var(--ink-muted);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
+  font: inherit;
   cursor: pointer;
 }
 .ui-tabbar-item.is-selected {
   color: var(--accent-text);
+}
+.ui-tabbar-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+}
+.ui-tabbar-item.is-selected .ui-tabbar-label {
+  font-weight: 700;
 }
 
 @keyframes ui-rise {
@@ -2066,6 +2084,10 @@ body {
 }
 .ui-tooltip {
   transform-origin: var(--transform-origin);
+}
+/* Closing: no animation left to wait for, so the popup leaves at once (an entrance still running kept it on screen). */
+.ui-tooltip[data-ending-style] {
+  animation: none;
 }
 .ui-tooltip.is-wrap {
   max-width: min(360px, calc(100vw - 2 * var(--space-3)));
@@ -3761,6 +3783,10 @@ html.ui-theme-fade * {
 .ui-code.is-link:hover {
   text-decoration-thickness: 2px;
 }
+/* Dark: accent-text on the chip's surface-sub is 3.9:1; a quarter of ink brings it to 5:1 (at least 4.5:1 for 14 px text). */
+[data-theme='dark'] .ui-code.is-link {
+  color: color-mix(in srgb, var(--accent-text), var(--ink) 25%);
+}
 .ui-code.is-link:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px var(--focus-ring);
@@ -4606,10 +4632,8 @@ html.ui-theme-fade * {
     [role='menuitem'],
     .ui-crumb a,
     a.ui-crumb,
-    .ui-dt-cell .ui-code.is-link,
-    .ui-dl-item dd > .ui-code.is-link,
-    .ui-term:not(.is-inline),
-    .ui-cv-head .ui-code.is-link
+    .ui-code.is-link:not(.is-inline),
+    .ui-term:not(.is-inline)
   ) {
     position: relative;
   }
@@ -4622,10 +4646,8 @@ html.ui-theme-fade * {
     [role='menuitem'],
     .ui-crumb a,
     a.ui-crumb,
-    .ui-dt-cell .ui-code.is-link,
-    .ui-dl-item dd > .ui-code.is-link,
-    .ui-term:not(.is-inline),
-    .ui-cv-head .ui-code.is-link
+    .ui-code.is-link:not(.is-inline),
+    .ui-term:not(.is-inline)
   )::after {
     content: '';
     position: absolute;
@@ -4735,6 +4757,13 @@ html.ui-theme-fade * {
   text-indent: -4ch;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  /* Continuation of a wrapped line: a 2 px bar in the 4ch hanging indent, from the second line down, so it never
+     reads as the next line of code. Nothing shows on a line that fits. */
+  background: linear-gradient(var(--line-strong), var(--line-strong)) no-repeat 1.5ch 20px / 2px calc(100% - 20px);
+}
+/* An operator never splits across lines (-> stays ->). */
+.ui-cv-op {
+  white-space: nowrap;
 }
 .ui-cv .is-keyword {
   color: var(--code-keyword);
@@ -5139,7 +5168,8 @@ html.ui-theme-fade * {
   margin-top: var(--space-1);
 }
 .ui-lg .ui-lg-chip {
-  position: static;
+  /* In the flow, but still positioned: the touch area (::after, sized in %) must measure against the box itself. */
+  position: relative;
   gap: 0;
   min-height: 48px;
   max-width: 100%;

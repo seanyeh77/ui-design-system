@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Icon } from '../icons/Icon';
 import { tr } from '../i18n';
-import { cx } from './util';
+import { cx, useMedia } from './util';
 
 /** A box that may be wider than its container: whether it overflows, whether more is to the right, and whether the
  *  person has scrolled yet. Used by LayerGraph and DataTable for the right-edge fade and the 「左右滑動」 hint. */
@@ -35,12 +35,14 @@ export function useScrollHint<E extends HTMLElement = HTMLDivElement>() {
   return { ref, more, overflows, scrolled, onScroll, measure };
 }
 
-/** 「→ 左右滑動」 under the box, right-aligned. Hidden after the first sideways scroll but keeps its line, so nothing below jumps. */
+/** 「→ 左右滑動」 (touch) or 「→ 向右捲動」 (mouse, trackpad) under the box, right-aligned. Hidden after the first sideways
+ *  scroll but keeps its line, so nothing below jumps. */
 export function ScrollHint({ show, done }: { show: boolean; done: boolean }) {
+  const touch = useMedia('(pointer: coarse)');
   return show ? (
     <span className={cx('ui-scroll-hint', done && 'is-done')} aria-hidden="true">
       <Icon name="arrow-right" size={14} />
-      {tr('左右滑動')}
+      {touch ? tr('左右滑動') : tr('向右捲動')}
     </span>
   ) : null;
 }

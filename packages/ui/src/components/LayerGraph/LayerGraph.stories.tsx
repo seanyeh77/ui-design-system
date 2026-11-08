@@ -160,3 +160,48 @@ function SharedSelect() {
   );
 }
 export const SharedItems = { render: () => <SharedSelect /> };
+
+// A data channel back up: src/libibtrace hands events to src/ibmon through src/common's ring. The line leaves the
+// source's side, runs up a lane beside the boxes and enters the target's side; the diagram widens for it.
+const nodes7 = [
+  { id: 'ibmon', name: 'src/ibmon', layer: 0, size: 91 },
+  { id: 'cli', name: 'src/cli', layer: 0, size: 18 },
+  { id: 'ucx', name: 'src/ucx_ib_test', layer: 0, size: 22 },
+  { id: 'lib', name: 'src/libibtrace', layer: 1, size: 114 },
+];
+const upLine = { id: 'ring', from: 'lib', to: 'ibmon', inferred: true, label: '經由 `src/common` 傳資料（ring）' };
+function UpLine() {
+  const [edge, setEdge] = React.useState<string | null>(null);
+  return (
+    <div style={{ ...card, maxWidth: 900 }}>
+      <UI.LayerGraph
+        nodes={nodes7}
+        edges={[{ from: 'cli', to: 'lib', count: 7 }, { from: 'ucx', to: 'lib', count: 3 }, upLine]}
+        selectedEdge={edge}
+        onSelectEdge={setEdge}
+        sizeLabel="{n} 個函式"
+      />
+    </div>
+  );
+}
+export const UpwardInferred = { render: () => <UpLine /> };
+
+// The same pair both ways: the environment variable down, the data channel back up.
+function BothWays() {
+  const [box, setBox] = React.useState<string | null>(null);
+  const [edge, setEdge] = React.useState<string | null>('ring');
+  return (
+    <div style={{ ...card, maxWidth: 900 }}>
+      <UI.LayerGraph
+        nodes={nodes4}
+        edges={[...edges4, upLine]}
+        selected={box}
+        onSelect={setBox}
+        selectedEdge={edge}
+        onSelectEdge={setEdge}
+        sizeLabel="{n} 個函式"
+      />
+    </div>
+  );
+}
+export const BothDirections = { render: () => <BothWays /> };
