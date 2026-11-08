@@ -7,7 +7,8 @@
 - 太長的行自動換行，續行縮排 4 個字元寬，不用橫向捲動。
 - 語法上色：關鍵字藍、常數與字串綠、註解灰色斜體，其他是文字顏色。語言看 `file` 的副檔名（c、h、cpp、js、ts、py、sh），或用 `language` 指定；`highlight={false}` 關掉。內建的上色只認這幾種語言；其他語言給 `tokenizer`，把每行切成 `[class, 文字]`（class 是 `is-keyword`、`is-constant`、`is-comment`、`is-string` 或空字串）。
 - 手機上（寬度小於 600 px）只顯示目標行前後 2 行（`context`），下方「顯示全部 N 行」。
-- 標題列：`file` 顯示路徑，給 `fileHref` 或 `onFile` 變成連結；右邊寫語言。沒有檔案時可以給 `title`。
+- 標題列：`file` 顯示路徑，給 `fileHref` 或 `onFile` 變成連結；右邊用次要文字色寫程式語言，是純文字不是按鈕，C 寫成「C 語言」（單一個「C」看起來像按鈕），螢幕閱讀器讀「程式語言：C 語言」。`languageLabel` 換掉這個字，`false` 不顯示。沒有檔案時可以給 `title`。
+- 專案自己在 CodeView 旁加複製按鈕時，放在程式碼區塊外（例如卡片標題列），用有文字或圖示的按鈕，不要放在語言標示旁邊。
 
 ```js
 h(UI.CodeView, {

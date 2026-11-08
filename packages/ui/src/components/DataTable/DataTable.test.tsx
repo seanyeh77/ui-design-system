@@ -37,3 +37,26 @@ test('rows hidden by a search are unchecked', async () => {
   await user.clear(screen.getByRole('searchbox'));
   expect(bulk).toHaveBeenLastCalledWith(['b'], expect.any(Function));
 });
+
+test('one page: the count above the table only, no range below', () => {
+  const rows = Array.from({ length: 6 }, (_, i) => ({ id: String(i), name: 'row ' + i }));
+  const { container, rerender } = render(<DataTable columns={cols} rows={rows} urlSync={false} />);
+  expect(container.querySelector('.ui-dt-result')?.textContent).toBe('6 / 6 筆');
+  expect(container.querySelector('.ui-dt-foot')).toBeNull();
+  rerender(<DataTable columns={cols} rows={rows} urlSync={false} pageSize={4} />);
+  expect(container.querySelector('.ui-dt-range')?.textContent).toBe('第 1–4 筆，共 6 筆');
+});
+
+test('summary counts carry a unit', () => {
+  const rows = [
+    { id: 'a', name: 'alpha', status: 'error' },
+    { id: 'b', name: 'beta', status: 'ok' },
+  ];
+  const { container, rerender } = render(
+    <DataTable columns={cols} rows={rows} urlSync={false} summary={{ key: 'status', items: [{ value: 'error', label: '錯誤' }] }} />,
+  );
+  const counts = () => [...container.querySelectorAll('.ui-tab-count')].map((n) => n.textContent);
+  expect(counts()).toEqual(['2 筆', '1 筆']);
+  rerender(<DataTable columns={cols} rows={rows} urlSync={false} summary={{ key: 'status', unit: '則', items: [{ value: 'error', label: '錯誤' }] }} />);
+  expect(counts()).toEqual(['2 則', '1 則']);
+});

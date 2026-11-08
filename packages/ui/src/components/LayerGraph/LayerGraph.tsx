@@ -56,7 +56,7 @@ export interface LayerGraphProps {
   inferredLabel?: string;
   /** Explains inferred edges in the legend (a Term). */
   inferredText?: string;
-  /** false hides the legend. */
+  /** false hides the legend. By default it lists only the kinds of line the diagram has. */
   legend?: boolean;
   legendItems?: GraphLegendItem[];
   /** Default 「架構圖」. */
@@ -285,7 +285,7 @@ export function LayerGraph(p: LayerGraphProps) {
           d={d}
           role="button"
           tabIndex={0}
-          aria-label={`${nameOf(e.from)} → ${nameOf(e.to)}，${e.inferred ? e.label || p.inferredLabel || tr('推測') : countText(e)}`}
+          aria-label={`${nameOf(e.from)} → ${nameOf(e.to)}，${(e.inferred ? e.label || p.inferredLabel || tr('推測') : countText(e)).replace(/`/g, '')}`}
           aria-pressed={picked}
           onClick={(ev) => {
             ev.stopPropagation();
@@ -430,25 +430,29 @@ export function LayerGraph(p: LayerGraphProps) {
             ) : null}
           </div>
         </div>
-        {overflows && !scrolled ? (
-          <span className="ui-lg-hint" aria-hidden="true">
-            <Icon name="arrow-right" size={14} />
-            {tr('左右滑動')}
-          </span>
-        ) : null}
       </div>
+      {/* Under the diagram, never over a box. It keeps its line after the first scroll (hidden, not removed), so nothing below jumps. */}
+      {overflows ? (
+        <span className={cx('ui-lg-hint', scrolled && 'is-done')} aria-hidden="true">
+          <Icon name="arrow-right" size={14} />
+          {tr('左右滑動')}
+        </span>
+      ) : null}
       {shared.length ? (
         <div className="ui-lg-shared">
           <div className="ui-lg-shared-title">{p.sharedLabel || tr('共用項目')}</div>
           {sharedRows}
         </div>
       ) : null}
-      {p.legend === false ? null : (
+      {p.legend === false || (!p.legendItems && !edges.some((e) => pos[e.from] && pos[e.to])) ? null : (
         <GraphLegend
           items={
             p.legendItems || [
-              { type: 'weight', label: '次數越多線越粗' },
-              { type: 'inferred', label: p.inferredLabel || '推測的關係', text: p.inferredText },
+              // Only kinds of line the diagram has: a diagram of inferred lines alone gets no 「次數越多線越粗」.
+              ...(edges.some((e) => !e.inferred && pos[e.from] && pos[e.to]) ? [{ type: 'weight' as const, label: '次數越多線越粗' }] : []),
+              ...(edges.some((e) => e.inferred && pos[e.from] && pos[e.to])
+                ? [{ type: 'inferred' as const, label: p.inferredLabel || '推測的關係', text: p.inferredText }]
+                : []),
             ]
           }
         />

@@ -20,8 +20,9 @@ export interface DataTableProps<R extends Row = Record<string, unknown>> {
   rows: R[];
   /** Title above the table, also its accessible name. */
   caption?: string;
-  /** Segmented summary above the table: 「全部」 plus one tab per status with its count; picking one filters the rows. */
-  summary?: { key: RowKey<R>; items: { value: string; label: string }[]; label?: string };
+  /** Segmented summary above the table: 「全部」 plus one tab per status with its count; picking one filters the rows.
+   *  `unit` follows every count; default 「筆」. */
+  summary?: { key: RowKey<R>; items: { value: string; label: string }[]; label?: string; unit?: string };
   /** aria-label when there is no caption. */
   label?: string;
   /** Rows per page. Default 10. */
@@ -388,7 +389,10 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                 }}
               >
                 {v.label}
-                <span className="ui-dt-view-n">{format.number(rows.filter((r) => !v.filter || v.filter(r)).length)}</span>
+                <span className="ui-dt-view-n">
+                  {format.number(rows.filter((r) => !v.filter || v.filter(r)).length)}
+                  <span className="ui-unit"> {tr('筆')}</span>
+                </span>
               </button>
             );
           })}
@@ -398,6 +402,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         <Tabs
           className="ui-dt-summary"
           label={summary.label || tr('依狀態篩選')}
+          unit={summary.unit || '筆'}
           value={sumVal}
           onChange={(v) => {
             capture('sort');
@@ -517,7 +522,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
           ) : null}
         </div>
       </div>
-      {list.length > 0 ? (
+      {/* One page: the count above the table already says how many rows there are, so no range and no page numbers. */}
+      {pages > 1 ? (
         <div className="ui-dt-foot">
           <span className="ui-dt-range">
             {monoNums(tr('第 {a}–{b} 筆，共 {n} 筆', { a: '\u0001', b: '\u0002', n: '\u0003' }), [
@@ -526,27 +532,25 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
               format.number(list.length),
             ])}
           </span>
-          {pages > 1 ? (
-            <nav className="ui-dt-pages" aria-label={tr('分頁')}>
-              <button type="button" className="ui-dt-page" aria-label={tr('上一頁')} disabled={pageNow === 0} onClick={() => goPage(pageNow - 1)}>
-                ‹
+          <nav className="ui-dt-pages" aria-label={tr('分頁')}>
+            <button type="button" className="ui-dt-page" aria-label={tr('上一頁')} disabled={pageNow === 0} onClick={() => goPage(pageNow - 1)}>
+              ‹
+            </button>
+            {Array.from({ length: pages }, (_, i) => (
+              <button
+                key={i}
+                type="button"
+                className={cx('ui-dt-page', i === pageNow && 'is-on')}
+                aria-current={i === pageNow ? 'page' : undefined}
+                onClick={() => goPage(i)}
+              >
+                {String(i + 1)}
               </button>
-              {Array.from({ length: pages }, (_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  className={cx('ui-dt-page', i === pageNow && 'is-on')}
-                  aria-current={i === pageNow ? 'page' : undefined}
-                  onClick={() => goPage(i)}
-                >
-                  {String(i + 1)}
-                </button>
-              ))}
-              <button type="button" className="ui-dt-page" aria-label={tr('下一頁')} disabled={pageNow >= pages - 1} onClick={() => goPage(pageNow + 1)}>
-                ›
-              </button>
-            </nav>
-          ) : null}
+            ))}
+            <button type="button" className="ui-dt-page" aria-label={tr('下一頁')} disabled={pageNow >= pages - 1} onClick={() => goPage(pageNow + 1)}>
+              ›
+            </button>
+          </nav>
         </div>
       ) : null}
     </div>

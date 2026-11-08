@@ -108,3 +108,46 @@ function D() {
   );
 }
 export const Default = { render: () => <D /> };
+
+// A results list on one page: the summary counts carry their unit, and the count above the table is the only count
+// (no 「第 1–6 筆，共 6 筆」 below it).
+const NOTES = [
+  { id: 'n1', loc: 'src/ibmon/main.c:42', text: '找不到 child.c，完整路徑應為 src/ibmon/child.c:86', status: 'fail' },
+  { id: 'n2', loc: 'src/libibtrace/shm.c:58', text: '環境變數 IBTRACE_SHM 由 child.c:141 設定，在這裡讀取', status: 'review' },
+  { id: 'n3', loc: 'src/cli/args.c:17', text: '參數順序與說明文件一致', status: 'done' },
+  { id: 'n4', loc: 'src/libibtrace/hooks/ops.c:74', text: 'ops 表格的第 3 項是 NULL，請在 ops.c:70 加上判斷', status: 'fail' },
+  { id: 'n5', loc: 'include/ibtrace.h:12', text: '巨集名稱重複定義', status: 'review' },
+  { id: 'n6', loc: 'src/ibmon/child.c:141', text: '設定 IBTRACE_SHM', status: 'done' },
+];
+const NOTE_STATUS: Record<UI.BadgeStatus, string> = { draft: '草稿', doing: '進行中', fail: '錯誤', review: '要確認', done: '通過' };
+export const OnePageSummary = {
+  render: () => (
+    <div style={{ maxWidth: 960 }}>
+      <UI.DataTable
+        caption="檢查筆記"
+        rows={NOTES}
+        urlSync={false}
+        summary={{
+          key: 'status',
+          unit: '則',
+          items: [
+            { value: 'fail', label: '錯誤' },
+            { value: 'review', label: '要確認' },
+          ],
+        }}
+        columns={[
+          { key: 'loc', label: '位置', width: 220, render: (r) => <UI.InlineCode href={'#' + r.loc}>{r.loc}</UI.InlineCode>, searchText: (r) => r.loc },
+          { key: 'text', label: '說明', long: true, grow: 2 },
+          {
+            key: 'status',
+            label: '狀態',
+            width: 120,
+            mobile: 'status',
+            render: (r) => <UI.Badge status={r.status as UI.BadgeStatus}>{NOTE_STATUS[r.status as UI.BadgeStatus]}</UI.Badge>,
+            searchText: (r) => NOTE_STATUS[r.status as UI.BadgeStatus],
+          },
+        ]}
+      />
+    </div>
+  ),
+};

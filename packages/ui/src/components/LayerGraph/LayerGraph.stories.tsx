@@ -110,3 +110,25 @@ function SelectEdge() {
   );
 }
 export const SelectEdges = { render: () => <SelectEdge /> };
+
+// Only inferred lines, as in a diagram built from rules: the legend lists 「推測的關係」 alone.
+const edges5 = [
+  { from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
+  { from: 'cli', to: 'lib', inferred: true, label: '攔截 17 個 `ucp` 呼叫' },
+];
+export const InferredOnly = {
+  render: () => (
+    <div style={card}>
+      <UI.LayerGraph nodes={nodes4} edges={edges5} sizeLabel="{n} 個函式" inferredText="由規則推得，編譯器無法確認。" />
+    </div>
+  ),
+};
+
+// A phone-width box: the diagram scrolls, with the fade on the right and the hint under it, clear of the boxes.
+export const Narrow = {
+  render: () => (
+    <div style={{ ...card, maxWidth: 326 }}>
+      <UI.LayerGraph nodes={nodes4} edges={edges4} sizeLabel="{n} 個函式" />
+    </div>
+  ),
+};

@@ -4895,20 +4895,19 @@ html.ui-theme-fade * {
   opacity: 1;
 }
 .ui-lg-hint {
-  position: absolute;
-  right: 6px;
-  bottom: 4px;
-  z-index: 3;
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 4px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--ink);
-  color: var(--bg);
-  font-size: 12px;
+  margin-top: var(--space-1);
+  font-size: 13px;
   line-height: 20px;
-  pointer-events: none;
+  color: var(--ink-muted);
+  transition: opacity 0.15s ease;
+}
+.ui-lg-hint.is-done {
+  visibility: hidden;
+  opacity: 0;
 }
 .ui-lg-canvas {
   position: relative;

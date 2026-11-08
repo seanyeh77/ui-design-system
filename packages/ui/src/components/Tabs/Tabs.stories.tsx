@@ -48,3 +48,24 @@ function Demo() {
   );
 }
 export const Default = { render: () => <Demo /> };
+
+/** Counts carry their unit: `unit` on Tabs, or on one item. */
+export const WithCounts = {
+  render: function WithCounts() {
+    const [val, setVal] = React.useState('all');
+    return (
+      <UI.Tabs
+        label="依狀態篩選"
+        unit="筆"
+        value={val}
+        onChange={setVal}
+        items={[
+          { id: 'all', label: '全部', count: 6 },
+          { id: 'error', label: '錯誤', count: 4 },
+          { id: 'check', label: '要確認', count: 2 },
+          { id: 'notes', label: 'notes.md', count: 6, unit: '則' },
+        ]}
+      />
+    );
+  },
+};
