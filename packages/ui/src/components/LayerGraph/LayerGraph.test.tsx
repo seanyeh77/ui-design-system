@@ -314,6 +314,44 @@ test('LayerGraph: still too wide with 120 px boxes, the diagram scales, not belo
   expect(box.scrollWidth).toBeLessThanOrEqual(box.clientWidth + 1);
 });
 
+test('LayerGraph: edgeLabels="hover" hides line labels until the line is hovered, focused or selected', async () => {
+  await page.viewport(1280, 900);
+  const quiet = (c: HTMLElement) => c.querySelector('.ui-lg-label')?.classList.contains('is-quiet');
+  const { container, rerender } = render(<LayerGraph nodes={nodes} edges={edges} legend={false} edgeLabels="hover" />);
+  const label = container.querySelector<HTMLElement>('.ui-lg-label');
+  if (!label) throw new Error('no label');
+  expect(quiet(container)).toBe(true);
+  expect(getComputedStyle(label).pointerEvents).toBe('none');
+  // Without onSelectEdge: a hover-only path, hidden from screen readers and the keyboard.
+  const peek = container.querySelector<SVGPathElement>('.ui-lg-hit.is-peek');
+  if (!peek) throw new Error('no hover path');
+  expect(peek.closest('svg')?.getAttribute('aria-hidden')).toBe('true');
+  expect(peek.getAttribute('tabindex')).toBeNull();
+  await user.hover(peek);
+  expect(quiet(container)).toBe(false);
+  await user.unhover(peek);
+  expect(quiet(container)).toBe(true);
+  // With onSelectEdge: keyboard focus and the selected line show it too.
+  rerender(<LayerGraph nodes={nodes} edges={edges} legend={false} edgeLabels="hover" onSelectEdge={() => {}} />);
+  const hit = container.querySelector<SVGPathElement>('.ui-lg-hit[data-edge="shm"]');
+  if (!hit) throw new Error('no line button');
+  hit.focus();
+  await waitFor(() => expect(quiet(container)).toBe(false));
+  hit.blur();
+  await waitFor(() => expect(quiet(container)).toBe(true));
+  rerender(<LayerGraph nodes={nodes} edges={edges} legend={false} edgeLabels="hover" onSelectEdge={() => {}} selectedEdge="shm" />);
+  expect(quiet(container)).toBe(false);
+  // The selected box shows the labels of its lines.
+  rerender(<LayerGraph nodes={nodes} edges={edges} legend={false} edgeLabels="hover" selected="ibmon" onSelect={() => {}} />);
+  expect(quiet(container)).toBe(false);
+});
+
+test('LayerGraph: labels are shown by default', () => {
+  const { container } = render(<LayerGraph nodes={nodes} edges={edges} legend={false} />);
+  expect(container.querySelector('.ui-lg-label.is-quiet')).toBeNull();
+  expect(container.querySelector('.ui-lg-hit.is-peek')).toBeNull();
+});
+
 // Every label clear of every line (its own too), of every box and of every other label (2 px apart), inside the diagram.
 function expectLabelsClear(container: HTMLElement) {
   const canvas = container.querySelector<HTMLElement>('.ui-lg-canvas');

@@ -5182,7 +5182,21 @@ html.ui-theme-fade * {
 .ui-lg-edge.is-hover:not(.is-related) + .ui-lg-arrow {
   fill: color-mix(in srgb, var(--graph-edge), var(--ink) 35%);
 }
+/* edgeLabels 'hover': a label stays in its place but hidden until its line is hovered, focused or selected. */
+.ui-lg-label.is-quiet {
+  opacity: 0;
+  pointer-events: none;
+}
+.ui-lg-hit.is-peek {
+  cursor: default;
+}
 @media (pointer: coarse) {
+  /* A diagram scaled down to fit: the touch areas stay 48 px on screen. */
+  .ui-lg-canvas .ui-lg-node::after,
+  .ui-lg-canvas .ui-lg-label.is-clickable::after {
+    width: max(100%, calc(var(--touch-target) / var(--lg-scale, 1)));
+    height: max(100%, calc(var(--touch-target) / var(--lg-scale, 1)));
+  }
   .ui-lg-label.is-clickable::after {
     content: '';
     position: absolute;

@@ -69,11 +69,16 @@ export function measure(): Findings {
     for (const pe of ['::before', '::after']) {
       const ps = getComputedStyle(el, pe);
       if (ps.content && ps.content !== 'none' && ps.position === 'absolute' && ps.pointerEvents !== 'none') {
-        // Computed sizes are before any transform: scale them like the control (a diagram scaled to fit, for example).
-        // offsetWidth is rounded to whole pixels: a ratio within 2 % of 1 is rounding, not a transform.
-        const scaled = (a: number, b: number) => (b && Math.abs(a / b - 1) > 0.02 ? a / b : 1);
-        const sx = scaled(r.width, el.offsetWidth);
-        const sy = scaled(r.height, el.offsetHeight);
+        // Computed sizes are before any transform: scale them by the transforms on the control and its ancestors.
+        let sx = 1;
+        let sy = 1;
+        for (let n: Element | null = el; n; n = n.parentElement) {
+          const t = getComputedStyle(n).transform;
+          if (!t || t === 'none') continue;
+          const m = new DOMMatrixReadOnly(t);
+          sx *= Math.hypot(m.a, m.b);
+          sy *= Math.hypot(m.c, m.d);
+        }
         const pw = (parseFloat(ps.width) || 0) * sx;
         const ph = (parseFloat(ps.height) || 0) * sy;
         // An area bigger than the control and the 48 px target is measured against an ancestor (the control is not

@@ -153,3 +153,30 @@ test('touch: a cut-off long cell has no hover Tooltip (the row caret shows it in
   expect(container.querySelector('.ui-dt-exp-btn')).not.toBeNull();
   await page.viewport(390, 844);
 });
+
+test('touch: in a LayerGraph scaled down to fit, every box keeps a 48 px touch area on screen', async () => {
+  const { container } = render(
+    <div style={{ width: 226 }}>
+      <UI.LayerGraph
+        nodes={[
+          { id: 'a', name: 'src/ibmon', layer: 0 },
+          { id: 'b', name: 'src/cli', layer: 0 },
+          { id: 'c', name: 'src/libibtrace', layer: 1 },
+        ]}
+        edges={[{ from: 'a', to: 'c', inferred: true, label: '環境變數' }]}
+        legend={false}
+        listView={false}
+        onSelectEdge={() => {}}
+      />
+    </div>,
+  );
+  const canvas = container.querySelector<HTMLElement>('.ui-lg-canvas');
+  await new Promise((r) => setTimeout(r, 150));
+  const s = Number(/scale\(([\d.]+)\)/.exec(canvas?.style.transform ?? '')?.[1]);
+  expect(s).toBeLessThan(0.8);
+  for (const el of container.querySelectorAll<HTMLElement>('.ui-lg-node, .ui-lg-label.is-clickable')) {
+    const a = getComputedStyle(el, '::after');
+    expect(parseFloat(a.height) * s).toBeGreaterThanOrEqual(47.5);
+    expect(parseFloat(a.width) * s).toBeGreaterThanOrEqual(47.5);
+  }
+});

@@ -48,6 +48,9 @@ export interface LayerGraphProps {
   /** Makes edges selectable: a click on a line or its label, Enter or Space. null when it is clicked again, on a click on
    *  the empty diagram or on Escape. Clears the selected box. Without it, edges cannot be clicked. */
   onSelectEdge?: (id: string | null) => void;
+  /** Labels on lines: 'shown' (default) always; 'hover' only while the pointer is on the line or its label, the line has
+   *  keyboard focus, or it is selected or belongs to the selected box. The diagram keeps the room for every label. */
+  edgeLabels?: 'shown' | 'hover';
   /** px. Default 200. */
   nodeWidth?: number;
   /** Text under a box's size bar; {n} is the size. Default 「{n} 個項目」. */
@@ -293,6 +296,7 @@ export function LayerGraph(p: LayerGraphProps) {
   for (const k in ins) ins[k].sort((a, b) => pos[a.from].x - pos[b.from].x);
   const edgeId = (e: LayerGraphEdge) => e.id ?? `${e.from}->${e.to}`;
   const pickEdge = p.onSelectEdge;
+  const peek = p.edgeLabels === 'hover';
   const [hover, setHover] = React.useState<string | null>(null);
   // Wider than its box: a fade on the right while more is to the right, and a 「左右滑動」 hint until the first scroll.
   const { ref: scrollRef, more: scrollMore, overflows, scrolled, onScroll } = useScrollHint();
@@ -593,6 +597,12 @@ export function LayerGraph(p: LayerGraphProps) {
           strokeWidth={w}
         />,
       );
+      if (!pickEdge && peek) {
+        // edgeLabels 'hover' without selectable lines: an invisible path that only shows the label while hovered.
+        hitPaths.push(
+          <path key={'h' + idx} className="ui-lg-hit is-peek" d={d} onPointerEnter={() => setHover(edgeId(e))} onPointerLeave={() => setHover(null)} />,
+        );
+      }
       if (pickEdge) {
         // An invisible 12 px path over the line: the click and keyboard target.
         hitPaths.push(
@@ -615,6 +625,8 @@ export function LayerGraph(p: LayerGraphProps) {
             }}
             onPointerEnter={() => setHover(edgeId(e))}
             onPointerLeave={() => setHover(null)}
+            onFocus={peek ? () => setHover(edgeId(e)) : undefined}
+            onBlur={peek ? () => setHover(null) : undefined}
             onKeyDown={(ev) => {
               if (ev.key === 'Enter' || ev.key === ' ') {
                 ev.preventDefault();
@@ -646,7 +658,15 @@ export function LayerGraph(p: LayerGraphProps) {
         key={'l' + m.idx}
         // The line's own button carries this text; read once, not again beside it.
         aria-hidden={pickEdge ? true : undefined}
-        className={cx('ui-lg-label', pickEdge && 'is-clickable', pickEdge && hover === edgeId(m.e) && 'is-hover', m.r && 'is-related', m.dim && 'is-dim')}
+        className={cx(
+          'ui-lg-label',
+          pickEdge && 'is-clickable',
+          pickEdge && hover === edgeId(m.e) && 'is-hover',
+          m.r && 'is-related',
+          m.dim && 'is-dim',
+          // edgeLabels 'hover': hidden until its line is hovered, focused or selected; the room stays reserved.
+          peek && !m.r && hover !== edgeId(m.e) && m.e !== selEdge && 'is-quiet',
+        )}
         style={{ left: x0, top }}
         onClick={
           pickEdge
@@ -1037,7 +1057,16 @@ export function LayerGraph(p: LayerGraphProps) {
             style={
               scale === 1
                 ? { width: W, height: H }
-                : { width: W, height: H, transform: `scale(${scale})`, transformOrigin: '0 0', marginRight: W * (scale - 1), marginBottom: H * (scale - 1) }
+                : ({
+                    width: W,
+                    height: H,
+                    transform: `scale(${scale})`,
+                    transformOrigin: '0 0',
+                    marginRight: W * (scale - 1),
+                    marginBottom: H * (scale - 1),
+                    // Touch areas grow back to 48 px on screen (styles.css).
+                    '--lg-scale': scale,
+                  } as React.CSSProperties)
             }
             role="group"
             aria-label={p.label || tr('架構圖')}
@@ -1049,7 +1078,12 @@ export function LayerGraph(p: LayerGraphProps) {
             </svg>
             {nodes}
             {labels}
-            {hitPaths.length ? (
+            {hitPaths.length && !pickEdge ? (
+              // Hover-only paths (edgeLabels 'hover' without onSelectEdge): nothing to read or reach by keyboard.
+              <svg className="ui-lg-hits" width={W} height={H} viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+                {hitPaths}
+              </svg>
+            ) : hitPaths.length ? (
               // A group, not the default image: screen readers would hide the line buttons inside an image.
               <svg className="ui-lg-hits" width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="group" aria-label={tr('關係')}>
                 {hitPaths}

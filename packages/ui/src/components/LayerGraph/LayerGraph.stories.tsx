@@ -256,3 +256,13 @@ function External() {
   );
 }
 export const ExternalBox = { render: () => <External /> };
+function HoverLabels() {
+  const [edge, setEdge] = React.useState<string | null>(null);
+  return (
+    <div style={card}>
+      <UI.LayerGraph nodes={nodes9} edges={edges9} selectedEdge={edge} onSelectEdge={setEdge} edgeLabels="hover" sizeLabel="{n} 個函式" />
+    </div>
+  );
+}
+/** edgeLabels="hover": line labels appear while a line is hovered, focused or selected. */
+export const LabelsOnHover = { render: () => <HoverLabels /> };
