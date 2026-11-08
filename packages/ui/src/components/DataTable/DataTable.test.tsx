@@ -179,3 +179,130 @@ test('long columns: the caret on the left opens the row, its long columns in ful
   await waitFor(() => expect(container.querySelector('.ui-dt-exp-btn')).toBeNull());
   await page.viewport(1280, 800);
 });
+
+test('long text is cut where the column ends, not after a set number of characters', async () => {
+  await page.viewport(1280, 800);
+  // About 300 px: the old cap of 20 em cut it; the 520 px column fits it.
+  const text = '先 fork 再 execve，子行程繼承 IBTRACE_SHM。';
+  const { container } = render(
+    <div style={{ width: 1000 }}>
+      <DataTable
+        columns={[
+          { key: 'fn', label: '函式', width: 160 },
+          { key: 'note', label: '筆記內容', long: true, width: 520 },
+        ]}
+        rows={[{ id: 'a', fn: 'ibmon_spawn', note: text }]}
+        urlSync={false}
+        search={false}
+      />
+    </div>,
+  );
+  await new Promise((r) => setTimeout(r, 150));
+  const long = container.querySelector<HTMLElement>('.ui-dt-long');
+  expect(long?.classList.contains('is-cut')).toBe(false);
+  expect(long && long.scrollWidth <= long.clientWidth + 1).toBe(true);
+});
+
+test('no scroll hint when the table fits, also after a column is hidden', async () => {
+  await page.viewport(1280, 800);
+  const wide = (['a', 'b', 'c', 'd', 'e'] as const).map((k) => ({ key: k, label: '欄位 ' + k, width: 160 }));
+  const rows = [{ id: '1', a: 'x', b: 'x', c: 'x', d: 'x', e: 'x' }];
+  const { container, rerender } = render(
+    <div style={{ width: 640 }}>
+      <DataTable columns={wide} rows={rows} urlSync={false} search={false} />
+    </div>,
+  );
+  await waitFor(() => expect(container.querySelector('.ui-scroll-hint')).not.toBeNull());
+  rerender(
+    <div style={{ width: 640 }}>
+      <DataTable columns={wide.slice(0, 3)} rows={rows} urlSync={false} search={false} />
+    </div>,
+  );
+  await waitFor(() => expect(container.querySelector('.ui-scroll-hint')).toBeNull());
+  const scroll = container.querySelector<HTMLElement>('.ui-dt-scroll');
+  expect(scroll && scroll.scrollWidth <= scroll.clientWidth + 1).toBe(true);
+});
+
+test('the filter panel stays over the table, not over the panel beside it', async () => {
+  await page.viewport(1280, 800);
+  const { container } = render(
+    <div style={{ display: 'flex', gap: 24, width: 1000 }}>
+      <div style={{ width: 420 }}>
+        <DataTable
+          columns={[
+            { key: 'fn', label: '函式' },
+            { key: 'res', label: '結果' },
+          ]}
+          rows={[{ id: 'a', fn: 'ibmon_spawn', res: '正確' }]}
+          filters={[{ key: 'res', label: '結果' }]}
+          urlSync={false}
+        />
+      </div>
+      <h3 style={{ margin: 0 }}>詳細</h3>
+    </div>,
+  );
+  await userEvent.setup().click(screen.getByRole('button', { name: /篩選/ }));
+  const pop = await waitFor(() => {
+    const el = document.querySelector<HTMLElement>('.ui-dt-filterpop');
+    if (!el) throw new Error('no panel');
+    return el;
+  });
+  const table = container.querySelector('.ui-dt')?.getBoundingClientRect();
+  await waitFor(() => expect(pop.getBoundingClientRect().right).toBeLessThanOrEqual((table?.right ?? 0) + 0.5));
+});
+
+test('long columns: a click anywhere on the row opens and closes it, except on its own controls (EC)', async () => {
+  await page.viewport(1280, 800);
+  const columns = [
+    { key: 'fn' as const, label: '函式', render: (r: { fn: string }) => <a href="#f">{r.fn}</a> },
+    { key: 'note' as const, label: '筆記內容', long: true, width: 160 },
+  ];
+  const rows = [{ id: 'a', fn: 'ibmon_spawn', note: '先 fork 再 execve，子行程繼承 IBTRACE_SHM；父行程等到 ring 建好才回傳。' }];
+  const { container } = render(
+    <div style={{ width: 600 }}>
+      <DataTable columns={columns} rows={rows} urlSync={false} rowActions={() => <button type="button">開啟</button>} />
+    </div>,
+  );
+  const user = userEvent.setup();
+  const caret = screen.getByRole('button', { name: '展開 ibmon_spawn' });
+  const row = container.querySelector<HTMLElement>('.ui-dt-body .ui-dt-row');
+  if (!row) throw new Error('no row');
+  expect(getComputedStyle(row).cursor).toBe('pointer');
+  const cell = row.querySelector<HTMLElement>('.is-long');
+  if (!cell) throw new Error('no long cell');
+  await user.click(cell);
+  expect(caret.getAttribute('aria-expanded')).toBe('true');
+  await user.click(cell);
+  expect(caret.getAttribute('aria-expanded')).toBe('false');
+  // The link and the row's own buttons do their own job.
+  await user.click(screen.getByRole('link', { name: 'ibmon_spawn' }));
+  await user.click(screen.getByRole('button', { name: '開啟' }));
+  expect(caret.getAttribute('aria-expanded')).toBe('false');
+  // The caret still works on its own, once per click.
+  await user.click(caret);
+  expect(caret.getAttribute('aria-expanded')).toBe('true');
+});
+
+test('fullText: a short cell shows its whole text on hover, to screen readers, and in the row details', async () => {
+  await page.viewport(1280, 800);
+  const rows = [{ id: 'a', file: 'ops.c', path: 'src/libibtrace/hooks/ops.c:58' }];
+  const { container } = render(
+    <div style={{ width: 600 }}>
+      <DataTable
+        columns={[
+          { key: 'file', label: '位置', fullText: (r) => r.path },
+          { key: 'path', label: '路徑' },
+        ]}
+        rows={rows}
+        urlSync={false}
+        search={false}
+      />
+    </div>,
+  );
+  const full = container.querySelector<HTMLElement>('.ui-dt-full');
+  expect(full?.querySelector('.ui-visually-hidden')?.textContent).toBe('，src/libibtrace/hooks/ops.c:58');
+  await userEvent.setup().hover(full as HTMLElement);
+  await waitFor(() => expect(document.querySelector('.ui-tooltip')?.textContent).toBe('src/libibtrace/hooks/ops.c:58'));
+  await userEvent.setup().click(screen.getByRole('button', { name: '展開 ops.c' }));
+  expect(container.querySelector('.ui-dt-detail-text')?.textContent).toBe('src/libibtrace/hooks/ops.c:58');
+});

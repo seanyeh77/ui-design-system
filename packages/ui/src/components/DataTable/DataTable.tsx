@@ -11,7 +11,7 @@ import { CheckMark } from '../../internal/Field';
 import { announce } from '../../announce';
 import { ScrollHint, useScrollHint } from '../../internal/scrollHint';
 import { cellText, isActive, matches, readUrl, resolveFilters, searchHit, writeUrl } from './filters';
-import { ColumnMenu, FilterButton, LongText, markMatch } from './parts';
+import { ColumnMenu, FilterButton, FullText, LongText, markMatch } from './parts';
 import type { DataTableColumn, DataTableFilter, DataTableView, FilterOption, FilterValue, ResolvedFilter, Row, RowKey, Total } from './types';
 
 export type { DataTableColumn, DataTableFilter, DataTableView, FilterOption, FilterValue, RangeValue, Row, RowKey, Total } from './types';
@@ -68,6 +68,9 @@ const ARROWS: Record<'asc' | 'desc' | 'none', CustomIcon> = { asc: 'M12 19V5M6 1
 const get = (row: Row, key: string): unknown => (row as Record<string, unknown>)[key];
 const isNum = (c: DataTableColumn<never>) => c.numeric || c.format === 'money' || c.format === 'percent';
 
+// What a row click leaves alone: links, buttons, fields, checkboxes and anything else that acts on its own.
+const ROW_CONTROLS = 'a, button, input, select, textarea, label, [role="checkbox"], [role="button"], [role="menuitem"], [role="link"], [contenteditable]';
+
 function RowCheck({ v, label, onClick }: { v: boolean | 'mixed'; label: string; onClick: () => void }) {
   return (
     <button
@@ -113,6 +116,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const [opened, setOpened] = React.useState<Record<string, boolean>>({});
   const narrow = useNarrow();
   const uid = React.useId();
+  const rootRef = React.useRef<HTMLDivElement>(null);
   const [sel, setSel] = React.useState<Record<string, boolean>>({});
   const [sumVal, setSumVal] = React.useState('all');
   const [resetKey, setResetKey] = React.useState(p.resetKey);
@@ -314,7 +318,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     return m ? 'is-m-' + m : null;
   };
   // A caret on the left of each row when there are long columns (desktop; phone cards have 「顯示全部」).
-  const longCols = shownCols.filter((c) => c.long);
+  // Columns whose whole text the row's details show: long ones, and short ones with fullText.
+  const longCols = shownCols.filter((c) => c.long || c.fullText);
   const expander = longCols.length > 0 && !narrow;
   const EXP = 40;
   const template = [
@@ -390,7 +395,10 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     else v = markMatch(cellText(c, raw), mark);
     return v;
   };
-  const cell = (r: R, c: DataTableColumn<R>) => (c.long ? <LongText>{cellInner(r, c)}</LongText> : cellInner(r, c));
+  const cell = (r: R, c: DataTableColumn<R>) => {
+    const v = c.long ? <LongText>{cellInner(r, c)}</LongText> : cellInner(r, c);
+    return c.fullText ? <FullText text={c.fullText(r)}>{v}</FullText> : v;
+  };
   const total = (c: DataTableColumn<R>, ci: number): React.ReactNode => {
     const how = p.totals?.[c.key];
     const rowsAll = list.map((x) => x.r);
@@ -405,7 +413,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   };
 
   return (
-    <div className={cx('ui-dt', selIds.length && 'has-sel', p.className)}>
+    <div ref={rootRef} className={cx('ui-dt', selIds.length && 'has-sel', p.className)}>
       {p.caption ? <div className="ui-dt-caption">{p.caption}</div> : null}
       {p.views ? (
         <div className="ui-dt-views" role="tablist" aria-label={tr('檢視')}>
@@ -468,6 +476,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         ) : null}
         {filters.length ? (
           <FilterButton
+            boundary={rootRef}
             filters={filters}
             values={values}
             activeCount={activeN}
@@ -513,8 +522,20 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                           rowEls.current[id] = el;
                         }}
                         role="row"
-                        className={cx('ui-dt-row', i % 2 && 'is-even', on && 'is-selected', selectable && 'has-sel')}
+                        className={cx('ui-dt-row', i % 2 && 'is-even', on && 'is-selected', selectable && 'has-sel', expander && 'has-exp')}
                         style={gridStyle}
+                        // EC: a click anywhere on the row opens or closes its details, except on its own controls
+                        // and when the click ends a text selection. Keyboard users have the caret button.
+                        onClick={
+                          expander
+                            ? (e) => {
+                                const t = e.target as Element;
+                                if (t.closest(ROW_CONTROLS) && t.closest(ROW_CONTROLS) !== e.currentTarget) return;
+                                if (String(window.getSelection() ?? '')) return;
+                                setOpened({ ...opened, [id]: !open });
+                              }
+                            : undefined
+                        }
                       >
                         {expander ? (
                           <div className="ui-dt-cell ui-dt-exp" role="cell">
@@ -558,7 +579,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                             {longCols.map((c) => (
                               <div key={c.key} className="ui-dt-detail-item">
                                 <div className="ui-dt-detail-label">{c.label}</div>
-                                <div className="ui-dt-detail-text">{cellInner(x.r, c)}</div>
+                                <div className="ui-dt-detail-text">{c.fullText ? c.fullText(x.r) : cellInner(x.r, c)}</div>
                               </div>
                             ))}
                           </div>

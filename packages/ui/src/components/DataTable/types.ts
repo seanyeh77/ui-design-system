@@ -27,6 +27,9 @@ interface ColumnBase<R extends Row> {
   mobile?: 'title' | 'status' | 'hide';
   /** Long text: 2 lines with 「顯示全部」 on phone cards, one line with an ellipsis on desktop. */
   long?: boolean;
+  /** The whole text behind a short cell (a file name standing for its full path): shown in a Tooltip on hover or
+   *  keyboard focus, read by screen readers as the cell's description, and listed in the row's details. */
+  fullText?: (row: R) => string;
   /** Hidden at first; still listed in the 「欄位」 menu, where people can turn it on. Back to hidden on a new
    *  `resetKey`. Not for the first column, which is always shown. Default false. */
   hidden?: boolean;

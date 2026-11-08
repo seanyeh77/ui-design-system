@@ -76,12 +76,12 @@ test('Tour: a target almost as tall as the window, under a top bar, puts the car
 });
 
 // A phone page with a fixed top bar and bottom tab bar, as AppShell draws them.
-function PhonePage({ h }: { h: number }) {
+function PhonePage({ h, above = 140 }: { h: number; above?: number }) {
   return (
     <div>
       <div className="ui-shell-top" style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 56, background: 'var(--surface)', zIndex: 5 }} />
       <div style={{ paddingTop: 72 }}>
-        <div style={{ height: 140, margin: '0 16px 16px' }} />
+        <div style={{ height: above, margin: '0 16px 16px' }} />
         <div data-tour="part" style={{ height: h, margin: '0 16px 16px' }} />
         <div style={{ height: 900 }} />
       </div>
@@ -112,17 +112,55 @@ test('Tour on a phone: the target scrolls under the top bar and the card sits be
   window.scrollTo(0, 0);
 });
 
-test('Tour on a phone: a target too tall for both keeps the card above the tab bar, over its lower part', async () => {
+test('Tour on a phone: a target too tall for the card below it scrolls down to make room; the card sits above it, covering none of it', async () => {
   await page.viewport(390, 700);
-  render(<PhonePage h={520} />);
+  // Enough page above the target for the card to fit there once scrolled.
+  render(<PhonePage h={520} above={300} />);
   const card = await cardInside();
   await waitFor(() => {
     const c = card.getBoundingClientRect();
-    expect(box('[data-tour="part"]').top).toBeLessThan(56 + 40);
-    expect(c.bottom).toBeLessThanOrEqual(box('.ui-tabbar').top - MARGIN + 0.5);
+    expect(card.dataset.placement).toBe('top');
     expect(c.top).toBeGreaterThanOrEqual(56);
+    expect(c.bottom).toBeLessThanOrEqual(box('[data-tour="part"]').top);
   });
   window.scrollTo(0, 0);
+});
+
+test('Tour: a tall table with room to scroll gets the card above it, not over it', async () => {
+  await page.viewport(1280, 700);
+  render(
+    <div>
+      <div style={{ height: 400 }} />
+      <div data-tour="part" style={{ height: 900, margin: '0 16px' }} />
+      <div style={{ height: 400 }} />
+      <Tour open steps={steps} />
+    </div>,
+  );
+  const card = await cardInside();
+  await waitFor(() => {
+    const c = card.getBoundingClientRect();
+    const t = box('[data-tour="part"]');
+    expect(card.dataset.placement).toBe('top');
+    expect(c.top).toBeGreaterThanOrEqual(0);
+    expect(c.bottom).toBeLessThanOrEqual(t.top);
+  });
+  window.scrollTo(0, 0);
+});
+
+test('Tour: a tall target that cannot scroll, with room beside it, gets the card beside it', async () => {
+  await page.viewport(1280, 700);
+  render(
+    <div>
+      <div data-tour="part" style={{ height: 690, width: 600, margin: '0 16px' }} />
+      <Tour open steps={steps} />
+    </div>,
+  );
+  const card = await cardInside();
+  await waitFor(() => {
+    const c = card.getBoundingClientRect();
+    expect(card.dataset.placement).toBe('right');
+    expect(c.left).toBeGreaterThanOrEqual(box('[data-tour="part"]').right);
+  });
 });
 
 test('Tour: a target below the fold scrolls fully into view', async () => {

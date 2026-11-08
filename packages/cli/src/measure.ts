@@ -69,8 +69,18 @@ export function measure(): Findings {
     for (const pe of ['::before', '::after']) {
       const ps = getComputedStyle(el, pe);
       if (ps.content && ps.content !== 'none' && ps.position === 'absolute' && ps.pointerEvents !== 'none') {
-        const pw = parseFloat(ps.width) || 0;
-        const ph = parseFloat(ps.height) || 0;
+        // Computed sizes are before any transform: scale them by the transforms on the control and its ancestors.
+        let sx = 1;
+        let sy = 1;
+        for (let n: Element | null = el; n; n = n.parentElement) {
+          const t = getComputedStyle(n).transform;
+          if (!t || t === 'none') continue;
+          const m = new DOMMatrixReadOnly(t);
+          sx *= Math.hypot(m.a, m.b);
+          sy *= Math.hypot(m.c, m.d);
+        }
+        const pw = (parseFloat(ps.width) || 0) * sx;
+        const ph = (parseFloat(ps.height) || 0) * sy;
         // An area bigger than the control and the 48 px target is measured against an ancestor (the control is not
         // positioned): it covers other controls, up to the whole page. It does not count as this control's target.
         if (cs.position === 'static' || pw > Math.max(r.width, 48) + 1 || ph > Math.max(r.height, 48) + 1) {

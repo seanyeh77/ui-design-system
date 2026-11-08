@@ -10,14 +10,16 @@ export interface IconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLBut
   icon: IconSource;
   /** false: no tooltip (when the label is already visible next to it). Default true. */
   tooltip?: boolean;
+  /** The Fill version of a built-in icon, for a pressed or selected button. */
+  filled?: boolean;
   ref?: React.Ref<HTMLButtonElement>;
 }
 
 /** A square icon-only button with a tooltip. */
-export function IconButton({ label, icon, className, tooltip = true, ...native }: IconButtonProps) {
+export function IconButton({ label, icon, className, tooltip = true, filled, ...native }: IconButtonProps) {
   const btn = (
     <button type="button" {...native} className={cx('ui-iconbtn', className)} aria-label={label}>
-      <IconOf icon={icon} />
+      <IconOf icon={icon} filled={filled} />
     </button>
   );
   return tooltip ? (

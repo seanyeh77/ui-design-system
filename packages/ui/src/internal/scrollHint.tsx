@@ -24,7 +24,21 @@ export function useScrollHint<E extends HTMLElement = HTMLDivElement>() {
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     if (el.firstElementChild) ro.observe(el.firstElementChild);
-    return () => ro.disconnect();
+    // Content that changes without resizing the box (a column hidden, rows replaced, text measured again) and web
+    // fonts that load late change the scroll width too: measured again after each.
+    let raf = 0;
+    const later = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(measure);
+    };
+    const mo = new MutationObserver(later);
+    mo.observe(el, { childList: true, subtree: true, characterData: true });
+    document.fonts?.ready.then(later).catch(() => {});
+    return () => {
+      ro.disconnect();
+      mo.disconnect();
+      cancelAnimationFrame(raf);
+    };
   }, [measure]);
   const onScroll = React.useCallback(() => {
     const el = ref.current;

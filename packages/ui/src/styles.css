@@ -1639,6 +1639,10 @@ body {
 .ui-dt-body .ui-dt-row:hover {
   background: var(--accent-soft);
 }
+/* EC: rows with details are clickable as a whole; the hover above already shows it. */
+.ui-dt-body .ui-dt-row.has-exp {
+  cursor: pointer;
+}
 .ui-dt-body .ui-dt-row.is-selected {
   background: var(--accent-soft);
 }
@@ -1847,16 +1851,23 @@ body {
   white-space: nowrap;
 }
 .ui-dt-cell.is-long > .ui-dt-long {
+  /* As wide as the column: the text is cut where the column ends, not after a set number of characters. */
   display: block;
   flex: 1 1 auto;
   min-width: 0;
-  max-width: 20em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .ui-dt-more {
   display: none;
+}
+/* A short cell with fullText: as wide as its content, cut at the column's edge. */
+.ui-dt-full {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-width: 0;
 }
 /* The caret that opens a row's long columns in full, below the row (desktop). */
 .ui-dt-exp {
@@ -3331,7 +3342,8 @@ html.ui-theme-fade * {
 }
 .ui-dt-filterpop {
   width: 520px;
-  max-width: calc(100vw - 16px);
+  /* No wider than its table (the space Base UI leaves inside the boundary), nor the window. */
+  max-width: min(calc(100vw - 16px), var(--available-width, 100vw));
   padding: 16px;
   box-sizing: border-box;
   border-radius: var(--radius-lg);
@@ -4560,7 +4572,8 @@ html.ui-theme-fade * {
 }
 .ui-term-pop {
   width: 340px;
-  max-width: calc(100vw - 16px);
+  /* No wider than the block it explains (see Term), nor the window. */
+  max-width: min(calc(100vw - 16px), var(--available-width, 100vw));
   box-sizing: border-box;
   padding: var(--space-3) var(--space-4) var(--space-4);
   border-radius: var(--radius-lg);
@@ -5008,6 +5021,22 @@ html.ui-theme-fade * {
   justify-content: flex-end;
   margin-bottom: var(--space-3);
 }
+.ui-lg-bar {
+  align-items: center;
+  gap: var(--space-2);
+}
+/* TC: the line-label button, no outline; pressed while every label shows. */
+.ui-lg-labels-btn {
+  border: 0;
+  color: var(--ink-muted);
+}
+.ui-lg-labels-btn[aria-pressed='true'] {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+.ui-lg-labels-btn[aria-pressed='true']:hover {
+  background: color-mix(in srgb, var(--accent-soft), var(--accent) 10%);
+}
 .ui-lg-list {
   display: flex;
   flex-direction: column;
@@ -5169,7 +5198,21 @@ html.ui-theme-fade * {
 .ui-lg-edge.is-hover:not(.is-related) + .ui-lg-arrow {
   fill: color-mix(in srgb, var(--graph-edge), var(--ink) 35%);
 }
+/* edgeLabels 'hover': a label stays in its place but hidden until its line is hovered, focused or selected. */
+.ui-lg-label.is-quiet {
+  opacity: 0;
+  pointer-events: none;
+}
+.ui-lg-hit.is-peek {
+  cursor: default;
+}
 @media (pointer: coarse) {
+  /* A diagram scaled down to fit: the touch areas stay 48 px on screen. */
+  .ui-lg-canvas .ui-lg-node::after,
+  .ui-lg-canvas .ui-lg-label.is-clickable::after {
+    width: max(100%, calc(var(--touch-target) / var(--lg-scale, 1)));
+    height: max(100%, calc(var(--touch-target) / var(--lg-scale, 1)));
+  }
   .ui-lg-label.is-clickable::after {
     content: '';
     position: absolute;
@@ -5668,12 +5711,53 @@ html.ui-theme-fade * {
   width: 3px;
   background: var(--accent);
 }
+/* GB: a white pill, 10 x 40 px, with a line-color outline and 3 dots; accent while hovered, dragged or focused. */
+.ui-split-grip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 10px;
+  height: 40px;
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface);
+  pointer-events: none;
+  transition: border-color 0.15s ease;
+}
+.ui-split-grip i {
+  display: block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  transition: background 0.15s ease;
+}
+.ui-split-handle:hover .ui-split-grip,
+.ui-split.is-dragging .ui-split-grip,
+.ui-split-handle:focus-visible .ui-split-grip {
+  border-color: var(--accent);
+}
+.ui-split-handle:hover .ui-split-grip i,
+.ui-split.is-dragging .ui-split-grip i,
+.ui-split-handle:focus-visible .ui-split-grip i {
+  background: var(--accent);
+}
 .ui-split.is-dragging {
   cursor: col-resize;
   user-select: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .ui-split-handle::after {
+  .ui-split-handle::after,
+  .ui-split-grip,
+  .ui-split-grip i {
     transition: none;
   }
 }

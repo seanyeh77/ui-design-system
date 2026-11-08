@@ -157,7 +157,14 @@ export function SplitPane({ a, b, defaultB = 420, minA = 360, minB = 280, storag
           onPointerUp={onUp}
           onPointerCancel={onUp}
           onDoubleClick={() => set(defaultB)}
-        />
+        >
+          {/* GB: a small handle in the middle of the line, so the divider reads as something to drag. */}
+          <span className="ui-split-grip" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+        </div>
       )}
       <div id={id} className="ui-split-b">
         {b}

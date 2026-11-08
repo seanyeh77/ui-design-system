@@ -3,7 +3,7 @@ import { expect, test, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { LayerGraph, type LayerGraphEdge } from '../../index';
+import { LayerGraph, setLocale, type LayerGraphEdge } from '../../index';
 
 const user = userEvent.setup();
 const nodes = [
@@ -74,8 +74,8 @@ test('LayerGraph: a line and a box are never selected together', async () => {
 test('LayerGraph: Tab reaches the lines after the boxes; Enter selects, Escape clears', async () => {
   const onEdge = vi.fn();
   render(<Demo onEdge={onEdge} onBox={() => {}} />);
-  // The 「圖／清單」 switch, the three boxes, then the lines.
-  for (let k = 0; k < 5; k++) await user.tab();
+  // The tag button, the 「圖／清單」 switch, the three boxes, then the lines.
+  for (let k = 0; k < 6; k++) await user.tab();
   expect(document.activeElement?.getAttribute('aria-label')).toBe('src/ibmon → src/libibtrace，環境變數 IBTRACE_SHM');
   await user.keyboard('{Enter}');
   expect(onEdge).toHaveBeenLastCalledWith('shm');
@@ -111,8 +111,9 @@ test('LayerGraph: hovering a selectable line makes it darker and 2 px thicker; i
 });
 
 test('LayerGraph: wider than its box, it shows a fade and a hint until scrolled', async () => {
+  // Too narrow even with 120 px boxes at 0.75: it scrolls.
   const { container } = render(
-    <div style={{ width: 326 }}>
+    <div style={{ width: 180 }}>
       <LayerGraph nodes={nodes} edges={edges} legend={false} />
     </div>,
   );
@@ -267,16 +268,136 @@ test('LayerGraph: the list view shows every box and line as text, selectable lik
 test('LayerGraph: the sideways scroll comes back with the diagram', async () => {
   await page.viewport(1280, 900);
   const wide = (k: boolean) => (
-    <div style={{ width: 300 }}>{k ? <LayerGraph nodes={nodes} edges={edges} legend={false} listView={false} scrollKey="keep" /> : <p>其他區塊</p>}</div>
+    <div style={{ width: 180 }}>{k ? <LayerGraph nodes={nodes} edges={edges} legend={false} listView={false} scrollKey="keep" /> : <p>其他區塊</p>}</div>
   );
   const { container, rerender } = render(wide(true));
   const box = container.querySelector<HTMLElement>('.ui-lg-scroll');
   if (!box) throw new Error('no scroller');
-  box.scrollLeft = 120;
+  box.scrollLeft = 100;
   box.dispatchEvent(new Event('scroll'));
   rerender(wide(false));
   rerender(wide(true));
-  expect(container.querySelector<HTMLElement>('.ui-lg-scroll')?.scrollLeft).toBe(120);
+  expect(container.querySelector<HTMLElement>('.ui-lg-scroll')?.scrollLeft).toBe(100);
+});
+
+test('LayerGraph: a little too wide, the boxes narrow and nothing scrolls (PM)', async () => {
+  await page.viewport(1280, 900);
+  const { container } = render(
+    <div style={{ width: 380 }}>
+      <LayerGraph nodes={nodes} edges={edges} legend={false} listView={false} />
+    </div>,
+  );
+  const box = container.querySelector<HTMLElement>('.ui-lg-scroll');
+  const canvas = container.querySelector<HTMLElement>('.ui-lg-canvas');
+  if (!box || !canvas) throw new Error('no canvas');
+  await waitFor(() => expect(box.scrollWidth).toBeLessThanOrEqual(box.clientWidth + 1));
+  expect(canvas.style.transform).toBe('');
+  const w = container.querySelector<HTMLElement>('.ui-lg-node')?.getBoundingClientRect().width ?? 0;
+  expect(w).toBeLessThan(200);
+  expect(w).toBeGreaterThanOrEqual(120);
+});
+
+test('LayerGraph: still too wide with 120 px boxes, the diagram scales, not below 0.75 (PM)', async () => {
+  await page.viewport(1280, 900);
+  const { container } = render(
+    <div style={{ width: 250 }}>
+      <LayerGraph nodes={nodes} edges={edges} legend={false} listView={false} />
+    </div>,
+  );
+  const box = container.querySelector<HTMLElement>('.ui-lg-scroll');
+  const canvas = container.querySelector<HTMLElement>('.ui-lg-canvas');
+  if (!box || !canvas) throw new Error('no canvas');
+  await waitFor(() => expect(canvas.style.transform).toMatch(/^scale\(/));
+  const s = Number(canvas.style.transform.slice(6, -1));
+  expect(s).toBeGreaterThanOrEqual(0.75);
+  expect(s).toBeLessThan(1);
+  expect(box.scrollWidth).toBeLessThanOrEqual(box.clientWidth + 1);
+});
+
+test('LayerGraph: edgeLabels="hover" hides line labels until the line is hovered, focused or selected', async () => {
+  await page.viewport(1280, 900);
+  const quiet = (c: HTMLElement) => c.querySelector('.ui-lg-label')?.classList.contains('is-quiet');
+  const { container, rerender } = render(<LayerGraph nodes={nodes} edges={edges} legend={false} edgeLabels="hover" />);
+  const label = container.querySelector<HTMLElement>('.ui-lg-label');
+  if (!label) throw new Error('no label');
+  expect(quiet(container)).toBe(true);
+  expect(getComputedStyle(label).pointerEvents).toBe('none');
+  // Without onSelectEdge: a hover-only path, hidden from screen readers and the keyboard.
+  const peek = container.querySelector<SVGPathElement>('.ui-lg-hit.is-peek');
+  if (!peek) throw new Error('no hover path');
+  expect(peek.closest('svg')?.getAttribute('aria-hidden')).toBe('true');
+  expect(peek.getAttribute('tabindex')).toBeNull();
+  await user.hover(peek);
+  expect(quiet(container)).toBe(false);
+  await user.unhover(peek);
+  expect(quiet(container)).toBe(true);
+  // With onSelectEdge: keyboard focus and the selected line show it too.
+  rerender(<LayerGraph nodes={nodes} edges={edges} legend={false} edgeLabels="hover" onSelectEdge={() => {}} />);
+  const hit = container.querySelector<SVGPathElement>('.ui-lg-hit[data-edge="shm"]');
+  if (!hit) throw new Error('no line button');
+  hit.focus();
+  await waitFor(() => expect(quiet(container)).toBe(false));
+  hit.blur();
+  await waitFor(() => expect(quiet(container)).toBe(true));
+  rerender(<LayerGraph nodes={nodes} edges={edges} legend={false} edgeLabels="hover" onSelectEdge={() => {}} selectedEdge="shm" />);
+  expect(quiet(container)).toBe(false);
+  // The selected box shows the labels of its lines.
+  rerender(<LayerGraph nodes={nodes} edges={edges} legend={false} edgeLabels="hover" selected="ibmon" onSelect={() => {}} />);
+  expect(quiet(container)).toBe(false);
+});
+
+test('LayerGraph: the tag button switches line labels and remembers the choice (TC)', async () => {
+  await page.viewport(1280, 900);
+  window.localStorage.removeItem('ui-lg-labels:tc');
+  const quiet = (c: HTMLElement) => c.querySelector('.ui-lg-label')?.classList.contains('is-quiet');
+  const graph = (extra: Partial<React.ComponentProps<typeof LayerGraph>> = {}) => (
+    <LayerGraph nodes={nodes} edges={edges} legend={false} scrollKey="tc" {...extra} />
+  );
+  const { container, unmount } = render(graph());
+  const btn = screen.getByRole('button', { name: '顯示線上文字' });
+  expect(btn.getAttribute('aria-pressed')).toBe('true');
+  // Beside 「圖／清單」, on its left.
+  const tabs = screen.getByRole('tablist', { name: '顯示方式' });
+  expect(btn.getBoundingClientRect().right).toBeLessThanOrEqual(tabs.getBoundingClientRect().left);
+  expect(quiet(container)).toBe(false);
+  await user.click(btn);
+  expect(btn.getAttribute('aria-pressed')).toBe('false');
+  expect(quiet(container)).toBe(true);
+  expect(window.localStorage.getItem('ui-lg-labels:tc')).toBe('0');
+  unmount();
+  // Comes back hidden, even though edgeLabels says shown.
+  const again = render(graph());
+  expect(quiet(again.container)).toBe(true);
+  again.unmount();
+  window.localStorage.removeItem('ui-lg-labels:tc');
+  // Not on the list, and gone with labelToggle={false}.
+  const list = render(graph({ edgeLabels: 'hover' }));
+  expect(screen.getByRole('button', { name: '顯示線上文字' }).getAttribute('aria-pressed')).toBe('false');
+  await user.click(screen.getByRole('tab', { name: '清單' }));
+  expect(screen.queryByRole('button', { name: '顯示線上文字' })).toBeNull();
+  list.unmount();
+  render(graph({ labelToggle: false }));
+  expect(screen.queryByRole('button', { name: '顯示線上文字' })).toBeNull();
+});
+
+test('LayerGraph: the tag button works when storage throws', async () => {
+  const get = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+    throw new Error('blocked');
+  });
+  const set = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+    throw new Error('blocked');
+  });
+  const { container } = render(<LayerGraph nodes={nodes} edges={edges} legend={false} scrollKey="tc2" />);
+  await user.click(screen.getByRole('button', { name: '顯示線上文字' }));
+  expect(container.querySelector('.ui-lg-label')?.classList.contains('is-quiet')).toBe(true);
+  get.mockRestore();
+  set.mockRestore();
+});
+
+test('LayerGraph: labels are shown by default', () => {
+  const { container } = render(<LayerGraph nodes={nodes} edges={edges} legend={false} />);
+  expect(container.querySelector('.ui-lg-label.is-quiet')).toBeNull();
+  expect(container.querySelector('.ui-lg-hit.is-peek')).toBeNull();
 });
 
 // Every label clear of every line (its own too), of every box and of every other label (2 px apart), inside the diagram.
@@ -415,4 +536,91 @@ test('LayerGraph: an external box sits above every layer, dashed, 「repo 外」
   await userEvent.setup().click(screen.getByRole('tab', { name: '清單' }));
   const li = [...container.querySelectorAll('.ui-lg-li')].find((l) => l.textContent?.startsWith('被追蹤的程式'));
   expect(li?.textContent).toBe('被追蹤的程式，repo 外');
+});
+
+test('LayerGraph list in English: ASCII separators, no full-width punctuation', async () => {
+  setLocale('en-US');
+  try {
+    const { container } = render(
+      <LayerGraph
+        nodes={[
+          { id: 'app', name: 'traced program', external: true },
+          { id: 'lib', name: 'src/libibtrace', layer: 0, size: 114 },
+        ]}
+        edges={[{ from: 'app', to: 'lib', inferred: true, label: 'Interposes infiniband (18 functions)' }]}
+        onSelectEdge={() => {}}
+      />,
+    );
+    await userEvent.setup().click(screen.getByRole('tab', { name: 'List' }));
+    const text = [...container.querySelectorAll('.ui-lg-li')].map((li) => li.textContent);
+    expect(text).toEqual([
+      'traced program, outside the repo',
+      'src/libibtrace, 114 items',
+      'traced program → src/libibtrace: Interposes infiniband (18 functions) (Inferred)',
+    ]);
+    expect(text.join('')).not.toMatch(/[，：（）]/);
+  } finally {
+    setLocale('zh-TW');
+  }
+});
+
+// MA: several labelled lines into one box, long English labels: each label next to its own line, no line through any
+// label, nothing cut off.
+const intercepts: LayerGraphEdge[] = [
+  { id: 'verbs', from: 'app', to: 'lib', inferred: true, label: 'Interposes infiniband (18 functions)' },
+  { id: 'ucp', from: 'app', to: 'lib', inferred: true, label: 'Interposes ucp (12 functions)' },
+  { id: 'uct', from: 'app', to: 'lib', inferred: true, label: 'Interposes uct (9 functions)' },
+  { id: 'env', from: 'ibmon', to: 'lib', inferred: true, label: 'Environment variable `IBTRACE_SHM`' },
+  { from: 'ibmon', to: 'common', count: 6 },
+];
+test.each([
+  [1280, 900],
+  [390, 844],
+])('LayerGraph: several labelled lines into one box keep every label by its own line, whole, at %i px', async (w, h) => {
+  await page.viewport(w, h);
+  const { container } = render(
+    <LayerGraph
+      nodes={[
+        { id: 'app', name: 'traced program', external: true },
+        { id: 'ibmon', name: 'src/ibmon', layer: 0, size: 91 },
+        { id: 'lib', name: 'src/libibtrace', layer: 1, size: 114 },
+        { id: 'common', name: 'src/common', shared: true },
+      ]}
+      edges={intercepts}
+      onSelectEdge={() => {}}
+    />,
+  );
+  expect(container.querySelectorAll('.ui-lg-label').length).toBe(4);
+  expectLabelsClear(container);
+  for (const label of container.querySelectorAll<HTMLElement>('.ui-lg-label')) {
+    const text = label.textContent ?? '';
+    expect(text).not.toContain('…');
+    // Its own line passes within 12 px of it.
+    const own = [...container.querySelectorAll<SVGPathElement>('.ui-lg-hit')].find((p) =>
+      (p.getAttribute('aria-label') ?? '').replace(/\s/g, '').endsWith(text.replace(/\s/g, '')),
+    );
+    if (!own) throw new Error('no line for ' + text);
+    const r = label.getBoundingClientRect();
+    const m = own.getScreenCTM();
+    if (!m) throw new Error('no CTM');
+    let near = Infinity;
+    for (let t = 0; t <= own.getTotalLength(); t += 2) {
+      const q = own.getPointAtLength(t);
+      const x = q.x * m.a + m.e;
+      const y = q.y * m.d + m.f;
+      near = Math.min(near, Math.hypot(Math.max(r.left - x, 0, x - r.right), Math.max(r.top - y, 0, y - r.bottom)));
+    }
+    expect(near, text).toBeLessThanOrEqual(12);
+  }
+});
+
+test('LayerGraph: the tag button shows the filled tag while pressed', async () => {
+  window.localStorage.removeItem('ui-lg-labels:tc3');
+  render(<LayerGraph nodes={nodes} edges={edges} legend={false} scrollKey="tc3" />);
+  const btn = screen.getByRole('button', { name: '顯示線上文字' });
+  const markup = () => btn.querySelector('svg')?.innerHTML ?? '';
+  const pressed = markup();
+  await user.click(btn);
+  expect(markup()).not.toBe(pressed);
+  window.localStorage.removeItem('ui-lg-labels:tc3');
 });
