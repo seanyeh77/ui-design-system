@@ -811,16 +811,15 @@ body {
 .ui-tabbar {
   position: relative;
   box-sizing: border-box;
-  height: 64px;
+  height: 60px;
   display: flex;
   background: var(--surface-chrome);
   border-top: 1px solid var(--line);
 }
 .ui-tabbar-pill {
   position: absolute;
-  /* Behind the icon; the name sits under it, clear of it. */
-  top: 7px;
-  height: 28px;
+  top: 15px;
+  height: 30px;
   border-radius: var(--radius-md);
   background: var(--accent-soft);
   pointer-events: none;
@@ -828,34 +827,17 @@ body {
 .ui-tabbar-item {
   position: relative;
   flex: 1 1 0;
-  min-width: 0;
   min-height: var(--touch-target);
-  padding: 0 2px;
   border: 0;
   background: transparent;
   color: var(--ink-muted);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  font: inherit;
   cursor: pointer;
 }
 .ui-tabbar-item.is-selected {
   color: var(--accent-text);
-}
-.ui-tabbar-label {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 500;
-}
-.ui-tabbar-item.is-selected .ui-tabbar-label {
-  font-weight: 700;
 }
 
 @keyframes ui-rise {

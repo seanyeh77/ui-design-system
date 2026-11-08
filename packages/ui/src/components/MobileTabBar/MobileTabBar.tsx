@@ -44,6 +44,7 @@ export function MobileTabBar({ items, value, onChange, label, className }: Mobil
           key={t.id}
           type="button"
           className={cx('ui-tabbar-item', i === idx && 'is-selected')}
+          aria-label={t.label}
           aria-current={i === idx ? 'page' : undefined}
           onClick={() => {
             // The selected tab still reports a press: a tab like 「更多」 opens something each time.
@@ -52,7 +53,6 @@ export function MobileTabBar({ items, value, onChange, label, className }: Mobil
           }}
         >
           <IconOf icon={t.icon} size={22} filled={i === idx} />
-          <span className="ui-tabbar-label">{t.label}</span>
         </button>
       ))}
     </nav>
