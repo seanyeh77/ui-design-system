@@ -2,7 +2,7 @@ import * as React from 'react';
 import { GraphLegend, type GraphLegendItem } from '../Graph/Graph';
 import { tr } from '../../i18n';
 import { cx, monoNums } from '../../internal/util';
-import { Icon } from '../../icons/Icon';
+import { ScrollHint, useScrollHint } from '../../internal/scrollHint';
 import { devWarn } from '../../internal/dev';
 
 export interface LayerGraphNode {
@@ -14,7 +14,8 @@ export interface LayerGraphNode {
   size?: number;
   /** @deprecated use size. */
   fns?: number;
-  /** Used by most others: not drawn; listed under the diagram with how often it is used. */
+  /** Used by most others: not drawn as a layer; shown as a small box under the diagram with how often it is used.
+   *  Selectable like the other boxes (same selected and onSelect): the boxes that use it show 「使用 N 次」. */
   shared?: boolean;
 }
 
@@ -52,6 +53,8 @@ export interface LayerGraphProps {
   sharedLabel?: string;
   /** A shared item's line; {a} is how many items use it, {b} the total count. Default 「{a} 個項目使用，共 {b} 次」. */
   sharedMeta?: string;
+  /** On a box that uses the selected shared item; {n} is how often. Default 「使用 {n} 次」. */
+  useLabel?: string;
   /** Label of inferred edges without their own. Default 「推測」. */
   inferredLabel?: string;
   /** Explains inferred edges in the legend (a Term). */
@@ -183,32 +186,26 @@ export function LayerGraph(p: LayerGraphProps) {
   const pickEdge = p.onSelectEdge;
   const [hover, setHover] = React.useState<string | null>(null);
   // Wider than its box: a fade on the right while more is to the right, and a 「左右滑動」 hint until the first scroll.
-  const scroller = React.useRef<HTMLDivElement>(null);
-  const [more, setMore] = React.useState(false);
-  const [scrolled, setScrolled] = React.useState(false);
-  const [overflows, setOverflows] = React.useState(false);
-  const measureScroll = React.useCallback(() => {
-    const el = scroller.current;
-    if (!el) return;
-    const wide = el.scrollWidth > el.clientWidth + 1;
-    setOverflows(wide);
-    setMore(wide && el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
-  }, []);
-  React.useLayoutEffect(() => {
-    const el = scroller.current;
-    if (!el) return;
-    measureScroll();
-    const ro = new ResizeObserver(measureScroll);
-    ro.observe(el);
-    if (el.firstElementChild) ro.observe(el.firstElementChild);
-    return () => ro.disconnect();
-  }, [measureScroll]);
+  const { ref: scrollRef, more: scrollMore, overflows, scrolled, onScroll } = useScrollHint();
   const selEdge = (pickEdge && edges.find((e) => edgeId(e) === p.selectedEdge)) || null;
-  // A selected box highlights its edges; a selected edge highlights itself, and both of its boxes stay undimmed.
-  const related = (e: LayerGraphEdge) => (selEdge ? e === selEdge : !!sel && (e.from === sel || e.to === sel));
+  // How often each box uses each shared item (edges into a shared item are not drawn).
+  const uses: Record<string, Record<string, number>> = {};
+  for (const e of p.edges) if (sharedIds.has(e.to) && !sharedIds.has(e.from)) (uses[e.to] ??= {})[e.from] = (uses[e.to]?.[e.from] ?? 0) + (e.count || 0);
+  const selShared = !selEdge && sel != null && sharedIds.has(sel) ? sel : null;
+  // A selected box highlights its edges; a selected edge highlights itself, and both of its boxes stay undimmed;
+  // a selected shared item keeps the boxes that use it and dims every line.
+  const related = (e: LayerGraphEdge) => (selEdge ? e === selEdge : !!sel && !selShared && (e.from === sel || e.to === sel));
   const focus = !!sel || !!selEdge;
   const near = (id: string) =>
-    selEdge ? id === selEdge.from || id === selEdge.to : !sel || id === sel || edges.some((e) => related(e) && (e.from === id || e.to === id));
+    selEdge
+      ? id === selEdge.from || id === selEdge.to
+      : selShared
+        ? id === selShared || id in (uses[selShared] ?? {})
+        : !sel || id === sel || edges.some((e) => related(e) && (e.from === id || e.to === id));
+  const pick = (id: string, on: boolean) => {
+    if (!on && p.selectedEdge != null) pickEdge?.(null);
+    p.onSelect?.(on ? null : id);
+  };
   const nameOf = (id: string) => all.find((n) => n.id === id)?.name || id;
   const countText = (e: LayerGraphEdge) => (p.countLabel ?? tr('{n} 次')).replace('{n}', String(e.count ?? 0));
   const choose = (e: LayerGraphEdge) => {
@@ -351,10 +348,12 @@ export function LayerGraph(p: LayerGraphProps) {
       );
     });
   const sizeText = p.sizeLabel ?? tr('{n} 個項目');
+  const useText = p.useLabel ?? tr('使用 {n} 次');
   const nodes = main.map((n) => {
     const q = pos[n.id];
     const on = n.id === sel;
     const size = sizeOf(n);
+    const used = selShared ? uses[selShared]?.[n.id] : undefined;
     return (
       <button
         key={n.id}
@@ -362,16 +361,12 @@ export function LayerGraph(p: LayerGraphProps) {
         className={cx('ui-lg-node', on && 'is-selected', !near(n.id) && 'is-dim')}
         style={{ left: q.x, top: q.y, width: NW, height: NH }}
         aria-pressed={p.onSelect ? on : undefined}
-        onClick={
-          p.onSelect
-            ? () => {
-                if (!on && p.selectedEdge != null) pickEdge?.(null);
-                p.onSelect?.(on ? null : n.id);
-              }
-            : undefined
-        }
+        onClick={p.onSelect ? () => pick(n.id, on) : undefined}
       >
-        <span className="ui-lg-name">{n.name || n.id}</span>
+        <span className="ui-lg-head">
+          <span className="ui-lg-name">{n.name || n.id}</span>
+          {used ? <span className="ui-lg-use">{monoNums(useText.replace('{n}', '\u0001'), [used])}</span> : null}
+        </span>
         {size != null ? (
           <span className="ui-lg-size">
             <span className="ui-lg-track" aria-hidden="true">
@@ -384,32 +379,29 @@ export function LayerGraph(p: LayerGraphProps) {
     );
   });
   const sharedMeta = p.sharedMeta ?? tr('{a} 個項目使用，共 {b} 次');
-  const sharedRows = shared.map((s) => {
-    const callers = new Set<string>();
-    let total = 0;
-    for (const e of p.edges)
-      if (e.to === s.id && !sharedIds.has(e.from)) {
-        callers.add(e.from);
-        total += e.count || 0;
-      }
+  const sharedBoxes = shared.map((s) => {
+    const by = uses[s.id] ?? {};
+    const total = Object.values(by).reduce((a, b) => a + b, 0);
+    const on = s.id === sel;
+    // A selected box dims the shared items it does not use.
+    const dim = !!selEdge || (sel != null && !on && (selShared != null || !(sel in by)));
     return (
-      <div key={s.id} className="ui-lg-shared-row">
+      <button
+        key={s.id}
+        type="button"
+        className={cx('ui-lg-node', 'ui-lg-chip', on && 'is-selected', dim && 'is-dim')}
+        aria-pressed={p.onSelect ? on : undefined}
+        onClick={p.onSelect ? () => pick(s.id, on) : undefined}
+      >
         <span className="ui-lg-name">{s.name || s.id}</span>
-        <span className="ui-lg-shared-meta">{monoNums(sharedMeta.replace('{a}', '\u0001').replace('{b}', '\u0002'), [callers.size, total])}</span>
-      </div>
+        <span className="ui-lg-shared-meta">{monoNums(sharedMeta.replace('{a}', '\u0001').replace('{b}', '\u0002'), [Object.keys(by).length, total])}</span>
+      </button>
     );
   });
   return (
     <div className={cx('ui-graph ui-lg', p.className)}>
-      <div className={cx('ui-lg-scroller', more && 'has-more')}>
-        <div
-          className="ui-lg-scroll"
-          ref={scroller}
-          onScroll={() => {
-            setScrolled(true);
-            measureScroll();
-          }}
-        >
+      <div className={cx('ui-lg-scroller', scrollMore && 'has-more')}>
+        <div className="ui-lg-scroll" ref={scrollRef} onScroll={onScroll}>
           <div
             className="ui-lg-canvas"
             style={{ width: W, height: H }}
@@ -431,17 +423,11 @@ export function LayerGraph(p: LayerGraphProps) {
           </div>
         </div>
       </div>
-      {/* Under the diagram, never over a box. It keeps its line after the first scroll (hidden, not removed), so nothing below jumps. */}
-      {overflows ? (
-        <span className={cx('ui-lg-hint', scrolled && 'is-done')} aria-hidden="true">
-          <Icon name="arrow-right" size={14} />
-          {tr('左右滑動')}
-        </span>
-      ) : null}
+      <ScrollHint show={overflows} done={scrolled} />
       {shared.length ? (
         <div className="ui-lg-shared">
           <div className="ui-lg-shared-title">{p.sharedLabel || tr('共用項目')}</div>
-          {sharedRows}
+          <div className="ui-lg-chips">{sharedBoxes}</div>
         </div>
       ) : null}
       {p.legend === false || (!p.legendItems && !edges.some((e) => pos[e.from] && pos[e.to])) ? null : (

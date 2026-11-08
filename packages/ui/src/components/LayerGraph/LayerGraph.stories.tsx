@@ -132,3 +132,31 @@ export const Narrow = {
     </div>
   ),
 };
+
+// Shared items are boxes under the diagram, selected like the others: the boxes that use it say how often.
+const nodes6 = [...nodes4, { id: 'common', name: 'src/common', shared: true }, { id: 'inc', name: 'include/ibtrace.h', shared: true }];
+const edges6 = [
+  ...edges4,
+  { from: 'ibmon', to: 'common', count: 6 },
+  { from: 'lib', to: 'common', count: 3 },
+  { from: 'ibmon', to: 'inc', count: 2 },
+  { from: 'cli', to: 'inc', count: 1 },
+  { from: 'lib', to: 'inc', count: 9 },
+];
+function SharedSelect() {
+  const [s, setS] = React.useState<string | null>('common');
+  return (
+    <div style={card}>
+      <UI.LayerGraph
+        nodes={nodes6}
+        edges={edges6}
+        selected={s}
+        onSelect={setS}
+        sizeLabel="{n} 個函式"
+        sharedLabel="共用元件"
+        sharedMeta="{a} 個元件使用，共 {b} 次"
+      />
+    </div>
+  );
+}
+export const SharedItems = { render: () => <SharedSelect /> };

@@ -1586,6 +1586,26 @@ body {
   flex: 0 1 260px;
   min-width: 180px;
 }
+/* Wider than its box (a narrow container beside a panel): a fade on the right while columns are to the right. */
+.ui-dt-scroller {
+  position: relative;
+}
+.ui-dt-scroller::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  bottom: 1px;
+  width: 48px;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, var(--surface));
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.ui-dt-scroller.has-more::after {
+  opacity: 1;
+}
 .ui-dt-scroll {
   max-height: var(--dt-max-height, 560px);
   overflow: auto;
@@ -1595,8 +1615,10 @@ body {
   background: var(--surface);
 }
 .ui-dt-table {
-  min-width: 100%;
-  width: max-content;
+  /* As wide as the box, and wider only when the columns' minimum widths do not fit. max-content made a long
+     column grow the table past a box it would fit in. */
+  width: 100%;
+  min-width: min-content;
 }
 .ui-dt-row {
   display: grid;
@@ -2044,6 +2066,21 @@ body {
 }
 .ui-tooltip {
   transform-origin: var(--transform-origin);
+}
+.ui-tooltip.is-wrap {
+  max-width: min(360px, calc(100vw - 2 * var(--space-3)));
+  font-weight: 400;
+  line-height: 20px;
+  white-space: normal;
+}
+/* A long cell cut off on desktop: focusable, so the keyboard gets its Tooltip too. */
+.ui-dt-long.is-cut {
+  cursor: default;
+  border-radius: var(--radius-sm);
+}
+.ui-dt-long.is-cut:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .ui-tooltip-arrow {
   position: absolute;
@@ -4894,7 +4931,7 @@ html.ui-theme-fade * {
 .ui-lg-scroller.has-more::after {
   opacity: 1;
 }
-.ui-lg-hint {
+.ui-scroll-hint {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -4905,7 +4942,7 @@ html.ui-theme-fade * {
   color: var(--ink-muted);
   transition: opacity 0.15s ease;
 }
-.ui-lg-hint.is-done {
+.ui-scroll-hint.is-done {
   visibility: hidden;
   opacity: 0;
 }
@@ -5089,25 +5126,47 @@ html.ui-theme-fade * {
 }
 .ui-lg-shared {
   margin-top: var(--space-3);
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  background: var(--surface-sub);
   font-size: 13px;
 }
 .ui-lg-shared-title {
   font-weight: 700;
 }
-.ui-lg-shared-row {
+/* Shared items: small boxes like the ones in the diagram, selectable the same way. */
+.ui-lg-chips {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 12px;
-  margin-top: 4px;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+.ui-lg .ui-lg-chip {
+  position: static;
+  gap: 0;
+  min-height: 48px;
+  max-width: 100%;
+  padding: 6px 12px 6px 16px;
+}
+.ui-lg-shared-meta {
+  font-size: 12px;
   color: var(--ink-muted);
 }
-.ui-lg-shared-row .ui-lg-name {
-  color: var(--ink);
+.ui-lg-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+/* On a box that uses the selected shared item: on its top edge, so the name keeps its full width. */
+.ui-lg-use {
+  position: absolute;
+  top: -9px;
+  right: 8px;
+  padding: 0 6px;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--on-accent);
   font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
 }
 .ui-graph-legend-sw {
   display: inline-flex;

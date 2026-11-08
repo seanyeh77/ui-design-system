@@ -151,3 +151,41 @@ export const OnePageSummary = {
     </div>
   ),
 };
+
+// A table beside a 440 px detail panel: about 530 px left for five columns. It scrolls, with a fade on the right and a
+// 「左右滑動」 hint under it.
+const CALLERS = [
+  { id: 'c1', fn: 'ibtrace_init', file: 'src/libibtrace/init.c', n: 12, via: '直接呼叫', dist: 1 },
+  { id: 'c2', fn: 'shm_open_ring', file: 'src/libibtrace/shm.c', n: 7, via: '函式指標', dist: 2 },
+  { id: 'c3', fn: 'child_spawn', file: 'src/ibmon/child.c', n: 4, via: '直接呼叫', dist: 1 },
+  { id: 'c4', fn: 'ucp_hook_progress', file: 'src/libibtrace/hooks/ops.c', n: 17, via: '攔截', dist: 3 },
+];
+export const BesidePanel = {
+  render: () => (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'flex-start', maxWidth: 1000 }}>
+      <div style={{ flex: '1 1 300px', minWidth: 0 }}>
+        <UI.DataTable
+          caption="呼叫者"
+          rows={CALLERS}
+          urlSync={false}
+          search={false}
+          columns={[
+            { key: 'fn', label: '函式', width: 160 },
+            { key: 'file', label: '檔案', width: 220, render: (r) => <UI.InlineCode href={'#' + r.file}>{r.file}</UI.InlineCode>, searchText: (r) => r.file },
+            { key: 'n', label: '呼叫次數', numeric: true, unit: '次', width: 112 },
+            { key: 'via', label: '經由', width: 120 },
+            { key: 'dist', label: '距離', numeric: true, unit: '層', width: 96 },
+          ]}
+        />
+      </div>
+      <div style={{ flex: '0 1 440px', minWidth: 0, padding: 16, borderRadius: 'var(--radius-lg)', background: 'var(--surface)', boxShadow: 'var(--shadow-card)' }}>
+        <UI.DetailList
+          items={[
+            { label: '函式', value: 'ibtrace_init' },
+            { label: '檔案', value: 'src/libibtrace/init.c' },
+          ]}
+        />
+      </div>
+    </div>
+  ),
+};

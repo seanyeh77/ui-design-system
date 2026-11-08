@@ -148,3 +148,22 @@ test('LayerGraph: the legend lists only the kinds of line drawn', () => {
   rerender(<LayerGraph nodes={nodes} edges={[]} />);
   expect(container.querySelector('.ui-graph-legend')).toBeNull();
 });
+
+test('LayerGraph: a shared item is a selectable box; the boxes that use it say how often', async () => {
+  const onSelect = vi.fn();
+  const withShared = [...nodes, { id: 'common', name: 'src/common', shared: true }];
+  const uses: LayerGraphEdge[] = [...edges, { from: 'ibmon', to: 'common', count: 6 }, { from: 'lib', to: 'common', count: 3 }];
+  const { container, rerender } = render(<LayerGraph nodes={withShared} edges={uses} selected={null} onSelect={onSelect} />);
+  const chip = screen.getByRole('button', { name: /src\/common/ });
+  expect(chip.getAttribute('aria-pressed')).toBe('false');
+  await user.click(chip);
+  expect(onSelect).toHaveBeenLastCalledWith('common');
+  rerender(<LayerGraph nodes={withShared} edges={uses} selected="common" onSelect={onSelect} />);
+  expect(chip.classList.contains('is-selected')).toBe(true);
+  const badges = [...container.querySelectorAll('.ui-lg-use')].map((n) => n.textContent);
+  expect(badges).toEqual(['使用 6 次', '使用 3 次']);
+  const cli = screen.getByRole('button', { name: /src\/cli/ });
+  expect(cli.classList.contains('is-dim')).toBe(true);
+  await user.click(chip);
+  expect(onSelect).toHaveBeenLastCalledWith(null);
+});

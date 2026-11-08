@@ -2,7 +2,8 @@ import * as React from 'react';
 import { format } from '../../format';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
-import { cx } from '../../internal/util';
+import { cx, useNarrow } from '../../internal/util';
+import { Tooltip } from '../Tooltip/Tooltip';
 import { FloatingPanel } from '../../internal/FloatingPanel';
 import { CheckMark } from '../../internal/Field';
 import type { DataTableColumn, FilterValue, RangeValue, ResolvedFilter, Row } from './types';
@@ -164,25 +165,35 @@ export function FilterButton<R extends Row>({ filters, values, activeCount, coun
   );
 }
 
-/** Long text in a cell: on phone cards at most 2 lines with 「顯示全部」. */
+/** Long text in a cell. Phone cards: at most 2 lines with 「顯示全部」. Desktop: one line; when it is cut off, hover or
+ *  focus shows the whole text in a Tooltip. */
 export function LongText({ children }: { children: React.ReactNode }) {
+  const box = React.useRef<HTMLSpanElement>(null);
   const ref = React.useRef<HTMLSpanElement>(null);
+  const narrow = useNarrow();
   const [open, setOpen] = React.useState(false);
   const [over, setOver] = React.useState(false);
+  const [cut, setCut] = React.useState('');
   React.useLayoutEffect(() => {
     const el = ref.current;
-    if (!el || open) return;
-    const check = () => setOver(el.scrollHeight > el.clientHeight + 1);
+    const outer = box.current;
+    if (!el || !outer || open) return;
+    const check = () => {
+      setOver(el.scrollHeight > el.clientHeight + 1);
+      // Desktop: the outer span holds one line with an ellipsis.
+      setCut(!narrow && outer.scrollWidth > outer.clientWidth + 1 ? (outer.textContent ?? '') : '');
+    };
     check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, [open, children]);
-  return (
-    <span className="ui-dt-long">
+    const ro = new ResizeObserver(check);
+    ro.observe(outer);
+    return () => ro.disconnect();
+  }, [open, children, narrow]);
+  const body = (
+    <span ref={box} className={cx('ui-dt-long', !!cut && 'is-cut')} tabIndex={cut ? 0 : undefined}>
       <span ref={ref} className={cx('ui-dt-long-text', !open && 'is-clamped')}>
         {children}
       </span>
-      {over || open ? (
+      {narrow && (over || open) ? (
         <button
           type="button"
           className="ui-dt-more"
@@ -195,5 +206,11 @@ export function LongText({ children }: { children: React.ReactNode }) {
         </button>
       ) : null}
     </span>
+  );
+  // Always mounted, turned on only when cut: swapping the wrapper would remount the cell and lose the measurement.
+  return (
+    <Tooltip label={cut} wrap disabled={!cut}>
+      {body}
+    </Tooltip>
   );
 }
