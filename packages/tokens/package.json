@@ -1,6 +1,6 @@
 {
   "name": "@seanyeh77/tokens",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Design tokens of SeanYeh's design system: CSS variables for light, dark and the teaching preset, a Tailwind v4 theme, typed token names and self-hosted fonts.",
   "license": "MIT",
   "author": "Hsiu-An Yeh",
