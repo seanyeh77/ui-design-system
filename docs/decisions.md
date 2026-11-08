@@ -369,3 +369,13 @@ Claude 定的細節（待確認）：
 - TreeList 名稱順序「名稱，標籤，meta，路徑」，並加 `ariaLabel` 整句替換；元件標籤取它的文字（`aria-label` 或子元素的文字）。Enter 和點擊一樣：選取，有子項目時同時展開或收合。
 - LayerGraph 選了「兩邊一致」：共用項目的次數也算其他共用項目的使用。
 
+## LayerGraph repo 外的項目、可拖拉的雙欄分隔線
+
+使用者的要求（節錄）：LayerGraphNode 加上 external?: boolean。external 節點畫在所有 layer 的上方，用虛線外框，名稱下方標示「repo 外」；不算進 layer，也不顯示大小條；連到其他節點的線照一般 edge 畫，inferred 和 label 一樣適用；可以像其他方塊一樣被選取；清單檢視也要列出它，並標示「repo 外」。主要區域和側邊面板之間加一條可以拖拉的分隔線（例如新元件 SplitPane）：role="separator"、aria-orientation="vertical"、aria-valuenow；左右方向鍵每次 16 px，Home、End 跳到最小或最大寬度；拖拉時兩邊都有最小寬度（minA、minB），雙擊回到預設寬度；寬度用 storageKey 記住，讀寫 localStorage 失敗時照常運作；寬度小於 960 px、上下排列時不顯示分隔線。
+
+Claude 定的細節（待確認）：
+
+- external 方框：白底（`surface`）、1.5 px `line-strong` 虛線外框、沒有左側色條；選取時強調色外框加 `accent-soft` 底。名稱下方的文字可以用 `externalLabel` 換掉。external 和 shared 同時設定時當作 shared。
+- 往下的線的標籤：一律留在箭頭正上方的空隙；找不到不壓線的位置、空隙加到上限也沒用時，再加高到標籤能放在不壓方框和其他標籤的位置（可以壓線）。幾條有標籤的線收到同一個方框時（例如三條攔截線），標籤會疊在空隙裡、壓到別的線，看不太出哪個標籤屬於哪條線。
+- SplitPane 是新元件，放在 Pages 分類。`aria-valuenow` 是主要區域的寬度（px）；← 讓面板變寬；Home 讓面板最寬、End 讓面板最窄；另外加了 Enter 回到預設寬度（雙擊的鍵盤版）。預設 `defaultB` 420 px、`minA` 360 px、`minB` 280 px。分隔線是 16 px 的空隙加 1 px 線，滑過、拖拉或鍵盤移到時變成 3 px 強調色；點擊範圍 48 px。960 px 看的是 SplitPane 自己的寬度。上下排列時面板在下面。存在 `localStorage` 的鍵名是 `ui-split:` 加 `storageKey`。
+

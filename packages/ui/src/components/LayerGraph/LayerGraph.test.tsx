@@ -382,3 +382,37 @@ test('LayerGraph: a shared item counts every item that uses it, other shared ite
   expect(into.length).toBe(3);
   expect(into.reduce((a, li) => a + Number(/(\d+) 次/.exec(li.textContent ?? '')?.[1] ?? 0), 0)).toBe(15);
 });
+
+test('LayerGraph: an external box sits above every layer, dashed, 「repo 外」 and no size bar; selectable, lines and list as usual', async () => {
+  const onSelect = vi.fn();
+  const { container } = render(
+    <LayerGraph
+      nodes={[
+        { id: 'app', name: '被追蹤的程式', external: true, size: 50 },
+        { id: 'ibmon', name: 'src/ibmon', layer: 0, size: 91 },
+        { id: 'lib', name: 'src/libibtrace', layer: 1, size: 114 },
+      ]}
+      edges={[
+        { id: 'verbs', from: 'app', to: 'lib', inferred: true, label: '攔截 `verbs`' },
+        { from: 'ibmon', to: 'lib', count: 3 },
+      ]}
+      onSelect={onSelect}
+      onSelectEdge={() => {}}
+    />,
+  );
+  const box = screen.getByRole('button', { name: '被追蹤的程式 repo 外' });
+  expect(box.classList.contains('is-external')).toBe(true);
+  expect(box.querySelector('.ui-lg-size')).toBeNull();
+  expect(getComputedStyle(box).borderTopStyle).toBe('dashed');
+  const ibmon = screen.getByRole('button', { name: /^src\/ibmon.*個項目$/ });
+  expect(box.getBoundingClientRect().bottom).toBeLessThan(ibmon.getBoundingClientRect().top);
+  // Its line is drawn and selectable like any other.
+  expect(container.querySelector('[data-edge="verbs"]')).not.toBeNull();
+  expect(screen.getByRole('button', { name: '被追蹤的程式 → src/libibtrace，攔截 verbs' })).toBeTruthy();
+  await userEvent.setup().click(box);
+  expect(onSelect).toHaveBeenLastCalledWith('app');
+  // The list says it is outside the repository.
+  await userEvent.setup().click(screen.getByRole('tab', { name: '清單' }));
+  const li = [...container.querySelectorAll('.ui-lg-li')].find((l) => l.textContent?.startsWith('被追蹤的程式'));
+  expect(li?.textContent).toBe('被追蹤的程式，repo 外');
+});

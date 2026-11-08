@@ -1,4 +1,4 @@
-<!-- @dsCard group="Data" height=2000 -->
+<!-- @dsCard group="Data" height=2340 -->
 <!doctype html>
 <html lang="zh-Hant">
   <head>
@@ -130,6 +130,20 @@
           h(U.LayerGraph, { nodes: nodes8, edges: edges8, selectedEdge: e[0], onSelectEdge: e[1], sizeLabel: '{n} 個函式' }),
         );
       }
+      // a box outside the repository: above every layer, dashed, 「repo 外」, no size bar
+      var nodes9 = [
+        { id: 'app', name: '被追蹤的程式', external: true },
+        { id: 'ibmon', name: 'src/ibmon', layer: 0, size: 91 },
+        { id: 'lib', name: 'src/libibtrace', layer: 1, size: 114 },
+      ];
+      var edges9 = [
+        { id: 'verbs', from: 'app', to: 'lib', inferred: true, label: '攔截 `verbs`' },
+        { from: 'ibmon', to: 'lib', count: 6 },
+      ];
+      function External() {
+        var s = React.useState(null);
+        return h('div', { style: card }, h(U.LayerGraph, { nodes: nodes9, edges: edges9, selected: s[0], onSelect: s[1], sizeLabel: '{n} 個函式' }));
+      }
       function Demo() {
         var s = React.useState('net');
         return h(
@@ -144,6 +158,7 @@
           h('div', { style: card }, h(U.LayerGraph, { nodes: nodes3, edges: edges3, legend: false })),
           h(Edges),
           h(BothWays),
+          h(External),
         );
       }
       ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));

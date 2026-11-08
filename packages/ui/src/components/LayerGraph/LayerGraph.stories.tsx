@@ -229,3 +229,30 @@ function BothWaysNarrow() {
   );
 }
 export const BothDirectionsNarrow = { render: () => <BothWaysNarrow /> };
+
+// A box outside the repository (external): above every layer, dashed, 「repo 外」 under the name, no size bar. Its lines
+// work like any other; here three intercepted calls into the library, and the library's line back up to the program.
+const nodes9 = [
+  { id: 'app', name: '被追蹤的程式', external: true },
+  { id: 'ibmon', name: 'src/ibmon', layer: 0, size: 91 },
+  { id: 'lib', name: 'src/libibtrace', layer: 1, size: 114 },
+  { id: 'common', name: 'src/common', shared: true },
+];
+const edges9 = [
+  { id: 'verbs', from: 'app', to: 'lib', inferred: true, label: '攔截 `verbs`' },
+  { id: 'ucp', from: 'app', to: 'lib', inferred: true, label: '攔截 `ucp`' },
+  { id: 'uct', from: 'app', to: 'lib', inferred: true, label: '攔截 `uct`' },
+  { id: 'env', from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
+  { from: 'ibmon', to: 'common', count: 6 },
+  { from: 'lib', to: 'common', count: 7 },
+];
+function External() {
+  const [sel, setSel] = React.useState<string | null>(null);
+  const [edge, setEdge] = React.useState<string | null>(null);
+  return (
+    <div style={card}>
+      <UI.LayerGraph nodes={nodes9} edges={edges9} selected={sel} onSelect={setSel} selectedEdge={edge} onSelectEdge={setEdge} sizeLabel="{n} 個函式" />
+    </div>
+  );
+}
+export const ExternalBox = { render: () => <External /> };

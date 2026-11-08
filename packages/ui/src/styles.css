@@ -5215,6 +5215,29 @@ html.ui-theme-fade * {
     inset 4px 0 0 var(--accent),
     inset 0 0 0 2px var(--accent);
 }
+/* Outside the repository: a dashed outline on the page's surface, no bar on the left, 「repo 外」 under the name. */
+.ui-lg-node.is-external {
+  padding-left: 12px;
+  background: var(--surface);
+  border: 1.5px dashed var(--line-strong);
+  box-shadow: none;
+}
+.ui-lg-node.is-external:hover {
+  background: var(--surface-sub);
+}
+.ui-lg-node.is-external:focus-visible {
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.ui-lg-node.is-external.is-selected {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow: none;
+}
+.ui-lg-ext {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ink-muted);
+}
 .ui-lg-name {
   min-width: 0;
   overflow: hidden;
@@ -5588,5 +5611,69 @@ html.ui-theme-fade * {
   .ui-grid {
     --cols: 1 !important;
     gap: var(--space-4);
+  }
+}
+
+/* SplitPane: a main area and a side panel with a draggable divider. Under 960 px (its own width) they stack. */
+.ui-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 16px 420px;
+  align-items: stretch;
+  min-width: 0;
+}
+.ui-split-a,
+.ui-split-b {
+  min-width: 0;
+}
+.ui-split.is-stacked {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+.ui-split-handle {
+  position: relative;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+}
+/* The hit area: 48 px wide, over the gutter and the edges of both areas. */
+.ui-split-handle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 48px;
+  transform: translateX(-50%);
+}
+/* The line: 1 px in the line color; 3 px accent while hovered, dragged or focused from the keyboard. */
+.ui-split-handle::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: var(--line);
+  border-radius: 2px;
+  pointer-events: none;
+  transition:
+    width 0.15s ease,
+    background 0.15s ease;
+}
+.ui-split-handle:hover::after,
+.ui-split.is-dragging .ui-split-handle::after,
+.ui-split-handle:focus-visible::after {
+  width: 3px;
+  background: var(--accent);
+}
+.ui-split.is-dragging {
+  cursor: col-resize;
+  user-select: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-split-handle::after {
+    transition: none;
   }
 }
