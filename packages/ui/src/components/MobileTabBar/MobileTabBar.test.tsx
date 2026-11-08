@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MobileTabBar } from '../../index';
 
-test('each tab shows its name under the icon; the name is also its accessible name', () => {
+test('icons only: each tab is named by its aria-label, no text shows', () => {
   const { container } = render(
     <MobileTabBar
       value="graph"
@@ -13,8 +13,8 @@ test('each tab shows its name under the icon; the name is also its accessible na
       ]}
     />,
   );
-  expect([...container.querySelectorAll('.ui-tabbar-label')].map((n) => n.textContent)).toEqual(['總覽', '架構', '檢查']);
+  expect(container.querySelector('.ui-tabbar')?.textContent).toBe('');
   const current = screen.getByRole('button', { name: '架構' });
   expect(current.getAttribute('aria-current')).toBe('page');
-  expect(current.hasAttribute('aria-label')).toBe(false);
+  expect(current.getAttribute('aria-label')).toBe('架構');
 });
