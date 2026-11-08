@@ -4,6 +4,7 @@ import { Popover } from '@base-ui/react/popover';
 import { CodeText } from '../InlineCode/InlineCode';
 import { Button } from '../Button/Button';
 import { tr } from '../../i18n';
+import { announce } from '../../announce';
 import { cx, monoNums, store } from '../../internal/util';
 
 export interface TourStep {
@@ -14,8 +15,9 @@ export interface TourStep {
   title: string;
   /** What it does, 1 short sentence; `backticks` are code. */
   text: string;
-  /** Default 'bottom'; flips when there is no room. When neither side fits (a target about as tall as the window),
-   *  the card sits inside the target, at the bottom center of the window. */
+  /** Default 'bottom'; flips when there is no room. The card never covers the target: with no room above or below,
+   *  the page scrolls to make room (above a target taller than the window), else the card goes right or left of it;
+   *  only when none of that works does it sit inside the target, at the bottom. */
   side?: 'bottom' | 'top';
   /** Space around the highlighted part in px. Default 6. */
   padding?: number;
@@ -93,9 +95,10 @@ function bounds(target: Element | null): { top: number; bottom: number } {
   return { top, bottom };
 }
 
-/** Where the card goes for a highlighted box: the preferred side, the other side, or inside the box at the bottom
- *  center of the window when neither side has room. Returns the anchor line the card is placed against. */
-function placeCard(rect: Box | null, cardH: number, prefer: 'bottom' | 'top', area?: { top: number; bottom: number }) {
+/** Where the card goes for a highlighted box: the preferred side, the other one, then right or left of the box; inside
+ *  the box at the bottom only when none has room (the tour scrolls first to make room above or below, see makeRoom).
+ *  Returns the anchor line the card is placed against. */
+function placeCard(rect: Box | null, cardH: number, prefer: 'bottom' | 'top', area?: { top: number; bottom: number }, cardW = 320) {
   const margin = typeof document === 'undefined' ? 12 : edge();
   const vh = area?.bottom ?? (typeof window === 'undefined' ? 0 : window.innerHeight);
   const vt = area?.top ?? 0;
@@ -109,6 +112,13 @@ function placeCard(rect: Box | null, cardH: number, prefer: 'bottom' | 'top', ar
   const other = prefer === 'bottom' ? 'top' : 'bottom';
   const side = fits(prefer) ? prefer : fits(other) ? other : null;
   if (side) return { mode: side, side, offset: GAP, margin, line: rect };
+  // Beside it: the card's height must fit the window, its width the space next to the box.
+  const vw = typeof window === 'undefined' ? 0 : window.innerWidth;
+  const tallOk = cardH + 2 * margin <= vh - vt;
+  const beside = (['right', 'left'] as const).find(
+    (sd) => tallOk && (sd === 'right' ? rect.left + rect.width + GAP + cardW + margin <= vw : rect.left - GAP - cardW - margin >= 0),
+  );
+  if (beside) return { mode: beside, side: beside, offset: GAP, margin, line: rect };
   // Inside the target, at its bottom edge or the window's (the box is clipped a few px inside the window), minus the
   // margin, never above the window's top margin.
   const end = rect.top + rect.height;
@@ -124,6 +134,7 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
   const [rect, setRect] = React.useState<Box | null>(null);
   const next = React.useRef<HTMLButtonElement>(null);
   const [cardH, setCardH] = React.useState(0);
+  const [cardW, setCardW] = React.useState(320);
   const [wasOpen, setWasOpen] = React.useState(open);
   if (open !== wasOpen) {
     setWasOpen(open);
@@ -135,6 +146,18 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
   };
   const end = (why: 'done' | 'skip') => onClose?.(why);
   useReturnFocus(open);
+  // A new step after 下一步 or 上一步: its count, title and text are read (focus stays on the button, which does not read
+  // them). The first step is read as the dialog opens.
+  const shownStep = React.useRef(-1);
+  React.useEffect(() => {
+    if (!open || !step) {
+      shownStep.current = -1;
+      return;
+    }
+    if (shownStep.current !== -1 && shownStep.current !== i)
+      announce(tr('第 {a} 步，共 {b} 步', { a: i + 1, b: steps.length }) + tr('。') + step.title + tr('。') + step.text.replace(/`/g, ''));
+    shownStep.current = i;
+  }, [open, i, step, steps.length]);
   const cardEl = React.useRef<HTMLDivElement | null>(null);
   // Tab and Shift+Tab go round the card's buttons only. Base UI's popover leaves focus guards around the card (no
   // name) that let Tab reach the page; focus that gets out anyway (a click on the dimmed page) comes back to 下一步.
@@ -216,14 +239,43 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
     observer.current?.disconnect();
     observer.current = null;
     if (!el) return;
-    const measure = () => setCardH(el.offsetHeight);
+    const measure = () => {
+      setCardH(el.offsetHeight);
+      setCardW(el.offsetWidth);
+    };
     measure();
     observer.current = new ResizeObserver(measure);
     observer.current.observe(el);
   }, []);
 
+  // Make room for the card (per step, again when its height changes: its width, and so its height, depends on where it
+  // goes): with no room above or below the target, the page
+  // scrolls so the target's top sits just under the window's top when the target and the card fit together, card
+  // below; when they do not (a target taller than the window), so the card fits above the target. The card then
+  // covers no part of the target.
+  const measured = cardH > 0;
+  React.useEffect(() => {
+    if (!open || !hasStep || !measured) return;
+    const el = findTarget(target);
+    if (!(el instanceof HTMLElement)) return;
+    const ar = bounds(el);
+    const m = edge();
+    const r = el.getBoundingClientRect();
+    const top = r.top - pad;
+    const bottom = r.bottom + pad;
+    if (bottom + GAP + cardH + m <= ar.bottom || top - GAP - cardH - m >= ar.top) return;
+    const together = bottom - top + GAP + cardH + 2 * m <= ar.bottom - ar.top;
+    const want = together ? ar.top + m + pad : ar.top + m + cardH + GAP + pad;
+    // The nearest box that scrolls (AppShell's main), else the window, moves by exactly the difference.
+    let box: HTMLElement | null = el.parentElement;
+    while (box && !(/(auto|scroll)/.test(getComputedStyle(box).overflowY) && box.scrollHeight > box.clientHeight)) box = box.parentElement;
+    const dy = r.top - want;
+    if (box) box.scrollBy({ top: dy, behavior: 'auto' });
+    else window.scrollBy({ top: dy, behavior: 'auto' });
+  }, [open, hasStep, i, target, pad, measured, cardH]);
+
   const area = open && step ? bounds(findTarget(step.target)) : undefined;
-  const place = placeCard(rect, cardH, step?.side ?? 'bottom', area);
+  const place = placeCard(rect, cardH, step?.side ?? 'bottom', area, cardW);
   const line = place.line;
   const anchor = React.useMemo(
     () => ({
@@ -255,6 +307,7 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
           sideOffset={place.offset}
           collisionPadding={place.margin}
           // The side is chosen above; Base UI only keeps the card inside the window horizontally.
+          // Beside the box, it shifts up or down to stay inside the window.
           collisionAvoidance={{ side: 'none', align: 'shift', fallbackAxisSide: 'none' }}
         >
           <Popover.Popup ref={card} key={i} className="ui-tour-card" data-placement={place.mode} initialFocus={next} onKeyDown={onTab}>

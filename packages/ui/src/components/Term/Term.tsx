@@ -38,6 +38,16 @@ export function Term({ children, title, text, content, code, action, refHref, on
     const txt = !!par && Array.from(par.childNodes).some((n) => n.nodeType === 3 && !!n.textContent?.trim());
     setInline(txt);
   }, [children]);
+  // The block the term sits in (a card, a side panel, the main area): the explanation stays inside it, shifted
+  // sideways or narrower, so it does not cover the panel beside it. A block narrower than 240 px: the window instead.
+  const block = React.useRef<Element | null>(null);
+  const toggle = (next: boolean) => {
+    if (next) {
+      const el = ref.current?.closest('.ui-card, .ui-split-a, .ui-split-b, .ui-shell-main, main') ?? null;
+      block.current = el && el.getBoundingClientRect().width >= 240 ? el : null;
+    }
+    setOpen(next);
+  };
   const heading = title || (typeof children === 'string' ? children : '');
   const trigger = (
     <button type="button" ref={ref} className={cx('ui-term', inline && 'is-inline', open && 'is-open', className)}>
@@ -83,7 +93,7 @@ export function Term({ children, title, text, content, code, action, refHref, on
       </Dialog.Root>
     );
   return (
-    <FloatingPanel open={open} onOpenChange={setOpen} sideOffset={8} className="ui-term-pop" trigger={trigger}>
+    <FloatingPanel open={open} onOpenChange={toggle} sideOffset={8} className="ui-term-pop" trigger={trigger} boundary={block}>
       {body(Popover.Title, Popover.Close)}
     </FloatingPanel>
   );

@@ -1847,16 +1847,23 @@ body {
   white-space: nowrap;
 }
 .ui-dt-cell.is-long > .ui-dt-long {
+  /* As wide as the column: the text is cut where the column ends, not after a set number of characters. */
   display: block;
   flex: 1 1 auto;
   min-width: 0;
-  max-width: 20em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .ui-dt-more {
   display: none;
+}
+/* A short cell with fullText: as wide as its content, cut at the column's edge. */
+.ui-dt-full {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-width: 0;
 }
 /* The caret that opens a row's long columns in full, below the row (desktop). */
 .ui-dt-exp {
@@ -3331,7 +3338,8 @@ html.ui-theme-fade * {
 }
 .ui-dt-filterpop {
   width: 520px;
-  max-width: calc(100vw - 16px);
+  /* No wider than its table (the space Base UI leaves inside the boundary), nor the window. */
+  max-width: min(calc(100vw - 16px), var(--available-width, 100vw));
   padding: 16px;
   box-sizing: border-box;
   border-radius: var(--radius-lg);
@@ -4560,7 +4568,8 @@ html.ui-theme-fade * {
 }
 .ui-term-pop {
   width: 340px;
-  max-width: calc(100vw - 16px);
+  /* No wider than the block it explains (see Term), nor the window. */
+  max-width: min(calc(100vw - 16px), var(--available-width, 100vw));
   box-sizing: border-box;
   padding: var(--space-3) var(--space-4) var(--space-4);
   border-radius: var(--radius-lg);

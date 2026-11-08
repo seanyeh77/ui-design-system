@@ -73,6 +73,12 @@ export const I18N: I18nState = {
       '第 {n} 行': 'Line {n}',
       向右捲動: 'Scroll right',
       筆: 'rows',
+      // Separators: full-width in Chinese, ASCII and a space in English.
+      '，': ', ',
+      '：': ': ',
+      '。': '. ',
+      '{from} → {to}，{what}': '{from} → {to}, {what}',
+      '{label}（{inferred}）': '{label} ({inferred})',
       調整面板寬度: 'Resize the panel',
       '主要區域 {a} px，面板 {b} px': 'Main area {a} px, panel {b} px',
       'repo 外': 'outside the repo',

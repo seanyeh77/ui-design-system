@@ -312,7 +312,7 @@ export function TreeList(p: TreeListProps) {
         key={n.id}
         {...itemProps(r, idx)}
         // Only the item's own words: name, tags, meta, then the full path (the shortened one would read 「…」 aloud).
-        aria-label={n.ariaLabel ?? [n.name, ...(n.tags ?? []).map(nodeText), n.meta, n.path].filter(Boolean).join('，')}
+        aria-label={n.ariaLabel ?? [n.name, ...(n.tags ?? []).map(nodeText), n.meta, n.path].filter(Boolean).join(tr('，'))}
         aria-selected={p.onSelect ? on : undefined}
         className={cx('ui-tree-row', 'is-plain', on && 'is-current', n.muted && 'is-muted', r.fresh && 'ui-tree-in')}
         // A click anywhere on the row selects it and, when it has children, opens or closes it too.

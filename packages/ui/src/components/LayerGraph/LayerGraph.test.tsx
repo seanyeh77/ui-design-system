@@ -3,7 +3,7 @@ import { expect, test, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { LayerGraph, type LayerGraphEdge } from '../../index';
+import { LayerGraph, setLocale, type LayerGraphEdge } from '../../index';
 
 const user = userEvent.setup();
 const nodes = [
@@ -415,4 +415,30 @@ test('LayerGraph: an external box sits above every layer, dashed, 「repo 外」
   await userEvent.setup().click(screen.getByRole('tab', { name: '清單' }));
   const li = [...container.querySelectorAll('.ui-lg-li')].find((l) => l.textContent?.startsWith('被追蹤的程式'));
   expect(li?.textContent).toBe('被追蹤的程式，repo 外');
+});
+
+test('LayerGraph list in English: ASCII separators, no full-width punctuation', async () => {
+  setLocale('en-US');
+  try {
+    const { container } = render(
+      <LayerGraph
+        nodes={[
+          { id: 'app', name: 'traced program', external: true },
+          { id: 'lib', name: 'src/libibtrace', layer: 0, size: 114 },
+        ]}
+        edges={[{ from: 'app', to: 'lib', inferred: true, label: 'Interposes infiniband (18 functions)' }]}
+        onSelectEdge={() => {}}
+      />,
+    );
+    await userEvent.setup().click(screen.getByRole('tab', { name: 'List' }));
+    const text = [...container.querySelectorAll('.ui-lg-li')].map((li) => li.textContent);
+    expect(text).toEqual([
+      'traced program, outside the repo',
+      'src/libibtrace, 114 items',
+      'traced program → src/libibtrace: Interposes infiniband (18 functions) (Inferred)',
+    ]);
+    expect(text.join('')).not.toMatch(/[，：（）]/);
+  } finally {
+    setLocale('zh-TW');
+  }
 });

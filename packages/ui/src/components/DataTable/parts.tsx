@@ -71,15 +71,18 @@ interface FilterButtonProps<R extends Row> {
   count: (f: ResolvedFilter<R>, value: string) => number;
   onChange: (key: string, value: FilterValue) => void;
   onClear: () => void;
+  /** The table: the panel stays over it. */
+  boundary?: React.RefObject<Element | null>;
 }
 
 /** 「篩選」 with the number of active filters; options apply at once and show how many rows they would leave. */
-export function FilterButton<R extends Row>({ filters, values, activeCount, count, onChange, onClear }: FilterButtonProps<R>) {
+export function FilterButton<R extends Row>({ filters, values, activeCount, count, onChange, onClear, boundary }: FilterButtonProps<R>) {
   const [open, setOpen] = React.useState(false);
   return (
     <FloatingPanel
       open={open}
       onOpenChange={setOpen}
+      boundary={boundary}
       className="ui-dt-filterpop"
       aria-label={tr('篩選')}
       trigger={
@@ -162,6 +165,21 @@ export function FilterButton<R extends Row>({ filters, values, activeCount, coun
         })}
       </div>
     </FloatingPanel>
+  );
+}
+
+/** A short cell with its whole text in a Tooltip (a mouse; not on a touch screen, where the row's details show it). */
+export function FullText({ text, children }: { text: string; children: React.ReactNode }) {
+  const touch = useMedia(TOUCH_ONLY);
+  // The span is the Tooltip's trigger for hover; focus on a link inside it bubbles up and opens it too. The span cannot
+  // take focus, so screen readers get the whole text as hidden text after the cell's own.
+  return (
+    <Tooltip label={text} wrap describe={false} disabled={touch || !text}>
+      <span className="ui-dt-full">
+        {children}
+        {text ? <span className="ui-visually-hidden">{tr('，') + text}</span> : null}
+      </span>
+    </Tooltip>
   );
 }
 

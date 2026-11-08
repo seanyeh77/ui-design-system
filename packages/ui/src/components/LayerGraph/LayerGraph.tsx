@@ -488,7 +488,11 @@ export function LayerGraph(p: LayerGraphProps) {
             d={d}
             role="button"
             tabIndex={0}
-            aria-label={`${nameOf(e.from)} → ${nameOf(e.to)}，${(e.inferred ? e.label || p.inferredLabel || tr('推測') : countText(e)).replace(/`/g, '')}`}
+            aria-label={tr('{from} → {to}，{what}', {
+              from: nameOf(e.from),
+              to: nameOf(e.to),
+              what: (e.inferred ? e.label || p.inferredLabel || tr('推測') : countText(e)).replace(/`/g, ''),
+            })}
             aria-pressed={picked}
             onClick={(ev) => {
               ev.stopPropagation();
@@ -755,7 +759,11 @@ export function LayerGraph(p: LayerGraphProps) {
   });
   // The list: every box (name, size) and every line (「A → B：label」), selectable like the diagram (XC).
   const edgeText = (e: LayerGraphEdge) =>
-    e.inferred ? (e.label ? `${e.label}（${p.inferredLabel || tr('推測')}）` : p.inferredLabel || tr('推測')) : countText(e);
+    e.inferred
+      ? e.label
+        ? tr('{label}（{inferred}）', { label: e.label, inferred: p.inferredLabel || tr('推測') })
+        : p.inferredLabel || tr('推測')
+      : countText(e);
   const listItem = (key: string, on: boolean, dim: boolean, onClick: (() => void) | undefined, head: React.ReactNode, rest: React.ReactNode) => (
     <li key={key} className={cx('ui-lg-li', dim && 'is-dim')}>
       {onClick ? (
@@ -785,9 +793,15 @@ export function LayerGraph(p: LayerGraphProps) {
               p.onSelect ? () => pick(n.id, n.id === sel) : undefined,
               <span className="ui-lg-code">{n.name || n.id}</span>,
               n.external && !n.shared ? (
-                <span className="ui-lg-limeta">，{externalText}</span>
+                <span className="ui-lg-limeta">
+                  {tr('，')}
+                  {externalText}
+                </span>
               ) : size != null ? (
-                <span className="ui-lg-limeta">，{monoNums(sizeText.replace('{n}', '\u0001'), [size])}</span>
+                <span className="ui-lg-limeta">
+                  {tr('，')}
+                  {monoNums(sizeText.replace('{n}', '\u0001'), [size])}
+                </span>
               ) : null,
             );
           })}
@@ -809,7 +823,10 @@ export function LayerGraph(p: LayerGraphProps) {
                 <>
                   <span className="ui-lg-code">{nameOf(e.from)}</span> → <span className="ui-lg-code">{nameOf(e.to)}</span>
                 </>,
-                <span className="ui-lg-limeta">：{labelParts(edgeText(e))}</span>,
+                <span className="ui-lg-limeta">
+                  {tr('：')}
+                  {labelParts(edgeText(e))}
+                </span>,
               ),
             )}
         </ul>

@@ -17,6 +17,9 @@ export interface FloatingPanelProps {
   anchor?: React.RefObject<Element | null>;
   /** Open on hover as well as on press. */
   openOnHover?: boolean;
+  /** Keeps the panel inside this element (shifting it sideways, then flipping), not just inside the window: a menu of
+   *  a table stays over the table instead of covering the panel beside it. */
+  boundary?: React.RefObject<Element | null>;
   children: React.ReactNode;
 }
 
@@ -31,14 +34,26 @@ export function FloatingPanel({
   className,
   openOnHover,
   anchor,
+  boundary,
   children,
   ...aria
 }: FloatingPanelProps) {
+  const within = boundary?.current ?? undefined;
   return (
     <Popover.Root open={open} onOpenChange={onOpenChange}>
       <Popover.Trigger render={trigger} openOnHover={openOnHover} delay={0} closeDelay={150} />
       <Popover.Portal>
-        <Popover.Positioner className="ui-float" side={side} align={align} sideOffset={sideOffset} anchor={anchor}>
+        <Popover.Positioner
+          className="ui-float"
+          side={side}
+          align={align}
+          sideOffset={sideOffset}
+          anchor={anchor}
+          collisionBoundary={within}
+          collisionPadding={within ? 0 : undefined}
+          // Inside a boundary: slid sideways until it fits, rather than swapping its alignment.
+          collisionAvoidance={within ? { side: 'flip', align: 'shift' } : undefined}
+        >
           <Popover.Popup className={className} aria-label={aria['aria-label']}>
             {children}
           </Popover.Popup>

@@ -130,6 +130,8 @@ test('Tour gives focus back to what opened it on 完成 and on 略過', async ()
   await waitFor(() => expect(document.activeElement).toBe(opener));
   await user.click(opener);
   await user.click(await screen.findByRole('button', { name: '下一步' }));
+  // The new step is read: count, title, text.
+  await waitFor(() => expect(live()).toBe('第 2 步，共 2 步。二。第二步。'));
   await user.click(await screen.findByRole('button', { name: '完成' }));
   await waitFor(() => expect(document.activeElement).toBe(opener));
 });
