@@ -121,6 +121,41 @@ test('CommandPalette: Escape gives focus back; a result that changes page moves 
   expect(document.activeElement?.tagName).toBe('H1');
 });
 
+test('CommandPalette: a slow closing animation still ends with focus on the new page title', async () => {
+  // A slow machine (CI) closes the palette after the first look for focus: focus falls to the page later, when the
+  // popup is removed. Made slow on purpose here.
+  const slow = document.createElement('style');
+  slow.textContent = '.ui-pal { transition: opacity 400ms !important; opacity: 1; } .ui-pal[data-ending-style] { opacity: 0 !important; }';
+  document.head.append(slow);
+  function Demo() {
+    const [open, setOpen] = React.useState(false);
+    const [pageName, setPageName] = React.useState('首頁');
+    return (
+      <div>
+        <main>
+          <h1>{pageName}</h1>
+          {pageName === '首頁' ? (
+            <button type="button" onClick={() => setOpen(true)}>
+              搜尋
+            </button>
+          ) : null}
+        </main>
+        <UI.CommandPalette open={open} onOpenChange={setOpen} items={[{ label: 'IBTRACE_SHM' }]} onSelect={(it) => setPageName(it.label)} />
+      </div>
+    );
+  }
+  try {
+    render(<Demo />);
+    await user.click(screen.getByRole('button', { name: '搜尋' }));
+    await user.type(await screen.findByRole('combobox'), 'IBT');
+    await user.keyboard('{Enter}');
+    await waitFor(() => expect(document.querySelector('.ui-pal')).toBeNull(), { timeout: 2000 });
+    await waitFor(() => expect(document.activeElement?.tagName).toBe('H1'));
+  } finally {
+    slow.remove();
+  }
+});
+
 test('CommandPalette: 「找不到…」 is announced through the live region', async () => {
   render(<UI.CommandPalette open onOpenChange={() => {}} items={[{ label: 'IBTRACE_SHM' }]} />);
   await user.type(await screen.findByRole('combobox'), 'zzz');
