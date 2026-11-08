@@ -58,6 +58,7 @@ export const I18N: I18nState = {
       說明: 'Explain',
       開啟導覽: 'Open navigation',
       顯示方式: 'View',
+      顯示線上文字: 'Show line labels',
       圖: 'Diagram',
       清單: 'List',
       項目: 'Items',

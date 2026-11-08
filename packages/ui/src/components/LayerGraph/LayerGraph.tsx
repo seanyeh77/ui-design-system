@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { GraphLegend, type GraphLegendItem } from '../Graph/Graph';
 import { Tabs } from '../Tabs/Tabs';
+import { IconButton } from '../IconButton/IconButton';
 import { tr } from '../../i18n';
 import { cx, monoNums } from '../../internal/util';
 import { ScrollHint, useScrollHint } from '../../internal/scrollHint';
@@ -48,9 +49,12 @@ export interface LayerGraphProps {
   /** Makes edges selectable: a click on a line or its label, Enter or Space. null when it is clicked again, on a click on
    *  the empty diagram or on Escape. Clears the selected box. Without it, edges cannot be clicked. */
   onSelectEdge?: (id: string | null) => void;
-  /** Labels on lines: 'shown' (default) always; 'hover' only while the pointer is on the line or its label, the line has
-   *  keyboard focus, or it is selected or belongs to the selected box. The diagram keeps the room for every label. */
+  /** Labels on lines at first: 'shown' (default) always; 'hover' only while the pointer is on the line or its label, the
+   *  line has keyboard focus, or it is selected or belongs to the selected box. The diagram keeps the room for every
+   *  label. People switch with the tag button next to 「圖／清單」; their choice is remembered (localStorage). */
   edgeLabels?: 'shown' | 'hover';
+  /** false: no button to show or hide line labels. Default true (shown when the diagram has labelled lines). */
+  labelToggle?: boolean;
   /** px. Default 200. */
   nodeWidth?: number;
   /** Text under a box's size bar; {n} is the size. Default 「{n} 個項目」. */
@@ -108,6 +112,9 @@ function labelWidth(text: string): number {
 }
 
 // A label of a line up that does not fit on one line: taller gaps, GROW px at a time, up to GROW_MAX px more.
+// The line-label button keeps its choice in localStorage under this prefix and the diagram's key.
+const LABELS_KEY = 'ui-lg-labels:';
+const allIds = (nodes: LayerGraphNode[]) => nodes.map((n) => n.id).join('|');
 const GROW = 24;
 const GROW_MAX = 144;
 
@@ -296,7 +303,25 @@ export function LayerGraph(p: LayerGraphProps) {
   for (const k in ins) ins[k].sort((a, b) => pos[a.from].x - pos[b.from].x);
   const edgeId = (e: LayerGraphEdge) => e.id ?? `${e.from}->${e.to}`;
   const pickEdge = p.onSelectEdge;
-  const peek = p.edgeLabels === 'hover';
+  const [labelsOn, setLabelsOn] = React.useState<boolean>(() => {
+    try {
+      const v = window.localStorage.getItem(LABELS_KEY + (p.scrollKey ?? allIds(p.nodes)));
+      if (v === '1' || v === '0') return v === '1';
+    } catch {
+      // Storage blocked: start from edgeLabels.
+    }
+    return p.edgeLabels !== 'hover';
+  });
+  const peek = !labelsOn;
+  const switchLabels = () => {
+    const on = !labelsOn;
+    setLabelsOn(on);
+    try {
+      window.localStorage.setItem(LABELS_KEY + (p.scrollKey ?? allIds(p.nodes)), on ? '1' : '0');
+    } catch {
+      // Storage blocked or full: the labels still switch, the choice is just not remembered.
+    }
+  };
   const [hover, setHover] = React.useState<string | null>(null);
   // Wider than its box: a fade on the right while more is to the right, and a 「左右滑動」 hint until the first scroll.
   const { ref: scrollRef, more: scrollMore, overflows, scrolled, onScroll } = useScrollHint();
@@ -1007,6 +1032,8 @@ export function LayerGraph(p: LayerGraphProps) {
     </div>
   );
   const showList = p.listView !== false && view === 'list';
+  // The tag button only where there are labels to hide (inferred lines), and only on the diagram.
+  const toggleShown = p.labelToggle !== false && !showList && p.edges.some((e) => e.inferred);
   // PM: measure the box; narrow the boxes when the diagram is wider, then scale what is still too wide.
   React.useLayoutEffect(() => {
     const el = scrollRef.current;
@@ -1036,17 +1063,23 @@ export function LayerGraph(p: LayerGraphProps) {
   }, [avail, showList, fitted, W, p.nodeWidth, cols]);
   return (
     <div className={cx('ui-graph ui-lg', p.className)}>
-      {p.listView === false ? null : (
+      {p.listView === false && !toggleShown ? null : (
         <div className="ui-lg-bar">
-          <Tabs
-            label={tr('顯示方式')}
-            value={view}
-            onChange={setView}
-            items={[
-              { id: 'graph', label: tr('圖') },
-              { id: 'list', label: tr('清單') },
-            ]}
-          />
+          {toggleShown ? (
+            // TC: a tag button beside 「圖／清單」; pressed (accent-soft, filled tag) while every label shows.
+            <IconButton className="ui-lg-labels-btn" icon="tag" filled={labelsOn} label={tr('顯示線上文字')} aria-pressed={labelsOn} onClick={switchLabels} />
+          ) : null}
+          {p.listView === false ? null : (
+            <Tabs
+              label={tr('顯示方式')}
+              value={view}
+              onChange={setView}
+              items={[
+                { id: 'graph', label: tr('圖') },
+                { id: 'list', label: tr('清單') },
+              ]}
+            />
+          )}
         </div>
       )}
       {showList ? list : null}

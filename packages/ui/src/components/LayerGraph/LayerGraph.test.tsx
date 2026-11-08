@@ -74,8 +74,8 @@ test('LayerGraph: a line and a box are never selected together', async () => {
 test('LayerGraph: Tab reaches the lines after the boxes; Enter selects, Escape clears', async () => {
   const onEdge = vi.fn();
   render(<Demo onEdge={onEdge} onBox={() => {}} />);
-  // The 「圖／清單」 switch, the three boxes, then the lines.
-  for (let k = 0; k < 5; k++) await user.tab();
+  // The tag button, the 「圖／清單」 switch, the three boxes, then the lines.
+  for (let k = 0; k < 6; k++) await user.tab();
   expect(document.activeElement?.getAttribute('aria-label')).toBe('src/ibmon → src/libibtrace，環境變數 IBTRACE_SHM');
   await user.keyboard('{Enter}');
   expect(onEdge).toHaveBeenLastCalledWith('shm');
@@ -346,6 +346,54 @@ test('LayerGraph: edgeLabels="hover" hides line labels until the line is hovered
   expect(quiet(container)).toBe(false);
 });
 
+test('LayerGraph: the tag button switches line labels and remembers the choice (TC)', async () => {
+  await page.viewport(1280, 900);
+  window.localStorage.removeItem('ui-lg-labels:tc');
+  const quiet = (c: HTMLElement) => c.querySelector('.ui-lg-label')?.classList.contains('is-quiet');
+  const graph = (extra: Partial<React.ComponentProps<typeof LayerGraph>> = {}) => (
+    <LayerGraph nodes={nodes} edges={edges} legend={false} scrollKey="tc" {...extra} />
+  );
+  const { container, unmount } = render(graph());
+  const btn = screen.getByRole('button', { name: '顯示線上文字' });
+  expect(btn.getAttribute('aria-pressed')).toBe('true');
+  // Beside 「圖／清單」, on its left.
+  const tabs = screen.getByRole('tablist', { name: '顯示方式' });
+  expect(btn.getBoundingClientRect().right).toBeLessThanOrEqual(tabs.getBoundingClientRect().left);
+  expect(quiet(container)).toBe(false);
+  await user.click(btn);
+  expect(btn.getAttribute('aria-pressed')).toBe('false');
+  expect(quiet(container)).toBe(true);
+  expect(window.localStorage.getItem('ui-lg-labels:tc')).toBe('0');
+  unmount();
+  // Comes back hidden, even though edgeLabels says shown.
+  const again = render(graph());
+  expect(quiet(again.container)).toBe(true);
+  again.unmount();
+  window.localStorage.removeItem('ui-lg-labels:tc');
+  // Not on the list, and gone with labelToggle={false}.
+  const list = render(graph({ edgeLabels: 'hover' }));
+  expect(screen.getByRole('button', { name: '顯示線上文字' }).getAttribute('aria-pressed')).toBe('false');
+  await user.click(screen.getByRole('tab', { name: '清單' }));
+  expect(screen.queryByRole('button', { name: '顯示線上文字' })).toBeNull();
+  list.unmount();
+  render(graph({ labelToggle: false }));
+  expect(screen.queryByRole('button', { name: '顯示線上文字' })).toBeNull();
+});
+
+test('LayerGraph: the tag button works when storage throws', async () => {
+  const get = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+    throw new Error('blocked');
+  });
+  const set = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+    throw new Error('blocked');
+  });
+  const { container } = render(<LayerGraph nodes={nodes} edges={edges} legend={false} scrollKey="tc2" />);
+  await user.click(screen.getByRole('button', { name: '顯示線上文字' }));
+  expect(container.querySelector('.ui-lg-label')?.classList.contains('is-quiet')).toBe(true);
+  get.mockRestore();
+  set.mockRestore();
+});
+
 test('LayerGraph: labels are shown by default', () => {
   const { container } = render(<LayerGraph nodes={nodes} edges={edges} legend={false} />);
   expect(container.querySelector('.ui-lg-label.is-quiet')).toBeNull();
@@ -564,4 +612,15 @@ test.each([
     }
     expect(near, text).toBeLessThanOrEqual(12);
   }
+});
+
+test('LayerGraph: the tag button shows the filled tag while pressed', async () => {
+  window.localStorage.removeItem('ui-lg-labels:tc3');
+  render(<LayerGraph nodes={nodes} edges={edges} legend={false} scrollKey="tc3" />);
+  const btn = screen.getByRole('button', { name: '顯示線上文字' });
+  const markup = () => btn.querySelector('svg')?.innerHTML ?? '';
+  const pressed = markup();
+  await user.click(btn);
+  expect(markup()).not.toBe(pressed);
+  window.localStorage.removeItem('ui-lg-labels:tc3');
 });

@@ -149,7 +149,15 @@
         return h(
           'div',
           { style: card },
-          h(U.LayerGraph, { nodes: nodes9, edges: edges9, selectedEdge: s[0], onSelectEdge: s[1], edgeLabels: 'hover', sizeLabel: '{n} 個函式' }),
+          h(U.LayerGraph, {
+            nodes: nodes9,
+            edges: edges9,
+            selectedEdge: s[0],
+            onSelectEdge: s[1],
+            edgeLabels: 'hover',
+            scrollKey: 'labels-on-hover',
+            sizeLabel: '{n} 個函式',
+          }),
         );
       }
       function Demo() {

@@ -6,6 +6,7 @@
 - 外框 `line-strong`，尺寸與 Button 同高（40 px）。
 - 側邊欄的收合按鈕是例外：放在側邊欄左下角，無外框，收合後圖示左右翻轉。
 - `icon`（必填）：Phosphor 圖示名稱，例如 `'trash'`；或自訂圖示的 24 px path。
+- `filled`：用內建圖示的實心版，給按下（`aria-pressed`）或選取中的按鈕，例如 LayerGraph 的標籤按鈕。
 
 ```tsx
 <IconButton icon="pencil-simple" label="編輯 api-gateway" onClick={edit} />

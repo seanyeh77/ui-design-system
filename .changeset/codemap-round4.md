@@ -12,4 +12,5 @@
 - SplitPane：分隔線中間加上 10 × 40 px 的膠囊把手，滑過、拖拉或鍵盤移到時變強調色。
 - DataTable：有展開箭頭時，點列上任何地方都會展開或收合（連結、按鈕、勾選框除外），滑過時游標變手指。
 - ui check：整張縮小的元件（例如縮小後的 LayerGraph）裡，觸控範圍讀出祖先元素的 `transform`，照縮小後的大小判斷，不再誤報「比控制項大」。
-- LayerGraph：新增 `edgeLabels: 'shown' | 'hover'`（預設 `'shown'`）；`'hover'` 時線上的文字平時隱藏，滑過、鍵盤移到或選取時才顯示。縮小後觸控範圍仍是 48 px。
+- LayerGraph：「圖／清單」左邊新增標籤圖示按鈕，讓使用者切換線上的文字全部顯示或滑過才顯示，選擇會記住；`edgeLabels: 'shown' | 'hover'` 設定一開始的狀態，`labelToggle={false}` 拿掉按鈕。縮小後觸控範圍仍是 48 px。
+- Icon：新增 `tag`。IconButton 新增 `filled`，按下或選取時用實心圖示。

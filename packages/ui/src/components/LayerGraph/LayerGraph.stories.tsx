@@ -260,7 +260,15 @@ function HoverLabels() {
   const [edge, setEdge] = React.useState<string | null>(null);
   return (
     <div style={card}>
-      <UI.LayerGraph nodes={nodes9} edges={edges9} selectedEdge={edge} onSelectEdge={setEdge} edgeLabels="hover" sizeLabel="{n} 個函式" />
+      <UI.LayerGraph
+        nodes={nodes9}
+        edges={edges9}
+        selectedEdge={edge}
+        onSelectEdge={setEdge}
+        edgeLabels="hover"
+        scrollKey="labels-on-hover"
+        sizeLabel="{n} 個函式"
+      />
     </div>
   );
 }

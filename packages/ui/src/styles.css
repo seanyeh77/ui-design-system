@@ -5021,6 +5021,22 @@ html.ui-theme-fade * {
   justify-content: flex-end;
   margin-bottom: var(--space-3);
 }
+.ui-lg-bar {
+  align-items: center;
+  gap: var(--space-2);
+}
+/* TC: the line-label button, no outline; pressed while every label shows. */
+.ui-lg-labels-btn {
+  border: 0;
+  color: var(--ink-muted);
+}
+.ui-lg-labels-btn[aria-pressed='true'] {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+.ui-lg-labels-btn[aria-pressed='true']:hover {
+  background: color-mix(in srgb, var(--accent-soft), var(--accent) 10%);
+}
 .ui-lg-list {
   display: flex;
   flex-direction: column;
