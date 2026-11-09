@@ -46,8 +46,10 @@ export function TextArea({ label, hint, value, onChange, maxLength = 200, classN
       <div className="ui-field-foot">
         <span className="ui-field-hint">{hint || ''}</span>
         <span className="ui-count">
-          {/* Read 「200 字中的 12 字」, not 「12 斜線 200」. */}
-          <span aria-hidden="true">{format.fraction((value || '').length, maxLength)}</span>
+          {/* Shown 「12 / 200」, drawn by CSS; read and copied as 「200 字中的 12 字」, not 「12 斜線 200」. */}
+          <span aria-hidden="true">
+            <span className="ui-seen" data-text={format.fraction((value || '').length, maxLength)} />
+          </span>
           <span className="ui-visually-hidden">{format.fractionLabel((value || '').length, maxLength, tr('字'))}</span>
         </span>
       </div>

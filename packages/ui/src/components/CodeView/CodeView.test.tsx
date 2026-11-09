@@ -1,7 +1,8 @@
-import { expect, test } from 'vitest';
-import { render } from '@testing-library/react';
+import { expect, test, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import * as React from 'react';
-import { CodeView, type CodeViewHandle } from '../../index';
+import { CodeView, format, setLocale, type CodeViewHandle } from '../../index';
 
 test('the language reads as a language, not a button', () => {
   const { container } = render(<CodeView file="src/ibmon/child.c" code={'int main(void) {}\n'} />);
@@ -47,4 +48,48 @@ test('each line is its own item for screen readers, and the target line can take
   expect(container.querySelector('pre')?.getAttribute('aria-label')).toBe('程式碼');
   ref.current?.focusTarget();
   expect(document.activeElement).toBe(lines[1]);
+});
+
+test('CodeView: English labels use a plain colon', () => {
+  setLocale('en');
+  try {
+    const { container } = render(<CodeView file="src/a.c" code={'a\nb'} start={48} />);
+    const sr = [...container.querySelectorAll('.ui-visually-hidden')].map((e) => e.textContent ?? '');
+    expect(sr.join('|')).not.toContain('：');
+    expect(sr).toContain('Line 48: ');
+    expect(sr).toContain('Language: ');
+  } finally {
+    setLocale('zh-TW');
+  }
+});
+
+test('format.number follows setLocale, not the browser', () => {
+  setLocale('en');
+  try {
+    expect(format.number(1033)).toBe('1,033');
+  } finally {
+    setLocale('zh-TW');
+  }
+  setLocale('de-DE');
+  try {
+    expect(format.number(1033)).toBe('1.033');
+  } finally {
+    setLocale('zh-TW');
+  }
+});
+
+test('CodeView: paths in comments and strings become links with refHref; code and bare names do not', async () => {
+  const onRef = vi.fn();
+  const code = '/* see docs/design/ring-overrun.md and ring.c:42 */\nint a = b / c; // printf.h\nopen("src/app.c");';
+  render(<CodeView file="src/x.c" code={code} refHref={(p) => (p.startsWith('docs/') ? '#' + p : undefined)} />);
+  const link = screen.getByRole('link', { name: 'docs/design/ring-overrun.md' });
+  expect(link.getAttribute('href')).toBe('#docs/design/ring-overrun.md');
+  // refHref returns nothing for these: plain text.
+  expect(screen.queryByRole('link', { name: 'ring.c:42' })).toBeNull();
+  expect(screen.queryByRole('link', { name: 'src/app.c' })).toBeNull();
+  const { container } = render(<CodeView file="src/y.c" code={code} onRef={onRef} />);
+  const refs = [...container.querySelectorAll('.ui-cv-ref')].map((e) => e.textContent);
+  expect(refs).toEqual(['docs/design/ring-overrun.md', 'ring.c:42', 'src/app.c']);
+  await userEvent.setup().click(screen.getByRole('button', { name: 'ring.c:42' }));
+  expect(onRef).toHaveBeenCalledWith('ring.c:42', expect.anything());
 });

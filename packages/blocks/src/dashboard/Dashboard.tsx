@@ -80,6 +80,7 @@ export function Dashboard({ kpis, trend, rows, notifications }: DashboardProps) 
                 { value: 'doing', label: '進行中' },
                 { value: 'done', label: '完成' },
               ],
+              unit: '個',
             }}
             urlKey="projects"
           />

@@ -5,7 +5,8 @@ import { CodeText } from '../InlineCode/InlineCode';
 import { Button } from '../Button/Button';
 import { tr } from '../../i18n';
 import { announce } from '../../announce';
-import { cx, monoNums, store } from '../../internal/util';
+import { cx, seenOnly, store } from '../../internal/util';
+import { devWarn } from '../../internal/dev';
 
 export interface TourStep {
   /** A data-tour name ('search' matches [data-tour="search"]), a CSS selector (first visible match), a ref or an element.
@@ -198,6 +199,12 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
     // to the top, just under the top bar, so the card fits below it instead of covering it. The jump is instant: the
     // modal's scroll lock stops a smooth scroll halfway; the spotlight's own transition shows the move.
     const tall = (el?.getBoundingClientRect().height ?? 0) > window.innerHeight;
+    // A target as tall as the window leaves no room beside it: the card has to cover part of it.
+    devWarn(
+      el && el.getBoundingClientRect().height > window.innerHeight * 0.7,
+      'Tour',
+      `第 ${i + 1} 步的目標「${target}」比視窗的 70% 高，說明卡只能蓋住它的一部分。請把 data-tour 放在較小的元素上，例如要說明的那張卡片或那一列，而不是整頁。`,
+    );
     if (el instanceof HTMLElement && narrowNow()) {
       const keep = el.style.scrollMarginTop;
       el.style.scrollMarginTop = bounds(el).top + edge() + pad + 'px';
@@ -314,8 +321,8 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
             {/* Taller than the window (phones): this part scrolls, the buttons stay at the bottom. */}
             <div className="ui-tour-body">
               <div className="ui-tour-count">
-                <span aria-hidden="true">{monoNums(tr('{n} / {total}', { n: '\u0001', total: '\u0002' }), [i + 1, steps.length])}</span>
-                {/* Not 「1 斜線 5」. */}
+                {/* Shown 「1 / 5」, drawn by CSS; read and copied as 「第 1 步，共 5 步」, not 「1 斜線 5」. */}
+                <span aria-hidden="true">{seenOnly(tr('{n} / {total}', { n: '\u0001', total: '\u0002' }), [String(i + 1), String(steps.length)])}</span>
                 <span className="ui-visually-hidden">{tr('第 {a} 步，共 {b} 步', { a: i + 1, b: steps.length })}</span>
               </div>
               <Popover.Title className="ui-tour-title">{step.title}</Popover.Title>

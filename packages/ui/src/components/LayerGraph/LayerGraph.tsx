@@ -3,6 +3,7 @@ import { GraphLegend, type GraphLegendItem } from '../Graph/Graph';
 import { Tabs } from '../Tabs/Tabs';
 import { IconButton } from '../IconButton/IconButton';
 import { tr } from '../../i18n';
+import { format } from '../../format';
 import { cx, monoNums } from '../../internal/util';
 import { ScrollHint, useScrollHint } from '../../internal/scrollHint';
 import { devWarn } from '../../internal/dev';
@@ -57,10 +58,12 @@ export interface LayerGraphProps {
   labelToggle?: boolean;
   /** px. Default 200. */
   nodeWidth?: number;
-  /** Text under a box's size bar; {n} is the size. Default 「{n} 個項目」. */
-  sizeLabel?: string;
-  /** Label of a selected edge; {n} is its count. Default 「{n} 次」. */
-  countLabel?: string;
+  /** Text under a box's size bar: a string with {n}, or a function of the size for words that change with the number
+   *  (`(n) => n === 1 ? '1 function' : `${n} functions``). Default 「{n} 個項目」. */
+  sizeLabel?: string | ((n: number) => string);
+  /** Label of a selected edge's count: a string with {n}, or a function of the count (`(n) => n === 1 ? '1 call' : …`).
+   *  Default 「{n} 次」 (English 「1 call」, 「2 calls」). */
+  countLabel?: string | ((n: number) => string);
   /** Under the name of an external box, and after it in the list. Default 「repo 外」. */
   externalLabel?: string;
   /** Heading of the shared list. Default 「共用項目」. */
@@ -95,6 +98,22 @@ const scrollMemory = new Map<string, number>();
 // Label width before layout: text in the sans font, `code` and numbers in the mono font, as labelParts draws them.
 let measure: CanvasRenderingContext2D | null | undefined;
 const SPLIT = /(`[^`]+`|\d[\d,.]*)/;
+
+/** A label with a number: {n} in a string, or a function of the number; the number comes back as \u0001 (monoNums). */
+function withNum(label: string | ((n: number) => string) | undefined, n: number, fallback: (n: number) => string): string {
+  if (typeof label === 'function') {
+    const t = label(n);
+    for (const s of [format.number(n), String(n)]) if (t.includes(s)) return t.replace(s, '\u0001');
+    return t;
+  }
+  return (label ?? fallback(n)).replace('{n}', '\u0001');
+}
+
+/** The default for one (「1 call」) where the language has its own word for it, else the {n} form. */
+function byCount(n: number, one: string, many: string): string {
+  const t = n === 1 ? tr(one) : '';
+  return t && t !== one ? t : tr(many);
+}
 
 function labelWidth(text: string): number {
   const parts = text.split(SPLIT).filter(Boolean);
@@ -220,7 +239,12 @@ export function LayerGraph(p: LayerGraphProps) {
   const NW = fitted?.nw ?? (p.nodeWidth || 200);
   const NH = 60;
   const GAP = 56;
-  const COL = fitted?.col ?? 40;
+  // Space added between boxes, 24 px at a time (up to 5 times), while a label still has to cover a line.
+  // Kept per diagram and per width: other boxes or lines, or a resized box, start again from no added space.
+  const spreadKey = avail + '#' + p.nodes.map((n) => n.id).join('|') + '#' + p.edges.map((e) => e.from + '>' + e.to + ':' + (e.label ?? '')).join('|');
+  const [spreadAt, setSpread] = React.useState({ key: '', n: 0 });
+  const spread = spreadAt.key === spreadKey ? spreadAt.n : 0;
+  const COL = (fitted?.col ?? 40) + spread * 24;
   const scale = fitted?.scale ?? 1;
   const PAD = 16;
   const all = p.nodes;
@@ -265,15 +289,28 @@ export function LayerGraph(p: LayerGraphProps) {
     });
   });
   const rowTop = (k: number) => PAD + k * NH + gaps.slice(0, k).reduce((a, b) => a + b, 0);
+  // An external box alone in its row keeps its full width when the others narrow (PM), centred where it was, so its
+  // name is not cut (「被追蹤的程式」).
+  const extRow = byLayer.get(EXTERNAL) ?? [];
+  const extW = Math.max(NW, Math.min(p.nodeWidth || 200, W - PAD));
+  const boxOf = (id: string) => {
+    const wide = extRow.length === 1 && extRow[0].id === id ? extW : NW;
+    return { x: pos[id].x + (NW - wide) / 2, w: wide };
+  };
   const placeRows = () => {
     for (const id in pos) pos[id].y = rowTop(layerIndex[id]);
-    H = rowTop(layers.length - 1) + NH + PAD;
+    H = rowTop(layers.length - 1) + NH + PAD + (flatRow[layers.length - 1]?.length ? FLAT_ROOM : 0);
   };
   const maxSize = Math.max(1, ...main.map((n) => sizeOf(n) || 0));
   const maxCount = Math.max(1, ...edges.map((e) => e.count || 0));
   // A line to a higher layer (a data channel back up): it leaves the source's right side, runs up a lane along the
   // diagram's right edge and enters the target's right side. The diagram widens on the right for the lanes and labels.
   const isUp = (e: LayerGraphEdge) => !!pos[e.from] && !!pos[e.to] && layerIndex[e.to] < layerIndex[e.from];
+  // A line between two boxes of one layer: out of the source's bottom, across the gap below the row, up into the
+  // target's bottom (it used to be drawn as a line down and climbed through the target box).
+  const isFlat = (e: LayerGraphEdge) => !!pos[e.from] && !!pos[e.to] && e.from !== e.to && layerIndex[e.to] === layerIndex[e.from];
+  const flatIn: Record<string, LayerGraphEdge[]> = {};
+  const flatRow: Record<number, LayerGraphEdge[]> = {};
   const outs: Record<string, LayerGraphEdge[]> = {};
   const ins: Record<string, LayerGraphEdge[]> = {};
   const upOut: Record<string, LayerGraphEdge[]> = {};
@@ -286,8 +323,15 @@ export function LayerGraph(p: LayerGraphProps) {
       continue;
     }
     (outs[e.from] ??= []).push(e);
+    if (isFlat(e)) {
+      (flatIn[e.to] ??= []).push(e);
+      (flatRow[layerIndex[e.from]] ??= []).push(e);
+      continue;
+    }
     (ins[e.to] ??= []).push(e);
   }
+  // The last row's flat lines need room under it; others use the gap below their row.
+  const FLAT_ROOM = 20 + 10 * Math.max(0, (flatRow[layers.length - 1]?.length ?? 0) - 1);
   const ups = edges.filter(isUp);
   const rowOf = (id: string) => byLayer.get(layers[layerIndex[id]]) ?? [];
   const rightmost = (id: string) => rowOf(id)[rowOf(id).length - 1]?.id === id;
@@ -362,9 +406,23 @@ export function LayerGraph(p: LayerGraphProps) {
     p.onSelect?.(on ? null : id);
   };
   const nameOf = (id: string) => all.find((n) => n.id === id)?.name || id;
-  const countText = (e: LayerGraphEdge) => (p.countLabel ?? tr('{n} 次')).replace('{n}', String(e.count ?? 0));
+  const countText = (e: LayerGraphEdge) => {
+    const n = e.count ?? 0;
+    return typeof p.countLabel === 'function' ? p.countLabel(n) : (p.countLabel ?? byCount(n, '1 次', '{n} 次')).replace('{n}', format.number(n));
+  };
   // The label a line down gets: its own label for an inferred line, else its count (when related to the selection).
-  const markText = (e: LayerGraphEdge) => (e.inferred ? e.label || p.inferredLabel || tr('推測') : countText(e));
+  // Two or more lines with the same label (「執行 ibmon」 from two boxes) cannot be told apart: each gets its source in
+  // front, 「來自 src/cli，…」.
+  // In a language with capitals, 「Passes data…」 after 「From x, 」 starts lower case (not an acronym like 「SHM」).
+  const midSentence = (t: string) => (/^[A-Z][a-z]/.test(t) && !/^zh/i.test(format.locale()) ? t[0].toLowerCase() + t.slice(1) : t);
+  // Only labels the app wrote: lines without one all show the same 「推測」, and that needs no source.
+  const sameLabel = new Map<string, number>();
+  for (const e of edges) if (e.inferred && e.label && pos[e.from] && pos[e.to]) sameLabel.set(e.label, (sameLabel.get(e.label) ?? 0) + 1);
+  const inferredText = (e: LayerGraphEdge) =>
+    e.label && (sameLabel.get(e.label) ?? 0) > 1
+      ? tr('來自 {from}，{label}', { from: nameOf(e.from), label: midSentence(e.label) })
+      : e.label || p.inferredLabel || tr('推測');
+  const markText = (e: LayerGraphEdge) => (e.inferred ? inferredText(e) : countText(e));
   // Room beside the boxes for the lanes only: the labels sit beside the lane, between the layers (PB), so they do not
   // widen the diagram. The left side shifts every box right, the right side widens it.
   if (upsL.length) {
@@ -413,13 +471,15 @@ export function LayerGraph(p: LayerGraphProps) {
     const need = new Set<number>();
     // Gaps where a label found no spot even covering a line (it would sit on a box or another label).
     const crowd = new Set<number>();
+    // Labels that found no spot clear of every line and cover one: the space between boxes then grows (see spread).
+    let covered = 0;
     // Where a line down leaves, turns and arrives (no lanes yet): shared by the lane search and the drawing.
     const geomOf = (e: LayerGraphEdge) => {
       const a = pos[e.from];
       const b = pos[e.to];
       const oi = outs[e.from].indexOf(e);
       const on = outs[e.from].length;
-      const sx = Math.round(a.x + (NW * (oi + 1)) / (on + 1));
+      const sx = outX(a.x, oi, on);
       const sy = a.y + NH;
       const tx = txOf(e);
       const ty = b.y;
@@ -441,8 +501,51 @@ export function LayerGraph(p: LayerGraphProps) {
     // either side of its own turn, and the order where the most labels miss every vertical line of the group wins;
     // a tie keeps the rightmost arrow lowest. A label still blocked falls back to the search below.
     const lanes = new Map<LayerGraphEdge, { y: number; side: 'right' | 'left' }>();
+    // Where the lines leave a box: spread over its whole width, 16 px in from each edge, so the labels of the lines
+    // that leave it have room between them; one line leaves from the middle.
+    const outX = (x: number, i: number, n: number) => Math.round(n < 2 ? x + NW / 2 : x + 16 + ((NW - 32) * i) / (n - 1));
+    // A flat line (same layer): its source x, its run's height in the gap below the row, its target x.
+    const flatOf = (e: LayerGraphEdge) => {
+      const a = pos[e.from];
+      const b = pos[e.to];
+      const oi = outs[e.from].indexOf(e);
+      const on = outs[e.from].length;
+      const sx = outX(a.x, oi, on);
+      const j = flatRow[layerIndex[e.from]].indexOf(e);
+      const ti = flatIn[e.to].indexOf(e);
+      const tx = Math.round(b.x + NW - 24 - ti * 12);
+      return { sx, sy: a.y + NH, y: a.y + NH + 14 + j * 10, tx, ty: b.y + NH };
+    };
+    // The vertical runs of every line, as drawn before lanes are chosen: what a label of the group must also miss
+    // (a line skipping a layer down its channel, the lines into other boxes, the lanes of the lines up).
+    const vertsOf = (e: LayerGraphEdge) => {
+      if (isFlat(e)) {
+        const f = flatOf(e);
+        return [
+          { x: f.sx, y0: f.sy, y1: f.y },
+          { x: f.tx, y0: f.ty, y1: f.y },
+        ];
+      }
+      if (isUp(e)) {
+        const x = laneX(e);
+        return [{ x, y0: pos[e.to].y, y1: pos[e.from].y + NH }];
+      }
+      const g = geomOf(e);
+      if (!g.skip)
+        return [
+          { x: g.sx, y0: g.sy, y1: g.y1 },
+          { x: g.tx, y0: g.y1, y1: g.ty },
+        ];
+      const y2 = g.ty - gaps[layerIndex[e.to] - 1] / 2 + g.off;
+      return [
+        { x: g.sx, y0: g.sy, y1: g.y1 },
+        { x: g.chx, y0: g.y1, y1: y2 },
+        { x: g.tx, y0: y2, y1: g.ty },
+      ];
+    };
     for (const id in laneGroups) {
       const group = laneGroups[id].map((e) => ({ e, g: geomOf(e), w: Math.ceil(labelWidth(markText(e))) }));
+      const others = edges.filter((e) => !laneGroups[id].includes(e) && pos[e.from] && pos[e.to]).flatMap((e) => vertsOf(e).map((v) => ({ k: -1, ...v })));
       const n = group.length;
       const laneY = (j: number) => group[0].g.ty - 8 - 16 - j * LANE_H;
       const perms: number[][] = [];
@@ -457,10 +560,13 @@ export function LayerGraph(p: LayerGraphProps) {
         // perm[j] is the edge on lane j (0 the lowest).
         const ys: number[] = [];
         perm.forEach((k, j) => (ys[k] = laneY(j)));
-        const verts = group.flatMap((q, k) => [
-          { k, x: q.g.from, y0: q.g.startY, y1: ys[k] },
-          { k, x: q.g.tx, y0: ys[k], y1: q.g.ty - 8 },
-        ]);
+        const verts = [
+          ...group.flatMap((q, k) => [
+            { k, x: q.g.from, y0: q.g.startY, y1: ys[k] },
+            { k, x: q.g.tx, y0: ys[k], y1: q.g.ty - 8 },
+          ]),
+          ...others,
+        ];
         // Past the left edge is fine: the diagram widens to the left for it.
         const free = (k: number, x0: number, x1: number) =>
           verts.every((v) =>
@@ -495,6 +601,7 @@ export function LayerGraph(p: LayerGraphProps) {
       r: boolean;
       dim: boolean;
       up?: boolean;
+      flat?: boolean;
       lane?: number | null;
       from?: number;
       side?: 'right' | 'left';
@@ -506,6 +613,8 @@ export function LayerGraph(p: LayerGraphProps) {
     const runs: number[][] = [];
     // Every straight piece of every line, for the labels of up lines.
     const segs: { idx: number; box: number[] }[] = [];
+    // Each line's corner points, for the search along its own line.
+    const ptsOf: Record<number, Pt[]> = {};
     const arrows: number[][] = [];
     const hitPaths: React.ReactNode[] = [];
     edges.forEach((e, idx) => {
@@ -569,8 +678,25 @@ export function LayerGraph(p: LayerGraphProps) {
         const sx0 = start[start.length - 2][0];
         runs.push([Math.min(sx0, lx), Math.max(sx0, lx), y0 - 3, y0 + 3]);
         if (e.inferred || r) {
-          const text = e.inferred ? e.label || p.inferredLabel || tr('推測') : countText(e);
+          const text = markText(e);
           marks.push({ idx, e, text, tx: L ? upLabelX : upLabelEndL, ty: Math.round((y0 + y1) / 2), left: !L, r, dim, up: true });
+        }
+      } else if (isFlat(e)) {
+        const f = flatOf(e);
+        tx = f.tx;
+        ty = f.ty;
+        pts = [
+          [f.sx, f.sy],
+          [f.sx, f.y],
+          [f.tx, f.y],
+          [f.tx, f.ty + 9],
+        ];
+        arrow = `M${tx - 5} ${ty + 9} L${tx + 5} ${ty + 9} L${tx} ${ty} Z`;
+        arrows.push([tx - 5, tx + 5, ty, ty + 9]);
+        runs.push([Math.min(f.sx, f.tx), Math.max(f.sx, f.tx), f.y - 3, f.y + 3]);
+        if (e.inferred || r) {
+          const text = markText(e);
+          marks.push({ idx, e, text, tx: Math.round((f.sx + f.tx) / 2), ty: f.y, left: false, r, dim, flat: true });
         }
       } else {
         inn = ins[e.to].length;
@@ -608,6 +734,7 @@ export function LayerGraph(p: LayerGraphProps) {
       // Hover on a selectable line: darker and 2 px thicker.
       const w = (e.inferred ? 1.5 : 1.5 + 5.5 * ((e.count || 0) / maxCount)) + (picked ? 1.5 : 0) + (hovered ? 2 : 0);
       const cpts = clean(pts);
+      ptsOf[idx] = cpts;
       for (let k = 1; k < cpts.length; k++) {
         const [ax, ay] = cpts[k - 1];
         const [bx, by] = cpts[k];
@@ -641,7 +768,7 @@ export function LayerGraph(p: LayerGraphProps) {
             aria-label={tr('{from} → {to}，{what}', {
               from: nameOf(e.from),
               to: nameOf(e.to),
-              what: (e.inferred ? e.label || p.inferredLabel || tr('推測') : countText(e)).replace(/`/g, ''),
+              what: markText(e).replace(/`/g, ''),
             })}
             aria-pressed={picked}
             onClick={(ev) => {
@@ -662,8 +789,8 @@ export function LayerGraph(p: LayerGraphProps) {
         );
       }
       paths.push(<path key={'a' + idx} className={cx('ui-lg-arrow', r && 'is-related', dim && 'is-dim')} d={arrow} />);
-      if (!up && (e.inferred || r)) {
-        const text = e.inferred ? e.label || p.inferredLabel || tr('推測') : countText(e);
+      if (!up && !isFlat(e) && (e.inferred || r)) {
+        const text = markText(e);
         // Several arrows into one box: an arrow in the left half puts its label on its left.
         marks.push({ idx, e, text, tx, ty, left: inn > 1 && tx < b.x + NW / 2, r, dim, lane: laneAt, from: turnFrom, side: laneSide });
       }
@@ -672,11 +799,59 @@ export function LayerGraph(p: LayerGraphProps) {
     // Obstacles are [left, right, top, bottom, gap].
     const placed = [...arrows, ...runs];
     // Boxes, which the labels of up lines (placed in the gaps beside the lanes) must not cover.
-    const boxRects = main.map((n) => [pos[n.id].x, pos[n.id].x + NW, pos[n.id].y, pos[n.id].y + NH]);
+    const boxRects = main.map((n) => [boxOf(n.id).x, boxOf(n.id).x + boxOf(n.id).w, pos[n.id].y, pos[n.id].y + NH]);
     const hits = (x0: number, x1: number, y0: number, y1: number) =>
       placed.some((q) => x0 < q[1] + (q[4] || 0) && q[0] < x1 + (q[4] || 0) && y0 < q[3] && q[2] < y1);
     // On its own line: the line itself, not the room around it, since the label sits beside its own arrowhead and lane.
     const cross = (q: number[], x0: number, lw: number, y0: number, y1: number) => x0 < q[1] - 1 && q[0] + 1 < x0 + lw && y0 < q[3] - 1 && q[2] + 1 < y1;
+    // Along its own line: beside each vertical run (either side) and above or below each horizontal run, every 6 px,
+    // on one line or wrapped; clear of every other line, box, arrowhead and placed label. The clear spot nearest the
+    // arrowhead wins. Used when the spots beside the arrowhead (or the lane, for a line up) are all blocked.
+    const alongLine = (m: { idx: number; text: string; tx: number; ty: number }) => {
+      const pts = ptsOf[m.idx] ?? [];
+      const ok = (x0: number, lw: number, y0: number, y1: number) =>
+        x0 >= PAD / 2 &&
+        x0 + lw <= W - PAD / 2 &&
+        y0 >= 2 &&
+        y1 <= H - 2 &&
+        !hits(x0 - 2, x0 + lw + 2, y0 - 2, y1 + 2) &&
+        !boxRects.some((q) => x0 < q[1] + 4 && q[0] < x0 + lw + 4 && y0 < q[3] + 4 && q[2] < y1 + 4) &&
+        !segs.some((sg) =>
+          sg.idx === m.idx ? cross(sg.box, x0, lw, y0, y1) : x0 < sg.box[1] + 2 && sg.box[0] < x0 + lw + 2 && y0 < sg.box[3] + 2 && sg.box[2] < y1 + 2,
+        );
+      for (const lines of wraps(m.text)) {
+        const lw = Math.ceil(Math.max(...lines.map(labelWidth)));
+        const lh = lines.length * 16;
+        let best: { x0: number; top: number; d: number } | null = null;
+        for (let k = 1; k < pts.length; k++) {
+          const [ax, ay] = pts[k - 1];
+          const [bx, by] = pts[k];
+          const len = Math.hypot(bx - ax, by - ay);
+          for (let t = 0; t <= len; t += 6) {
+            const x = ax + ((bx - ax) * t) / len;
+            const y = ay + ((by - ay) * t) / len;
+            const cands =
+              ax === bx
+                ? [
+                    [x + 8, y],
+                    [x - 8 - lw, y],
+                  ]
+                : [
+                    [x - lw / 2, y - 6 - lh / 2],
+                    [x - lw / 2, y + 6 + lh / 2],
+                  ];
+            for (const [x0, top] of cands) {
+              // The distance first: a spot no nearer than the best one is not checked against every line.
+              const d = Math.hypot(x0 + lw / 2 - m.tx, top - m.ty);
+              if (best && d >= best.d) continue;
+              if (ok(x0, lw, top - lh / 2, top + lh / 2)) best = { x0, top, d };
+            }
+          }
+        }
+        if (best) return { x0: Math.round(best.x0), top: Math.round(best.top), lw, lh, lines };
+      }
+      return null;
+    };
     const labelEl = (m: (typeof marks)[number], x0: number, top: number, lines: string[] = [m.text]) => (
       // With onSelectEdge the label selects its edge too (a mouse and touch target; keyboard uses the line itself).
       <span
@@ -717,6 +892,26 @@ export function LayerGraph(p: LayerGraphProps) {
       .sort((m, n) => Number(!!m.up) - Number(!!n.up) || m.ty - n.ty || m.tx - n.tx)
       .forEach((m) => {
         const w = Math.ceil(labelWidth(m.text));
+        if (m.flat) {
+          // Along its own line, nearest the middle of its run; else the gap below the row grows, and as a last resort
+          // it sits above the middle of the run.
+          let spot = alongLine(m);
+          if (!spot) {
+            const g = layerIndex[m.e.from];
+            if (g < layers.length - 1) need.add(g);
+            covered++;
+            // Off boxes and labels at least: below the run, moved down 18 px at a time.
+            const x0 = Math.max(PAD / 2, Math.min(W - PAD / 2 - w, m.tx - w / 2));
+            const taken = (t: number) =>
+              hits(x0, x0 + w, t - 10, t + 10) || boxRects.some((q) => x0 < q[1] + 2 && q[0] < x0 + w + 2 && t - 10 < q[3] && q[2] < t + 10);
+            let top = m.ty + 14;
+            for (let k = 0; k < 8 && taken(top); k++) top += 18;
+            spot = { x0, top, lw: w, lh: 16, lines: [m.text] };
+          }
+          placed.push([spot.x0, spot.x0 + spot.lw, spot.top - spot.lh / 2 - 4, spot.top + spot.lh / 2 + 4, 6]);
+          labels.push(labelEl(m, spot.x0, spot.top, spot.lines));
+          return;
+        }
         if (m.up) {
           // Beside its lane, halfway between the two ends (the gap between layers); moved up, then down, off boxes,
           // lines and labels already placed, and kept inside the diagram. On one line when a spot is clear of every
@@ -748,6 +943,7 @@ export function LayerGraph(p: LayerGraphProps) {
               break;
             }
           }
+          if (!spot) spot = alongLine(m);
           if (!spot) {
             // The gap the label sits in: the one around its middle, else the one just above the line's source.
             const g = Math.max(
@@ -758,6 +954,7 @@ export function LayerGraph(p: LayerGraphProps) {
               ),
             );
             need.add(g);
+            covered++;
             const x0 = x0Of(w);
             const top = find(x0, w, 16, false);
             if (top == null) crowd.add(g);
@@ -817,11 +1014,13 @@ export function LayerGraph(p: LayerGraphProps) {
           }
           if (spot) break;
         }
+        if (!spot) spot = alongLine(m);
         if (!spot) {
           // No spot clear of every line: the gap grows while it can. Meanwhile, and once it cannot, the same search lets
           // the label cover a line (on its white ground), never a box or another label; as a last resort, as before
           // this rule: on its side, moved up off labels only.
           if (g >= 0) need.add(g);
+          covered++;
           const offBoxes = (x0: number, lw: number, y0: number, y1: number) =>
             !hits(x0, x0 + lw, y0, y1) && !boxRects.some((q) => x0 < q[1] + 2 && q[0] < x0 + lw + 2 && y0 < q[3] + 2 && q[2] < y1 + 2);
           for (const lines of wraps(m.text)) {
@@ -848,13 +1047,14 @@ export function LayerGraph(p: LayerGraphProps) {
             spot = { x0, top, lw: w, lh: 16, lines: [m.text] };
           }
         }
-        placed.push([spot.x0, spot.x0 + spot.lw, spot.top - spot.lh / 2, spot.top + spot.lh / 2, 6]);
+        // 2 px above and below: a label placed later along its line keeps clear of this one on any font.
+        placed.push([spot.x0, spot.x0 + spot.lw, spot.top - spot.lh / 2 - 2, spot.top + spot.lh / 2 + 2, 6]);
         // 4 px for the label's own padding and the canvas measure's rounding.
         wide = Math.max(wide, spot.x0 + spot.lw + PAD / 2 + 4);
         least = Math.min(least, spot.x0 - PAD / 2 - 4);
         labels.push(labelEl(m, spot.x0, spot.top, spot.lines));
       });
-    return { paths, labels, hitPaths, need, crowd, wide, least };
+    return { paths, labels, hitPaths, need, crowd, wide, least, covered };
   };
   // Room for the lanes: LANE_H px per labelled line into one box, plus the arrow and a margin.
   for (const id in laneCount) {
@@ -901,7 +1101,7 @@ export function LayerGraph(p: LayerGraphProps) {
     drawn = draw();
   }
   const { paths, labels, hitPaths } = drawn;
-  const sizeText = p.sizeLabel ?? tr('{n} 個項目');
+  const sizeText = (n: number) => withNum(p.sizeLabel, n, () => byCount(n, '1 個項目', '{n} 個項目'));
   const externalText = p.externalLabel ?? tr('repo 外');
   const useText = p.useLabel ?? tr('使用 {n} 次');
   const nodes = main.map((n) => {
@@ -914,7 +1114,7 @@ export function LayerGraph(p: LayerGraphProps) {
         key={n.id}
         type="button"
         className={cx('ui-lg-node', n.external && 'is-external', on && 'is-selected', !near(n.id) && 'is-dim')}
-        style={{ left: q.x, top: q.y, width: NW, height: NH }}
+        style={{ left: boxOf(n.id).x, top: q.y, width: boxOf(n.id).w, height: NH }}
         aria-pressed={p.onSelect ? on : undefined}
         onClick={p.onSelect ? () => pick(n.id, on) : undefined}
       >
@@ -928,7 +1128,7 @@ export function LayerGraph(p: LayerGraphProps) {
             <span className="ui-lg-track" aria-hidden="true">
               <span style={{ width: Math.round((size / maxSize) * 100) + '%' }} />
             </span>
-            <span className="ui-lg-count">{monoNums(sizeText.replace('{n}', '\u0001'), [size])}</span>
+            <span className="ui-lg-count">{monoNums(sizeText(size), [format.number(size)])}</span>
           </span>
         ) : null}
       </button>
@@ -998,7 +1198,7 @@ export function LayerGraph(p: LayerGraphProps) {
               ) : size != null ? (
                 <span className="ui-lg-limeta">
                   {tr('，')}
-                  {monoNums(sizeText.replace('{n}', '\u0001'), [size])}
+                  {monoNums(sizeText(size), [format.number(size)])}
                 </span>
               ) : null,
             );
@@ -1018,13 +1218,16 @@ export function LayerGraph(p: LayerGraphProps) {
                 e === selEdge,
                 focus && !related(e) && !(selShared && e.to === selShared),
                 pickEdge && edges.includes(e) ? () => choose(e) : undefined,
+                // The whole line is the button, so its name says what the relation is, as on the diagram: three lines
+                // between the same two boxes no longer share the name 「A → B」.
                 <>
                   <span className="ui-lg-code">{nameOf(e.from)}</span> → <span className="ui-lg-code">{nameOf(e.to)}</span>
+                  <span className="ui-lg-limeta">
+                    {tr('：')}
+                    {labelParts(edgeText(e))}
+                  </span>
                 </>,
-                <span className="ui-lg-limeta">
-                  {tr('：')}
-                  {labelParts(edgeText(e))}
-                </span>,
+                null,
               ),
             )}
         </ul>
@@ -1061,6 +1264,12 @@ export function LayerGraph(p: LayerGraphProps) {
     // Smaller than 0.75: the text would be too small to read; it scrolls instead.
     if (s >= 0.75) setFit({ ...fitted, scale: Math.floor(s * 1000) / 1000 });
   }, [avail, showList, fitted, W, p.nodeWidth, cols]);
+  // A label still covering a line: more space between boxes, then drawn again (up to 120 px more).
+  const coveredNow = drawn.covered;
+  React.useLayoutEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- known only after the labels are placed
+    if (coveredNow && spread < 5) setSpread({ key: spreadKey, n: spread + 1 });
+  }, [coveredNow, spread, spreadKey]);
   return (
     <div className={cx('ui-graph ui-lg', p.className)}>
       {p.listView === false && !toggleShown ? null : (

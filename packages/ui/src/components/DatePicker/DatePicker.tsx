@@ -23,9 +23,14 @@ export function DatePicker({ label, value, onChange, hint, required, className }
   const [open, setOpen] = React.useState(false);
   const [typed, setTyped] = React.useState<string | null>(null);
   const field = React.useRef<HTMLDivElement>(null);
-  const bad = typed !== null && typed !== '' && !parseDate(typed);
+  const wrong = typed !== null && typed !== '' && !parseDate(typed);
+  // A half-typed date (「2026/1」) is not an error yet: it shows once the person leaves the field, and goes as soon as
+  // the date is valid again.
+  const [left, setLeft] = React.useState(false);
+  const bad = wrong && left;
   const commit = (d: Date | null) => {
     setTyped(null);
+    setLeft(false);
     onChange(d);
     setOpen(false);
   };
@@ -42,6 +47,8 @@ export function DatePicker({ label, value, onChange, hint, required, className }
           className="ui-datefield-input"
           value={typed ?? fmtDate(value)}
           placeholder="YYYY/MM/DD"
+          // The label's red asterisk is hidden from screen readers; they hear 「必填」 from this.
+          aria-required={required || undefined}
           aria-invalid={bad || undefined}
           onChange={(e) => {
             const t = e.target.value;
@@ -50,7 +57,7 @@ export function DatePicker({ label, value, onChange, hint, required, className }
             if (d) onChange(d);
             else if (t === '') onChange(null);
           }}
-          onBlur={() => !bad && setTyped(null)}
+          onBlur={() => (wrong ? setLeft(true) : setTyped(null))}
         />
         <FloatingPanel
           open={open}

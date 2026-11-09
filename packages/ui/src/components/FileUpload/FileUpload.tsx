@@ -88,7 +88,7 @@ export function FileUpload({ label, files = [], onAdd, onRemove, onRetry, limitT
                     {fl.size ? <span className="ui-upload-size">{fl.size}</span> : null}
                   </div>
                   {!fail ? (
-                    <ProgressBar value={fl.status === 'done' ? 100 : fl.progress || 0} />
+                    <ProgressBar value={fl.status === 'done' ? 100 : fl.progress || 0} aria-label={tr('{name} 上傳進度', { name: fl.name })} />
                   ) : (
                     <div className="ui-upload-error" role="alert">
                       {fl.error || tr('上傳失敗，請再試一次。')}

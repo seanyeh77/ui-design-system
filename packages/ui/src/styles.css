@@ -84,7 +84,7 @@ body {
 }
 .ui-btn-danger {
   background: var(--danger);
-  color: #ffffff;
+  color: var(--on-solid);
 }
 .ui-btn-danger:hover:not(:disabled) {
   filter: brightness(0.92);
@@ -158,7 +158,7 @@ body {
   padding-right: 40px;
 }
 .has-error .ui-input:focus {
-  box-shadow: 0 0 0 3px rgba(205, 40, 35, 0.25);
+  box-shadow: 0 0 0 3px var(--danger-ring);
 }
 .ui-field-icon {
   position: absolute;
@@ -479,7 +479,7 @@ body {
 .ui-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--scrim);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   display: flex;
@@ -716,6 +716,19 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+}
+/* Phones: the project switcher's name gives way before the page title, which keeps its width up to 45 % of the bar
+   before it is cut, rather than 「A…」. Wider, the title shrinks as before. */
+@media (max-width: 599px) {
+  .ui-topbar-title {
+    flex: 0 0 auto;
+    max-width: 45%;
+  }
+}
+.ui-topbar-end > .ui-projsw,
+.ui-projsw-text {
+  min-width: 0;
 }
 .ui-search {
   display: inline-flex;
@@ -1026,7 +1039,7 @@ body {
   justify-content: center;
 }
 .ui-switch.is-on .ui-switch-thumb {
-  background: #ffffff;
+  background: var(--on-solid);
   color: var(--accent);
 }
 
@@ -1987,7 +2000,9 @@ body {
     text-align: left;
     overflow: visible;
     white-space: normal;
-    overflow-wrap: anywhere;
+    /* Break a word only when it is wider than the card: 「anywhere」 also let a name in a flex row with tags shrink
+       and break mid-word (「ucp_worker_progre / ss」). */
+    overflow-wrap: break-word;
   }
   .ui-dt-body .ui-dt-cell[data-label]::before {
     content: attr(data-label);
@@ -2010,6 +2025,10 @@ body {
     grid-row: 1;
     margin-top: 0;
     font-weight: 600;
+  }
+  /* A title made of a name and tags in a row: the tags go to the next line instead of squeezing the name. */
+  .ui-dt-body .ui-dt-cell.is-m-title > :is(span, div):only-child {
+    flex-wrap: wrap;
   }
   .ui-dt-body .ui-dt-cell.is-m-status {
     grid-column: 3;
@@ -2292,7 +2311,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 800;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--scrim);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   transition: opacity 300ms ease;
@@ -2436,6 +2455,8 @@ html.ui-theme-fade * {
 .ui-themepick-mini span:last-child {
   top: 24px;
 }
+/* The theme previews show the light and dark themes whatever the current one is: their own fixed colors (bg and line
+   of each theme), not tokens. */
 .ui-themepick-mini.is-light {
   background: #fcfbfb;
 }
@@ -2476,7 +2497,7 @@ html.ui-theme-fade * {
   cursor: pointer;
 }
 .ui-swatch .ui-icon {
-  color: #ffffff;
+  color: var(--on-solid);
 }
 .ui-swatch.is-on {
   box-shadow:
@@ -2551,7 +2572,7 @@ html.ui-theme-fade * {
   box-sizing: border-box;
   border-radius: 99px;
   background: var(--danger);
-  color: #ffffff;
+  color: var(--on-solid);
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
@@ -3430,13 +3451,10 @@ html.ui-theme-fade * {
   font-family: var(--font-mono);
 }
 .ui-mark {
-  background: #fde68a;
+  background: var(--mark);
   color: inherit;
   border-radius: 2px;
   padding: 0 1px;
-}
-[data-theme='dark'] .ui-mark {
-  background: #7c5d12;
 }
 .ui-dt-empty .ui-btn {
   margin-top: 10px;
@@ -3453,7 +3471,7 @@ html.ui-theme-fade * {
   position: sticky;
   z-index: 1;
   background: inherit;
-  box-shadow: 6px 0 8px -6px rgba(0, 0, 0, 0.18);
+  box-shadow: 6px 0 8px -6px var(--edge-shadow);
 }
 .ui-dt-head .ui-dt-cell.is-sticky {
   background: var(--surface-sub);
@@ -3468,6 +3486,7 @@ html.ui-theme-fade * {
   .ui-dt-cell.is-sticky {
     position: static;
     box-shadow: none;
+    background: none;
   }
   .ui-dt-facets {
     grid-template-columns: 1fr;
@@ -3645,7 +3664,7 @@ html.ui-theme-fade * {
   width: 30px;
   height: 36px;
   color: var(--ink-muted);
-  --ext: #6d645a;
+  --ext: var(--file-other);
 }
 .ui-tree-doc svg {
   display: block;
@@ -3663,7 +3682,7 @@ html.ui-theme-fade * {
   box-sizing: border-box;
   border-radius: 3px;
   background: var(--ext);
-  color: #fff;
+  color: var(--on-solid);
   font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 700;
@@ -3672,28 +3691,28 @@ html.ui-theme-fade * {
   letter-spacing: 0.02em;
 }
 .ui-tree-doc.is-pdf {
-  --ext: #cd2823;
+  --ext: var(--file-pdf);
 }
 .ui-tree-doc.is-video {
-  --ext: #7a4fd6;
+  --ext: var(--file-video);
 }
 .ui-tree-doc.is-audio {
-  --ext: #b0368a;
+  --ext: var(--file-audio);
 }
 .ui-tree-doc.is-slides {
-  --ext: #c4600f;
+  --ext: var(--file-slides);
 }
 .ui-tree-doc.is-doc {
-  --ext: #2457d6;
+  --ext: var(--file-doc);
 }
 .ui-tree-doc.is-sheet {
-  --ext: #1d7a45;
+  --ext: var(--file-sheet);
 }
 .ui-tree-doc.is-image {
-  --ext: #0f7480;
+  --ext: var(--file-image);
 }
 .ui-tree-doc.is-code {
-  --ext: #3d4552;
+  --ext: var(--file-code);
 }
 .ui-tree-main {
   flex: 1 1 auto;
@@ -4182,7 +4201,7 @@ html.ui-theme-fade * {
   position: fixed;
   z-index: 950;
   inset: 0;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--scrim);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   animation: ui-fade 150ms ease both;
@@ -4400,14 +4419,14 @@ html.ui-theme-fade * {
   inset: 0;
 }
 .ui-tour-block.is-dim {
-  background: rgba(0, 0, 0, 0.55);
+  background: var(--scrim-strong);
 }
 .ui-tour-spot {
   position: fixed;
   border-radius: var(--radius-md);
   box-shadow:
     0 0 0 3px var(--accent),
-    0 0 0 9999px rgba(0, 0, 0, 0.55);
+    0 0 0 9999px var(--scrim-strong);
   pointer-events: none;
   transition:
     left 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -4631,7 +4650,7 @@ html.ui-theme-fade * {
   position: fixed;
   z-index: 900;
   inset: 0;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--scrim);
   animation: ui-fade 200ms ease both;
 }
 .ui-term-sheet {
@@ -4823,6 +4842,27 @@ html.ui-theme-fade * {
   background: linear-gradient(var(--line-strong), var(--line-strong)) no-repeat 1.5ch 20px / 2px calc(100% - 20px);
 }
 /* 「第 62 行」 for screen readers only: never selected or copied with the code. */
+/* A path in a comment or string, as a link (refHref, onRef): link colour, underlined; a button looks the same. */
+.ui-cv-ref {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  border-radius: 2px;
+}
+.ui-cv-ref:hover {
+  text-decoration-thickness: 2px;
+}
+.ui-cv-ref:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.ui-cv-ref:is(button) {
+  cursor: pointer;
+}
 .ui-cv-sr {
   user-select: none;
   -webkit-user-select: none;
@@ -5074,6 +5114,18 @@ html.ui-theme-fade * {
   text-decoration: underline;
   text-underline-offset: 2px;
   cursor: pointer;
+}
+/* A relation's button holds its description too: only the box names are underlined, the description is plain text
+   (inline, so the button's name has no extra space before 「：」). */
+.ui-lg-libtn:has(.ui-lg-limeta) {
+  text-decoration: none;
+}
+.ui-lg-libtn:has(.ui-lg-limeta) > .ui-lg-code {
+  text-decoration: underline;
+}
+.ui-lg-libtn .ui-lg-limeta {
+  color: var(--ink-muted);
+  font-weight: 400;
 }
 .ui-lg-libtn.is-selected {
   background: var(--accent-soft);
@@ -5760,4 +5812,18 @@ html.ui-theme-fade * {
   .ui-split-grip i {
     transition: none;
   }
+}
+
+/* seenOnly(): text drawn by CSS, out of the page's text and the accessibility tree (empty alt text). */
+.ui-seen::before {
+  content: attr(data-text);
+  content: attr(data-text) / '';
+}
+
+/* Charts by keyboard: the plot is a Tab stop; ← → show each value. */
+.ui-bars:focus-visible,
+.ui-chart-plot:focus-visible {
+  outline: none;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }

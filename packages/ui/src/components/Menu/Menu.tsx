@@ -76,7 +76,7 @@ export function Menu({ items, label, icon = 'dots-three', align = 'end', trigger
         <Dialog
           open={!!asking}
           onClose={() => setAsking(null)}
-          title={asking ? (asking.confirm?.title ?? asking.label + '？') : ''}
+          title={asking ? (asking.confirm?.title ?? tr('{label}？', { label: asking.label })) : ''}
           tone="danger"
           confirmLabel={asking?.confirm?.confirmLabel ?? asking?.label ?? ''}
           onConfirm={() => {

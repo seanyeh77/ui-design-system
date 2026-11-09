@@ -72,7 +72,13 @@ export function NotificationBell({ items, onOpen, onReadAll, emptyText }: Notifi
               {g.title ? <div className="ui-noti-group">{g.title}</div> : null}
               {g.items.map((it) => (
                 <button key={it.id} type="button" className={cx('ui-noti-item', !it.read && 'is-unread')} onClick={() => onOpen?.(it)}>
-                  {!it.read ? <span className="ui-noti-dot" aria-label={tr('未讀')} /> : null}
+                  {/* A span's aria-label is not read: the state is hidden text instead, read first, 「未讀，標題」. */}
+                  {!it.read ? (
+                    <>
+                      <span className="ui-noti-dot" aria-hidden="true" />
+                      <span className="ui-visually-hidden">{tr('未讀') + tr('，')}</span>
+                    </>
+                  ) : null}
                   <span className="ui-noti-text">
                     <span className="ui-noti-t">{it.title}</span>
                     {it.body ? <span className="ui-noti-b">{it.body}</span> : null}

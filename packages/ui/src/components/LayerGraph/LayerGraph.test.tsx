@@ -3,7 +3,7 @@ import { expect, test, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { LayerGraph, setLocale, type LayerGraphEdge } from '../../index';
+import { LayerGraph, addMessages, format, setLocale, type LayerGraphEdge } from '../../index';
 
 const user = userEvent.setup();
 const nodes = [
@@ -258,7 +258,7 @@ test('LayerGraph: the list view shows every box and line as text, selectable lik
   expect(list?.textContent).toContain('src/ibmon，91 個函式');
   expect(list?.textContent).toContain('src/ibmon → src/libibtrace：環境變數 IBTRACE_SHM（推測）');
   expect(list?.textContent).toContain('src/cli → src/libibtrace：7 次');
-  await user.click(screen.getByRole('button', { name: 'src/cli → src/libibtrace' }));
+  await user.click(screen.getByRole('button', { name: 'src/cli → src/libibtrace：7 次' }));
   expect(onEdge).toHaveBeenLastCalledWith('cli->lib');
   await user.click(screen.getByRole('button', { name: 'src/ibmon' }));
   expect(onBox).toHaveBeenLastCalledWith('ibmon');
@@ -623,4 +623,162 @@ test('LayerGraph: the tag button shows the filled tag while pressed', async () =
   await user.click(btn);
   expect(markup()).not.toBe(pressed);
   window.localStorage.removeItem('ui-lg-labels:tc3');
+});
+
+// codemap's ibtrace map (round 5): three interpose lines and an environment variable into one box, a same-layer
+// channel and an up channel with the same label, a channel down. At its desktop column and on a phone.
+const cmNodes = [
+  { id: 'ext', name: '被追蹤的程式', external: true },
+  { id: 'ibmon', name: 'src/ibmon', layer: 0, size: 26 },
+  { id: 'cli', name: 'src/cli', layer: 0, size: 26 },
+  { id: 'lib', name: 'src/libibtrace', layer: 1, size: 26 },
+  { id: 'common', name: 'src/common', layer: 2, size: 13 },
+];
+const cmEdges = [
+  { id: 'ucp', from: 'ext', to: 'lib', inferred: true, label: '攔截 `ucp`（10 個函式）' },
+  { id: 'uct', from: 'ext', to: 'lib', inferred: true, label: '攔截 `uct`（8 個函式）' },
+  { id: 'verbs', from: 'ext', to: 'lib', inferred: true, label: '攔截 `verbs`（8 個函式）' },
+  { id: 'c1', from: 'ibmon', to: 'common', count: 20 },
+  { id: 'c2', from: 'cli', to: 'common', count: 20 },
+  { id: 'c3', from: 'lib', to: 'common', count: 52 },
+  { id: 'env', from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
+  { id: 'x1', from: 'cli', to: 'ibmon', inferred: true, label: '經由 `execvp` 傳資料（執行 ibmon）' },
+  { id: 'x2', from: 'lib', to: 'ibmon', inferred: true, label: '經由 `execvp` 傳資料（執行 ibmon）' },
+  { id: 'ring', from: 'ibmon', to: 'common', inferred: true, label: '經由 `src/common` 傳資料（ring）' },
+];
+for (const w of [620, 358]) {
+  test(`LayerGraph: codemap's map at ${w} px, no line through any label`, async () => {
+    await page.viewport(1280, 900);
+    const { container } = render(
+      <div style={{ width: w }}>
+        <LayerGraph nodes={cmNodes} edges={cmEdges} legend={false} onSelectEdge={() => {}} externalLabel="repo 外" />
+      </div>,
+    );
+    await new Promise((r) => setTimeout(r, 200));
+    expectLabelsClear(container);
+  });
+}
+
+test('LayerGraph: two lines with the same label each get their source in front', () => {
+  render(<LayerGraph nodes={cmNodes} edges={cmEdges} legend={false} onSelectEdge={() => {}} />);
+  // A label may wrap (<br>): compared without spaces.
+  const texts = [...document.querySelectorAll('.ui-lg-label')].map((l) => (l.textContent ?? '').replace(/\s/g, ''));
+  expect(texts).toContain('來自src/cli，經由execvp傳資料（執行ibmon）');
+  expect(texts).toContain('來自src/libibtrace，經由execvp傳資料（執行ibmon）');
+  expect(texts).toContain('環境變數IBTRACE_SHM');
+  expect(screen.getByRole('button', { name: 'src/cli → src/ibmon，來自 src/cli，經由 execvp 傳資料（執行 ibmon）' })).toBeTruthy();
+});
+
+test('LayerGraph: a line between two boxes of one layer runs under the row, into the bottom of its target', async () => {
+  await page.viewport(1280, 900);
+  const { container } = render(
+    <LayerGraph
+      nodes={[
+        { id: 'a', name: 'src/cli', layer: 0 },
+        { id: 'b', name: 'src/ibmon', layer: 0 },
+      ]}
+      edges={[{ id: 'x', from: 'a', to: 'b', inferred: true, label: '執行 ibmon' }]}
+      legend={false}
+      onSelectEdge={() => {}}
+    />,
+  );
+  const boxes = [...container.querySelectorAll<HTMLElement>('.ui-lg-node')].map((n) => n.getBoundingClientRect());
+  const line = container.querySelector<SVGPathElement>('.ui-lg-hit');
+  const m = line?.getScreenCTM();
+  if (!line || !m) throw new Error('no line');
+  // No point of the line is inside a box.
+  for (let t = 0; t <= line.getTotalLength(); t += 2) {
+    const q = line.getPointAtLength(t);
+    const x = q.x * m.a + m.e;
+    const y = q.y * m.d + m.f;
+    for (const b of boxes) expect(x > b.left + 1 && x < b.right - 1 && y > b.top + 1 && y < b.bottom - 1).toBe(false);
+  }
+  expectLabelsClear(container);
+});
+
+test('LayerGraph: the external box keeps its whole name when the boxes narrow', async () => {
+  await page.viewport(1280, 900);
+  const { container } = render(
+    <div style={{ width: 358 }}>
+      <LayerGraph nodes={cmNodes.map((n) => (n.external ? { ...n, name: 'Traced program' } : n))} edges={cmEdges} legend={false} />
+    </div>,
+  );
+  await new Promise((r) => setTimeout(r, 200));
+  const name = container.querySelector<HTMLElement>('.ui-lg-node.is-external .ui-lg-name');
+  if (!name) throw new Error('no external box');
+  expect(name.scrollWidth).toBeLessThanOrEqual(name.clientWidth);
+});
+
+test('LayerGraph list: each relation button is named with its description, not only 「A → B」', async () => {
+  render(<LayerGraph nodes={cmNodes} edges={cmEdges} legend={false} onSelectEdge={() => {}} countLabel={(n) => (n === 1 ? '1 call' : `${n} calls`)} />);
+  await user.click(screen.getByRole('tab', { name: '清單' }));
+  const names = screen.getAllByRole('button', { name: /^被追蹤的程式 → src\/libibtrace/ }).map((b) => b.textContent);
+  expect(names).toHaveLength(3);
+  expect(new Set(names).size).toBe(3);
+  expect(screen.getByRole('button', { name: 'src/ibmon → src/common：20 calls' })).toBeTruthy();
+});
+
+test('LayerGraph: countLabel and sizeLabel can be functions of the number; English says 「1 call」', async () => {
+  setLocale('en');
+  try {
+    const { container } = render(
+      <LayerGraph
+        nodes={[
+          { id: 'a', name: 'a', layer: 0, size: 1 },
+          { id: 'b', name: 'b', layer: 1, size: 1033 },
+        ]}
+        edges={[{ id: 'x', from: 'a', to: 'b', count: 1 }]}
+        selected="a"
+        onSelect={() => {}}
+        legend={false}
+        sizeLabel={(n) => (n === 1 ? '1 function' : `${format.number(n)} functions`)}
+      />,
+    );
+    const counts = [...container.querySelectorAll('.ui-lg-count')].map((e) => e.textContent);
+    expect(counts).toEqual(['1 function', '1,033 functions']);
+    expect([...container.querySelectorAll('.ui-lg-label')].map((e) => e.textContent)).toContain('1 call');
+  } finally {
+    setLocale('zh-TW');
+  }
+});
+
+test('LayerGraph: lines without a label of their own get no source in front', () => {
+  render(
+    <LayerGraph
+      nodes={[
+        { id: 'a', name: 'a', layer: 0 },
+        { id: 'b', name: 'b', layer: 0 },
+        { id: 'c', name: 'c', layer: 1 },
+      ]}
+      edges={[
+        { id: 'x', from: 'a', to: 'c', inferred: true },
+        { id: 'y', from: 'b', to: 'c', inferred: true },
+      ]}
+      legend={false}
+    />,
+  );
+  const texts = [...document.querySelectorAll('.ui-lg-label')].map((l) => l.textContent);
+  expect(texts).toEqual(['推測', '推測']);
+});
+
+test('LayerGraph: a language without its own 「1 次」 uses its {n} form', () => {
+  addMessages('de', { '{n} 次': '{n} Aufrufe' });
+  setLocale('de');
+  try {
+    render(
+      <LayerGraph
+        nodes={[
+          { id: 'a', name: 'a', layer: 0 },
+          { id: 'b', name: 'b', layer: 1 },
+        ]}
+        edges={[{ id: 'x', from: 'a', to: 'b', count: 1 }]}
+        selected="a"
+        onSelect={() => {}}
+        legend={false}
+      />,
+    );
+    expect([...document.querySelectorAll('.ui-lg-label')].map((l) => l.textContent)).toEqual(['1 Aufrufe']);
+  } finally {
+    setLocale('zh-TW');
+  }
 });

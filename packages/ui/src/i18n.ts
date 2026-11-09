@@ -49,6 +49,10 @@ export const I18N: I18nState = {
       收合側邊欄: 'Collapse sidebar',
       放棄: 'Discard',
       '放棄未儲存的變更？': 'Discard unsaved changes?',
+      '{label}？': '{label}?',
+      '{name} 上傳進度': 'Upload progress of {name}',
+      左右方向鍵查看每一項的數值: 'Use ← and → to read each value',
+      左右方向鍵查看每一個時間點的數值: 'Use ← and → to read each point',
       '新增「{q}」': 'Add “{q}”',
       '日期格式不正確，請寫成 2026/11/14': 'Invalid date. Use 2026/11/14.',
       更多操作: 'More actions',
@@ -78,6 +82,7 @@ export const I18N: I18nState = {
       '，': ', ',
       '：': ': ',
       '。': '. ',
+      '來自 {from}，{label}': 'From {from}, {label}',
       '{from} → {to}，{what}': '{from} → {to}, {what}',
       '{label}（{inferred}）': '{label} ({inferred})',
       調整面板寬度: 'Resize the panel',
@@ -188,11 +193,13 @@ export const I18N: I18nState = {
       '切換專案，目前是 {name}': 'Switch project, now {name}',
       推測: 'Inferred',
       '{n} 個項目': '{n} items',
+      '1 個項目': '1 item',
       '{a} 個項目使用，共 {b} 次': 'Used {b} times by {a} items',
       共用項目: 'Shared',
       次數越多線越粗: 'Thicker lines mean more often',
       架構圖: 'Architecture',
       '{n} 次': '{n} calls',
+      '1 次': '1 call',
       原始碼: 'Source',
       '顯示全部 {n} 行': 'Show all {n} lines',
       '只顯示第 {n} 行前後': 'Show only around line {n}',
@@ -229,7 +236,8 @@ function msgsFor(loc: string): Record<string, string> | null {
 
 /** Translates a built-in zh-TW string into the current locale; {name} placeholders take vars. */
 export function tr(key: string, vars?: Record<string, string | number>): string {
-  const m = I18N.locale.startsWith('zh') ? null : msgsFor(I18N.locale);
+  // zh-TW (and zh-Hant) is the source text; other Chinese locales (zh-CN) use the messages an app adds for them.
+  const m = isZhTW() ? null : msgsFor(I18N.locale);
   const out = m?.[key] ?? key;
   return vars ? out.replace(/\{(\w+)\}/g, (a, k: string) => (vars[k] !== undefined ? String(vars[k]) : a)) : out;
 }

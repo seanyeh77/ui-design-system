@@ -1,25 +1,43 @@
 import * as React from 'react';
 
+/** A value (a row or node id, a file path) as part of an element id: no spaces, so aria-owns, aria-controls and
+ *  aria-labelledby, which split their value at spaces, still find it. */
+export const idPart = (s: string): string => encodeURIComponent(s);
+
 /** Joins the truthy class names. */
 export function cx(...names: unknown[]): string {
   return names.filter(Boolean).join(' ');
 }
 
+// Text that is only seen: drawn by CSS (::before), so it is neither in the page's text (copy, innerText, text-reading
+// tools) nor read aloud. The readable version goes beside it, visually hidden. Numbers keep Geist Mono.
+export function seenOnly(text: string, nums: string[]): React.ReactNode[] {
+  return splitMarks(text).map(([t, k], i) => <span key={i} className={cx('ui-seen', k >= 0 && 'ui-num')} data-text={k >= 0 ? nums[k] : t} />);
+}
+
+// A translated sentence cut at its number marks (\u0001, \u0002, \u0003): [text, -1] or [mark, its index].
+function splitMarks(text: string): [string, number][] {
+  return (
+    text
+      // eslint-disable-next-line no-control-regex -- the marks are control characters on purpose
+      .split(/(\u0001|\u0002|\u0003)/)
+      .filter(Boolean)
+      .map((t) => [t, ['\u0001', '\u0002', '\u0003'].indexOf(t)])
+  );
+}
+
 // Puts the numbers of a translated sentence in Geist Mono and leaves the words in the text font.
 // The sentence marks each number with \u0001, \u0002 or \u0003 in the order of nums.
 export function monoNums(text: string, nums: React.ReactNode[]): React.ReactNode[] {
-  const marks = ['\u0001', '\u0002', '\u0003'];
-  // eslint-disable-next-line no-control-regex -- the marks are control characters on purpose
-  return text.split(/(\u0001|\u0002|\u0003)/).map((t, i) => {
-    const k = marks.indexOf(t);
-    return k >= 0 ? (
+  return splitMarks(text).map(([t, k], i) =>
+    k >= 0 ? (
       <span key={i} className="ui-num">
         {nums[k]}
       </span>
     ) : (
       t
-    );
-  });
+    ),
+  );
 }
 
 /** localStorage get (no value) or set; null when storage is blocked. */
