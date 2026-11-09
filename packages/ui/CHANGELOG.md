@@ -1,5 +1,15 @@
 # @seanyeh77/ui
 
+## 0.12.1
+
+### Patch Changes
+
+- a6b9352: codemap 第七輪回饋：
+  
+  - LayerGraph：往上的線的標籤靠近自己那條線，離自己的線比離其他線近，不再貼在別條線旁；清單的英文在逗號前不再多出空格。
+  - Tabs：可以捲動時那一側邊緣淡出，選中的分頁自動捲進畫面。
+  - CommandPalette：輸入新的文字或 `loading` 結束時，結果數和上次一樣也會重新播報。
+
 ## 0.12.0
 
 ### Minor Changes
