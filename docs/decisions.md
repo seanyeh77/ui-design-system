@@ -451,12 +451,19 @@ Claude 定的細節（待確認）：
 - LayerGraph：相同標籤加來源的寫法「來自 {from}，{label}」，只在兩條以上文字完全相同時加。
 - LayerGraph：repo 外的方框自成一排時不跟著變窄。
 - TopBar：專案切換器的名稱先截斷，標題最多保留 45 % 寬度。
-- DataTable：不能換行的內容讓欄位自動加寬；操作欄固定在右緣（新的固定欄，和 `stickyFirst` 不同，一律開啟）。
+- DataTable：不能換行的內容讓欄位自動加寬。（操作欄固定在右緣已撤回，見「DataTable 操作欄」。）
 - DataTable：手機卡片的 `overflow-wrap` 從 `anywhere` 改成 `break-word`；標題欄唯一的子元素是橫排時自動換行。
 - 計數（DataTable、Tour、TextArea）的「a / b」改由 CSS 畫，頁面文字只留念的版本。`fullText` 改成格子的 `aria-description`；列的名稱改成第一欄。
 - Tour：目標比視窗 70 % 高時開發警告。
 - CodeView：`refHref`、`onRef` 只用在註解和字串裡的路徑；有資料夾和副檔名、或檔名加行號才算。
 - LayerGraph `countLabel`、`sizeLabel` 可以是函式；預設英文單數「1 call」「1 item」。
+
+## DataTable 操作欄
+
+使用者的要求：「好」（同意 Claude 的提案：codemap 拿掉和位置連結重複的「開啟」按鈕，操作欄維持跟著表格捲動，README 加上 `rowActions` 的使用規則）
+
+- 選 KA：操作欄跟著表格一起捲動，不固定在右緣。第五輪 Claude 自己加的固定操作欄撤回。
+- 同一列已經有連結能做到的事，不要再加 `rowActions` 按鈕；`rowActions` 只放連結做不到的操作，例如編輯、刪除。
 
 ## 寫死顏色改成 token
 

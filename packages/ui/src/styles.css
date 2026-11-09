@@ -3476,26 +3476,6 @@ html.ui-theme-fade * {
 .ui-dt-head .ui-dt-cell.is-sticky {
   background: var(--surface-sub);
 }
-/* The row-action column stays at the right edge while the table scrolls sideways, so its buttons are never off-screen;
-   the shadow shows only while more of the table is to the right. */
-.ui-dt-cell.is-end {
-  position: sticky;
-  right: 0;
-  z-index: 1;
-  background: var(--surface);
-}
-.ui-dt-body .ui-dt-row.is-even > .is-end,
-.ui-dt-head .ui-dt-cell.is-end,
-.ui-dt-total .ui-dt-cell.is-end {
-  background: var(--surface-sub);
-}
-.ui-dt-body .ui-dt-row:hover > .is-end,
-.ui-dt-body .ui-dt-row.is-selected > .is-end {
-  background: var(--accent-soft);
-}
-.ui-dt-scroller.has-more .ui-dt-cell.is-end {
-  box-shadow: -6px 0 8px -6px var(--edge-shadow);
-}
 .ui-dt-colmenu {
   min-width: 200px;
 }
@@ -3503,9 +3483,7 @@ html.ui-theme-fade * {
   .ui-dt-total {
     display: none;
   }
-  .ui-dt-cell.is-sticky,
-  .ui-dt-cell.is-end,
-  .ui-dt-scroller.has-more .ui-dt-cell.is-end {
+  .ui-dt-cell.is-sticky {
     position: static;
     box-shadow: none;
     background: none;
@@ -3522,8 +3500,7 @@ html.ui-theme-fade * {
 .ui-radio-ring.is-on {
   border-color: var(--accent);
 }
-.ui-dt-head .ui-dt-cell.is-sticky,
-.ui-dt-head .ui-dt-cell.is-end {
+.ui-dt-head .ui-dt-cell.is-sticky {
   z-index: 3;
 }
 .ui-dt-filterhead .ui-link-btn {

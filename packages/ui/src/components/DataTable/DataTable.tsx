@@ -416,7 +416,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
             </div>
           );
         })}
-        {hasAct ? <div className="ui-dt-cell is-end" role="columnheader" aria-label={tr('操作')} /> : null}
+        {hasAct ? <div className="ui-dt-cell" role="columnheader" aria-label={tr('操作')} /> : null}
       </div>
     );
 
@@ -615,7 +615,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                           </div>
                         ))}
                         {hasAct ? (
-                          <div className="ui-dt-cell ui-dt-acts is-end" role="cell">
+                          <div className="ui-dt-cell ui-dt-acts" role="cell">
                             {p.rowActions?.(x.r)}
                           </div>
                         ) : null}
@@ -655,7 +655,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                     {total(c, ci)}
                   </div>
                 ))}
-                {hasAct ? <div className="ui-dt-cell is-end" role="cell" /> : null}
+                {hasAct ? <div className="ui-dt-cell" role="cell" /> : null}
               </div>
             ) : null}
           </div>

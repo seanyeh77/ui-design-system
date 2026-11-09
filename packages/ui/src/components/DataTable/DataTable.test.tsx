@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { DataTable, IconButton, InlineCode } from '../../index';
+import { DataTable, InlineCode } from '../../index';
 
 const cols = [{ key: 'name' as const, label: '名稱' }];
 
@@ -330,31 +330,6 @@ test('a column grows to fit content that cannot wrap, instead of cutting it', as
   if (!cell || !chip) throw new Error('no cell');
   await waitFor(() => expect(cell.scrollWidth).toBeLessThanOrEqual(cell.clientWidth + 1));
   expect(chip.getBoundingClientRect().right).toBeLessThanOrEqual(cell.getBoundingClientRect().right);
-});
-
-test('the row-action column stays at the right edge while the table scrolls', async () => {
-  await page.viewport(1280, 800);
-  const rows = [{ id: 'a', name: 'alpha', status: 'ok' }];
-  const { container } = render(
-    <div style={{ width: 300 }}>
-      <DataTable
-        columns={[
-          { key: 'name', label: '名稱', width: 200 },
-          { key: 'status', label: '狀態', width: 200 },
-        ]}
-        rows={rows}
-        urlSync={false}
-        rowActions={() => <IconButton label="開啟" icon="file-text" />}
-      />
-    </div>,
-  );
-  const scroll = container.querySelector<HTMLElement>('.ui-dt-scroll');
-  const acts = container.querySelector<HTMLElement>('.ui-dt-body .ui-dt-acts');
-  if (!scroll || !acts) throw new Error('no table');
-  expect(scroll.scrollWidth).toBeGreaterThan(scroll.clientWidth);
-  const edge = scroll.getBoundingClientRect().right;
-  expect(Math.abs(acts.getBoundingClientRect().right - edge)).toBeLessThanOrEqual(1);
-  await waitFor(() => expect(container.querySelector('.ui-dt-scroller.has-more')).not.toBeNull());
 });
 
 test('fullText: the whole text is the cell description, not a second copy in the cell; a row is named by its first cell', async () => {
