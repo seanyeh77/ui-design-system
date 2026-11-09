@@ -175,11 +175,13 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
   // The page's live region reads the result count (or 「找不到…」) after typing settles; a message inserted fresh
   // into the dialog is not read by most screen readers.
   const said = !open ? '' : !query ? '' : loading ? tr('搜尋中') : shown.length ? tr('找到 {n} 筆結果', { n: shown.length }) : empty;
+  // Read again for every new query and every end of loading, also when the text is the same (「找到 2 筆結果」 for
+  // 「IB」 and then for 「IBT」).
   React.useEffect(() => {
     if (!said) return;
     const t = setTimeout(() => announce(said), 400);
     return () => clearTimeout(t);
-  }, [said]);
+  }, [said, query, loading]);
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>

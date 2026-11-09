@@ -32,4 +32,4 @@ const [open, setOpen] = React.useState(false);
 ## 無障礙
 
 - 關閉（Esc 或選了結果）後，焦點回到打開它的元素；選了結果而換頁、原本的元素不在了，焦點移到新頁的標題（`focusMain()`）。app 自己換頁時也可以呼叫 `focusMain()`。
-- 打字停下後，live region 念出「找到 6 筆結果」或「找不到符合…」。
+- 打字停下後，live region 念出「找到 6 筆結果」或「找不到符合…」。每次輸入新的文字、每次 `loading` 結束都會再念一次，結果數和上次一樣也會念。
