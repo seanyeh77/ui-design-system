@@ -458,6 +458,15 @@ Claude 定的細節（待確認）：
 - CodeView：`refHref`、`onRef` 只用在註解和字串裡的路徑；有資料夾和副檔名、或檔名加行號才算。
 - LayerGraph `countLabel`、`sizeLabel` 可以是函式；預設英文單數「1 call」「1 item」。
 
+## 線上文字改用開關
+
+使用者的要求：「工具列的這個按鈕改用 Switch，標籤為『線上文字』（英文 Line labels），checked 代表標籤顯示，放在『圖／清單』分頁的左邊。清單檢視時這個開關不適用，維持現在的隱藏規則。需要更精簡的頁面時，可以保留 labelsToggle: 'icon' 的舊樣式作為選項。」理由：只有圖示時畫面上只能從圖示是否實心判斷狀態，手機沒有提示框，名稱「Show line labels」會被讀成動作。
+
+- LayerGraph 的線上文字控制預設改成 Switch 加文字「線上文字」，開著表示標籤顯示，放在「圖／清單」左邊；清單檢視時隱藏。取代「線上文字按鈕的名稱」（固定名稱的切換按鈕）成為預設。
+- `labelToggle="icon"` 保留原本的標籤圖示切換按鈕（固定名稱「顯示線上文字」、`aria-pressed`）。
+
+Claude 定的細節（待確認）：沿用既有的屬性名稱 `labelToggle`（使用者寫的是 `labelsToggle`），值是 `true`／`'switch'`（預設）、`'icon'`、`false`；點旁邊的文字也會切換；整排 48 px 高、文字 14 px。
+
 ## 線上文字按鈕的名稱
 
 使用者的選擇：「固定名稱 + Toggle Button」

@@ -63,6 +63,7 @@ export const I18N: I18nState = {
       開啟導覽: 'Open navigation',
       顯示方式: 'View',
       顯示線上文字: 'Show line labels',
+      線上文字: 'Line labels',
       圖: 'Diagram',
       清單: 'List',
       項目: 'Items',
