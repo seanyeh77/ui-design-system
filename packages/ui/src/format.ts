@@ -143,7 +143,8 @@ function money(v: number, o: { currency?: string; compact?: boolean; like?: numb
 /** Bytes to 「186 KB」「54.9 MB」「1.2 GB」. */
 export function fileSize(b: number | null | undefined): string {
   if (b == null || Number.isNaN(b)) return '';
-  if (b < 1048576) return number(Math.max(1, Math.round(b / 1024))) + ' KB';
+  // An empty file is 0 KB; anything else at least 1 KB.
+  if (b < 1048576) return number(b === 0 ? 0 : Math.max(1, Math.round(b / 1024))) + ' KB';
   if (b < 1073741824) return number(b / 1048576, 1) + ' MB';
   return number(b / 1073741824, 1) + ' GB';
 }

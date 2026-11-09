@@ -5,7 +5,7 @@ import { Tabs } from '../Tabs/Tabs';
 import { format } from '../../format';
 import { tr } from '../../i18n';
 import { Icon, type CustomIcon } from '../../icons/Icon';
-import { cx, monoNums, reduced, seenOnly, useNarrow } from '../../internal/util';
+import { cx, idPart, monoNums, reduced, seenOnly, useNarrow } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { CheckMark } from '../../internal/Field';
 import { announce } from '../../announce';
@@ -535,7 +535,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                   const id = visIds[i];
                   const on = !!sel[id];
                   const open = expander && !!opened[id];
-                  const detailId = `${uid}-d-${id}`;
+                  const detailId = `${uid}-d-${idPart(id)}`;
                   const rowName = shownCols[0] ? String(cellText(shownCols[0], get(x.r, shownCols[0].key)) ?? '') : '';
                   return (
                     <React.Fragment key={id}>

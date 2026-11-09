@@ -232,7 +232,8 @@ function msgsFor(loc: string): Record<string, string> | null {
 
 /** Translates a built-in zh-TW string into the current locale; {name} placeholders take vars. */
 export function tr(key: string, vars?: Record<string, string | number>): string {
-  const m = I18N.locale.startsWith('zh') ? null : msgsFor(I18N.locale);
+  // zh-TW (and zh-Hant) is the source text; other Chinese locales (zh-CN) use the messages an app adds for them.
+  const m = isZhTW() ? null : msgsFor(I18N.locale);
   const out = m?.[key] ?? key;
   return vars ? out.replace(/\{(\w+)\}/g, (a, k: string) => (vars[k] !== undefined ? String(vars[k]) : a)) : out;
 }

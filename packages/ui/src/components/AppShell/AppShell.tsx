@@ -53,6 +53,9 @@ export function AppShell({ nav, value, onNavigate, brand, title, breadcrumb, onS
   const tabs: MobileTab[] = withIcon.slice(0, unreachable ? 4 : 5).map((it) => ({ id: it.id, label: it.label, icon: it.icon }));
   if (unreachable) tabs.push({ id: MORE, label: tr('更多'), icon: 'dots-three' });
   const [moreOpen, setMoreOpen] = React.useState(false);
+  // Widened past the drawer's layouts (to a desktop with the sidebar): closed, so it does not pop up again when the
+  // window narrows later.
+  if (moreOpen && !phone && !tablet) setMoreOpen(false);
   devWarn(phone && withIcon.length < 2, 'AppShell', 'phones show the top-level nav items as bottom tabs; give at least 2 of them an icon.');
   const current = parentOf(value)?.id ?? value;
   const tabValue = tabs.some((t) => t.id === current) ? current : MORE;

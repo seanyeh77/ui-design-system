@@ -7,7 +7,7 @@ import { DOC_SHAPE, FILE_KIND, fileExt, findNode, foldersOf, latest, pathTo, sor
 import { fileSize, format } from '../../format';
 import { tr } from '../../i18n';
 import { Icon, IconOf, type IconSource } from '../../icons/Icon';
-import { cx, digits, reduced, browserKey, nodeText } from '../../internal/util';
+import { cx, digits, idPart, reduced, browserKey, nodeText } from '../../internal/util';
 import { announce } from '../../announce';
 import { devWarn } from '../../internal/dev';
 import { CheckMark } from '../../internal/Field';
@@ -298,7 +298,7 @@ export function TreeList(p: TreeListProps) {
     'aria-setsize': r.size,
     'aria-expanded': r.isF ? r.open : undefined,
     // The children's group sits after the row (the row is a grid); aria-owns ties it to this item.
-    'aria-owns': r.isF && r.open ? `${uid}-g-${r.n.id}` : undefined,
+    'aria-owns': r.isF && r.open ? `${uid}-g-${idPart(r.n.id)}` : undefined,
     style: vars({ '--d': r.depth }),
     onFocus: () => focusId !== r.n.id && setFocusId(r.n.id),
   });
@@ -576,7 +576,7 @@ export function TreeList(p: TreeListProps) {
       if (!r.x && r.open && i < every.length && every[i].depth > depth) {
         const [kidsOut, next] = nest(i, depth + 1);
         out.push(
-          <div key={'g-' + r.n.id} id={`${uid}-g-${r.n.id}`} role="group" className="ui-tree-group">
+          <div key={'g-' + r.n.id} id={`${uid}-g-${idPart(r.n.id)}`} role="group" className="ui-tree-group">
             {kidsOut}
           </div>,
         );

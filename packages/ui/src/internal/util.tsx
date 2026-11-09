@@ -1,5 +1,9 @@
 import * as React from 'react';
 
+/** A value (a row or node id, a file path) as part of an element id: no spaces, so aria-owns, aria-controls and
+ *  aria-labelledby, which split their value at spaces, still find it. */
+export const idPart = (s: string): string => encodeURIComponent(s);
+
 /** Joins the truthy class names. */
 export function cx(...names: unknown[]): string {
   return names.filter(Boolean).join(' ');

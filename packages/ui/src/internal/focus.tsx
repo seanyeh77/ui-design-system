@@ -62,7 +62,8 @@ export function useFocusRescue(ref: React.RefObject<HTMLElement | null>, fallbac
     const onIn = (e: FocusEvent) => {
       if (!(e.target instanceof HTMLElement)) return;
       last = e.target;
-      index = Array.from(box.querySelectorAll<HTMLElement>(FOCUSABLE)).indexOf(last);
+      // The same list rescue() picks from (visible, enabled), so the index means the same place.
+      index = list().indexOf(last);
     };
     const rescue = () => {
       const now = list();
