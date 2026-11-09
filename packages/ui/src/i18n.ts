@@ -226,6 +226,8 @@ export const I18N: I18nState = {
       '搜尋（{k}）': 'Search ({k})',
       確定的關係: 'Confirmed',
       推測的關係: 'Inferred',
+      專案宣告的關係: 'Declared by the project',
+      宣告: 'Declared',
       外部項目: 'External',
     },
   },

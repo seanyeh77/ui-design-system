@@ -458,6 +458,17 @@ Claude 定的細節（待確認）：
 - CodeView：`refHref`、`onRef` 只用在註解和字串裡的路徑；有資料夾和副檔名、或檔名加行號才算。
 - LayerGraph `countLabel`、`sizeLabel` 可以是函式；預設英文單數「1 call」「1 item」。
 
+## codemap 第六輪實驗室
+
+使用者的選擇：「DC H0 WA G0」
+
+- DC：專案宣告的關係（`declared`）畫成長短交替的虛線（1.5 px，`12 4 2 4`），標籤一直顯示，圖例加「專案宣告的關係」。（其他選項：和推測一樣的虛線（原本）、細實線、圓點線、推測的虛線加「宣告」標記。）
+- H0：「向右捲動」提示維持只是文字，不能按。（其他選項：提示變成按鈕、兩側的箭頭按鈕。）
+- WA：圖縮到 0.75 倍還放不下、改回左右捲動時，方框回到原本的寬度和間距，名稱完整。取代 PM 的「改回左右滑動時方框維持 120 px」。（其他選項：維持 120 px 用「…」（原本）、120 px 名稱換兩行。）
+- G0：分頁放不下時每一項保留完整的文字，整排左右捲動；放得下時摘要平均分配寬度。（其他選項：數字換到名稱下方。）
+
+Claude 定的細節（待確認）：屬性名稱 `declared`、`declaredLabel`、`declaredLegend`、`declaredText`；清單裡寫「（宣告）」；英文「Declared」「Declared by the project」；`declared` 和 `inferred` 同時給時算宣告。GraphLegend 的 `type` 加 `declared`。
+
 ## codemap 第六輪
 
 使用者轉來的回饋（節錄）：LayerGraph 在 1366、1440 px 變成左右捲動、右側方框被切掉，希望先縮小再捲動；「向右捲動」按了只移動約 16 px；「攔截 ucp」「攔截 uct」標籤貼在一起、線壓到字；方框名稱被截斷；需要第三種線表示專案宣告的關係；Tabs 和 DataTable `summary` 的 `unit` 只能傳字串，英文出現「1 rows」；手機上篩選列文字重疊；CommandPalette 要能傳「找不到結果」的提示；MobileTabBar 只有圖示。
@@ -465,9 +476,9 @@ Claude 定的細節（待確認）：
 Claude 定的細節（待確認）：
 
 - LayerGraph：PM 的縮小比例在圖變寬後重算（原本只算一次，是錯誤）。標籤之間上下 4 px（原本 2 px）。找不到不碰線位置的標籤最後才放，蓋在線上時用實心底色（`is-over`），線在標籤處中斷。換行時半形逗號也不放行首。
-- Tabs：字不換行，放不下時整排左右捲動（實驗室 G0）；DataTable `summary` 在手機上用 `minmax(max-content, 1fr)`，放得下時平均寬度。
+- Tabs：字不換行，放不下時整排左右捲動（後來選了 G0）；DataTable `summary` 在手機上用 `minmax(max-content, 1fr)`，放得下時平均寬度。
 - `unit` 函式和「1 <單位>」翻譯的寫法；CommandPalette 的屬性名稱 `noResultsText`。
-- 「向右捲動」提示按了沒有反應：它原本就只是文字，不是按鈕。能不能按、宣告的關係怎麼畫、捲動時方框寬度、分頁放不下時的寫法，放進「codemap 第六輪實驗室」，等使用者選。
+- 「向右捲動」提示按了沒有反應：它原本就只是文字，不是按鈕。能不能按、宣告的關係怎麼畫、捲動時方框寬度、分頁放不下時的寫法，放進「codemap 第六輪實驗室」，結果見上一節。
 - MobileTabBar 只有圖示是「要是 T0」的決定，這輪沒有改。
 
 ## DataTable 操作欄

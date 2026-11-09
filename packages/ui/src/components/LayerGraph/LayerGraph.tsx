@@ -33,6 +33,9 @@ export interface LayerGraphEdge {
   count?: number;
   /** Inferred by a rule rather than known: dashed and labelled. */
   inferred?: boolean;
+  /** Declared by the project, e.g. in a config file, rather than seen by a compiler: long-short dashes and labelled
+   *  like an inferred edge, but with a basis. Wins over `inferred`. */
+  declared?: boolean;
   /** Label of an inferred edge; `backticks` and numbers are in Geist Mono. */
   label?: string;
   /** Names the edge for selectedEdge and onSelectEdge. Default `${from}->${to}`. */
@@ -76,6 +79,12 @@ export interface LayerGraphProps {
   inferredLabel?: string;
   /** Explains inferred edges in the legend (a Term). */
   inferredText?: string;
+  /** The word for declared edges, after a label in the list. Default 「宣告」. */
+  declaredLabel?: string;
+  /** The legend entry for declared edges. Default 「專案宣告的關係」. */
+  declaredLegend?: string;
+  /** Explains declared edges in the legend (a Term), e.g. which file declares them. */
+  declaredText?: string;
   /** false hides the legend. By default it lists only the kinds of line the diagram has. */
   legend?: boolean;
   legendItems?: GraphLegendItem[];
@@ -230,11 +239,11 @@ const clean = (pts: Pt[]): Pt[] =>
 
 /** Architecture as layers of boxes with arrows. Line width shows how often; inferred relations are dashed and labelled;
  *  shared items are listed under the diagram instead of drawn. Wider than its box: the boxes narrow (down to 120 px),
- *  then the whole diagram scales down (to 0.75 at least); past that it scrolls sideways (PM). */
+ *  then the whole diagram scales down (to 0.75 at least); past that it scrolls sideways at full width (PM, WA). */
 export function LayerGraph(p: LayerGraphProps) {
   // PM: the width of the box the diagram sits in, and the fit worked out for that width.
   const [avail, setAvail] = React.useState(0);
-  const [fit, setFit] = React.useState<{ at: number; nw: number; col: number; scale: number } | null>(null);
+  const [fit, setFit] = React.useState<{ at: number; nw: number; col: number; scale: number; full?: boolean } | null>(null);
   const fitted = fit && fit.at === avail ? fit : null;
   const NW = fitted?.nw ?? (p.nodeWidth || 200);
   const NH = 60;
@@ -265,6 +274,8 @@ export function LayerGraph(p: LayerGraphProps) {
   const main = all.filter((n) => !n.shared);
   const shared = all.filter((n) => n.shared);
   const edges = p.edges.filter((e) => !sharedIds.has(e.from) && !sharedIds.has(e.to));
+  // Lines with a label of their own and no count: inferred, or declared by the project (DC).
+  const lab = (e: LayerGraphEdge) => !!(e.inferred || e.declared);
   const byLayer = new Map<number, LayerGraphNode[]>();
   // External boxes form a row of their own above every layer; their lines then route like any other.
   const EXTERNAL = Number.NEGATIVE_INFINITY;
@@ -417,12 +428,11 @@ export function LayerGraph(p: LayerGraphProps) {
   const midSentence = (t: string) => (/^[A-Z][a-z]/.test(t) && !/^zh/i.test(format.locale()) ? t[0].toLowerCase() + t.slice(1) : t);
   // Only labels the app wrote: lines without one all show the same 「推測」, and that needs no source.
   const sameLabel = new Map<string, number>();
-  for (const e of edges) if (e.inferred && e.label && pos[e.from] && pos[e.to]) sameLabel.set(e.label, (sameLabel.get(e.label) ?? 0) + 1);
+  for (const e of edges) if (lab(e) && e.label && pos[e.from] && pos[e.to]) sameLabel.set(e.label, (sameLabel.get(e.label) ?? 0) + 1);
+  const kindWord = (e: LayerGraphEdge) => (e.declared ? p.declaredLabel || tr('宣告') : p.inferredLabel || tr('推測'));
   const inferredText = (e: LayerGraphEdge) =>
-    e.label && (sameLabel.get(e.label) ?? 0) > 1
-      ? tr('來自 {from}，{label}', { from: nameOf(e.from), label: midSentence(e.label) })
-      : e.label || p.inferredLabel || tr('推測');
-  const markText = (e: LayerGraphEdge) => (e.inferred ? inferredText(e) : countText(e));
+    e.label && (sameLabel.get(e.label) ?? 0) > 1 ? tr('來自 {from}，{label}', { from: nameOf(e.from), label: midSentence(e.label) }) : e.label || kindWord(e);
+  const markText = (e: LayerGraphEdge) => (lab(e) ? inferredText(e) : countText(e));
   // Room beside the boxes for the lanes only: the labels sit beside the lane, between the layers (PB), so they do not
   // widen the diagram. The left side shifts every box right, the right side widens it.
   if (upsL.length) {
@@ -455,7 +465,7 @@ export function LayerGraph(p: LayerGraphProps) {
   const laneCount: Record<string, number> = {};
   {
     const into: Record<string, LayerGraphEdge[]> = {};
-    for (const e of edges) if (ins[e.to]?.includes(e) && (e.inferred || related(e))) (into[e.to] ??= []).push(e);
+    for (const e of edges) if (ins[e.to]?.includes(e) && (lab(e) || related(e))) (into[e.to] ??= []).push(e);
     for (const id in into) {
       if (into[id].length < 2) continue;
       // The rightmost arrow first: lane 0 (the lowest) in the default order.
@@ -677,7 +687,7 @@ export function LayerGraph(p: LayerGraphProps) {
         }
         const sx0 = start[start.length - 2][0];
         runs.push([Math.min(sx0, lx), Math.max(sx0, lx), y0 - 3, y0 + 3]);
-        if (e.inferred || r) {
+        if (lab(e) || r) {
           const text = markText(e);
           marks.push({ idx, e, text, tx: L ? upLabelX : upLabelEndL, ty: Math.round((y0 + y1) / 2), left: !L, r, dim, up: true });
         }
@@ -694,7 +704,7 @@ export function LayerGraph(p: LayerGraphProps) {
         arrow = `M${tx - 5} ${ty + 9} L${tx + 5} ${ty + 9} L${tx} ${ty} Z`;
         arrows.push([tx - 5, tx + 5, ty, ty + 9]);
         runs.push([Math.min(f.sx, f.tx), Math.max(f.sx, f.tx), f.y - 3, f.y + 3]);
-        if (e.inferred || r) {
+        if (lab(e) || r) {
           const text = markText(e);
           marks.push({ idx, e, text, tx: Math.round((f.sx + f.tx) / 2), ty: f.y, left: false, r, dim, flat: true });
         }
@@ -732,7 +742,7 @@ export function LayerGraph(p: LayerGraphProps) {
         arrows.push([tx - 5, tx + 5, ty - 9, ty]);
       }
       // Hover on a selectable line: darker and 2 px thicker.
-      const w = (e.inferred ? 1.5 : 1.5 + 5.5 * ((e.count || 0) / maxCount)) + (picked ? 1.5 : 0) + (hovered ? 2 : 0);
+      const w = (lab(e) ? 1.5 : 1.5 + 5.5 * ((e.count || 0) / maxCount)) + (picked ? 1.5 : 0) + (hovered ? 2 : 0);
       const cpts = clean(pts);
       ptsOf[idx] = cpts;
       for (let k = 1; k < cpts.length; k++) {
@@ -744,7 +754,7 @@ export function LayerGraph(p: LayerGraphProps) {
       paths.push(
         <path
           key={'p' + idx}
-          className={cx('ui-lg-edge', e.inferred && 'is-inferred', r && 'is-related', dim && 'is-dim', hovered && 'is-hover')}
+          className={cx('ui-lg-edge', e.declared ? 'is-declared' : e.inferred && 'is-inferred', r && 'is-related', dim && 'is-dim', hovered && 'is-hover')}
           d={d}
           strokeWidth={w}
         />,
@@ -789,7 +799,7 @@ export function LayerGraph(p: LayerGraphProps) {
         );
       }
       paths.push(<path key={'a' + idx} className={cx('ui-lg-arrow', r && 'is-related', dim && 'is-dim')} d={arrow} />);
-      if (!up && !isFlat(e) && (e.inferred || r)) {
+      if (!up && !isFlat(e) && (lab(e) || r)) {
         const text = markText(e);
         // Several arrows into one box: an arrow in the left half puts its label on its left.
         marks.push({ idx, e, text, tx, ty, left: inn > 1 && tx < b.x + NW / 2, r, dim, lane: laneAt, from: turnFrom, side: laneSide });
@@ -1169,11 +1179,7 @@ export function LayerGraph(p: LayerGraphProps) {
   });
   // The list: every box (name, size) and every line (「A → B：label」), selectable like the diagram (XC).
   const edgeText = (e: LayerGraphEdge) =>
-    e.inferred
-      ? e.label
-        ? tr('{label}（{inferred}）', { label: e.label, inferred: p.inferredLabel || tr('推測') })
-        : p.inferredLabel || tr('推測')
-      : countText(e);
+    lab(e) ? (e.label ? tr('{label}（{inferred}）', { label: e.label, inferred: kindWord(e) }) : kindWord(e)) : countText(e);
   const listItem = (key: string, on: boolean, dim: boolean, onClick: (() => void) | undefined, head: React.ReactNode, rest: React.ReactNode) => (
     <li key={key} className={cx('ui-lg-li', dim && 'is-dim')}>
       {onClick ? (
@@ -1248,7 +1254,7 @@ export function LayerGraph(p: LayerGraphProps) {
   );
   const showList = p.listView !== false && view === 'list';
   // The tag button only where there are labels to hide (inferred lines), and only on the diagram.
-  const toggleShown = p.labelToggle !== false && !showList && p.edges.some((e) => e.inferred);
+  const toggleShown = p.labelToggle !== false && !showList && p.edges.some((e) => lab(e));
   // PM: measure the box; narrow the boxes when the diagram is wider, then scale what is still too wide.
   React.useLayoutEffect(() => {
     const el = scrollRef.current;
@@ -1271,11 +1277,18 @@ export function LayerGraph(p: LayerGraphProps) {
       setFit({ at: avail, nw, col: 24, scale: 1 });
       return;
     }
+    // Scrolling anyway (WA): the boxes are back at their own width, names whole.
+    if (fitted.full) return;
     // W changes after the fit: labels and the space for them widen it. The scale follows every change, so a diagram
     // that grew past its box shrinks again instead of scrolling (PM).
     const s = Math.floor((avail / W) * 1000) / 1000;
-    // Smaller than 0.75: the text would be too small to read; it scrolls at full size instead.
-    const want = W <= avail + 0.5 || s < 0.75 ? 1 : s;
+    // Smaller than 0.75: the text would be too small to read. It scrolls instead, and since it scrolls anyway the boxes
+    // go back to their own width and spacing, so no name is cut (WA).
+    if (W > avail + 0.5 && s < 0.75) {
+      setFit({ ...fitted, nw: p.nodeWidth || 200, col: 40, scale: 1, full: true });
+      return;
+    }
+    const want = W <= avail + 0.5 ? 1 : s;
     if (want !== fitted.scale) setFit({ ...fitted, scale: want });
   }, [avail, showList, fitted, W, p.nodeWidth, cols]);
   // A label still covering a line: more space between boxes, then drawn again (up to 120 px more).
@@ -1360,9 +1373,12 @@ export function LayerGraph(p: LayerGraphProps) {
           items={
             p.legendItems || [
               // Only kinds of line the diagram has: a diagram of inferred lines alone gets no 「次數越多線越粗」.
-              ...(edges.some((e) => !e.inferred && pos[e.from] && pos[e.to]) ? [{ type: 'weight' as const, label: '次數越多線越粗' }] : []),
-              ...(edges.some((e) => e.inferred && pos[e.from] && pos[e.to])
+              ...(edges.some((e) => !lab(e) && pos[e.from] && pos[e.to]) ? [{ type: 'weight' as const, label: '次數越多線越粗' }] : []),
+              ...(edges.some((e) => e.inferred && !e.declared && pos[e.from] && pos[e.to])
                 ? [{ type: 'inferred' as const, label: p.inferredLabel || '推測的關係', text: p.inferredText }]
+                : []),
+              ...(edges.some((e) => e.declared && pos[e.from] && pos[e.to])
+                ? [{ type: 'declared' as const, label: p.declaredLegend || '專案宣告的關係', text: p.declaredText }]
                 : []),
             ]
           }

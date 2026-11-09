@@ -4925,6 +4925,10 @@ html.ui-theme-fade * {
 .ui-graph-edge.is-inferred {
   stroke-dasharray: 6 4;
 }
+/* Declared by the project (DC): long-short dashes, unlike the even dashes of an inferred line. */
+.ui-graph-edge.is-declared {
+  stroke-dasharray: 12 4 2 4;
+}
 .ui-graph-edge.is-related {
   stroke: var(--accent);
 }
@@ -5204,6 +5208,10 @@ html.ui-theme-fade * {
 }
 .ui-lg-edge.is-inferred {
   stroke-dasharray: 6 4;
+  stroke-linecap: butt;
+}
+.ui-lg-edge.is-declared {
+  stroke-dasharray: 12 4 2 4;
   stroke-linecap: butt;
 }
 .ui-lg-edge.is-related {

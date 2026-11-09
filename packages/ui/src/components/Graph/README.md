@@ -5,7 +5,7 @@
 元件架構圖請直接用 `UI.LayerGraph`，它會自己排版和畫線。這裡的 class 給其他種類的圖用。
 
 - 外層加 `ui-graph`，`<svg>` 裡第一個放 `h(UI.GraphDefs)`，提供箭頭 `url(#ui-arrow)` 和強調色的 `url(#ui-arrow-accent)`。
-- 線：`<path class="ui-graph-edge">`，1.5 px、`graph-edge` 灰色，直角轉彎（`M x y V … H … V …`）。推測的關係加 `is-inferred`，變成虛線。
+- 線：`<path class="ui-graph-edge">`，1.5 px、`graph-edge` 灰色，直角轉彎（`M x y V … H … V …`）。推測的關係加 `is-inferred`，變成虛線；專案宣告的關係加 `is-declared`，變成長短交替的虛線。圖例 `GraphLegend` 的 `type` 也有 `declared`。
 - 方框：`<rect class="ui-graph-node" rx="10">`，名稱用 `<text class="ui-graph-name">`（Geist Mono 13 px）。外部的項目加 `is-external`（虛線外框、不填色），選取的加 `is-selected`。
 - 線上的標籤：`<text class="ui-graph-label">`（12 px 粗體，一般字體）。程式名稱、路徑和數字包在 `<tspan class="ui-graph-code">` 裡，用 Geist Mono，例如「`<tspan class="ui-graph-code">8</tspan> 次呼叫`」。外圍描一圈卡片底色，線從字後面穿過仍看得清楚。放在線的旁邊或轉角附近，不要蓋住箭頭。
 - 選取時：沒有關係的方框和線包在 `<g class="is-dim">` 裡（淡到 40%），相關的線加 `is-related`（強調色，箭頭改用 `#ui-arrow-accent`），標籤也加 `is-related`。
