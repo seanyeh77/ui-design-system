@@ -832,7 +832,8 @@ export function LayerGraph(p: LayerGraphProps) {
           if (sg.idx === m.idx) self = Math.min(self, d);
           else other = Math.min(other, d);
         }
-        return self + 4 < other;
+        // 8 px clear of any other line too: text measured on a canvas can come out a little wider on the page.
+        return self + 4 < other && other >= 8;
       };
       const ok = (x0: number, lw: number, y0: number, y1: number) =>
         (!own || mine(x0, lw, y0, y1)) &&

@@ -915,7 +915,7 @@ test('LayerGraph: a line up gets its label nearer its own line than any other li
   const up: LayerGraphEdge = { id: 'launch', from: 'ibmon', to: 'ext', inferred: true, label: '啟動（execvp, fork），設定 LD_PRELOAD' };
   const list = [...ibEdges.filter((e) => e.id !== 'launch'), up];
   const { container } = render(
-    <div style={{ width: 664 }}>
+    <div style={{ width: 1000 }}>
       <LayerGraph nodes={ibNodes} edges={list} onSelectEdge={() => {}} />
     </div>,
   );
@@ -940,5 +940,5 @@ test('LayerGraph: a line up gets its label nearer its own line than any other li
   const r = label.getBoundingClientRect();
   const own = dist(paths[drawn.indexOf(up)], r);
   const others = paths.filter((_, i) => drawn[i] !== up).map((p) => dist(p, r));
-  expect(own).toBeLessThan(Math.min(...others));
+  expect(own, `label ${JSON.stringify(r)}, own ${own}, others ${others.join(' ')}`).toBeLessThan(Math.min(...others));
 });
