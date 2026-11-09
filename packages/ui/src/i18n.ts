@@ -78,6 +78,7 @@ export const I18N: I18nState = {
       '第 {n} 行': 'Line {n}',
       向右捲動: 'Scroll right',
       筆: 'rows',
+      '1 筆': '1 row',
       // Separators: full-width in Chinese, ASCII and a space in English.
       '，': ', ',
       '：': ': ',
@@ -240,6 +241,19 @@ export function tr(key: string, vars?: Record<string, string | number>): string 
   const m = isZhTW() ? null : msgsFor(I18N.locale);
   const out = m?.[key] ?? key;
   return vars ? out.replace(/\{(\w+)\}/g, (a, k: string) => (vars[k] !== undefined ? String(vars[k]) : a)) : out;
+}
+
+/** A count's unit: a function gets the count (for plurals, 「1 row」「2 rows」); a string goes through tr(), and for 1
+ *  the message 「1 <unit>」 is used when the locale has one (「1 筆」 → 「1 row」), without the number. */
+export type CountUnit = string | ((n: number) => string);
+export function unitFor(unit: CountUnit | undefined, n: number): string {
+  if (!unit) return '';
+  if (typeof unit === 'function') return unit(n);
+  if (n === 1) {
+    const one = tr('1 ' + unit);
+    if (one !== '1 ' + unit) return one.replace(/^1\s*/, '');
+  }
+  return tr(unit);
 }
 
 /** Switches the interface language and, optionally, the currency used by format.money. */

@@ -458,6 +458,18 @@ Claude 定的細節（待確認）：
 - CodeView：`refHref`、`onRef` 只用在註解和字串裡的路徑；有資料夾和副檔名、或檔名加行號才算。
 - LayerGraph `countLabel`、`sizeLabel` 可以是函式；預設英文單數「1 call」「1 item」。
 
+## codemap 第六輪
+
+使用者轉來的回饋（節錄）：LayerGraph 在 1366、1440 px 變成左右捲動、右側方框被切掉，希望先縮小再捲動；「向右捲動」按了只移動約 16 px；「攔截 ucp」「攔截 uct」標籤貼在一起、線壓到字；方框名稱被截斷；需要第三種線表示專案宣告的關係；Tabs 和 DataTable `summary` 的 `unit` 只能傳字串，英文出現「1 rows」；手機上篩選列文字重疊；CommandPalette 要能傳「找不到結果」的提示；MobileTabBar 只有圖示。
+
+Claude 定的細節（待確認）：
+
+- LayerGraph：PM 的縮小比例在圖變寬後重算（原本只算一次，是錯誤）。標籤之間上下 4 px（原本 2 px）。找不到不碰線位置的標籤最後才放，蓋在線上時用實心底色（`is-over`），線在標籤處中斷。換行時半形逗號也不放行首。
+- Tabs：字不換行，放不下時整排左右捲動（實驗室 G0）；DataTable `summary` 在手機上用 `minmax(max-content, 1fr)`，放得下時平均寬度。
+- `unit` 函式和「1 <單位>」翻譯的寫法；CommandPalette 的屬性名稱 `noResultsText`。
+- 「向右捲動」提示按了沒有反應：它原本就只是文字，不是按鈕。能不能按、宣告的關係怎麼畫、捲動時方框寬度、分頁放不下時的寫法，放進「codemap 第六輪實驗室」，等使用者選。
+- MobileTabBar 只有圖示是「要是 T0」的決定，這輪沒有改。
+
 ## DataTable 操作欄
 
 使用者的要求：「好」（同意 Claude 的提案：codemap 拿掉和位置連結重複的「開啟」按鈕，操作欄維持跟著表格捲動，README 加上 `rowActions` 的使用規則）

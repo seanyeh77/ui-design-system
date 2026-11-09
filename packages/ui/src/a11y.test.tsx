@@ -261,6 +261,14 @@ test('CommandPalette: 「找不到…」 is announced through the live region', 
   await waitFor(() => expect(live()).toBe('找不到符合「zzz」的結果'));
 });
 
+test('CommandPalette: noResultsText replaces 「找不到…」, shown and announced, not counted as a result', async () => {
+  render(<UI.CommandPalette open onOpenChange={() => {}} items={[{ label: 'IBTRACE_SHM' }]} noResultsText="找不到「{q}」。函式名稱請改用影響範圍搜尋。" />);
+  await user.type(await screen.findByRole('combobox'), 'zzz');
+  await waitFor(() => expect(live()).toBe('找不到「zzz」。函式名稱請改用影響範圍搜尋。'));
+  expect(document.querySelector('.ui-pal-empty')?.textContent).toBe('找不到「zzz」。函式名稱請改用影響範圍搜尋。');
+  expect(screen.queryAllByRole('option')).toHaveLength(0);
+});
+
 test('Tabs keep focus on the tab after switching, and read 「全部 26 個」 with a space', async () => {
   function Demo() {
     const [v, setV] = React.useState('all');
@@ -284,6 +292,55 @@ test('Tabs keep focus on the tab after switching, and read 「全部 26 個」 w
   expect(document.activeElement).toBe(err);
   expect(err.getAttribute('aria-selected')).toBe('true');
   await waitFor(() => expect(live()).toBe('錯誤 4 個'));
+});
+
+test('Tabs: unit can be a function of the count; a string unit uses the 「1 <unit>」 message for 1', async () => {
+  UI.setLocale('en');
+  UI.addMessages('en', { 項: 'items', '1 項': '1 item' });
+  try {
+    render(
+      <div>
+        <UI.Tabs
+          value="a"
+          unit={(n) => (n === 1 ? 'note' : 'notes')}
+          items={[
+            { id: 'a', label: 'All', count: 1 },
+            { id: 'b', label: 'Wrong', count: 3 },
+          ]}
+        />
+        <UI.Tabs
+          value="c"
+          unit="項"
+          items={[
+            { id: 'c', label: 'Files', count: 1 },
+            { id: 'd', label: 'Docs', count: 2 },
+          ]}
+        />
+      </div>,
+    );
+    expect(screen.getByRole('tab', { name: 'All 1 note' })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Wrong 3 notes' })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Files 1 item' })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Docs 2 items' })).toBeTruthy();
+  } finally {
+    UI.setLocale('zh-TW');
+  }
+});
+
+test('Tabs wider than their box scroll sideways: no tab wraps or overlaps the next', async () => {
+  await page.viewport(390, 844);
+  render(
+    <div style={{ width: 300 }}>
+      <UI.Tabs value="a" unit="items" items={['All', 'Wrong', 'To review', 'Matches'].map((l, i) => ({ id: 'abcd'[i], label: l, count: 0 }))} />
+    </div>,
+  );
+  const tabs = screen.getAllByRole('tab');
+  for (const t of tabs) expect(t.getBoundingClientRect().height).toBeLessThan(40);
+  for (let i = 1; i < tabs.length; i++) expect(tabs[i].getBoundingClientRect().left).toBeGreaterThanOrEqual(tabs[i - 1].getBoundingClientRect().right - 0.5);
+  const list = screen.getByRole('tablist');
+  expect(list.getBoundingClientRect().width).toBeLessThanOrEqual(300.5);
+  expect(list.scrollWidth).toBeGreaterThan(list.clientWidth);
+  await page.viewport(1280, 800);
 });
 
 test('ActionBar: a pressed button that turns disabled or goes away hands focus to its neighbour', async () => {

@@ -3,7 +3,7 @@ import { Button } from '../Button/Button';
 import { SearchField } from '../SearchField/SearchField';
 import { Tabs } from '../Tabs/Tabs';
 import { format } from '../../format';
-import { tr } from '../../i18n';
+import { tr, unitFor, type CountUnit } from '../../i18n';
 import { Icon, type CustomIcon } from '../../icons/Icon';
 import { cx, idPart, monoNums, reduced, seenOnly, useNarrow } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
@@ -23,8 +23,8 @@ export interface DataTableProps<R extends Row = Record<string, unknown>> {
   /** Title above the table, also its accessible name. */
   caption?: string;
   /** Segmented summary above the table: 「全部」 plus one tab per status with its count; picking one filters the rows.
-   *  `unit` follows every count; default 「筆」. */
-  summary?: { key: RowKey<R>; items: { value: string; label: string }[]; label?: string; unit?: string };
+   *  `unit` follows every count; default 「筆」. A function gets the count, for plurals in other languages. */
+  summary?: { key: RowKey<R>; items: { value: string; label: string }[]; label?: string; unit?: CountUnit };
   /** aria-label when there is no caption. */
   label?: string;
   /** Rows per page. Default 10. */
@@ -458,6 +458,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         <div className="ui-dt-views" role="tablist" aria-label={tr('檢視')}>
           {p.views.map((v) => {
             const on = v.id === view;
+            const vn = rows.filter((r) => !v.filter || v.filter(r)).length;
             return (
               <button
                 key={v.id}
@@ -472,7 +473,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
               >
                 {v.label}
                 <span className="ui-dt-view-n">
-                  {format.number(rows.filter((r) => !v.filter || v.filter(r)).length)} <span className="ui-unit">{tr('筆')}</span>
+                  {format.number(vn)} <span className="ui-unit">{unitFor('筆', vn)}</span>
                 </span>
               </button>
             );
