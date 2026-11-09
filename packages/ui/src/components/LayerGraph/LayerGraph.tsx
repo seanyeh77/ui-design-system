@@ -2,6 +2,7 @@ import * as React from 'react';
 import { GraphLegend, type GraphLegendItem } from '../Graph/Graph';
 import { Tabs } from '../Tabs/Tabs';
 import { IconButton } from '../IconButton/IconButton';
+import { Switch } from '../Switch/Switch';
 import { tr } from '../../i18n';
 import { format } from '../../format';
 import { cx, monoNums } from '../../internal/util';
@@ -57,8 +58,10 @@ export interface LayerGraphProps {
    *  line has keyboard focus, or it is selected or belongs to the selected box. The diagram keeps the room for every
    *  label. People switch with the tag button next to 「圖／清單」; their choice is remembered (localStorage). */
   edgeLabels?: 'shown' | 'hover';
-  /** false: no button to show or hide line labels. Default true (shown when the diagram has labelled lines). */
-  labelToggle?: boolean;
+  /** The control that shows or hides line labels, shown when the diagram has labelled lines. Default (true or
+   *  'switch'): a Switch with the text 「線上文字」, on while labels show. 'icon': the tag icon button with a fixed name
+   *  and aria-pressed, for a tight toolbar. false: none. */
+  labelToggle?: boolean | 'switch' | 'icon';
   /** px. Default 200. */
   nodeWidth?: number;
   /** Text under a box's size bar: a string with {n}, or a function of the size for words that change with the number
@@ -1327,9 +1330,16 @@ export function LayerGraph(p: LayerGraphProps) {
     <div className={cx('ui-graph ui-lg', p.className)}>
       {p.listView === false && !toggleShown ? null : (
         <div className="ui-lg-bar">
-          {toggleShown ? (
+          {toggleShown && p.labelToggle === 'icon' ? (
             // TC: a tag button beside 「圖／清單」; pressed (accent-soft, filled tag) while every label shows.
             <IconButton className="ui-lg-labels-btn" icon="tag" filled={labelsOn} label={tr('顯示線上文字')} aria-pressed={labelsOn} onClick={switchLabels} />
+          ) : toggleShown ? (
+            // A Switch with its text beside 「圖／清單」: on while every label shows, which reads the same on screen,
+            // with no tooltip on a phone, as to a screen reader. The text is the label: a click on it switches too.
+            <label className="ui-lg-labels-switch">
+              <Switch checked={labelsOn} onChange={switchLabels} label={tr('線上文字')} />
+              <span aria-hidden="true">{tr('線上文字')}</span>
+            </label>
           ) : null}
           {p.listView === false ? null : (
             <Tabs

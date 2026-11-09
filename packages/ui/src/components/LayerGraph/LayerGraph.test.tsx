@@ -74,7 +74,7 @@ test('LayerGraph: a line and a box are never selected together', async () => {
 test('LayerGraph: Tab reaches the lines after the boxes; Enter selects, Escape clears', async () => {
   const onEdge = vi.fn();
   render(<Demo onEdge={onEdge} onBox={() => {}} />);
-  // The tag button, the 「圖／清單」 switch, the three boxes, then the lines.
+  // The line-label switch, the 「圖／清單」 tabs, the three boxes, then the lines.
   for (let k = 0; k < 6; k++) await user.tab();
   expect(document.activeElement?.getAttribute('aria-label')).toBe('src/ibmon → src/libibtrace，環境變數 IBTRACE_SHM');
   await user.keyboard('{Enter}');
@@ -346,7 +346,7 @@ test('LayerGraph: edgeLabels="hover" hides line labels until the line is hovered
   expect(quiet(container)).toBe(false);
 });
 
-test('LayerGraph: the tag button switches line labels and remembers the choice (TC)', async () => {
+test('LayerGraph: the 「線上文字」 switch shows or hides line labels and remembers the choice', async () => {
   await page.viewport(1280, 900);
   window.localStorage.removeItem('ui-lg-labels:tc');
   const quiet = (c: HTMLElement) => c.querySelector('.ui-lg-label')?.classList.contains('is-quiet');
@@ -354,14 +354,17 @@ test('LayerGraph: the tag button switches line labels and remembers the choice (
     <LayerGraph nodes={nodes} edges={edges} legend={false} scrollKey="tc" {...extra} />
   );
   const { container, unmount } = render(graph());
-  const btn = screen.getByRole('button', { name: '顯示線上文字' });
-  expect(btn.getAttribute('aria-pressed')).toBe('true');
+  const btn = screen.getByRole('switch', { name: '線上文字' });
+  expect(btn.getAttribute('aria-checked')).toBe('true');
+  // Its text is on screen too, not only the screen reader's name.
+  expect(container.querySelector('.ui-lg-labels-switch')?.textContent).toBe('線上文字');
   // Beside 「圖／清單」, on its left.
   const tabs = screen.getByRole('tablist', { name: '顯示方式' });
-  expect(btn.getBoundingClientRect().right).toBeLessThanOrEqual(tabs.getBoundingClientRect().left);
+  expect((container.querySelector('.ui-lg-labels-switch') as HTMLElement).getBoundingClientRect().right).toBeLessThanOrEqual(tabs.getBoundingClientRect().left);
   expect(quiet(container)).toBe(false);
-  await user.click(btn);
-  expect(btn.getAttribute('aria-pressed')).toBe('false');
+  // A click on the text switches too.
+  await user.click(screen.getByText('線上文字'));
+  expect(btn.getAttribute('aria-checked')).toBe('false');
   expect(quiet(container)).toBe(true);
   expect(window.localStorage.getItem('ui-lg-labels:tc')).toBe('0');
   unmount();
@@ -372,15 +375,28 @@ test('LayerGraph: the tag button switches line labels and remembers the choice (
   window.localStorage.removeItem('ui-lg-labels:tc');
   // Not on the list, and gone with labelToggle={false}.
   const list = render(graph({ edgeLabels: 'hover' }));
-  expect(screen.getByRole('button', { name: '顯示線上文字' }).getAttribute('aria-pressed')).toBe('false');
+  expect(screen.getByRole('switch', { name: '線上文字' }).getAttribute('aria-checked')).toBe('false');
   await user.click(screen.getByRole('tab', { name: '清單' }));
-  expect(screen.queryByRole('button', { name: '顯示線上文字' })).toBeNull();
+  expect(screen.queryByRole('switch', { name: '線上文字' })).toBeNull();
   list.unmount();
   render(graph({ labelToggle: false }));
-  expect(screen.queryByRole('button', { name: '顯示線上文字' })).toBeNull();
+  expect(screen.queryByRole('switch', { name: '線上文字' })).toBeNull();
 });
 
-test('LayerGraph: the tag button works when storage throws', async () => {
+test('LayerGraph: labelToggle="icon" keeps the tag button, a toggle button with a fixed name (TC)', async () => {
+  window.localStorage.removeItem('ui-lg-labels:tci');
+  const { container } = render(<LayerGraph nodes={nodes} edges={edges} legend={false} scrollKey="tci" labelToggle="icon" />);
+  expect(screen.queryByRole('switch')).toBeNull();
+  const btn = screen.getByRole('button', { name: '顯示線上文字' });
+  expect(btn.getAttribute('aria-pressed')).toBe('true');
+  await user.click(btn);
+  expect(btn.getAttribute('aria-pressed')).toBe('false');
+  expect(screen.getByRole('button', { name: '顯示線上文字' })).toBe(btn);
+  expect(container.querySelector('.ui-lg-label')?.classList.contains('is-quiet')).toBe(true);
+  window.localStorage.removeItem('ui-lg-labels:tci');
+});
+
+test('LayerGraph: the line-label switch works when storage throws', async () => {
   const get = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
     throw new Error('blocked');
   });
@@ -388,7 +404,7 @@ test('LayerGraph: the tag button works when storage throws', async () => {
     throw new Error('blocked');
   });
   const { container } = render(<LayerGraph nodes={nodes} edges={edges} legend={false} scrollKey="tc2" />);
-  await user.click(screen.getByRole('button', { name: '顯示線上文字' }));
+  await user.click(screen.getByRole('switch', { name: '線上文字' }));
   expect(container.querySelector('.ui-lg-label')?.classList.contains('is-quiet')).toBe(true);
   get.mockRestore();
   set.mockRestore();
@@ -616,7 +632,7 @@ test.each([
 
 test('LayerGraph: the tag button shows the filled tag while pressed', async () => {
   window.localStorage.removeItem('ui-lg-labels:tc3');
-  render(<LayerGraph nodes={nodes} edges={edges} legend={false} scrollKey="tc3" />);
+  render(<LayerGraph nodes={nodes} edges={edges} legend={false} scrollKey="tc3" labelToggle="icon" />);
   const btn = screen.getByRole('button', { name: '顯示線上文字' });
   const markup = () => btn.querySelector('svg')?.innerHTML ?? '';
   const pressed = markup();
