@@ -807,7 +807,8 @@ export function LayerGraph(p: LayerGraphProps) {
         x0 + lw <= W - PAD / 2 &&
         y0 >= 2 &&
         y1 <= H - 2 &&
-        !hits(x0 - 2, x0 + lw + 2, y0 - 2, y1 + 2) &&
+        // 4 px from other labels: the measured width can be a pixel or two short of the drawn one.
+        !hits(x0 - 4, x0 + lw + 4, y0 - 4, y1 + 4) &&
         !boxRects.some((q) => x0 < q[1] + 4 && q[0] < x0 + lw + 4 && y0 < q[3] + 4 && q[2] < y1 + 4) &&
         !segs.some((sg) =>
           sg.idx === m.idx ? cross(sg.box, x0, lw, y0, y1) : x0 < sg.box[1] + 2 && sg.box[0] < x0 + lw + 2 && y0 < sg.box[3] + 2 && sg.box[2] < y1 + 2,
