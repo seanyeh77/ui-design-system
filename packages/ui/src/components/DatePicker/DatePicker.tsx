@@ -42,6 +42,8 @@ export function DatePicker({ label, value, onChange, hint, required, className }
           className="ui-datefield-input"
           value={typed ?? fmtDate(value)}
           placeholder="YYYY/MM/DD"
+          // The label's red asterisk is hidden from screen readers; they hear 「必填」 from this.
+          aria-required={required || undefined}
           aria-invalid={bad || undefined}
           onChange={(e) => {
             const t = e.target.value;

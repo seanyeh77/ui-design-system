@@ -31,6 +31,12 @@
 | 強調色與它的滑過、按下 | `accent`、`accent-hover`、`accent-press` |
 | 強調文字、強調淺底、強調色上的文字 | `accent-text`、`accent-soft`、`on-accent` |
 | 語意色 | `success`、`warning`、`danger` 各有實色、`-text`、`-soft`；資訊用 `info-text`、`info-soft` |
+| 固定實色上的文字（危險按鈕、數字徽章、檔案類型標籤、色票、開啟的開關圓點） | `on-solid` |
+| 有錯誤的欄位聚焦光暈 | `danger-ring` |
+| 搜尋結果的符合文字底色 | `mark` |
+| 對話框、抽屜、搜尋面板的遮罩；導覽聚光區外 | `scrim`、`scrim-strong` |
+| 表格固定欄的邊緣陰影 | `edge-shadow` |
+| 檔案圖示的副檔名色塊 | `file-pdf`、`file-video`、`file-audio`、`file-slides`、`file-doc`、`file-sheet`、`file-image`、`file-code`、`file-other` |
 
 文字 token 在兩套主題都對它的底色達到 4.5:1；`line-strong` 對 `surface` 達到 3:1。
 

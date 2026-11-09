@@ -49,6 +49,7 @@ export const I18N: I18nState = {
       收合側邊欄: 'Collapse sidebar',
       放棄: 'Discard',
       '放棄未儲存的變更？': 'Discard unsaved changes?',
+      '{label}？': '{label}?',
       '新增「{q}」': 'Add “{q}”',
       '日期格式不正確，請寫成 2026/11/14': 'Invalid date. Use 2026/11/14.',
       更多操作: 'More actions',

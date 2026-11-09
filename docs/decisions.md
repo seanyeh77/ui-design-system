@@ -457,3 +457,12 @@ Claude 定的細節（待確認）：
 - Tour：目標比視窗 70 % 高時開發警告。
 - CodeView：`refHref`、`onRef` 只用在註解和字串裡的路徑；有資料夾和副檔名、或檔名加行號才算。
 - LayerGraph `countLabel`、`sizeLabel` 可以是函式；預設英文單數「1 call」「1 item」。
+
+## 寫死顏色改成 token
+
+使用者的要求：「照你的建議更好的方法」（全面檢查後的建議）
+
+- `styles.css` 裡寫死的顏色改成新的 token，數值和原本完全相同，畫面不變：`on-solid`（白）、`danger-ring`、`mark`（淺 `#fde68a`／深 `#7c5d12`）、`scrim`、`scrim-strong`、`edge-shadow`、9 個 `file-*`。
+- 主題選擇器的淺色、深色縮圖保留固定色：它們不論目前主題，都要畫出兩套主題本身的顏色。
+
+Claude 定的細節（待確認）：token 名稱；`on-solid` 和 `on-accent` 分開（`on-accent` 會隨自訂強調色換成深色字，危險按鈕和徽章固定白字）。

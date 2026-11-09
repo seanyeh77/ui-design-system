@@ -25,7 +25,7 @@ export function DangerZone({ title, description, actionLabel, onAction, confirm,
       <div className="ui-danger-row">
         <p>{description}</p>
         {/* Without a build step nothing enforces confirm: ask anyway. */}
-        <Button variant="danger" confirm={confirm ?? { title: `${label}？` }} onClick={onAction}>
+        <Button variant="danger" confirm={confirm ?? { title: tr('{label}？', { label }) }} onClick={onAction}>
           {label}
         </Button>
       </div>

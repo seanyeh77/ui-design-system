@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { page } from 'vitest/browser';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { AppShell, DataTable, TreeList, addMessages, format, setLocale, t as tr } from './index';
+import { AppShell, DataTable, DatePicker, DateRangePicker, Menu, NotificationBell, TreeList, addMessages, format, setLocale, t as tr } from './index';
 
 // Whole-repo review fixes, one test each.
 
@@ -79,4 +79,40 @@ test('AppShell: the tablet drawer does not open again after the window was a des
   await new Promise((r) => setTimeout(r, 300));
   expect(screen.queryByRole('dialog')).toBeNull();
   await page.viewport(1280, 900);
+});
+
+test('Menu: a danger item asks 「Delete?」 in English, with a half-width question mark', async () => {
+  setLocale('en');
+  try {
+    render(<Menu items={[{ label: 'Delete', danger: true, confirm: undefined as never, onSelect: () => {} }]} />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'More actions' }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Delete' }));
+    await waitFor(() => expect(screen.getByRole('dialog').textContent).toContain('Delete?'));
+  } finally {
+    setLocale('zh-TW');
+  }
+});
+
+test('NotificationBell: an unread notification is read as unread', async () => {
+  render(<NotificationBell items={[{ id: 1, title: '部署完成', read: false }]} />);
+  await userEvent.setup().click(screen.getByRole('button', { name: '通知，1 則未讀' }));
+  expect(await screen.findByRole('button', { name: /^未讀，\s*部署完成/ })).toBeTruthy();
+});
+
+test('DatePicker: a required date field says so to screen readers', () => {
+  render(<DatePicker label="開始日期" required value={null} onChange={() => {}} />);
+  expect(screen.getByRole('textbox', { name: '開始日期' }).getAttribute('aria-required')).toBe('true');
+});
+
+test('DateRangePicker: dates follow the language', () => {
+  setLocale('en');
+  try {
+    render(<DateRangePicker label="Period" value={[new Date(2026, 10, 4), new Date(2026, 10, 9)]} onChange={() => {}} />);
+    const btn = screen.getByRole('button', { name: /^Period: / });
+    expect(btn.textContent).toBe(`${format.date(new Date(2026, 10, 4), { weekday: false })} – ${format.date(new Date(2026, 10, 9), { weekday: false })}`);
+    expect(btn.textContent).not.toContain('2026/11/04');
+  } finally {
+    setLocale('zh-TW');
+  }
 });

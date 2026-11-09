@@ -339,21 +339,38 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const gridStyle = { gridTemplateColumns: template, minWidth: minW };
   // Desktop rows: a cell whose content cannot wrap and is wider than the cell (InlineCode, a path) widens its column
   // instead of being cut. Long columns truncate on purpose and are left alone. Widths only grow, until resetKey.
+  // Measured once, then when the table's content changes (a page, a filter, a column shown, new rows) or web fonts
+  // load; not on every render. The state changes only when a column has to grow, so measuring again settles.
   React.useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root || narrow) return;
-    const grown: Record<string, number> = {};
-    for (const el of root.querySelectorAll<HTMLElement>('.ui-dt-body .ui-dt-cell[data-col]:not(.is-long)')) {
-      const over = el.scrollWidth - el.clientWidth;
-      const key = el.dataset.col;
-      if (over <= 1 || !key) continue;
-      const need = Math.ceil(el.getBoundingClientRect().width + over);
-      if (need > (grown[key] ?? fit[key] ?? 0)) grown[key] = need;
-    }
-    // The overflow is known only after the cells are laid out; widths only grow, so this settles.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- measuring layout, as above
-    if (Object.keys(grown).length) setFit((f) => ({ ...f, ...grown }));
-  }, [narrow, fit, vis, shownCols]);
+    const measure = () => {
+      const need: Record<string, number> = {};
+      for (const el of root.querySelectorAll<HTMLElement>('.ui-dt-body .ui-dt-cell[data-col]:not(.is-long)')) {
+        const over = el.scrollWidth - el.clientWidth;
+        const key = el.dataset.col;
+        if (over > 1 && key) need[key] = Math.max(need[key] ?? 0, Math.ceil(el.getBoundingClientRect().width + over));
+      }
+      setFit((f) => {
+        const grow = Object.entries(need).filter(([k, w]) => w > (f[k] ?? 0));
+        return grow.length ? { ...f, ...Object.fromEntries(grow) } : f;
+      });
+    };
+    measure();
+    let frame = 0;
+    const later = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(measure);
+    };
+    const mo = new MutationObserver(later);
+    mo.observe(root, { childList: true, subtree: true, characterData: true });
+    document.fonts?.ready.then(later).catch(() => {});
+    return () => {
+      mo.disconnect();
+      cancelAnimationFrame(frame);
+    };
+    // resetKey clears the widths: measured again even when the rows look the same.
+  }, [narrow, resetKey]);
   const stickyStyle = (ci: number) => (ci === 0 && sticky ? { left: (expander ? EXP : 0) + (selectable ? 46 : 0) } : undefined);
   const cellClass = (c: DataTableColumn<R>, ci: number, ...more: unknown[]) =>
     cx('ui-dt-cell', isNum(c) && 'is-num', ci === 0 && sticky && 'is-sticky', ...more);

@@ -240,8 +240,8 @@ export function LayerGraph(p: LayerGraphProps) {
   const NH = 60;
   const GAP = 56;
   // Space added between boxes, 24 px at a time (up to 5 times), while a label still has to cover a line.
-  // Kept per diagram: other boxes or lines start again from no added space.
-  const spreadKey = p.nodes.map((n) => n.id).join('|') + '#' + p.edges.map((e) => e.from + '>' + e.to + ':' + (e.label ?? '')).join('|');
+  // Kept per diagram and per width: other boxes or lines, or a resized box, start again from no added space.
+  const spreadKey = avail + '#' + p.nodes.map((n) => n.id).join('|') + '#' + p.edges.map((e) => e.from + '>' + e.to + ':' + (e.label ?? '')).join('|');
   const [spreadAt, setSpread] = React.useState({ key: '', n: 0 });
   const spread = spreadAt.key === spreadKey ? spreadAt.n : 0;
   const COL = (fitted?.col ?? 40) + spread * 24;
@@ -841,9 +841,10 @@ export function LayerGraph(p: LayerGraphProps) {
                     [x - lw / 2, y + 6 + lh / 2],
                   ];
             for (const [x0, top] of cands) {
-              if (!ok(x0, lw, top - lh / 2, top + lh / 2)) continue;
+              // The distance first: a spot no nearer than the best one is not checked against every line.
               const d = Math.hypot(x0 + lw / 2 - m.tx, top - m.ty);
-              if (!best || d < best.d) best = { x0, top, d };
+              if (best && d >= best.d) continue;
+              if (ok(x0, lw, top - lh / 2, top + lh / 2)) best = { x0, top, d };
             }
           }
         }

@@ -369,3 +369,18 @@ test('fullText: the whole text is the cell description, not a second copy in the
   expect(cell?.getAttribute('aria-description')).toBe('src/libibtrace/hooks/ucp.c:62');
   expect(screen.getByRole('row', { name: 'ucp_worker_progress' })).toBeTruthy();
 });
+
+test('a column grows again when a row gets longer content later, without a resetKey', async () => {
+  await page.viewport(1280, 800);
+  const cols2 = [
+    { key: 'name' as const, label: '函式', width: 160 },
+    { key: 'loc' as const, label: '位置', width: 120, render: (r: { loc: string }) => <InlineCode href="#x">{r.loc}</InlineCode> },
+  ];
+  const short = [{ id: 'a', name: 'f', loc: 'a.c:1' }];
+  const long = [{ id: 'a', name: 'f', loc: 'src/libibtrace/intercept_ucp_hooks.c:1234' }];
+  const { container, rerender } = render(<DataTable columns={cols2} rows={short} urlSync={false} />);
+  rerender(<DataTable columns={cols2} rows={long} urlSync={false} />);
+  const cell = container.querySelector<HTMLElement>('.ui-dt-body [data-col="loc"]');
+  if (!cell) throw new Error('no cell');
+  await waitFor(() => expect(cell.scrollWidth).toBeLessThanOrEqual(cell.clientWidth + 1));
+});

@@ -34,6 +34,8 @@ export function Switch({ checked, onChange, label, disabled, className }: Switch
       onPointerDown={() => setPressing(true)}
       onPointerUp={() => setPressing(false)}
       onPointerLeave={() => setPressing(false)}
+      // A touch that turns into a scroll is cancelled, not released: the thumb goes back too.
+      onPointerCancel={() => setPressing(false)}
     >
       <span
         className="ui-switch-thumb"

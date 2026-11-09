@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { dayAdd, fmtDate, sameDay } from '../../format';
+import { dayAdd, format, sameDay } from '../../format';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
@@ -19,6 +19,9 @@ export interface DateRangePickerProps {
 }
 
 /** A period: quick ranges (今天、最近 7 天、最近 30 天、本月、上個月) beside one month. Click a start day, then an end day. */
+// The current language's date (zh-TW: 2026/11/04), without the weekday.
+const day = (d: Date | null) => format.date(d, { weekday: false });
+
 export function DateRangePicker({ label, value, onChange, placeholder, className }: DateRangePickerProps) {
   const [open, setOpen] = React.useState(false);
   const [first, setFirst] = React.useState<Date | null>(null);
@@ -58,12 +61,12 @@ export function DateRangePicker({ label, value, onChange, placeholder, className
             className={cx('ui-datefield', 'ui-rangefield', open && 'is-open')}
             aria-label={
               value[0]
-                ? tr('{label}：{a} 到 {b}', { label: label || tr('期間'), a: fmtDate(value[0]), b: fmtDate(value[1]) })
+                ? tr('{label}：{a} 到 {b}', { label: label || tr('期間'), a: day(value[0]), b: day(value[1]) })
                 : `${label || tr('期間')}${tr('：')}${placeholder || tr('選擇期間')}`
             }
           >
             <Icon name="calendar-blank" size={18} />
-            <span>{value[0] ? `${fmtDate(value[0])} – ${fmtDate(value[1])}` : placeholder || tr('選擇期間')}</span>
+            <span>{value[0] ? `${day(value[0])} – ${day(value[1])}` : placeholder || tr('選擇期間')}</span>
           </button>
         }
       >
