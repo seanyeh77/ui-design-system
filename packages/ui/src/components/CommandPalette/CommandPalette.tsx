@@ -37,6 +37,9 @@ export interface CommandPaletteProps<T extends PaletteItem = PaletteItem> {
   recentLabel?: string;
   /** Shown with nothing typed and no recent items. Default 「輸入名稱開始搜尋」. */
   emptyText?: string;
+  /** Shown and read out when the typed text finds nothing, e.g. what else to try. `{q}` is the typed text; a function
+   *  gets it. Default 「找不到符合「{q}」的結果」. Not an item, so it is never counted as a result. */
+  noResultsText?: string | ((query: string) => string);
   /** Icon for each of your own kinds: { 函式: 'brackets-curly' }. */
   kinds?: Record<string, IconSource>;
   /** false: items are already filtered (server search with onQueryChange). */
@@ -73,6 +76,7 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
     recent,
     recentLabel,
     emptyText,
+    noResultsText,
     kinds,
     filter = true,
     onQueryChange,
@@ -166,7 +170,8 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
       </span>
     );
   };
-  const empty = query ? tr('找不到符合「{q}」的結果', { q: q.trim() }) : emptyText || tr('輸入名稱開始搜尋');
+  const none = (t: string) => (typeof noResultsText === 'function' ? noResultsText(t) : (noResultsText ?? tr('找不到符合「{q}」的結果')).replace('{q}', t));
+  const empty = query ? none(q.trim()) : emptyText || tr('輸入名稱開始搜尋');
   // The page's live region reads the result count (or 「找不到…」) after typing settles; a message inserted fresh
   // into the dialog is not read by most screen readers.
   const said = !open ? '' : !query ? '' : loading ? tr('搜尋中') : shown.length ? tr('找到 {n} 筆結果', { n: shown.length }) : empty;

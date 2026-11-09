@@ -359,3 +359,32 @@ test('a column grows again when a row gets longer content later, without a reset
   if (!cell) throw new Error('no cell');
   await waitFor(() => expect(cell.scrollWidth).toBeLessThanOrEqual(cell.clientWidth + 1));
 });
+
+test('summary on a phone: equal tabs while they fit; longer ones keep their text whole and the row scrolls', async () => {
+  await page.viewport(390, 844);
+  const rows = [{ id: 'a', name: 'x', status: 'fail' }];
+  render(
+    <DataTable
+      columns={[
+        { key: 'name', label: 'Name' },
+        { key: 'status', label: 'Status' },
+      ]}
+      rows={rows}
+      urlSync={false}
+      summary={{
+        key: 'status',
+        unit: (n) => (n === 1 ? 'item' : 'items'),
+        items: [
+          { value: 'fail', label: 'Wrong' },
+          { value: 'review', label: 'To review' },
+          { value: 'done', label: 'Matches' },
+        ],
+      }}
+    />,
+  );
+  const tabs = screen.getAllByRole('tab');
+  expect(tabs[1].textContent).toBe('Wrong 1 item');
+  for (let i = 1; i < tabs.length; i++) expect(tabs[i].getBoundingClientRect().left).toBeGreaterThanOrEqual(tabs[i - 1].getBoundingClientRect().right - 0.5);
+  for (const t of tabs) expect(t.scrollWidth).toBeLessThanOrEqual(t.clientWidth + 1);
+  await page.viewport(1280, 800);
+});

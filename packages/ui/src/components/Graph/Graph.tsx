@@ -18,8 +18,9 @@ export function GraphDefs() {
 }
 
 export interface GraphLegendItem {
-  /** edge: a confirmed line; inferred: a dashed line; external: a dashed box; node: a plain box; weight: thin and thick lines. */
-  type: 'edge' | 'inferred' | 'external' | 'node' | 'weight';
+  /** edge: a confirmed line; inferred: a dashed line; declared: long-short dashes (declared by the project); external: a
+   *  dashed box; node: a plain box; weight: thin and thick lines. */
+  type: 'edge' | 'inferred' | 'declared' | 'external' | 'node' | 'weight';
   /** Your own words for it: 「呼叫」「推測的呼叫」「外部函式」. */
   label: string;
   /** Adds a Term with this explanation. */
@@ -57,7 +58,7 @@ function Swatch({ type }: { type: GraphLegendItem['type'] }) {
     );
   return (
     <svg width={28} height={8} aria-hidden="true">
-      <line x1={0} y1={4} x2={28} y2={4} className={cx('ui-graph-edge', type === 'inferred' && 'is-inferred')} />
+      <line x1={0} y1={4} x2={28} y2={4} className={cx('ui-graph-edge', type === 'inferred' && 'is-inferred', type === 'declared' && 'is-declared')} />
     </svg>
   );
 }

@@ -33,6 +33,9 @@ export interface LayerGraphEdge {
   count?: number;
   /** Inferred by a rule rather than known: dashed and labelled. */
   inferred?: boolean;
+  /** Declared by the project, e.g. in a config file, rather than seen by a compiler: long-short dashes and labelled
+   *  like an inferred edge, but with a basis. Wins over `inferred`. */
+  declared?: boolean;
   /** Label of an inferred edge; `backticks` and numbers are in Geist Mono. */
   label?: string;
   /** Names the edge for selectedEdge and onSelectEdge. Default `${from}->${to}`. */
@@ -76,6 +79,12 @@ export interface LayerGraphProps {
   inferredLabel?: string;
   /** Explains inferred edges in the legend (a Term). */
   inferredText?: string;
+  /** The word for declared edges, after a label in the list. Default 「宣告」. */
+  declaredLabel?: string;
+  /** The legend entry for declared edges. Default 「專案宣告的關係」. */
+  declaredLegend?: string;
+  /** Explains declared edges in the legend (a Term), e.g. which file declares them. */
+  declaredText?: string;
   /** false hides the legend. By default it lists only the kinds of line the diagram has. */
   legend?: boolean;
   legendItems?: GraphLegendItem[];
@@ -146,7 +155,7 @@ function wraps(text: string): string[][] {
     const prev = atoms[atoms.length - 1];
     // A number keeps the word after it (「3 次」).
     const unit = /\d\s*$/.test(prev ?? '') && !/^[A-Za-z0-9_]/.test(t);
-    if (prev != null && (unit || /^[）」』、，。：；！？)\]]/.test(t) || /[（「『([]$/.test(prev))) atoms[atoms.length - 1] = prev + t;
+    if (prev != null && (unit || /^[）」』、，。：；！？)\],;!?]/.test(t) || /[（「『([]$/.test(prev))) atoms[atoms.length - 1] = prev + t;
     else atoms.push(t);
   }
   const fill = (max: number) => {
@@ -230,11 +239,11 @@ const clean = (pts: Pt[]): Pt[] =>
 
 /** Architecture as layers of boxes with arrows. Line width shows how often; inferred relations are dashed and labelled;
  *  shared items are listed under the diagram instead of drawn. Wider than its box: the boxes narrow (down to 120 px),
- *  then the whole diagram scales down (to 0.75 at least); past that it scrolls sideways (PM). */
+ *  then the whole diagram scales down (to 0.75 at least); past that it scrolls sideways at full width (PM, WA). */
 export function LayerGraph(p: LayerGraphProps) {
   // PM: the width of the box the diagram sits in, and the fit worked out for that width.
   const [avail, setAvail] = React.useState(0);
-  const [fit, setFit] = React.useState<{ at: number; nw: number; col: number; scale: number } | null>(null);
+  const [fit, setFit] = React.useState<{ at: number; nw: number; col: number; scale: number; full?: boolean } | null>(null);
   const fitted = fit && fit.at === avail ? fit : null;
   const NW = fitted?.nw ?? (p.nodeWidth || 200);
   const NH = 60;
@@ -265,6 +274,8 @@ export function LayerGraph(p: LayerGraphProps) {
   const main = all.filter((n) => !n.shared);
   const shared = all.filter((n) => n.shared);
   const edges = p.edges.filter((e) => !sharedIds.has(e.from) && !sharedIds.has(e.to));
+  // Lines with a label of their own and no count: inferred, or declared by the project (DC).
+  const lab = (e: LayerGraphEdge) => !!(e.inferred || e.declared);
   const byLayer = new Map<number, LayerGraphNode[]>();
   // External boxes form a row of their own above every layer; their lines then route like any other.
   const EXTERNAL = Number.NEGATIVE_INFINITY;
@@ -417,12 +428,11 @@ export function LayerGraph(p: LayerGraphProps) {
   const midSentence = (t: string) => (/^[A-Z][a-z]/.test(t) && !/^zh/i.test(format.locale()) ? t[0].toLowerCase() + t.slice(1) : t);
   // Only labels the app wrote: lines without one all show the same 「推測」, and that needs no source.
   const sameLabel = new Map<string, number>();
-  for (const e of edges) if (e.inferred && e.label && pos[e.from] && pos[e.to]) sameLabel.set(e.label, (sameLabel.get(e.label) ?? 0) + 1);
+  for (const e of edges) if (lab(e) && e.label && pos[e.from] && pos[e.to]) sameLabel.set(e.label, (sameLabel.get(e.label) ?? 0) + 1);
+  const kindWord = (e: LayerGraphEdge) => (e.declared ? p.declaredLabel || tr('宣告') : p.inferredLabel || tr('推測'));
   const inferredText = (e: LayerGraphEdge) =>
-    e.label && (sameLabel.get(e.label) ?? 0) > 1
-      ? tr('來自 {from}，{label}', { from: nameOf(e.from), label: midSentence(e.label) })
-      : e.label || p.inferredLabel || tr('推測');
-  const markText = (e: LayerGraphEdge) => (e.inferred ? inferredText(e) : countText(e));
+    e.label && (sameLabel.get(e.label) ?? 0) > 1 ? tr('來自 {from}，{label}', { from: nameOf(e.from), label: midSentence(e.label) }) : e.label || kindWord(e);
+  const markText = (e: LayerGraphEdge) => (lab(e) ? inferredText(e) : countText(e));
   // Room beside the boxes for the lanes only: the labels sit beside the lane, between the layers (PB), so they do not
   // widen the diagram. The left side shifts every box right, the right side widens it.
   if (upsL.length) {
@@ -455,7 +465,7 @@ export function LayerGraph(p: LayerGraphProps) {
   const laneCount: Record<string, number> = {};
   {
     const into: Record<string, LayerGraphEdge[]> = {};
-    for (const e of edges) if (ins[e.to]?.includes(e) && (e.inferred || related(e))) (into[e.to] ??= []).push(e);
+    for (const e of edges) if (ins[e.to]?.includes(e) && (lab(e) || related(e))) (into[e.to] ??= []).push(e);
     for (const id in into) {
       if (into[id].length < 2) continue;
       // The rightmost arrow first: lane 0 (the lowest) in the default order.
@@ -677,7 +687,7 @@ export function LayerGraph(p: LayerGraphProps) {
         }
         const sx0 = start[start.length - 2][0];
         runs.push([Math.min(sx0, lx), Math.max(sx0, lx), y0 - 3, y0 + 3]);
-        if (e.inferred || r) {
+        if (lab(e) || r) {
           const text = markText(e);
           marks.push({ idx, e, text, tx: L ? upLabelX : upLabelEndL, ty: Math.round((y0 + y1) / 2), left: !L, r, dim, up: true });
         }
@@ -694,7 +704,7 @@ export function LayerGraph(p: LayerGraphProps) {
         arrow = `M${tx - 5} ${ty + 9} L${tx + 5} ${ty + 9} L${tx} ${ty} Z`;
         arrows.push([tx - 5, tx + 5, ty, ty + 9]);
         runs.push([Math.min(f.sx, f.tx), Math.max(f.sx, f.tx), f.y - 3, f.y + 3]);
-        if (e.inferred || r) {
+        if (lab(e) || r) {
           const text = markText(e);
           marks.push({ idx, e, text, tx: Math.round((f.sx + f.tx) / 2), ty: f.y, left: false, r, dim, flat: true });
         }
@@ -732,7 +742,7 @@ export function LayerGraph(p: LayerGraphProps) {
         arrows.push([tx - 5, tx + 5, ty - 9, ty]);
       }
       // Hover on a selectable line: darker and 2 px thicker.
-      const w = (e.inferred ? 1.5 : 1.5 + 5.5 * ((e.count || 0) / maxCount)) + (picked ? 1.5 : 0) + (hovered ? 2 : 0);
+      const w = (lab(e) ? 1.5 : 1.5 + 5.5 * ((e.count || 0) / maxCount)) + (picked ? 1.5 : 0) + (hovered ? 2 : 0);
       const cpts = clean(pts);
       ptsOf[idx] = cpts;
       for (let k = 1; k < cpts.length; k++) {
@@ -744,7 +754,7 @@ export function LayerGraph(p: LayerGraphProps) {
       paths.push(
         <path
           key={'p' + idx}
-          className={cx('ui-lg-edge', e.inferred && 'is-inferred', r && 'is-related', dim && 'is-dim', hovered && 'is-hover')}
+          className={cx('ui-lg-edge', e.declared ? 'is-declared' : e.inferred && 'is-inferred', r && 'is-related', dim && 'is-dim', hovered && 'is-hover')}
           d={d}
           strokeWidth={w}
         />,
@@ -789,7 +799,7 @@ export function LayerGraph(p: LayerGraphProps) {
         );
       }
       paths.push(<path key={'a' + idx} className={cx('ui-lg-arrow', r && 'is-related', dim && 'is-dim')} d={arrow} />);
-      if (!up && !isFlat(e) && (e.inferred || r)) {
+      if (!up && !isFlat(e) && (lab(e) || r)) {
         const text = markText(e);
         // Several arrows into one box: an arrow in the left half puts its label on its left.
         marks.push({ idx, e, text, tx, ty, left: inn > 1 && tx < b.x + NW / 2, r, dim, lane: laneAt, from: turnFrom, side: laneSide });
@@ -852,7 +862,7 @@ export function LayerGraph(p: LayerGraphProps) {
       }
       return null;
     };
-    const labelEl = (m: (typeof marks)[number], x0: number, top: number, lines: string[] = [m.text]) => (
+    const labelEl = (m: (typeof marks)[number], x0: number, top: number, lines: string[] = [m.text], over = false) => (
       // With onSelectEdge the label selects its edge too (a mouse and touch target; keyboard uses the line itself).
       <span
         key={'l' + m.idx}
@@ -860,6 +870,8 @@ export function LayerGraph(p: LayerGraphProps) {
         aria-hidden={pickEdge ? true : undefined}
         className={cx(
           'ui-lg-label',
+          // Over a line (no clear spot): a solid ground, so the line stops at the label instead of showing between letters.
+          over && 'is-over',
           pickEdge && 'is-clickable',
           pickEdge && hover === edgeId(m.e) && 'is-hover',
           m.r && 'is-related',
@@ -887,118 +899,148 @@ export function LayerGraph(p: LayerGraphProps) {
         ))}
       </span>
     );
-    marks
-      // Labels beside arrowheads first: their spot is fixed; the labels of lines up then look for room around them.
-      .sort((m, n) => Number(!!m.up) - Number(!!n.up) || m.ty - n.ty || m.tx - n.tx)
-      .forEach((m) => {
-        const w = Math.ceil(labelWidth(m.text));
-        if (m.flat) {
-          // Along its own line, nearest the middle of its run; else the gap below the row grows, and as a last resort
-          // it sits above the middle of the run.
-          let spot = alongLine(m);
-          if (!spot) {
-            const g = layerIndex[m.e.from];
-            if (g < layers.length - 1) need.add(g);
-            covered++;
-            // Off boxes and labels at least: below the run, moved down 18 px at a time.
-            const x0 = Math.max(PAD / 2, Math.min(W - PAD / 2 - w, m.tx - w / 2));
-            const taken = (t: number) =>
-              hits(x0, x0 + w, t - 10, t + 10) || boxRects.some((q) => x0 < q[1] + 2 && q[0] < x0 + w + 2 && t - 10 < q[3] && q[2] < t + 10);
-            let top = m.ty + 14;
-            for (let k = 0; k < 8 && taken(top); k++) top += 18;
-            spot = { x0, top, lw: w, lh: 16, lines: [m.text] };
-          }
-          placed.push([spot.x0, spot.x0 + spot.lw, spot.top - spot.lh / 2 - 4, spot.top + spot.lh / 2 + 4, 6]);
-          labels.push(labelEl(m, spot.x0, spot.top, spot.lines));
-          return;
+    // A label of a line down with no spot clear of every line waits until every other label has its spot: it then
+    // covers a line, and the labels that do have a clear spot keep it.
+    const later: (typeof marks)[number][] = [];
+    const place = (m: (typeof marks)[number], last: boolean) => {
+      const w = Math.ceil(labelWidth(m.text));
+      if (m.flat) {
+        // Along its own line, nearest the middle of its run; else the gap below the row grows, and as a last resort
+        // it sits above the middle of the run.
+        let spot = alongLine(m);
+        if (!spot) {
+          const g = layerIndex[m.e.from];
+          if (g < layers.length - 1) need.add(g);
+          covered++;
+          // Off boxes and labels at least: below the run, moved down 18 px at a time.
+          const x0 = Math.max(PAD / 2, Math.min(W - PAD / 2 - w, m.tx - w / 2));
+          const taken = (t: number) =>
+            hits(x0, x0 + w, t - 10, t + 10) || boxRects.some((q) => x0 < q[1] + 2 && q[0] < x0 + w + 2 && t - 10 < q[3] && q[2] < t + 10);
+          let top = m.ty + 14;
+          for (let k = 0; k < 8 && taken(top); k++) top += 18;
+          spot = { x0, top, lw: w, lh: 16, lines: [m.text] };
         }
-        if (m.up) {
-          // Beside its lane, halfway between the two ends (the gap between layers); moved up, then down, off boxes,
-          // lines and labels already placed, and kept inside the diagram. On one line when a spot is clear of every
-          // line; else wrapped onto 2 to 4 lines, narrower so it fits between the lane and the next line; else the gap
-          // grows and it is tried again. Only when the gap cannot grow further may it cover a line, on its white ground.
-          const x0Of = (lw: number) => Math.max(PAD / 2, Math.min(W - PAD / 2 - lw, m.left ? m.tx - lw : m.tx));
-          const start0 = Math.max(10, Math.min(H - 10, m.ty));
-          const find = (x0: number, lw: number, lh: number, withLines: boolean) => {
-            const over = (q: number[], y0: number, y1: number) => x0 < q[1] + 4 && q[0] < x0 + lw + 4 && y0 < q[3] + 4 && q[2] < y1 + 4;
-            const bad = (y0: number, y1: number) =>
-              hits(x0, x0 + lw, y0 - 4, y1 + 4) ||
-              boxRects.some((q) => over(q, y0, y1)) ||
-              (withLines && segs.some((g) => (g.idx === m.idx ? cross(g.box, x0, lw, y0, y1) : over(g.box, y0, y1))));
-            for (let k = 0; k <= 16; k++)
-              for (const dir of k ? [-1, 1] : [0]) {
-                const t = start0 + dir * k * 18;
-                if (t - lh / 2 >= 2 && t + lh / 2 <= H - 2 && !bad(t - lh / 2, t + lh / 2)) return t;
-              }
-            return null;
-          };
-          let spot: { x0: number; top: number; lw: number; lh: number; lines: string[] } | null = null;
-          for (const lines of wraps(m.text)) {
-            const lw = Math.ceil(Math.max(...lines.map(labelWidth)));
-            const lh = lines.length * 16;
-            const x0 = x0Of(lw);
-            const top = find(x0, lw, lh, true);
-            if (top != null) {
-              spot = { x0, top, lw, lh, lines };
-              break;
+        placed.push([spot.x0, spot.x0 + spot.lw, spot.top - spot.lh / 2 - 4, spot.top + spot.lh / 2 + 4, 6]);
+        labels.push(labelEl(m, spot.x0, spot.top, spot.lines));
+        return;
+      }
+      if (m.up) {
+        // Beside its lane, halfway between the two ends (the gap between layers); moved up, then down, off boxes,
+        // lines and labels already placed, and kept inside the diagram. On one line when a spot is clear of every
+        // line; else wrapped onto 2 to 4 lines, narrower so it fits between the lane and the next line; else the gap
+        // grows and it is tried again. Only when the gap cannot grow further may it cover a line, on its white ground.
+        const x0Of = (lw: number) => Math.max(PAD / 2, Math.min(W - PAD / 2 - lw, m.left ? m.tx - lw : m.tx));
+        const start0 = Math.max(10, Math.min(H - 10, m.ty));
+        const find = (x0: number, lw: number, lh: number, withLines: boolean) => {
+          const over = (q: number[], y0: number, y1: number) => x0 < q[1] + 4 && q[0] < x0 + lw + 4 && y0 < q[3] + 4 && q[2] < y1 + 4;
+          const bad = (y0: number, y1: number) =>
+            hits(x0, x0 + lw, y0 - 4, y1 + 4) ||
+            boxRects.some((q) => over(q, y0, y1)) ||
+            (withLines && segs.some((g) => (g.idx === m.idx ? cross(g.box, x0, lw, y0, y1) : over(g.box, y0, y1))));
+          for (let k = 0; k <= 16; k++)
+            for (const dir of k ? [-1, 1] : [0]) {
+              const t = start0 + dir * k * 18;
+              if (t - lh / 2 >= 2 && t + lh / 2 <= H - 2 && !bad(t - lh / 2, t + lh / 2)) return t;
             }
-          }
-          if (!spot) spot = alongLine(m);
-          if (!spot) {
-            // The gap the label sits in: the one around its middle, else the one just above the line's source.
-            const g = Math.max(
-              0,
-              Math.min(
-                layers.length - 2,
-                layers.findIndex((_, k) => k < layers.length - 1 && m.ty < rowTop(k + 1)),
-              ),
-            );
-            need.add(g);
-            covered++;
-            const x0 = x0Of(w);
-            const top = find(x0, w, 16, false);
-            if (top == null) crowd.add(g);
-            spot = { x0, top: top ?? start0, lw: w, lh: 16, lines: [m.text] };
-          }
-          // 4 px above and below too, so a label placed later does not sit flush against it.
-          placed.push([spot.x0, spot.x0 + spot.lw, spot.top - spot.lh / 2 - 4, spot.top + spot.lh / 2 + 4, 6]);
-          labels.push(labelEl(m, spot.x0, spot.top, spot.lines));
-          return;
-        }
-        // Beside its arrowhead, on its side (see left), moved up 18 px at a time off labels and arrowheads. Clear of
-        // every other line and every box too: else on the other side of the arrowhead, then wrapped onto 2 to 4 lines,
-        // then the gap above the arrowhead grows and the diagram is drawn again.
-        const g = layerIndex[m.e.to] - 1;
-        // It stays in the gap right above its arrowhead: moved past the boxes above, it would sit beside other lines.
-        const gapTop = g >= 0 ? rowTop(g) + NH : 0;
-        const sideOf = (lw: number) => {
-          let left = m.left;
-          if (left && m.tx - 8 - lw < 0) left = false;
-          else if (!left && m.tx + 8 + lw > W) left = m.tx - 8 - lw >= 0;
-          return left;
-        };
-        const at = (left: boolean, lw: number) => (left ? m.tx - 8 - lw : Math.min(m.tx + 8, W - lw));
-        const clear = (x0: number, lw: number, y0: number, y1: number) => {
-          const over = (q: number[]) => x0 < q[1] + 2 && q[0] < x0 + lw + 2 && y0 < q[3] + 2 && q[2] < y1 + 2;
-          return !hits(x0, x0 + lw, y0, y1) && !boxRects.some(over) && !segs.some((sg) => (sg.idx === m.idx ? cross(sg.box, x0, lw, y0, y1) : over(sg.box)));
+          return null;
         };
         let spot: { x0: number; top: number; lw: number; lh: number; lines: string[] } | null = null;
-        // MA: on its own turn's height, just past the turn, on one line; the diagram widens for it.
-        // One line first; then 2 to 4 lines, narrower, still centred on its turn's height beside the turn.
-        if (m.lane != null) {
-          const lane = m.lane;
-          for (const lines of wraps(m.text)) {
-            if (spot) break;
-            const lw = Math.ceil(Math.max(...lines.map(labelWidth)));
-            const lh = lines.length * 16;
-            const right = Math.max(m.tx, m.from ?? m.tx) + 8;
-            const left = Math.min(m.tx, m.from ?? m.tx) - 8 - lw;
-            // Past the left edge is allowed: the diagram then widens to the left (see the shift after drawing).
-            for (const x0 of m.side === 'left' ? [left, right] : [right, left])
-              if (!spot && clear(x0, lw, lane - lh / 2, lane + lh / 2)) spot = { x0, top: lane, lw, lh, lines };
+        for (const lines of wraps(m.text)) {
+          const lw = Math.ceil(Math.max(...lines.map(labelWidth)));
+          const lh = lines.length * 16;
+          const x0 = x0Of(lw);
+          const top = find(x0, lw, lh, true);
+          if (top != null) {
+            spot = { x0, top, lw, lh, lines };
+            break;
           }
         }
-        for (const lines of spot ? [] : wraps(m.text)) {
+        if (!spot) spot = alongLine(m);
+        if (!spot) {
+          // The gap the label sits in: the one around its middle, else the one just above the line's source.
+          const g = Math.max(
+            0,
+            Math.min(
+              layers.length - 2,
+              layers.findIndex((_, k) => k < layers.length - 1 && m.ty < rowTop(k + 1)),
+            ),
+          );
+          need.add(g);
+          covered++;
+          const x0 = x0Of(w);
+          const top = find(x0, w, 16, false);
+          if (top == null) crowd.add(g);
+          spot = { x0, top: top ?? start0, lw: w, lh: 16, lines: [m.text] };
+        }
+        // 4 px above and below too, so a label placed later does not sit flush against it.
+        placed.push([spot.x0, spot.x0 + spot.lw, spot.top - spot.lh / 2 - 4, spot.top + spot.lh / 2 + 4, 6]);
+        labels.push(labelEl(m, spot.x0, spot.top, spot.lines));
+        return;
+      }
+      // Beside its arrowhead, on its side (see left), moved up 18 px at a time off labels and arrowheads. Clear of
+      // every other line and every box too: else on the other side of the arrowhead, then wrapped onto 2 to 4 lines,
+      // then the gap above the arrowhead grows and the diagram is drawn again.
+      const g = layerIndex[m.e.to] - 1;
+      // It stays in the gap right above its arrowhead: moved past the boxes above, it would sit beside other lines.
+      const gapTop = g >= 0 ? rowTop(g) + NH : 0;
+      const sideOf = (lw: number) => {
+        let left = m.left;
+        if (left && m.tx - 8 - lw < 0) left = false;
+        else if (!left && m.tx + 8 + lw > W) left = m.tx - 8 - lw >= 0;
+        return left;
+      };
+      const at = (left: boolean, lw: number) => (left ? m.tx - 8 - lw : Math.min(m.tx + 8, W - lw));
+      const clear = (x0: number, lw: number, y0: number, y1: number) => {
+        const over = (q: number[]) => x0 < q[1] + 2 && q[0] < x0 + lw + 2 && y0 < q[3] + 2 && q[2] < y1 + 2;
+        return !hits(x0, x0 + lw, y0, y1) && !boxRects.some(over) && !segs.some((sg) => (sg.idx === m.idx ? cross(sg.box, x0, lw, y0, y1) : over(sg.box)));
+      };
+      let spot: { x0: number; top: number; lw: number; lh: number; lines: string[] } | null = null;
+      // MA: on its own turn's height, just past the turn, on one line; the diagram widens for it.
+      // One line first; then 2 to 4 lines, narrower, still centred on its turn's height beside the turn.
+      if (m.lane != null) {
+        const lane = m.lane;
+        for (const lines of wraps(m.text)) {
+          if (spot) break;
+          const lw = Math.ceil(Math.max(...lines.map(labelWidth)));
+          const lh = lines.length * 16;
+          const right = Math.max(m.tx, m.from ?? m.tx) + 8;
+          const left = Math.min(m.tx, m.from ?? m.tx) - 8 - lw;
+          // Past the left edge is allowed: the diagram then widens to the left (see the shift after drawing).
+          for (const x0 of m.side === 'left' ? [left, right] : [right, left])
+            if (!spot && clear(x0, lw, lane - lh / 2, lane + lh / 2)) spot = { x0, top: lane, lw, lh, lines };
+        }
+      }
+      for (const lines of spot ? [] : wraps(m.text)) {
+        const lw = Math.ceil(Math.max(...lines.map(labelWidth)));
+        const lh = lines.length * 16;
+        const pref = sideOf(lw);
+        for (const left of [pref, !pref]) {
+          const x0 = at(left, lw);
+          if (x0 < 0 || x0 + lw > W) continue;
+          for (let k = 0; k < 8 && !spot; k++) {
+            const top = m.ty - 8 - lh / 2 - k * 18;
+            if (top - lh / 2 < Math.max(2, gapTop + 2)) break;
+            if (clear(x0, lw, top - lh / 2, top + lh / 2)) spot = { x0, top, lw, lh, lines };
+          }
+          if (spot) break;
+        }
+        if (spot) break;
+      }
+      if (!spot) spot = alongLine(m);
+      if (!spot && !last) {
+        later.push(m);
+        return;
+      }
+      const over = !spot;
+      if (!spot) {
+        // No spot clear of every line: the gap grows while it can. Meanwhile, and once it cannot, the same search lets
+        // the label cover a line (on its white ground), never a box or another label; as a last resort, as before
+        // this rule: on its side, moved up off labels only.
+        if (g >= 0) need.add(g);
+        covered++;
+        const offBoxes = (x0: number, lw: number, y0: number, y1: number) =>
+          !hits(x0, x0 + lw, y0, y1) && !boxRects.some((q) => x0 < q[1] + 2 && q[0] < x0 + lw + 2 && y0 < q[3] + 2 && q[2] < y1 + 2);
+        for (const lines of wraps(m.text)) {
           const lw = Math.ceil(Math.max(...lines.map(labelWidth)));
           const lh = lines.length * 16;
           const pref = sideOf(lw);
@@ -1008,52 +1050,32 @@ export function LayerGraph(p: LayerGraphProps) {
             for (let k = 0; k < 8 && !spot; k++) {
               const top = m.ty - 8 - lh / 2 - k * 18;
               if (top - lh / 2 < Math.max(2, gapTop + 2)) break;
-              if (clear(x0, lw, top - lh / 2, top + lh / 2)) spot = { x0, top, lw, lh, lines };
+              if (offBoxes(x0, lw, top - lh / 2, top + lh / 2)) spot = { x0, top, lw, lh, lines };
             }
             if (spot) break;
           }
           if (spot) break;
         }
-        if (!spot) spot = alongLine(m);
         if (!spot) {
-          // No spot clear of every line: the gap grows while it can. Meanwhile, and once it cannot, the same search lets
-          // the label cover a line (on its white ground), never a box or another label; as a last resort, as before
-          // this rule: on its side, moved up off labels only.
-          if (g >= 0) need.add(g);
-          covered++;
-          const offBoxes = (x0: number, lw: number, y0: number, y1: number) =>
-            !hits(x0, x0 + lw, y0, y1) && !boxRects.some((q) => x0 < q[1] + 2 && q[0] < x0 + lw + 2 && y0 < q[3] + 2 && q[2] < y1 + 2);
-          for (const lines of wraps(m.text)) {
-            const lw = Math.ceil(Math.max(...lines.map(labelWidth)));
-            const lh = lines.length * 16;
-            const pref = sideOf(lw);
-            for (const left of [pref, !pref]) {
-              const x0 = at(left, lw);
-              if (x0 < 0 || x0 + lw > W) continue;
-              for (let k = 0; k < 8 && !spot; k++) {
-                const top = m.ty - 8 - lh / 2 - k * 18;
-                if (top - lh / 2 < Math.max(2, gapTop + 2)) break;
-                if (offBoxes(x0, lw, top - lh / 2, top + lh / 2)) spot = { x0, top, lw, lh, lines };
-              }
-              if (spot) break;
-            }
-            if (spot) break;
-          }
-          if (!spot) {
-            if (g >= 0) crowd.add(g);
-            const x0 = at(sideOf(w), w);
-            let top = m.ty - 16;
-            for (let k = 0; k < 8 && hits(x0, x0 + w, top - 8, top + 8); k++) top -= 18;
-            spot = { x0, top, lw: w, lh: 16, lines: [m.text] };
-          }
+          if (g >= 0) crowd.add(g);
+          const x0 = at(sideOf(w), w);
+          let top = m.ty - 16;
+          for (let k = 0; k < 8 && hits(x0, x0 + w, top - 8, top + 8); k++) top -= 18;
+          spot = { x0, top, lw: w, lh: 16, lines: [m.text] };
         }
-        // 2 px above and below: a label placed later along its line keeps clear of this one on any font.
-        placed.push([spot.x0, spot.x0 + spot.lw, spot.top - spot.lh / 2 - 2, spot.top + spot.lh / 2 + 2, 6]);
-        // 4 px for the label's own padding and the canvas measure's rounding.
-        wide = Math.max(wide, spot.x0 + spot.lw + PAD / 2 + 4);
-        least = Math.min(least, spot.x0 - PAD / 2 - 4);
-        labels.push(labelEl(m, spot.x0, spot.top, spot.lines));
-      });
+      }
+      // 4 px above and below: a label placed later keeps a visible gap from this one (2 px read as touching).
+      placed.push([spot.x0, spot.x0 + spot.lw, spot.top - spot.lh / 2 - 4, spot.top + spot.lh / 2 + 4, 6]);
+      // 4 px for the label's own padding and the canvas measure's rounding.
+      wide = Math.max(wide, spot.x0 + spot.lw + PAD / 2 + 4);
+      least = Math.min(least, spot.x0 - PAD / 2 - 4);
+      labels.push(labelEl(m, spot.x0, spot.top, spot.lines, over));
+    };
+    marks
+      // Labels beside arrowheads first: their spot is fixed; the labels of lines up then look for room around them.
+      .sort((m, n) => Number(!!m.up) - Number(!!n.up) || m.ty - n.ty || m.tx - n.tx)
+      .forEach((m) => place(m, false));
+    later.forEach((m) => place(m, true));
     return { paths, labels, hitPaths, need, crowd, wide, least, covered };
   };
   // Room for the lanes: LANE_H px per labelled line into one box, plus the arrow and a margin.
@@ -1157,11 +1179,7 @@ export function LayerGraph(p: LayerGraphProps) {
   });
   // The list: every box (name, size) and every line (「A → B：label」), selectable like the diagram (XC).
   const edgeText = (e: LayerGraphEdge) =>
-    e.inferred
-      ? e.label
-        ? tr('{label}（{inferred}）', { label: e.label, inferred: p.inferredLabel || tr('推測') })
-        : p.inferredLabel || tr('推測')
-      : countText(e);
+    lab(e) ? (e.label ? tr('{label}（{inferred}）', { label: e.label, inferred: kindWord(e) }) : kindWord(e)) : countText(e);
   const listItem = (key: string, on: boolean, dim: boolean, onClick: (() => void) | undefined, head: React.ReactNode, rest: React.ReactNode) => (
     <li key={key} className={cx('ui-lg-li', dim && 'is-dim')}>
       {onClick ? (
@@ -1236,7 +1254,7 @@ export function LayerGraph(p: LayerGraphProps) {
   );
   const showList = p.listView !== false && view === 'list';
   // The tag button only where there are labels to hide (inferred lines), and only on the diagram.
-  const toggleShown = p.labelToggle !== false && !showList && p.edges.some((e) => e.inferred);
+  const toggleShown = p.labelToggle !== false && !showList && p.edges.some((e) => lab(e));
   // PM: measure the box; narrow the boxes when the diagram is wider, then scale what is still too wide.
   React.useLayoutEffect(() => {
     const el = scrollRef.current;
@@ -1259,10 +1277,19 @@ export function LayerGraph(p: LayerGraphProps) {
       setFit({ at: avail, nw, col: 24, scale: 1 });
       return;
     }
-    if (fitted.scale !== 1 || W <= avail + 0.5) return;
-    const s = avail / W;
-    // Smaller than 0.75: the text would be too small to read; it scrolls instead.
-    if (s >= 0.75) setFit({ ...fitted, scale: Math.floor(s * 1000) / 1000 });
+    // Scrolling anyway (WA): the boxes are back at their own width, names whole.
+    if (fitted.full) return;
+    // W changes after the fit: labels and the space for them widen it. The scale follows every change, so a diagram
+    // that grew past its box shrinks again instead of scrolling (PM).
+    const s = Math.floor((avail / W) * 1000) / 1000;
+    // Smaller than 0.75: the text would be too small to read. It scrolls instead, and since it scrolls anyway the boxes
+    // go back to their own width and spacing, so no name is cut (WA).
+    if (W > avail + 0.5 && s < 0.75) {
+      setFit({ ...fitted, nw: p.nodeWidth || 200, col: 40, scale: 1, full: true });
+      return;
+    }
+    const want = W <= avail + 0.5 ? 1 : s;
+    if (want !== fitted.scale) setFit({ ...fitted, scale: want });
   }, [avail, showList, fitted, W, p.nodeWidth, cols]);
   // A label still covering a line: more space between boxes, then drawn again (up to 120 px more).
   const coveredNow = drawn.covered;
@@ -1346,9 +1373,12 @@ export function LayerGraph(p: LayerGraphProps) {
           items={
             p.legendItems || [
               // Only kinds of line the diagram has: a diagram of inferred lines alone gets no 「次數越多線越粗」.
-              ...(edges.some((e) => !e.inferred && pos[e.from] && pos[e.to]) ? [{ type: 'weight' as const, label: '次數越多線越粗' }] : []),
-              ...(edges.some((e) => e.inferred && pos[e.from] && pos[e.to])
+              ...(edges.some((e) => !lab(e) && pos[e.from] && pos[e.to]) ? [{ type: 'weight' as const, label: '次數越多線越粗' }] : []),
+              ...(edges.some((e) => e.inferred && !e.declared && pos[e.from] && pos[e.to])
                 ? [{ type: 'inferred' as const, label: p.inferredLabel || '推測的關係', text: p.inferredText }]
+                : []),
+              ...(edges.some((e) => e.declared && pos[e.from] && pos[e.to])
+                ? [{ type: 'declared' as const, label: p.declaredLegend || '專案宣告的關係', text: p.declaredText }]
                 : []),
             ]
           }

@@ -1,0 +1,12 @@
+---
+'@seanyeh77/ui': minor
+---
+
+codemap 第六輪回饋：
+
+- LayerGraph：方框變窄後標籤和線的空間讓圖變寬時，縮小比例跟著重算（PM 原本只算一次，1366、1440 px 會變成左右捲動、右側方框被切掉）；標籤之間上下至少留 4 px；找不到不碰線的位置的標籤最後才放，蓋在線上時用實心底色；換行時逗號不放在行首。
+- Tabs、DataTable `summary`：`unit` 可以傳函式（單複數）；字串單位在數字是 1 時使用「1 <單位>」的翻譯，預設「筆」在英文是「1 row」。分頁的字不換行，放不下時整排左右捲動，不再互相重疊。
+- CommandPalette：新增 `noResultsText`，找不到結果時的提示文字，不算一筆結果。
+- LayerGraph `declared`：專案宣告的關係畫成長短交替的虛線，圖例「專案宣告的關係」（DC）；GraphLegend 加 `declared`。
+- LayerGraph：縮到 0.75 倍還放不下、改回左右捲動時，方框回到原本的寬度，名稱不截斷（WA）。
+- 匯出 `CountUnit` 型別。

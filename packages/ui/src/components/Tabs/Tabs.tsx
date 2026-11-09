@@ -5,15 +5,15 @@ import { cx, browserKey } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { useFocusRescue } from '../../internal/focus';
 import { announce } from '../../announce';
-import { tr } from '../../i18n';
+import { unitFor, type CountUnit } from '../../i18n';
 
 export interface TabItem<V extends string = string> {
   id: V;
   label: string;
   /** A count after the label, e.g. how many rows a view has. */
   count?: number;
-  /** Unit after this tab's count, e.g. 「筆」. Default: the list's unit. */
-  unit?: string;
+  /** Unit after this tab's count, e.g. 「筆」, or a function of the count for plurals. Default: the list's unit. */
+  unit?: CountUnit;
 }
 
 export interface TabsProps<V extends string = string> {
@@ -22,8 +22,9 @@ export interface TabsProps<V extends string = string> {
   onChange?: (id: V) => void;
   /** aria-label of the tab list. */
   label?: string;
-  /** Unit after every count, e.g. 「筆」 or 「個」: a number carries its unit. */
-  unit?: string;
+  /** Unit after every count, e.g. 「筆」 or 「個」: a number carries its unit. A function gets the count, for plurals:
+   *  `(n) => (n === 1 ? 'item' : 'items')`. */
+  unit?: CountUnit;
   className?: string;
 }
 
@@ -73,7 +74,9 @@ export function Tabs<V extends string = string>({ items, value, onChange, label,
     onChange?.(items[i].id);
     announce(
       items[i].label +
-        (items[i].count != null ? ' ' + format.number(items[i].count ?? 0) + (items[i].unit || unit ? ' ' + tr(items[i].unit || unit || '') : '') : ''),
+        (items[i].count != null
+          ? ' ' + format.number(items[i].count ?? 0) + (items[i].unit || unit ? ' ' + unitFor(items[i].unit || unit, items[i].count ?? 0) : '')
+          : ''),
     );
   };
   return (
@@ -115,7 +118,7 @@ export function Tabs<V extends string = string>({ items, value, onChange, label,
               {t.unit || unit ? (
                 <>
                   {' '}
-                  <span className="ui-unit">{tr(t.unit || unit || '')}</span>
+                  <span className="ui-unit">{unitFor(t.unit || unit, t.count)}</span>
                 </>
               ) : null}
             </span>

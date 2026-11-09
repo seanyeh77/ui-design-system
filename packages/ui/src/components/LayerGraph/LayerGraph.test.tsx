@@ -782,3 +782,114 @@ test('LayerGraph: a language without its own 「1 次」 uses its {n} form', () 
     setLocale('zh-TW');
   }
 });
+
+// The ibtrace architecture as codemap draws it (0.11.0 feedback): five labelled lines into one box.
+const ibNodes = [
+  { id: 'ext', name: '被追蹤的程式', external: true },
+  { id: 'analysis', name: 'analysis（Python）', layer: 0 },
+  { id: 'cluster', name: 'cluster（Python）', layer: 0 },
+  { id: 'ibmon', name: 'src/ibmon', layer: 1, size: 91 },
+  { id: 'ucx', name: 'src/ucx_ib_test', layer: 1, size: 22 },
+  { id: 'lib', name: 'src/libibtrace', layer: 2, size: 114 },
+  { id: 'common', name: 'src/common', layer: 3, size: 13, shared: true },
+];
+const ibEdges: LayerGraphEdge[] = [
+  { id: 'ib', from: 'ext', to: 'lib', inferred: true, label: '攔截 `infiniband`（18 個函式）' },
+  { id: 'ucp', from: 'ext', to: 'lib', inferred: true, label: '攔截 `ucp`（11 個函式）' },
+  { id: 'uct', from: 'ext', to: 'lib', inferred: true, label: '攔截 `uct`（4 個函式）' },
+  { id: 'launch', from: 'ucx', to: 'ext', inferred: true, label: '啟動（execvp, fork），設定 LD_PRELOAD' },
+  { id: 'a', from: 'analysis', to: 'ibmon', inferred: true, label: '執行 `ibmon`' },
+  { id: 'c', from: 'cluster', to: 'ibmon', inferred: true, label: '執行 `ibmon`' },
+  { id: 'cu', from: 'cluster', to: 'ucx', inferred: true, label: '執行 `ucx_ib_test`' },
+  { id: 'env', from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
+  { id: 'u17', from: 'ucx', to: 'lib', inferred: true, label: '攔截 17 次 `ucp` 呼叫' },
+  { from: 'ibmon', to: 'common', count: 12 },
+];
+
+test('LayerGraph: a diagram that grows past its box after the boxes narrow (labels, lanes) scales down instead of scrolling (PM)', async () => {
+  await page.viewport(1366, 900);
+  const { container } = render(
+    <div style={{ width: 590 }}>
+      <LayerGraph nodes={ibNodes} edges={ibEdges} onSelectEdge={() => {}} />
+    </div>,
+  );
+  const scroll = container.querySelector<HTMLElement>('.ui-lg-scroll');
+  const canvas = container.querySelector<HTMLElement>('.ui-lg-canvas');
+  if (!scroll || !canvas) throw new Error('no diagram');
+  await waitFor(() => expect(canvas.style.transform).toMatch(/scale\(0\.\d+\)/));
+  await waitFor(() => expect(scroll.scrollWidth).toBeLessThanOrEqual(scroll.clientWidth + 1));
+});
+
+test('LayerGraph: labels keep a visible gap from each other; one that must cross a line hides the line behind it', async () => {
+  await page.viewport(1440, 900);
+  const { container } = render(
+    <div style={{ width: 664 }}>
+      <LayerGraph nodes={ibNodes} edges={ibEdges} onSelectEdge={() => {}} />
+    </div>,
+  );
+  await new Promise((r) => setTimeout(r, 300));
+  const boxes = [...container.querySelectorAll<HTMLElement>('.ui-lg-label')].map((l) => ({ t: l.textContent, r: l.getBoundingClientRect() }));
+  for (let i = 0; i < boxes.length; i++)
+    for (let j = i + 1; j < boxes.length; j++) {
+      const a = boxes[i].r;
+      const b = boxes[j].r;
+      const apart = Math.max(a.left, b.left) - Math.min(a.right, b.right) >= 2 || Math.max(a.top, b.top) - Math.min(a.bottom, b.bottom) >= 2;
+      expect(apart, `${boxes[i].t} / ${boxes[j].t}`).toBe(true);
+    }
+  for (const l of container.querySelectorAll<HTMLElement>('.ui-lg-label.is-over')) expect(getComputedStyle(l).backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
+});
+
+test('LayerGraph: a wrapped label never starts a line with a comma', async () => {
+  await page.viewport(1440, 900);
+  const { container } = render(
+    <div style={{ width: 664 }}>
+      <LayerGraph nodes={ibNodes} edges={ibEdges} onSelectEdge={() => {}} />
+    </div>,
+  );
+  await new Promise((r) => setTimeout(r, 300));
+  for (const l of container.querySelectorAll<HTMLElement>('.ui-lg-label'))
+    for (const line of l.innerText.split('\n')) expect(line.trim()).not.toMatch(/^[,，、]/);
+});
+
+test('LayerGraph: a declared edge has long-short dashes, its label, 「宣告」 in the list and its own legend entry (DC)', async () => {
+  const { container } = render(
+    <LayerGraph
+      nodes={nodes}
+      edges={[
+        { id: 'ring', from: 'lib', to: 'ibmon', declared: true, label: '經由 `src/common` 傳資料（ring）' },
+        { id: 'shm', from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
+      ]}
+      declaredText="由 rules.json 宣告"
+    />,
+  );
+  const lines = [...container.querySelectorAll<SVGPathElement>('.ui-lg-edge')];
+  expect(lines.filter((l) => l.classList.contains('is-declared'))).toHaveLength(1);
+  expect(lines.filter((l) => l.classList.contains('is-inferred'))).toHaveLength(1);
+  const dash = getComputedStyle(container.querySelector('.ui-lg-edge.is-declared') as Element).strokeDasharray;
+  expect(dash).not.toBe(getComputedStyle(container.querySelector('.ui-lg-edge.is-inferred') as Element).strokeDasharray);
+  // An up line's label may wrap: compare without the spaces.
+  expect([...container.querySelectorAll('.ui-lg-label')].map((l) => l.textContent?.replace(/\s/g, ''))).toContain('經由src/common傳資料（ring）');
+  const legend = container.querySelector('.ui-graph-legend')?.textContent ?? '';
+  expect(legend).toContain('推測的關係');
+  expect(legend).toContain('專案宣告的關係');
+  expect(container.querySelector('.ui-graph-legend .ui-graph-edge.is-declared')).not.toBeNull();
+  await user.click(screen.getByRole('tab', { name: '清單' }));
+  expect(screen.getByText(/傳資料（ring）（宣告）/)).toBeTruthy();
+});
+
+test('LayerGraph: too wide even at 0.75, it scrolls with the boxes back at their own width, names whole (WA)', async () => {
+  await page.viewport(390, 844);
+  const { container } = render(
+    <div style={{ width: 326 }}>
+      <LayerGraph nodes={ibNodes} edges={ibEdges} />
+    </div>,
+  );
+  const scroll = container.querySelector<HTMLElement>('.ui-lg-scroll');
+  if (!scroll) throw new Error('no diagram');
+  await waitFor(() => expect(scroll.scrollWidth).toBeGreaterThan(scroll.clientWidth));
+  await waitFor(() => {
+    for (const n of container.querySelectorAll<HTMLElement>('.ui-lg-name')) expect(n.scrollWidth).toBeLessThanOrEqual(n.clientWidth + 1);
+  });
+  expect(container.querySelector<HTMLElement>('.ui-lg-canvas')?.style.transform ?? '').toBe('');
+  await page.viewport(1280, 800);
+});
