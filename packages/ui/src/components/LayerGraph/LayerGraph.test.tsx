@@ -3,7 +3,7 @@ import { expect, test, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { LayerGraph, format, setLocale, type LayerGraphEdge } from '../../index';
+import { LayerGraph, addMessages, format, setLocale, type LayerGraphEdge } from '../../index';
 
 const user = userEvent.setup();
 const nodes = [
@@ -737,6 +737,47 @@ test('LayerGraph: countLabel and sizeLabel can be functions of the number; Engli
     const counts = [...container.querySelectorAll('.ui-lg-count')].map((e) => e.textContent);
     expect(counts).toEqual(['1 function', '1,033 functions']);
     expect([...container.querySelectorAll('.ui-lg-label')].map((e) => e.textContent)).toContain('1 call');
+  } finally {
+    setLocale('zh-TW');
+  }
+});
+
+test('LayerGraph: lines without a label of their own get no source in front', () => {
+  render(
+    <LayerGraph
+      nodes={[
+        { id: 'a', name: 'a', layer: 0 },
+        { id: 'b', name: 'b', layer: 0 },
+        { id: 'c', name: 'c', layer: 1 },
+      ]}
+      edges={[
+        { id: 'x', from: 'a', to: 'c', inferred: true },
+        { id: 'y', from: 'b', to: 'c', inferred: true },
+      ]}
+      legend={false}
+    />,
+  );
+  const texts = [...document.querySelectorAll('.ui-lg-label')].map((l) => l.textContent);
+  expect(texts).toEqual(['推測', '推測']);
+});
+
+test('LayerGraph: a language without its own 「1 次」 uses its {n} form', () => {
+  addMessages('de', { '{n} 次': '{n} Aufrufe' });
+  setLocale('de');
+  try {
+    render(
+      <LayerGraph
+        nodes={[
+          { id: 'a', name: 'a', layer: 0 },
+          { id: 'b', name: 'b', layer: 1 },
+        ]}
+        edges={[{ id: 'x', from: 'a', to: 'b', count: 1 }]}
+        selected="a"
+        onSelect={() => {}}
+        legend={false}
+      />,
+    );
+    expect([...document.querySelectorAll('.ui-lg-label')].map((l) => l.textContent)).toEqual(['1 Aufrufe']);
   } finally {
     setLocale('zh-TW');
   }

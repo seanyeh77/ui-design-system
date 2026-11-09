@@ -109,6 +109,12 @@ function withNum(label: string | ((n: number) => string) | undefined, n: number,
   return (label ?? fallback(n)).replace('{n}', '\u0001');
 }
 
+/** The default for one (「1 call」) where the language has its own word for it, else the {n} form. */
+function byCount(n: number, one: string, many: string): string {
+  const t = n === 1 ? tr(one) : '';
+  return t && t !== one ? t : tr(many);
+}
+
 function labelWidth(text: string): number {
   const parts = text.split(SPLIT).filter(Boolean);
   if (measure === undefined) measure = document.createElement('canvas').getContext('2d');
@@ -400,21 +406,22 @@ export function LayerGraph(p: LayerGraphProps) {
     p.onSelect?.(on ? null : id);
   };
   const nameOf = (id: string) => all.find((n) => n.id === id)?.name || id;
-  const countText = (e: LayerGraphEdge) =>
-    withNum(p.countLabel, e.count ?? 0, (n) => (n === 1 && !/^zh/i.test(format.locale()) ? tr('1 次') : tr('{n} 次'))).replace(
-      '\u0001',
-      format.number(e.count ?? 0),
-    );
+  const countText = (e: LayerGraphEdge) => {
+    const n = e.count ?? 0;
+    return typeof p.countLabel === 'function' ? p.countLabel(n) : (p.countLabel ?? byCount(n, '1 次', '{n} 次')).replace('{n}', format.number(n));
+  };
   // The label a line down gets: its own label for an inferred line, else its count (when related to the selection).
   // Two or more lines with the same label (「執行 ibmon」 from two boxes) cannot be told apart: each gets its source in
   // front, 「來自 src/cli，…」.
   // In a language with capitals, 「Passes data…」 after 「From x, 」 starts lower case (not an acronym like 「SHM」).
   const midSentence = (t: string) => (/^[A-Z][a-z]/.test(t) && !/^zh/i.test(format.locale()) ? t[0].toLowerCase() + t.slice(1) : t);
-  const ownLabel = (e: LayerGraphEdge) => e.label || p.inferredLabel || tr('推測');
+  // Only labels the app wrote: lines without one all show the same 「推測」, and that needs no source.
   const sameLabel = new Map<string, number>();
-  for (const e of edges) if (e.inferred && pos[e.from] && pos[e.to]) sameLabel.set(ownLabel(e), (sameLabel.get(ownLabel(e)) ?? 0) + 1);
+  for (const e of edges) if (e.inferred && e.label && pos[e.from] && pos[e.to]) sameLabel.set(e.label, (sameLabel.get(e.label) ?? 0) + 1);
   const inferredText = (e: LayerGraphEdge) =>
-    (sameLabel.get(ownLabel(e)) ?? 0) > 1 ? tr('來自 {from}，{label}', { from: nameOf(e.from), label: midSentence(ownLabel(e)) }) : ownLabel(e);
+    e.label && (sameLabel.get(e.label) ?? 0) > 1
+      ? tr('來自 {from}，{label}', { from: nameOf(e.from), label: midSentence(e.label) })
+      : e.label || p.inferredLabel || tr('推測');
   const markText = (e: LayerGraphEdge) => (e.inferred ? inferredText(e) : countText(e));
   // Room beside the boxes for the lanes only: the labels sit beside the lane, between the layers (PB), so they do not
   // widen the diagram. The left side shifts every box right, the right side widens it.
@@ -894,13 +901,10 @@ export function LayerGraph(p: LayerGraphProps) {
             covered++;
             // Off boxes and labels at least: below the run, moved down 18 px at a time.
             const x0 = Math.max(PAD / 2, Math.min(W - PAD / 2 - w, m.tx - w / 2));
+            const taken = (t: number) =>
+              hits(x0, x0 + w, t - 10, t + 10) || boxRects.some((q) => x0 < q[1] + 2 && q[0] < x0 + w + 2 && t - 10 < q[3] && q[2] < t + 10);
             let top = m.ty + 14;
-            for (
-              let k = 0;
-              k < 8 && (hits(x0, x0 + w, top - 10, top + 10) || boxRects.some((q) => x0 < q[1] + 2 && q[0] < x0 + w + 2 && top - 10 < q[3] && q[2] < top + 10));
-              k++
-            )
-              top += 18;
+            for (let k = 0; k < 8 && taken(top); k++) top += 18;
             spot = { x0, top, lw: w, lh: 16, lines: [m.text] };
           }
           placed.push([spot.x0, spot.x0 + spot.lw, spot.top - spot.lh / 2 - 4, spot.top + spot.lh / 2 + 4, 6]);
@@ -1096,7 +1100,7 @@ export function LayerGraph(p: LayerGraphProps) {
     drawn = draw();
   }
   const { paths, labels, hitPaths } = drawn;
-  const sizeText = (n: number) => withNum(p.sizeLabel, n, () => (n === 1 && !/^zh/i.test(format.locale()) ? tr('1 個項目') : tr('{n} 個項目')));
+  const sizeText = (n: number) => withNum(p.sizeLabel, n, () => byCount(n, '1 個項目', '{n} 個項目'));
   const externalText = p.externalLabel ?? tr('repo 外');
   const useText = p.useLabel ?? tr('使用 {n} 次');
   const nodes = main.map((n) => {

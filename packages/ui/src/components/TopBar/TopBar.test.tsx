@@ -16,3 +16,13 @@ test('TopBar on a phone: the project name gives way before the page title', asyn
   const bar = container.querySelector<HTMLElement>('.ui-topbar');
   expect(bar && bar.scrollWidth <= bar.clientWidth).toBe(true);
 });
+
+test('TopBar on a desktop: a long title is not capped at 45 % while there is room', async () => {
+  await page.viewport(1280, 800);
+  const long = '一個很長的頁面標題，用來確認桌機上不會在一半的地方就被截斷';
+  const { container } = render(<TopBar title={long} />);
+  const title = container.querySelector<HTMLElement>('.ui-topbar-title');
+  const bar = container.querySelector<HTMLElement>('.ui-topbar');
+  if (!title || !bar) throw new Error('no bar');
+  expect(title.scrollWidth).toBeLessThanOrEqual(title.clientWidth);
+});

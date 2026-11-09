@@ -546,7 +546,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                         }}
                         role="row"
                         // Named by its first cell (the function name, say), not by every cell and the caret's 「展開 …」.
-                        aria-labelledby={shownCols.length ? `${uid}-n-${id}` : undefined}
+                        aria-labelledby={shownCols.length ? `${uid}-n-${start + i}` : undefined}
                         className={cx('ui-dt-row', i % 2 && 'is-even', on && 'is-selected', selectable && 'has-sel', expander && 'has-exp')}
                         style={gridStyle}
                         // EC: a click anywhere on the row opens or closes its details, except on its own controls
@@ -585,7 +585,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                           <div
                             key={c.key}
                             role="cell"
-                            id={ci === 0 ? `${uid}-n-${id}` : undefined}
+                            id={ci === 0 ? `${uid}-n-${start + i}` : undefined}
                             // fullText: the whole text as the cell's description, not hidden text beside the short one
                             // (that put 「ucp.c:62，src/…/ucp.c:62」 in the page's text and the phone card).
                             aria-description={c.fullText ? c.fullText(x.r) || undefined : undefined}

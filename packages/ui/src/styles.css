@@ -718,11 +718,13 @@ body {
   gap: 10px;
   min-width: 0;
 }
-/* Short of room (phones), the project switcher's name gives way before the page title: the title keeps its width up
-   to 45 % of the bar before it is cut, rather than 「A…」. */
-.ui-topbar-title {
-  flex: 0 0 auto;
-  max-width: 45%;
+/* Phones: the project switcher's name gives way before the page title, which keeps its width up to 45 % of the bar
+   before it is cut, rather than 「A…」. Wider, the title shrinks as before. */
+@media (max-width: 599px) {
+  .ui-topbar-title {
+    flex: 0 0 auto;
+    max-width: 45%;
+  }
 }
 .ui-topbar-end > .ui-projsw,
 .ui-projsw-text {
