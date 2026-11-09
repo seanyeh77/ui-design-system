@@ -430,3 +430,30 @@ Claude 定的細節（待確認）：
 - `edgeLabels` 是一開始的狀態；使用者按過後記在 `localStorage`（`ui-lg-labels:` 加 `scrollKey`，預設是方框的 id），之後蓋過 `edgeLabels`。
 - 名稱固定「顯示線上文字」，用 `aria-pressed` 表示狀態（實驗室示範時提示文字會換成「隱藏線上文字」，正式版不換，避免名稱和狀態互相矛盾）。
 - 圖示用 Phosphor `tag`，按下時用實心版；加進內建圖示。沒有外框，未按下時是次要文字色。
+
+## codemap 第五輪試用（0.10.0）
+
+使用者轉來的回饋（節錄）：LayerGraph 線穿過標籤、手機寬度標籤和方框名稱被截斷、相同標籤無法區分（希望自動避開或補上來源）；`UI.format` 數字跟著瀏覽器語言；CodeText 英文介面用全形冒號；DataTable 手機卡片函式名稱中間斷行、「位置」欄在 1366 和 1440 寬時最後一位被切掉、沒有溢出仍有「向右捲動」提示、計數同時出現兩種寫法；手機底部分頁列只有圖示；導覽第 5 步蓋住表格；`countLabel` 要能依數量決定；清單檢視的關係按鈕同名；`fullText` 在卡片和列名稱重複；CodeView 的路徑要能變成連結。
+
+查到的原因：
+
+- `UI.format.number` 跟著 `setLocale`；1033 顯示成「1.033」是 codemap `Settings.tsx` 自己呼叫 `toLocaleString()`（沒有指定語言）。
+- 「向右捲動」提示出現時，超出的部分是平常隱藏的操作欄，資料欄都看得到。
+- 計數、`fullText` 的重複是讀頁面文字（複製、`innerText`）時才看到：顯示的文字和給螢幕閱讀器的隱藏文字都在頁面文字裡。
+- 導覽第 5 步的目標是整個檢查頁（`data-tour="notes"` 在最外層），比視窗高，說明卡只能蓋住它的一部分。
+- 底部分頁列只有圖示是「要是 T0」的決定，這輪沒有改。
+
+Claude 定的細節（待確認）：
+
+- LayerGraph：原本的位置都被擋住時，標籤沿自己的線找最近的空位；還找不到時先加高層間空隙，再加大同一層方框的間距（每次 24 px，最多 120 px）。手機上圖因此常變成左右捲動，不再縮小。
+- LayerGraph：從方框出去的線分散在整個方框寬度（離兩邊 16 px）。
+- LayerGraph：同一層的線改從下方空隙繞到目標下緣，箭頭朝上（原本會穿過目標方框）。
+- LayerGraph：相同標籤加來源的寫法「來自 {from}，{label}」，只在兩條以上文字完全相同時加。
+- LayerGraph：repo 外的方框自成一排時不跟著變窄。
+- TopBar：專案切換器的名稱先截斷，標題最多保留 45 % 寬度。
+- DataTable：不能換行的內容讓欄位自動加寬；操作欄固定在右緣（新的固定欄，和 `stickyFirst` 不同，一律開啟）。
+- DataTable：手機卡片的 `overflow-wrap` 從 `anywhere` 改成 `break-word`；標題欄唯一的子元素是橫排時自動換行。
+- 計數（DataTable、Tour、TextArea）的「a / b」改由 CSS 畫，頁面文字只留念的版本。`fullText` 改成格子的 `aria-description`；列的名稱改成第一欄。
+- Tour：目標比視窗 70 % 高時開發警告。
+- CodeView：`refHref`、`onRef` 只用在註解和字串裡的路徑；有資料夾和副檔名、或檔名加行號才算。
+- LayerGraph `countLabel`、`sizeLabel` 可以是函式；預設英文單數「1 call」「1 item」。

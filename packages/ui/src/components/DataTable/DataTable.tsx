@@ -5,7 +5,7 @@ import { Tabs } from '../Tabs/Tabs';
 import { format } from '../../format';
 import { tr } from '../../i18n';
 import { Icon, type CustomIcon } from '../../icons/Icon';
-import { cx, monoNums, reduced, useNarrow } from '../../internal/util';
+import { cx, monoNums, reduced, seenOnly, useNarrow } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { CheckMark } from '../../internal/Field';
 import { announce } from '../../announce';
@@ -119,6 +119,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const rootRef = React.useRef<HTMLDivElement>(null);
   const [sel, setSel] = React.useState<Record<string, boolean>>({});
   const [sumVal, setSumVal] = React.useState('all');
+  // Widths (px) that columns grew to so content that cannot wrap is not cut; see the measuring effect.
+  const [fit, setFit] = React.useState<Record<string, number>>({});
   const [resetKey, setResetKey] = React.useState(p.resetKey);
   const resetting = resetKey !== p.resetKey;
   if (resetting) {
@@ -131,6 +133,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     setSort({ key: null, dir: 'desc' });
     setToggled({});
     setOpened({});
+    setFit({});
   }
   const valuesKey = JSON.stringify(values);
   React.useEffect(() => {
@@ -322,16 +325,35 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const longCols = shownCols.filter((c) => c.long || c.fullText);
   const expander = longCols.length > 0 && !narrow;
   const EXP = 40;
+  // A column is at least as wide as content that cannot wrap (a code chip, a link with a path): measured below.
+  const minOf = (c: DataTableColumn<R>) => Math.max(c.width || (c.numeric ? 96 : 120), fit[c.key] || 0);
   const template = [
     expander ? EXP + 'px' : null,
     selectable ? '46px' : null,
-    ...shownCols.map((c) => (c.width ? `minmax(${c.width}px, ${c.grow || 1}fr)` : c.numeric ? 'minmax(96px, .8fr)' : 'minmax(120px, 1fr)')),
+    ...shownCols.map((c) => `minmax(${minOf(c)}px, ${c.grow || (c.width ? 1 : c.numeric ? 0.8 : 1)}fr)`),
     hasAct ? actW + 'px' : null,
   ]
     .filter(Boolean)
     .join(' ');
-  const minW = (expander ? EXP : 0) + (selectable ? 46 : 0) + shownCols.reduce((a, c) => a + (c.width || (c.numeric ? 96 : 120)), 0) + (hasAct ? actW : 0);
+  const minW = (expander ? EXP : 0) + (selectable ? 46 : 0) + shownCols.reduce((a, c) => a + minOf(c), 0) + (hasAct ? actW : 0);
   const gridStyle = { gridTemplateColumns: template, minWidth: minW };
+  // Desktop rows: a cell whose content cannot wrap and is wider than the cell (InlineCode, a path) widens its column
+  // instead of being cut. Long columns truncate on purpose and are left alone. Widths only grow, until resetKey.
+  React.useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root || narrow) return;
+    const grown: Record<string, number> = {};
+    for (const el of root.querySelectorAll<HTMLElement>('.ui-dt-body .ui-dt-cell[data-col]:not(.is-long)')) {
+      const over = el.scrollWidth - el.clientWidth;
+      const key = el.dataset.col;
+      if (over <= 1 || !key) continue;
+      const need = Math.ceil(el.getBoundingClientRect().width + over);
+      if (need > (grown[key] ?? fit[key] ?? 0)) grown[key] = need;
+    }
+    // The overflow is known only after the cells are laid out; widths only grow, so this settles.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- measuring layout, as above
+    if (Object.keys(grown).length) setFit((f) => ({ ...f, ...grown }));
+  }, [narrow, fit, vis, shownCols]);
   const stickyStyle = (ci: number) => (ci === 0 && sticky ? { left: (expander ? EXP : 0) + (selectable ? 46 : 0) } : undefined);
   const cellClass = (c: DataTableColumn<R>, ci: number, ...more: unknown[]) =>
     cx('ui-dt-cell', isNum(c) && 'is-num', ci === 0 && sticky && 'is-sticky', ...more);
@@ -377,7 +399,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
             </div>
           );
         })}
-        {hasAct ? <div className="ui-dt-cell" role="columnheader" aria-label={tr('操作')} /> : null}
+        {hasAct ? <div className="ui-dt-cell is-end" role="columnheader" aria-label={tr('操作')} /> : null}
       </div>
     );
 
@@ -492,9 +514,10 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
           />
         ) : null}
         <span className="ui-dt-result">
-          {/* Shown 「6 / 6 筆」; read 「6 筆中的 6 筆」, not 「6 斜線 6 筆」. */}
+          {/* Shown 「6 / 6 筆」; read 「6 筆中的 6 筆」, not 「6 斜線 6 筆」. The shown one is drawn by CSS, so the page's text
+              has only the readable one (no 「6 / 6 筆6 筆中的 6 筆」 when copied or read by a tool). */}
           <span aria-hidden="true">
-            {monoNums(tr('{n} / {total} 筆', { n: '\u0001', total: '\u0002' }), [format.number(list.length), format.number(baseCount)])}
+            {seenOnly(tr('{n} / {total} 筆', { n: '\u0001', total: '\u0002' }), [format.number(list.length), format.number(baseCount)])}
           </span>
           <span className="ui-visually-hidden">{format.fractionLabel(list.length, baseCount, tr('筆'))}</span>
         </span>
@@ -522,6 +545,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                           rowEls.current[id] = el;
                         }}
                         role="row"
+                        // Named by its first cell (the function name, say), not by every cell and the caret's 「展開 …」.
+                        aria-labelledby={shownCols.length ? `${uid}-n-${id}` : undefined}
                         className={cx('ui-dt-row', i % 2 && 'is-even', on && 'is-selected', selectable && 'has-sel', expander && 'has-exp')}
                         style={gridStyle}
                         // EC: a click anywhere on the row opens or closes its details, except on its own controls
@@ -560,7 +585,12 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                           <div
                             key={c.key}
                             role="cell"
+                            id={ci === 0 ? `${uid}-n-${id}` : undefined}
+                            // fullText: the whole text as the cell's description, not hidden text beside the short one
+                            // (that put 「ucp.c:62，src/…/ucp.c:62」 in the page's text and the phone card).
+                            aria-description={c.fullText ? c.fullText(x.r) || undefined : undefined}
                             data-label={c.label}
+                            data-col={c.key}
                             className={cellClass(c, ci, c.long && 'is-long', mobileClass(c, ci))}
                             style={stickyStyle(ci)}
                           >
@@ -568,7 +598,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                           </div>
                         ))}
                         {hasAct ? (
-                          <div className="ui-dt-cell ui-dt-acts" role="cell">
+                          <div className="ui-dt-cell ui-dt-acts is-end" role="cell">
                             {p.rowActions?.(x.r)}
                           </div>
                         ) : null}
@@ -608,7 +638,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                     {total(c, ci)}
                   </div>
                 ))}
-                {hasAct ? <div className="ui-dt-cell" role="cell" /> : null}
+                {hasAct ? <div className="ui-dt-cell is-end" role="cell" /> : null}
               </div>
             ) : null}
           </div>

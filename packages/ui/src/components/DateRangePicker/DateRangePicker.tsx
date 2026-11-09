@@ -59,7 +59,7 @@ export function DateRangePicker({ label, value, onChange, placeholder, className
             aria-label={
               value[0]
                 ? tr('{label}：{a} 到 {b}', { label: label || tr('期間'), a: fmtDate(value[0]), b: fmtDate(value[1]) })
-                : `${label || tr('期間')}：${placeholder || tr('選擇期間')}`
+                : `${label || tr('期間')}${tr('：')}${placeholder || tr('選擇期間')}`
             }
           >
             <Icon name="calendar-blank" size={18} />

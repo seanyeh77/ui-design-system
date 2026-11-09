@@ -5,6 +5,18 @@ export function cx(...names: unknown[]): string {
   return names.filter(Boolean).join(' ');
 }
 
+// Text that is only seen: drawn by CSS (::before), so it is neither in the page's text (copy, innerText, text-reading
+// tools) nor read aloud. The readable version goes beside it, visually hidden. Numbers keep Geist Mono.
+export function seenOnly(text: string, nums: string[]): React.ReactNode[] {
+  const marks = ['\u0001', '\u0002', '\u0003'];
+  // eslint-disable-next-line no-control-regex -- the marks are control characters on purpose
+  return text.split(/(\u0001|\u0002|\u0003)/).flatMap((t, i) => {
+    if (!t) return [];
+    const k = marks.indexOf(t);
+    return [<span key={i} className={cx('ui-seen', k >= 0 && 'ui-num')} data-text={k >= 0 ? nums[k] : t} />];
+  });
+}
+
 // Puts the numbers of a translated sentence in Geist Mono and leaves the words in the text font.
 // The sentence marks each number with \u0001, \u0002 or \u0003 in the order of nums.
 export function monoNums(text: string, nums: React.ReactNode[]): React.ReactNode[] {

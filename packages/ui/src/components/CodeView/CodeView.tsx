@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { InlineCode } from '../InlineCode/InlineCode';
+import { InlineCode, type OnRef, type RefHref } from '../InlineCode/InlineCode';
 import { tr } from '../../i18n';
 import { cx, monoNums, useNarrow } from '../../internal/util';
 import { LANGUAGE_NAMES, languageOf, tokenize as builtIn, type Tokenizer } from './tokens';
@@ -27,6 +27,12 @@ export interface CodeViewProps {
   highlight?: boolean;
   /** Replaces the built-in highlighter, e.g. one built on Shiki that returns the same token classes. */
   tokenizer?: Tokenizer;
+  /** Paths in comments and strings (docs/design/ring.md, src/app.c:86) become links: the link of a path, or undefined
+   *  for none. Same as CodeText's refHref. */
+  refHref?: RefHref;
+  /** A plain click on a path in the code (the default navigation is prevented); with refHref, Ctrl, ⌘ or Shift still
+   *  opens the link. */
+  onRef?: OnRef;
   /** Scrolls inside the box and keeps the target in view, e.g. '420px'. */
   maxHeight?: string;
   className?: string;
@@ -44,6 +50,45 @@ const OPS = /(->|::|==|!=|<=|>=|&&|\|\||\+\+|--|<<|>>|=>|\+=|-=|\*=|\/=)/;
 const AFTER = /([,.([{;])/;
 
 /** A piece of code with soft break points after commas, dots and opening brackets, and operators kept together. */
+// A path in a comment or a string: folders and a file with an extension (docs/design/ring.md), or a file and line
+// (app.c:86, src/app.c:86-90). A bare word with a dot (printf.h, v1.2) is not one.
+const PATH_IN_CODE = /(?<![\w./-])((?:\.{1,2}\/)?(?:[\w.-]+\/)+[\w.-]+\.[A-Za-z0-9]+(?::\d+(?:-\d+)?)?|[\w.-]+\.[A-Za-z0-9]+:\d+(?:-\d+)?)(?![\w/])/g;
+
+/** The paths in a comment or string as links (refHref, onRef); the rest stays text. */
+function withPaths(text: string, refHref: RefHref | undefined, onRef: OnRef | undefined): React.ReactNode {
+  const out: React.ReactNode[] = [];
+  let at = 0;
+  for (const m of text.matchAll(PATH_IN_CODE)) {
+    const v = m[1];
+    const href = refHref ? refHref(v) || undefined : undefined;
+    if (refHref ? !href : !onRef) continue;
+    if (m.index > at) out.push(breakable(text.slice(at, m.index)));
+    const click = onRef
+      ? (e: React.MouseEvent<HTMLElement>) => {
+          if (href && (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1)) return;
+          e.preventDefault();
+          onRef(v, e);
+        }
+      : undefined;
+    // A link when it has an address; else a button, so the keyboard reaches it too.
+    out.push(
+      href ? (
+        <a key={m.index} className="ui-cv-ref" href={href} onClick={click}>
+          {v}
+        </a>
+      ) : (
+        <button key={m.index} type="button" className="ui-cv-ref" onClick={click}>
+          {v}
+        </button>
+      ),
+    );
+    at = m.index + v.length;
+  }
+  if (!out.length) return breakable(text);
+  if (at < text.length) out.push(breakable(text.slice(at)));
+  return out;
+}
+
 function breakable(text: string): React.ReactNode {
   if (!OPS.test(text) && !AFTER.test(text)) return text;
   const out: React.ReactNode[] = [];
@@ -81,6 +126,8 @@ export function CodeView({
   languageLabel,
   highlight = true,
   tokenizer = builtIn,
+  refHref,
+  onRef,
   maxHeight,
   className,
   ref,
@@ -134,11 +181,11 @@ export function CodeView({
           {n}
         </span>
         <span className="ui-cv-text">
-          <span className="ui-visually-hidden ui-cv-sr">{tr('第 {n} 行', { n }) + '：'}</span>
+          <span className="ui-visually-hidden ui-cv-sr">{tr('第 {n} 行', { n }) + tr('：')}</span>
           {toks[i].map(([cls, text], j) =>
             cls ? (
               <span key={j} className={cls}>
-                {breakable(text)}
+                {(refHref || onRef) && (cls === 'is-comment' || cls === 'is-string') ? withPaths(text, refHref, onRef) : breakable(text)}
               </span>
             ) : (
               <React.Fragment key={j}>{breakable(text)}</React.Fragment>
@@ -165,7 +212,7 @@ export function CodeView({
         {languageLabel !== false && lang !== 'plain' ? (
           // Plain text, not a control: the screen reader hears 「程式語言：C 語言」.
           <span className="ui-cv-lang">
-            <span className="ui-visually-hidden">{tr('程式語言')}：</span>
+            <span className="ui-visually-hidden">{tr('程式語言') + tr('：')}</span>
             {tr(languageLabel || LANGUAGE_NAMES[lang] || lang)}
           </span>
         ) : null}

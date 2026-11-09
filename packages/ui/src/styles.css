@@ -716,6 +716,17 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+}
+/* Short of room (phones), the project switcher's name gives way before the page title: the title keeps its width up
+   to 45 % of the bar before it is cut, rather than 「A…」. */
+.ui-topbar-title {
+  flex: 0 0 auto;
+  max-width: 45%;
+}
+.ui-topbar-end > .ui-projsw,
+.ui-projsw-text {
+  min-width: 0;
 }
 .ui-search {
   display: inline-flex;
@@ -1987,7 +1998,9 @@ body {
     text-align: left;
     overflow: visible;
     white-space: normal;
-    overflow-wrap: anywhere;
+    /* Break a word only when it is wider than the card: 「anywhere」 also let a name in a flex row with tags shrink
+       and break mid-word (「ucp_worker_progre / ss」). */
+    overflow-wrap: break-word;
   }
   .ui-dt-body .ui-dt-cell[data-label]::before {
     content: attr(data-label);
@@ -2010,6 +2023,10 @@ body {
     grid-row: 1;
     margin-top: 0;
     font-weight: 600;
+  }
+  /* A title made of a name and tags in a row: the tags go to the next line instead of squeezing the name. */
+  .ui-dt-body .ui-dt-cell.is-m-title > :is(span, div):only-child {
+    flex-wrap: wrap;
   }
   .ui-dt-body .ui-dt-cell.is-m-status {
     grid-column: 3;
@@ -3458,6 +3475,26 @@ html.ui-theme-fade * {
 .ui-dt-head .ui-dt-cell.is-sticky {
   background: var(--surface-sub);
 }
+/* The row-action column stays at the right edge while the table scrolls sideways, so its buttons are never off-screen;
+   the shadow shows only while more of the table is to the right. */
+.ui-dt-cell.is-end {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  background: var(--surface);
+}
+.ui-dt-body .ui-dt-row.is-even > .is-end,
+.ui-dt-head .ui-dt-cell.is-end,
+.ui-dt-total .ui-dt-cell.is-end {
+  background: var(--surface-sub);
+}
+.ui-dt-body .ui-dt-row:hover > .is-end,
+.ui-dt-body .ui-dt-row.is-selected > .is-end {
+  background: var(--accent-soft);
+}
+.ui-dt-scroller.has-more .ui-dt-cell.is-end {
+  box-shadow: -6px 0 8px -6px rgba(0, 0, 0, 0.18);
+}
 .ui-dt-colmenu {
   min-width: 200px;
 }
@@ -3465,9 +3502,12 @@ html.ui-theme-fade * {
   .ui-dt-total {
     display: none;
   }
-  .ui-dt-cell.is-sticky {
+  .ui-dt-cell.is-sticky,
+  .ui-dt-cell.is-end,
+  .ui-dt-scroller.has-more .ui-dt-cell.is-end {
     position: static;
     box-shadow: none;
+    background: none;
   }
   .ui-dt-facets {
     grid-template-columns: 1fr;
@@ -3481,7 +3521,8 @@ html.ui-theme-fade * {
 .ui-radio-ring.is-on {
   border-color: var(--accent);
 }
-.ui-dt-head .ui-dt-cell.is-sticky {
+.ui-dt-head .ui-dt-cell.is-sticky,
+.ui-dt-head .ui-dt-cell.is-end {
   z-index: 3;
 }
 .ui-dt-filterhead .ui-link-btn {
@@ -4823,6 +4864,27 @@ html.ui-theme-fade * {
   background: linear-gradient(var(--line-strong), var(--line-strong)) no-repeat 1.5ch 20px / 2px calc(100% - 20px);
 }
 /* 「第 62 行」 for screen readers only: never selected or copied with the code. */
+/* A path in a comment or string, as a link (refHref, onRef): link colour, underlined; a button looks the same. */
+.ui-cv-ref {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  border-radius: 2px;
+}
+.ui-cv-ref:hover {
+  text-decoration-thickness: 2px;
+}
+.ui-cv-ref:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.ui-cv-ref:is(button) {
+  cursor: pointer;
+}
 .ui-cv-sr {
   user-select: none;
   -webkit-user-select: none;
@@ -5074,6 +5136,18 @@ html.ui-theme-fade * {
   text-decoration: underline;
   text-underline-offset: 2px;
   cursor: pointer;
+}
+/* A relation's button holds its description too: only the box names are underlined, the description is plain text
+   (inline, so the button's name has no extra space before 「：」). */
+.ui-lg-libtn:has(.ui-lg-limeta) {
+  text-decoration: none;
+}
+.ui-lg-libtn:has(.ui-lg-limeta) > .ui-lg-code {
+  text-decoration: underline;
+}
+.ui-lg-libtn .ui-lg-limeta {
+  color: var(--ink-muted);
+  font-weight: 400;
 }
 .ui-lg-libtn.is-selected {
   background: var(--accent-soft);
@@ -5760,4 +5834,10 @@ html.ui-theme-fade * {
   .ui-split-grip i {
     transition: none;
   }
+}
+
+/* seenOnly(): text drawn by CSS, out of the page's text and the accessibility tree (empty alt text). */
+.ui-seen::before {
+  content: attr(data-text);
+  content: attr(data-text) / '';
 }

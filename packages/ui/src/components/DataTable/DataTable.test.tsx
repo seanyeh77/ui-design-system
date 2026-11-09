@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { DataTable } from '../../index';
+import { DataTable, IconButton, InlineCode } from '../../index';
 
 const cols = [{ key: 'name' as const, label: '名稱' }];
 
@@ -42,9 +42,10 @@ test('rows hidden by a search are unchecked', async () => {
 test('one page: the count above the table only, no range below', () => {
   const rows = Array.from({ length: 6 }, (_, i) => ({ id: String(i), name: 'row ' + i }));
   const { container, rerender } = render(<DataTable columns={cols} rows={rows} urlSync={false} />);
-  expect(container.querySelector('.ui-dt-result [aria-hidden="true"]')?.textContent).toBe('6 / 6 筆');
-  // Read without the slash.
-  expect(container.querySelector('.ui-dt-result .ui-visually-hidden')?.textContent).toBe('6 筆中的 6 筆');
+  // Shown 「6 / 6 筆」, drawn by CSS; the page's text and the screen reader have only 「6 筆中的 6 筆」.
+  const seen = [...container.querySelectorAll('.ui-dt-result .ui-seen')].map((e) => getComputedStyle(e, '::before').content);
+  expect(seen.join('').replace(/"|\s*\/\s*""/g, '')).toBe('6 / 6 筆');
+  expect(container.querySelector('.ui-dt-result')?.textContent).toBe('6 筆中的 6 筆');
   expect(container.querySelector('.ui-dt-foot')).toBeNull();
   rerender(<DataTable columns={cols} rows={rows} urlSync={false} pageSize={4} />);
   expect(container.querySelector('.ui-dt-range')?.textContent).toBe('第 1–4 筆，共 6 筆');
@@ -300,9 +301,71 @@ test('fullText: a short cell shows its whole text on hover, to screen readers, a
     </div>,
   );
   const full = container.querySelector<HTMLElement>('.ui-dt-full');
-  expect(full?.querySelector('.ui-visually-hidden')?.textContent).toBe('，src/libibtrace/hooks/ops.c:58');
+  expect(full?.closest('[role="cell"]')?.getAttribute('aria-description')).toBe('src/libibtrace/hooks/ops.c:58');
   await userEvent.setup().hover(full as HTMLElement);
   await waitFor(() => expect(document.querySelector('.ui-tooltip')?.textContent).toBe('src/libibtrace/hooks/ops.c:58'));
   await userEvent.setup().click(screen.getByRole('button', { name: '展開 ops.c' }));
   expect(container.querySelector('.ui-dt-detail-text')?.textContent).toBe('src/libibtrace/hooks/ops.c:58');
+});
+
+test('a column grows to fit content that cannot wrap, instead of cutting it', async () => {
+  await page.viewport(1280, 800);
+  const cols2 = [
+    { key: 'name' as const, label: '函式', width: 160 },
+    {
+      key: 'loc' as const,
+      label: '位置',
+      width: 120,
+      render: (r: { loc: string }) => <InlineCode href="#x">{r.loc}</InlineCode>,
+    },
+  ];
+  const rows = [{ id: 'a', name: 'ucp_worker_progress', loc: 'intercept_ucp_hooks.c:1234' }];
+  const { container } = render(
+    <div style={{ width: 360 }}>
+      <DataTable columns={cols2} rows={rows} urlSync={false} />
+    </div>,
+  );
+  const cell = container.querySelector<HTMLElement>('.ui-dt-body [data-col="loc"]');
+  const chip = cell?.querySelector('a');
+  if (!cell || !chip) throw new Error('no cell');
+  await waitFor(() => expect(cell.scrollWidth).toBeLessThanOrEqual(cell.clientWidth + 1));
+  expect(chip.getBoundingClientRect().right).toBeLessThanOrEqual(cell.getBoundingClientRect().right);
+});
+
+test('the row-action column stays at the right edge while the table scrolls', async () => {
+  await page.viewport(1280, 800);
+  const rows = [{ id: 'a', name: 'alpha', status: 'ok' }];
+  const { container } = render(
+    <div style={{ width: 300 }}>
+      <DataTable
+        columns={[
+          { key: 'name', label: '名稱', width: 200 },
+          { key: 'status', label: '狀態', width: 200 },
+        ]}
+        rows={rows}
+        urlSync={false}
+        rowActions={() => <IconButton label="開啟" icon="file-text" />}
+      />
+    </div>,
+  );
+  const scroll = container.querySelector<HTMLElement>('.ui-dt-scroll');
+  const acts = container.querySelector<HTMLElement>('.ui-dt-body .ui-dt-acts');
+  if (!scroll || !acts) throw new Error('no table');
+  expect(scroll.scrollWidth).toBeGreaterThan(scroll.clientWidth);
+  const edge = scroll.getBoundingClientRect().right;
+  expect(Math.abs(acts.getBoundingClientRect().right - edge)).toBeLessThanOrEqual(1);
+  await waitFor(() => expect(container.querySelector('.ui-dt-scroller.has-more')).not.toBeNull());
+});
+
+test('fullText: the whole text is the cell description, not a second copy in the cell; a row is named by its first cell', async () => {
+  const cols3 = [
+    { key: 'fn' as const, label: '函式' },
+    { key: 'loc' as const, label: '位置', width: 140, fullText: (r: { full: string }) => r.full },
+  ];
+  const rows = [{ id: 'a', fn: 'ucp_worker_progress', loc: 'ucp.c:62', full: 'src/libibtrace/hooks/ucp.c:62' }];
+  const { container } = render(<DataTable columns={cols3} rows={rows} urlSync={false} />);
+  const cell = container.querySelector<HTMLElement>('.ui-dt-body [data-col="loc"]');
+  expect(cell?.textContent).toBe('ucp.c:62');
+  expect(cell?.getAttribute('aria-description')).toBe('src/libibtrace/hooks/ucp.c:62');
+  expect(screen.getByRole('row', { name: 'ucp_worker_progress' })).toBeTruthy();
 });

@@ -171,14 +171,11 @@ export function FilterButton<R extends Row>({ filters, values, activeCount, coun
 /** A short cell with its whole text in a Tooltip (a mouse; not on a touch screen, where the row's details show it). */
 export function FullText({ text, children }: { text: string; children: React.ReactNode }) {
   const touch = useMedia(TOUCH_ONLY);
-  // The span is the Tooltip's trigger for hover; focus on a link inside it bubbles up and opens it too. The span cannot
-  // take focus, so screen readers get the whole text as hidden text after the cell's own.
+  // The span is the Tooltip's trigger for hover; focus on a link inside it bubbles up and opens it too. Screen readers
+  // get the whole text from the cell's aria-description (DataTable), not from hidden text here.
   return (
     <Tooltip label={text} wrap describe={false} disabled={touch || !text}>
-      <span className="ui-dt-full">
-        {children}
-        {text ? <span className="ui-visually-hidden">{tr('，') + text}</span> : null}
-      </span>
+      <span className="ui-dt-full">{children}</span>
     </Tooltip>
   );
 }

@@ -381,7 +381,8 @@ export function TreeList(p: TreeListProps) {
         <>
           <div className="ui-tree-main" role="alert">
             {tr('無法載入 {name} 的子項目', { name: r.n.name })}
-            {r.error ? '：' + r.error : ''}。
+            {r.error ? tr('：') + r.error : ''}
+            {tr('。').trim()}
           </div>
           <button
             type="button"

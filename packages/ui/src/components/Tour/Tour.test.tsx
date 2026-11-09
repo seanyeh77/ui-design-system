@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { render, screen, waitFor } from '@testing-library/react';
 import { Tour } from '../../index';
@@ -180,4 +180,40 @@ test('Tour: a target below the fold scrolls fully into view', async () => {
     expect(r.bottom).toBeLessThanOrEqual(innerHeight);
   });
   window.scrollTo(0, 0);
+});
+
+test('Tour: the step count is shown 「1 / 2」 but its text is only 「第 1 步，共 2 步」', async () => {
+  render(
+    <>
+      <div data-tour="a" style={{ width: 100, height: 40 }} />
+      <Tour
+        open
+        steps={[
+          { target: 'a', title: 'A', text: 'a' },
+          { target: 'a', title: 'B', text: 'b' },
+        ]}
+        onClose={() => {}}
+      />
+    </>,
+  );
+  const count = await waitFor(() => {
+    const el = document.querySelector('.ui-tour-count');
+    if (!el) throw new Error('no count');
+    return el;
+  });
+  expect(count.textContent).toBe('第 1 步，共 2 步');
+  const seen = [...count.querySelectorAll('.ui-seen')].map((e) => getComputedStyle(e, '::before').content.replace(/"|\s*\/\s*""/g, ''));
+  expect(seen.join('')).toBe('1 / 2');
+});
+
+test('Tour: warns in development when a target is taller than most of the window', async () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  render(
+    <>
+      <div data-tour="page" style={{ height: '200vh' }} />
+      <Tour open steps={[{ target: 'page', title: '整頁', text: 'x' }]} onClose={() => {}} />
+    </>,
+  );
+  await waitFor(() => expect(warn.mock.calls.some((c) => String(c[0]).includes('比視窗的 70% 高'))).toBe(true));
+  warn.mockRestore();
 });
