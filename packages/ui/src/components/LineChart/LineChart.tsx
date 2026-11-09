@@ -1,7 +1,9 @@
 import * as React from 'react';
-import { ChartTip, TICKS, tickDecimals, niceMax, seriesColor, smoothPath } from '../../internal/chart';
+import { ChartTip, TICKS, chartKey, tickDecimals, niceMax, seriesColor, smoothPath } from '../../internal/chart';
 import { cx, digits } from '../../internal/util';
 import { format } from '../../format';
+import { tr } from '../../i18n';
+import { announce } from '../../announce';
 
 export interface LineSeries {
   name: string;
@@ -41,6 +43,10 @@ export function LineChart({ series, labels, label, unit, decimals, max, labelEve
   const Y = (v: number) => B - (v / top) * (B - T);
   const ticks = TICKS.map((f) => f * top);
   const suffix = unit ? ' ' + unit : '';
+  const show = (j: number) => {
+    setHi(j);
+    announce(labels[j] + tr('：') + series.map((s) => (series.length > 1 ? s.name + ' ' : '') + format.number(s.values[j], decimals) + suffix).join(tr('，')));
+  };
   const edge = { left: ((L - step / 2) / 640) * 100 + '%', right: ((640 - R - step / 2) / 640) * 100 + '%' };
   return (
     <div className={cx('ui-chart', className)}>
@@ -54,8 +60,23 @@ export function LineChart({ series, labels, label, unit, decimals, max, labelEve
           ))}
         </div>
       ) : null}
-      <div className="ui-chart-plot" onMouseLeave={() => setHi(-1)}>
-        <svg viewBox="0 0 640 240" width="100%" role="img" aria-label={label}>
+      <div
+        className="ui-chart-plot"
+        tabIndex={n ? 0 : undefined}
+        role="group"
+        aria-label={label}
+        aria-description={tr('左右方向鍵查看每一個時間點的數值')}
+        onMouseLeave={() => setHi(-1)}
+        // The keyboard sees the values too: ← → move between points, each read aloud as it shows.
+        onFocus={() => hi < 0 && n && show(0)}
+        onBlur={() => setHi(-1)}
+        onKeyDown={(e) => {
+          const to = chartKey(e, hi, n);
+          if (to != null) show(to);
+        }}
+      >
+        {/* The group around it carries the name and the keys. */}
+        <svg viewBox="0 0 640 240" width="100%" aria-hidden="true">
           {ticks.map((v, i) => (
             <g key={i}>
               <line x1={L} x2={R} y1={Y(v)} y2={Y(v)} className={i ? 'ui-chart-grid' : 'ui-chart-axis'} />

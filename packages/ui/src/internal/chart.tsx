@@ -106,3 +106,13 @@ export function niceMax(v: number): number {
   const n = Math.ceil(v / e);
   return (n <= 2 ? 2 : n <= 4 ? 4 : n <= 5 ? 5 : n <= 8 ? 8 : 10) * e;
 }
+
+/** ← → (and Home, End) on a chart: the item to show next, or null for any other key. */
+export function chartKey(e: React.KeyboardEvent, at: number, n: number): number | null {
+  if (e.altKey || e.metaKey || e.ctrlKey || !n) return null;
+  const i = Math.max(0, at);
+  const to =
+    e.key === 'ArrowRight' ? Math.min(n - 1, i + 1) : e.key === 'ArrowLeft' ? Math.max(0, i - 1) : e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : null;
+  if (to != null) e.preventDefault();
+  return to;
+}

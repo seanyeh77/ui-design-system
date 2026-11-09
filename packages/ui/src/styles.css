@@ -5842,3 +5842,11 @@ html.ui-theme-fade * {
   content: attr(data-text);
   content: attr(data-text) / '';
 }
+
+/* Charts by keyboard: the plot is a Tab stop; ← → show each value. */
+.ui-bars:focus-visible,
+.ui-chart-plot:focus-visible {
+  outline: none;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
