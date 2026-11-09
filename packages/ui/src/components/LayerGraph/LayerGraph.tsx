@@ -817,9 +817,25 @@ export function LayerGraph(p: LayerGraphProps) {
     // Along its own line: beside each vertical run (either side) and above or below each horizontal run, every 6 px,
     // on one line or wrapped; clear of every other line, box, arrowhead and placed label. The clear spot nearest the
     // arrowhead wins. Used when the spots beside the arrowhead (or the lane, for a line up) are all blocked.
-    const alongLine = (m: { idx: number; text: string; tx: number; ty: number }) => {
+    // How far a label's box is from a straight piece of line (0 when they touch).
+    const gapTo = (b: number[], x0: number, lw: number, y0: number, y1: number) =>
+      Math.hypot(Math.max(0, b[0] - (x0 + lw), x0 - b[1]), Math.max(0, b[2] - y1, y0 - b[3]));
+    // own: the label must be nearer its own line than any other line, so a reader does not take it for the label of
+    // the line beside it.
+    const alongLine = (m: { idx: number; text: string; tx: number; ty: number }, own = false) => {
       const pts = ptsOf[m.idx] ?? [];
+      const mine = (x0: number, lw: number, y0: number, y1: number) => {
+        let self = Infinity;
+        let other = Infinity;
+        for (const sg of segs) {
+          const d = gapTo(sg.box, x0, lw, y0, y1);
+          if (sg.idx === m.idx) self = Math.min(self, d);
+          else other = Math.min(other, d);
+        }
+        return self + 4 < other;
+      };
       const ok = (x0: number, lw: number, y0: number, y1: number) =>
+        (!own || mine(x0, lw, y0, y1)) &&
         x0 >= PAD / 2 &&
         x0 + lw <= W - PAD / 2 &&
         y0 >= 2 &&
@@ -925,6 +941,15 @@ export function LayerGraph(p: LayerGraphProps) {
         return;
       }
       if (m.up) {
+        // Along its own line, nearest where the line starts, and nearer its own line than any other: a label left
+        // between two lines reads as the other line's. Else beside its lane as below.
+        const p0 = ptsOf[m.idx]?.[0];
+        const near = p0 ? alongLine({ ...m, tx: p0[0], ty: p0[1] }, true) : null;
+        if (near) {
+          placed.push([near.x0, near.x0 + near.lw, near.top - near.lh / 2 - 4, near.top + near.lh / 2 + 4, 6]);
+          labels.push(labelEl(m, near.x0, near.top, near.lines));
+          return;
+        }
         // Beside its lane, halfway between the two ends (the gap between layers); moved up, then down, off boxes,
         // lines and labels already placed, and kept inside the diagram. On one line when a spot is clear of every
         // line; else wrapped onto 2 to 4 lines, narrower so it fits between the lane and the next line; else the gap

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { afterEach, expect, test } from 'vitest';
 import { page, userEvent as keys } from 'vitest/browser';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import * as UI from './index';
 
@@ -261,6 +261,27 @@ test('CommandPalette: 「找不到…」 is announced through the live region', 
   await waitFor(() => expect(live()).toBe('找不到符合「zzz」的結果'));
 });
 
+test('CommandPalette: the count is read again for a new query, also when it is the same number; and after loading ends', async () => {
+  let setLoading: (v: boolean) => void = () => {};
+  function Demo() {
+    const [loading, set] = React.useState(false);
+    setLoading = set;
+    return <UI.CommandPalette open onOpenChange={() => {}} loading={loading} items={[{ label: 'IBTRACE_SHM' }, { label: 'IBTRACE_X' }]} />;
+  }
+  render(<Demo />);
+  const box = await screen.findByRole('combobox');
+  await user.type(box, 'IB');
+  await waitFor(() => expect(live()).toBe('找到 2 筆結果'));
+  const region = [...document.querySelectorAll('[aria-live]')].find((e) => e.textContent === '找到 2 筆結果') as HTMLElement;
+  region.textContent = '';
+  await user.type(box, 'T');
+  await waitFor(() => expect(live()).toBe('找到 2 筆結果'));
+  act(() => setLoading(true));
+  await waitFor(() => expect(live()).toBe('搜尋中'));
+  act(() => setLoading(false));
+  await waitFor(() => expect(live()).toBe('找到 2 筆結果'));
+});
+
 test('CommandPalette: noResultsText replaces 「找不到…」, shown and announced, not counted as a result', async () => {
   render(<UI.CommandPalette open onOpenChange={() => {}} items={[{ label: 'IBTRACE_SHM' }]} noResultsText="找不到「{q}」。函式名稱請改用影響範圍搜尋。" />);
   await user.type(await screen.findByRole('combobox'), 'zzz');
@@ -340,6 +361,26 @@ test('Tabs wider than their box scroll sideways: no tab wraps or overlaps the ne
   const list = screen.getByRole('tablist');
   expect(list.getBoundingClientRect().width).toBeLessThanOrEqual(300.5);
   expect(list.scrollWidth).toBeGreaterThan(list.clientWidth);
+  await page.viewport(1280, 800);
+});
+
+test('Tabs that scroll: the cut edge fades and the selected tab is scrolled into view', async () => {
+  await page.viewport(390, 844);
+  render(
+    <div style={{ width: 300 }}>
+      <UI.Tabs value="d" unit="items" items={['All', 'Wrong', 'To review', 'Matches'].map((l, i) => ({ id: 'abcd'[i], label: l, count: 74 }))} />
+    </div>,
+  );
+  const list = screen.getByRole('tablist');
+  const sel = screen.getByRole('tab', { selected: true });
+  await waitFor(() => expect(list.className).toContain('has-more-left'));
+  expect(list.className).not.toContain('has-more-right');
+  const l = list.getBoundingClientRect();
+  const r = sel.getBoundingClientRect();
+  expect(r.right).toBeLessThanOrEqual(l.right + 0.5);
+  expect(r.left).toBeGreaterThanOrEqual(l.left - 0.5);
+  const ind = list.querySelector('.ui-tabs-ind') as HTMLElement;
+  expect(Math.abs(ind.getBoundingClientRect().left - r.left)).toBeLessThan(1.5);
   await page.viewport(1280, 800);
 });
 

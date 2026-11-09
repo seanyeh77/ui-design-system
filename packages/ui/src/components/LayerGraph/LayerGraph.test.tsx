@@ -893,3 +893,52 @@ test('LayerGraph: too wide even at 0.75, it scrolls with the boxes back at their
   expect(container.querySelector<HTMLElement>('.ui-lg-canvas')?.style.transform ?? '').toBe('');
   await page.viewport(1280, 800);
 });
+
+test('LayerGraph list in English: no gap before the comma after a box name', async () => {
+  setLocale('en');
+  try {
+    const { container } = render(<LayerGraph nodes={nodes} edges={edges} onSelect={() => {}} />);
+    await user.click(screen.getByRole('tab', { name: 'List' }));
+    const li = container.querySelector('.ui-lg-li');
+    const name = li?.querySelector('.ui-lg-libtn .ui-lg-code');
+    const meta = li?.querySelector(':scope > .ui-lg-limeta');
+    if (!name || !meta) throw new Error('no list item');
+    expect(meta.textContent?.startsWith(',')).toBe(true);
+    expect(meta.getBoundingClientRect().left - name.getBoundingClientRect().right).toBeLessThan(1.5);
+  } finally {
+    setLocale('zh-TW');
+  }
+});
+
+test('LayerGraph: a line up gets its label nearer its own line than any other line', async () => {
+  await page.viewport(1440, 900);
+  const up: LayerGraphEdge = { id: 'launch', from: 'ibmon', to: 'ext', inferred: true, label: '啟動（execvp, fork），設定 LD_PRELOAD' };
+  const list = [...ibEdges.filter((e) => e.id !== 'launch'), up];
+  const { container } = render(
+    <div style={{ width: 664 }}>
+      <LayerGraph nodes={ibNodes} edges={list} onSelectEdge={() => {}} />
+    </div>,
+  );
+  await new Promise((r) => setTimeout(r, 300));
+  const drawn = list.filter((e) => e.to !== 'common');
+  const paths = [...container.querySelectorAll<SVGPathElement>('path.ui-lg-edge')];
+  expect(paths).toHaveLength(drawn.length);
+  const svg = container.querySelector('.ui-lg-canvas svg') as SVGSVGElement;
+  const o = svg.getBoundingClientRect();
+  const dist = (path: SVGPathElement, r: DOMRect) => {
+    let best = Infinity;
+    for (let t = 0; t <= path.getTotalLength(); t += 2) {
+      const p = path.getPointAtLength(t);
+      const x = o.left + p.x;
+      const y = o.top + p.y;
+      best = Math.min(best, Math.hypot(Math.max(0, r.left - x, x - r.right), Math.max(0, r.top - y, y - r.bottom)));
+    }
+    return best;
+  };
+  const label = [...container.querySelectorAll<HTMLElement>('.ui-lg-label')].find((l) => l.textContent?.replace(/\s/g, '').startsWith('啟動'));
+  if (!label) throw new Error('no label');
+  const r = label.getBoundingClientRect();
+  const own = dist(paths[drawn.indexOf(up)], r);
+  const others = paths.filter((_, i) => drawn[i] !== up).map((p) => dist(p, r));
+  expect(own).toBeLessThan(Math.min(...others));
+});

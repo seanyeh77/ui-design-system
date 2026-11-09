@@ -35,6 +35,15 @@ export function Tabs<V extends string = string>({ items, value, onChange, label,
   const [box, setBox] = React.useState<{ left: number; right: number } | null>(null);
   const [forward, setForward] = React.useState(true);
   const [moving, bump] = useMoving();
+  // Wider than its box (G0): a fade on the side that has more tabs, and the selected tab kept in view.
+  const [more, setMore] = React.useState({ left: false, right: false });
+  const edges = React.useCallback(() => {
+    const el = track.current;
+    if (!el) return;
+    const left = el.scrollLeft > 1;
+    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
+    setMore((m) => (m.left === left && m.right === right ? m : { left, right }));
+  }, []);
   // The focused tab re-rendered away (new items, the app swapped the list): focus goes to the selected tab.
   useFocusRescue(
     track,
@@ -60,13 +69,20 @@ export function Tabs<V extends string = string>({ items, value, onChange, label,
     const tr = track.current;
     if (!el || !tr) return;
     // Counts, fonts and the container change tab widths without changing the selection.
-    const measure = () => setBox({ left: el.offsetLeft, right: tr.clientWidth - el.offsetLeft - el.offsetWidth });
+    const measure = () => {
+      // Both sides from the row's own box: a tab past the visible part gets a negative right, and scrolls with the row.
+      setBox({ left: el.offsetLeft, right: tr.clientWidth - el.offsetLeft - el.offsetWidth });
+      edges();
+    };
     measure();
+    // The selected tab in view, without scrolling the page.
+    if (el.offsetLeft < tr.scrollLeft) tr.scrollLeft = el.offsetLeft - 4;
+    else if (el.offsetLeft + el.offsetWidth > tr.scrollLeft + tr.clientWidth) tr.scrollLeft = el.offsetLeft + el.offsetWidth - tr.clientWidth + 4;
     const ro = new ResizeObserver(measure);
     ro.observe(tr);
     for (const t of refs.current) if (t) ro.observe(t);
     return () => ro.disconnect();
-  }, [idx, items.length]);
+  }, [idx, items.length, edges]);
   const go = (i: number) => {
     if (i === idx || !items[i]) return;
     setForward(i > idx);
@@ -80,7 +96,13 @@ export function Tabs<V extends string = string>({ items, value, onChange, label,
     );
   };
   return (
-    <div ref={track} className={cx('ui-tabs', className)} role="tablist" aria-label={label}>
+    <div
+      ref={track}
+      className={cx('ui-tabs', more.left && 'has-more-left', more.right && 'has-more-right', className)}
+      role="tablist"
+      aria-label={label}
+      onScroll={edges}
+    >
       {box ? (
         <span
           className="ui-tabs-ind"
