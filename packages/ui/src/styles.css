@@ -209,8 +209,9 @@ body {
 .ui-badge-draft .ui-badge-mark {
   color: var(--neutral-500);
 }
+/* A glyph beside text, on the same ground: the text color of the accent, which reads on any accent (4.5:1). */
 .ui-badge-doing .ui-badge-mark {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .ui-badge-review .ui-badge-mark {
   color: var(--warning);
@@ -282,6 +283,10 @@ body {
 .ui-alert-icon {
   margin-top: 1px;
   color: var(--alert-color);
+}
+/* The info icon sits by its text: accent-text, so a light accent still reads; the bar above keeps the accent. */
+.ui-alert-info .ui-alert-icon {
+  color: var(--accent-text);
 }
 .ui-alert-content {
   flex: 1 1 auto;
