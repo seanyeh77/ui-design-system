@@ -398,6 +398,8 @@ export function LayerGraph(p: LayerGraphProps) {
     onScroll();
   };
   const selEdge = (pickEdge && edges.find((e) => edgeId(e) === p.selectedEdge)) || null;
+  // The list shows every edge, those into a shared item too (not drawn on the diagram): each can be selected there.
+  const selListEdge = (pickEdge && p.edges.find((e) => edgeId(e) === p.selectedEdge)) || null;
   const nodeIdsAll = new Set(all.map((n) => n.id));
   // How often each item uses each shared item (edges into a shared item are not drawn). Other shared items count too,
   // so the shared item's line and the list (which shows every edge) give the same numbers.
@@ -444,13 +446,15 @@ export function LayerGraph(p: LayerGraphProps) {
     for (const id in pos) pos[id] = { x: pos[id].x + shift, y: pos[id].y };
     W += shift;
   }
-  const boxesLeft = Math.min(...main.map((n) => pos[n.id].x));
-  const boxesRight = Math.max(0, ...main.map((n) => pos[n.id].x + NW));
-  const laneX = (e: LayerGraphEdge) => (onLeft(e) ? boxesLeft - LANE - upsL.indexOf(e) * LANE_STEP : boxesRight + LANE + upsR.indexOf(e) * LANE_STEP);
+  // Read from the boxes each time: they move right when a label is written out past the left edge (below), and the
+  // lanes must move with them, or a lane up would run behind the boxes it should pass beside.
+  const boxesLeft = () => Math.min(...main.map((n) => pos[n.id].x));
+  const boxesRight = () => Math.max(0, ...main.map((n) => pos[n.id].x + NW));
+  const laneX = (e: LayerGraphEdge) => (onLeft(e) ? boxesLeft() - LANE - upsL.indexOf(e) * LANE_STEP : boxesRight() + LANE + upsR.indexOf(e) * LANE_STEP);
   // A label starts just inside the innermost lane on the left, or ends just inside it on the right.
-  const upLabelX = boxesLeft - LANE + 8;
-  const upLabelEndL = boxesRight + LANE - 8;
-  if (upsR.length) W = Math.max(W, boxesRight + LANE + (upsR.length - 1) * LANE_STEP + PAD);
+  const upLabelX = () => boxesLeft() - LANE + 8;
+  const upLabelEndL = () => boxesRight() + LANE - 8;
+  if (upsR.length) W = Math.max(W, boxesRight() + LANE + (upsR.length - 1) * LANE_STEP + PAD);
   const choose = (e: LayerGraphEdge) => {
     const id = edgeId(e);
     const next = p.selectedEdge === id ? null : id;
@@ -692,7 +696,7 @@ export function LayerGraph(p: LayerGraphProps) {
         runs.push([Math.min(sx0, lx), Math.max(sx0, lx), y0 - 3, y0 + 3]);
         if (lab(e) || r) {
           const text = markText(e);
-          marks.push({ idx, e, text, tx: L ? upLabelX : upLabelEndL, ty: Math.round((y0 + y1) / 2), left: !L, r, dim, up: true });
+          marks.push({ idx, e, text, tx: L ? upLabelX() : upLabelEndL(), ty: Math.round((y0 + y1) / 2), left: !L, r, dim, up: true });
         }
       } else if (isFlat(e)) {
         const f = flatOf(e);
@@ -825,19 +829,21 @@ export function LayerGraph(p: LayerGraphProps) {
       Math.hypot(Math.max(0, b[0] - (x0 + lw), x0 - b[1]), Math.max(0, b[2] - y1, y0 - b[3]));
     // own: the label must be nearer its own line than any other line, so a reader does not take it for the label of
     // the line beside it.
-    const alongLine = (m: { idx: number; text: string; tx: number; ty: number }, own = false) => {
+    // A spot that reads as line idx's: nearer that line than any other (by 4 px), and 8 px clear of every other line
+    // (text measured on a canvas can come out a little wider on the page).
+    const isMine = (idx: number, x0: number, lw: number, y0: number, y1: number) => {
+      let self = Infinity;
+      let other = Infinity;
+      for (const sg of segs) {
+        const d = gapTo(sg.box, x0, lw, y0, y1);
+        if (sg.idx === idx) self = Math.min(self, d);
+        else other = Math.min(other, d);
+      }
+      return self + 4 < other && other >= 8;
+    };
+    const alongLine = (m: { idx: number; text: string; tx: number; ty: number }, own = true) => {
       const pts = ptsOf[m.idx] ?? [];
-      const mine = (x0: number, lw: number, y0: number, y1: number) => {
-        let self = Infinity;
-        let other = Infinity;
-        for (const sg of segs) {
-          const d = gapTo(sg.box, x0, lw, y0, y1);
-          if (sg.idx === m.idx) self = Math.min(self, d);
-          else other = Math.min(other, d);
-        }
-        // 8 px clear of any other line too: text measured on a canvas can come out a little wider on the page.
-        return self + 4 < other && other >= 8;
-      };
+      const mine = (x0: number, lw: number, y0: number, y1: number) => isMine(m.idx, x0, lw, y0, y1);
       const ok = (x0: number, lw: number, y0: number, y1: number) =>
         (!own || mine(x0, lw, y0, y1)) &&
         x0 >= PAD / 2 &&
@@ -965,7 +971,9 @@ export function LayerGraph(p: LayerGraphProps) {
           const bad = (y0: number, y1: number) =>
             hits(x0, x0 + lw, y0 - 4, y1 + 4) ||
             boxRects.some((q) => over(q, y0, y1)) ||
-            (withLines && segs.some((g) => (g.idx === m.idx ? cross(g.box, x0, lw, y0, y1) : over(g.box, y0, y1))));
+            (withLines && segs.some((g) => (g.idx === m.idx ? cross(g.box, x0, lw, y0, y1) : over(g.box, y0, y1)))) ||
+            // Beside the lane, but not nearer another line: it would read as that line's (codemap round 8).
+            (withLines && !isMine(m.idx, x0, lw, y0, y1));
           for (let k = 0; k <= 16; k++)
             for (const dir of k ? [-1, 1] : [0]) {
               const t = start0 + dir * k * 18;
@@ -1152,6 +1160,9 @@ export function LayerGraph(p: LayerGraphProps) {
     drawn = draw();
   }
   const { paths, labels, hitPaths } = drawn;
+  // Where the boxes start, and where the selected one is: the diagram scrolls there (below).
+  const firstX = Math.min(...main.filter((n) => pos[n.id]).map((n) => boxOf(n.id).x), W);
+  const selBox = sel != null && pos[sel] ? boxOf(sel) : null;
   const sizeText = (n: number) => withNum(p.sizeLabel, n, () => byCount(n, '1 個項目', '{n} 個項目'));
   const externalText = p.externalLabel ?? tr('repo 外');
   const useText = p.useLabel ?? tr('使用 {n} 次');
@@ -1262,9 +1273,10 @@ export function LayerGraph(p: LayerGraphProps) {
             .map((e, i) =>
               listItem(
                 edgeId(e) + ':' + i,
-                e === selEdge,
+                e === selListEdge,
                 focus && !related(e) && !(selShared && e.to === selShared),
-                pickEdge && edges.includes(e) ? () => choose(e) : undefined,
+                // Every relation, also one into a shared item: the same onSelectEdge as a line on the diagram.
+                pickEdge ? () => choose(e) : undefined,
                 // The whole line is the button, so its name says what the relation is, as on the diagram: three lines
                 // between the same two boxes no longer share the name 「A → B」.
                 <>
@@ -1282,6 +1294,30 @@ export function LayerGraph(p: LayerGraphProps) {
     </div>
   );
   const showList = p.listView !== false && view === 'list';
+  // Wider than its box (phones): it starts at the boxes' left edge, not at a label written out to their left, so the
+  // first boxes show whole without a scroll. With a box selected at the start, at that box. Where it was scrolled to
+  // before (scrollMemory) wins.
+  const started = React.useRef('');
+  React.useLayoutEffect(() => {
+    const el = scrollRef.current;
+    // Only once the fit is final: scrolling, the boxes back at full width (WA).
+    if (!el || showList || !fitted?.full || started.current === memKey) return;
+    started.current = memKey;
+    if (scrollMemory.get(memKey)) return;
+    const x = selBox ? selBox.x + selBox.w / 2 - el.clientWidth / (2 * scale) : firstX - 16;
+    el.scrollLeft = Math.max(0, x * scale);
+  });
+  // A box selected later: scrolled into view if it is not (nearest edge), never further.
+  const selX = selBox?.x;
+  const selW = selBox?.w;
+  React.useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || showList || selX == null || selW == null) return;
+    const l = selX * scale;
+    const r = (selX + selW) * scale;
+    if (l < el.scrollLeft) el.scrollLeft = Math.max(0, l - 16);
+    else if (r > el.scrollLeft + el.clientWidth) el.scrollLeft = r - el.clientWidth + 16;
+  }, [sel, selX, selW, scale, showList, scrollRef]);
   // The tag button only where there are labels to hide (inferred lines), and only on the diagram.
   const toggleShown = p.labelToggle !== false && !showList && p.edges.some((e) => lab(e));
   // PM: measure the box; narrow the boxes when the diagram is wider, then scale what is still too wide.

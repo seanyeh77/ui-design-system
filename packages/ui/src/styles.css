@@ -4040,8 +4040,28 @@ html.ui-theme-fade * {
   background: var(--neutral-500);
 }
 .ui-projsw-text {
+  display: flex;
+  min-width: 0;
+  white-space: nowrap;
+}
+/* The name keeps its room; the status gives way first, then the name is cut with 「…」. */
+.ui-projsw-name {
+  flex: 0 1 auto;
+  min-width: 3em;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.ui-projsw-status {
+  flex: 0 1000 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Phones: the dot shows the status; the words are in title and the name read out. */
+@media (max-width: 599px) {
+  .ui-projsw-status {
+    display: none;
+  }
 }
 .ui-projsw-caret {
   flex: 0 0 auto;

@@ -34,7 +34,7 @@ test('Tour: a normal target keeps the card below it', async () => {
   expect((await cardInside()).dataset.placement).toBe('bottom');
 });
 
-test('Tour: a target taller than the window puts the card inside it, at the bottom', async () => {
+test('Tour: a target taller than the window, at the top of the page: the card covers as little of it as it can, at the bottom', async () => {
   render(
     <div>
       <div data-tour="part" style={{ height: '150vh', margin: 16 }} />
@@ -42,7 +42,7 @@ test('Tour: a target taller than the window puts the card inside it, at the bott
     </div>,
   );
   const card = await cardInside();
-  await waitFor(() => expect(card.dataset.placement).toBe('inside'));
+  await waitFor(() => expect(card.dataset.placement).toBe('bottom'));
   expect(innerHeight - card.getBoundingClientRect().bottom).toBeLessThan(MARGIN + 2);
 });
 
@@ -62,7 +62,7 @@ test('Tour: on a phone with long text, the text scrolls and the buttons stay ins
   expect(done.bottom).toBeLessThanOrEqual(innerHeight - MARGIN + 0.5);
 });
 
-test('Tour: a target almost as tall as the window, under a top bar, puts the card inside it', async () => {
+test('Tour: a target almost as tall as the window, under a top bar: no side is free, the card covers the least of it', async () => {
   await page.viewport(1280, 800);
   render(
     <div>
@@ -72,7 +72,15 @@ test('Tour: a target almost as tall as the window, under a top bar, puts the car
     </div>,
   );
   const card = await cardInside();
-  await waitFor(() => expect(card.dataset.placement).toBe('inside'));
+  await waitFor(() => {
+    const c = card.getBoundingClientRect();
+    const t = box('[data-tour="part"]');
+    // Above, the 56 px over the target hold the most of the card: it covers less there than anywhere else.
+    expect(card.dataset.placement).toBe('top');
+    expect(c.top).toBeGreaterThanOrEqual(MARGIN - 0.5);
+    // Below would cover 752 - (788 - h) px of it; above covers less.
+    expect(c.bottom - (t.top - 6)).toBeLessThan(752 - (800 - 12 - c.height));
+  });
 });
 
 // A phone page with a fixed top bar and bottom tab bar, as AppShell draws them.
@@ -216,4 +224,57 @@ test('Tour: warns in development when a target is taller than most of the window
   );
   await waitFor(() => expect(warn.mock.calls.some((c) => String(c[0]).includes('比視窗的 70% 高'))).toBe(true));
   warn.mockRestore();
+});
+
+// codemap's 檢查筆記 at 1366 × 768: a summary card, the table right under it.
+function NotesPage({ keep }: { keep?: boolean }) {
+  return (
+    <div style={{ padding: '240px 24px 0 264px' }}>
+      <div data-tour="notes" style={{ height: 184 }} />
+      <div style={{ height: 120 }} />
+      <div data-tour-table="" style={{ height: 130 }} />
+      <Tour
+        open
+        steps={[{ target: 'notes', title: '檢查筆記', text: '比對筆記裡的引用與目前的程式碼。', ...(keep ? { keepVisible: '[data-tour-table]' } : {}) }]}
+      />
+    </div>
+  );
+}
+
+test('Tour: below first when it fits and covers nothing kept; keepVisible sends it to the next side, above', async () => {
+  await page.viewport(1366, 768);
+  const a = render(<NotesPage />);
+  let card = await cardInside();
+  await waitFor(() => expect(card.dataset.placement).toBe('bottom'));
+  a.unmount();
+  render(<NotesPage keep />);
+  card = await cardInside();
+  await waitFor(() => expect(card.dataset.placement).toBe('top'));
+  const c = card.getBoundingClientRect();
+  const t = box('[data-tour="notes"]');
+  const tab = box('[data-tour-table]');
+  expect(c.bottom).toBeLessThanOrEqual(t.top - 6 + 0.5);
+  expect(c.bottom <= tab.top || c.top >= tab.bottom).toBe(true);
+});
+
+test('Tour: no room above or below and the page cannot scroll: right of the target, else left; never on it', async () => {
+  await page.viewport(1366, 768);
+  const sideOf = async (style: React.CSSProperties) => {
+    const r = render(
+      <div style={{ height: 768, overflow: 'hidden', position: 'relative' }}>
+        <div data-tour="part" style={{ position: 'absolute', top: 40, height: 690, ...style }} />
+        <Tour open steps={steps} />
+      </div>,
+    );
+    const card = await cardInside();
+    await waitFor(() => expect(['right', 'left']).toContain(card.dataset.placement));
+    const c = card.getBoundingClientRect();
+    const t = box('[data-tour="part"]');
+    expect(c.right <= t.left - 6 + 0.5 || c.left >= t.right + 6 - 0.5).toBe(true);
+    const side = card.dataset.placement;
+    r.unmount();
+    return side;
+  };
+  expect(await sideOf({ left: 24, width: 600 })).toBe('right');
+  expect(await sideOf({ right: 24, width: 600 })).toBe('left');
 });

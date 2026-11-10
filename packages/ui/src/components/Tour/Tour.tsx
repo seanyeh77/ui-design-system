@@ -16,12 +16,15 @@ export interface TourStep {
   title: string;
   /** What it does, 1 short sentence; `backticks` are code. */
   text: string;
-  /** Default 'bottom'; flips when there is no room. The card never covers the target: with no room above or below,
-   *  the page scrolls to make room (above a target taller than the window), else the card goes right or left of it;
-   *  only when none of that works does it sit inside the target, at the bottom. */
+  /** Default 'bottom'. The card goes below, above, right or left of the target, the first side where it fits in the
+   *  window and covers neither the target nor `keepVisible` ('top' tries above first). With no such side the page
+   *  scrolls to make room; failing that, the side that covers the least of the target. */
   side?: 'bottom' | 'top';
   /** Space around the highlighted part in px. Default 6. */
   padding?: number;
+  /** Parts the card must not cover either, e.g. the table the step talks about under a highlighted summary: same forms
+   *  as target. The card then goes to the next side that leaves them visible. */
+  keepVisible?: TourStep['target'] | TourStep['target'][];
 }
 
 export interface TourProps {
@@ -96,35 +99,47 @@ function bounds(target: Element | null): { top: number; bottom: number } {
   return { top, bottom };
 }
 
-/** Where the card goes for a highlighted box: the preferred side, the other one, then right or left of the box; inside
- *  the box at the bottom only when none has room (the tour scrolls first to make room above or below, see makeRoom).
- *  Returns the anchor line the card is placed against. */
-function placeCard(rect: Box | null, cardH: number, prefer: 'bottom' | 'top', area?: { top: number; bottom: number }, cardW = 320) {
+type Side = 'bottom' | 'top' | 'right' | 'left';
+const area = (a: Box, b: Box) =>
+  Math.max(0, Math.min(a.left + a.width, b.left + b.width) - Math.max(a.left, b.left)) *
+  Math.max(0, Math.min(a.top + a.height, b.top + b.height) - Math.max(a.top, b.top));
+
+/** Where the card goes for a highlighted box. Below, above, right, left (above first with side 'top'): the first
+ *  where the card fits inside the window and covers neither the target nor the parts the step keeps visible. When
+ *  none does (after the tour scrolled to make room, see makeRoom), the one that covers the least of the target, then
+ *  of those parts. Returns the card's box: it is placed at that box's top-left corner. */
+function placeCard(rect: Box | null, cardH: number, prefer: 'bottom' | 'top', area_?: { top: number; bottom: number }, cardW = 320, keep: Box[] = []) {
   const margin = typeof document === 'undefined' ? 12 : edge();
-  const vh = area?.bottom ?? (typeof window === 'undefined' ? 0 : window.innerHeight);
-  const vt = area?.top ?? 0;
-  const fits = (side: 'bottom' | 'top') =>
-    rect ? (side === 'bottom' ? rect.top + rect.height + GAP + cardH + margin <= vh : rect.top - GAP - cardH - margin >= vt) : false;
+  const vw = typeof window === 'undefined' ? 0 : window.innerWidth;
+  const vh = area_?.bottom ?? (typeof window === 'undefined' ? 0 : window.innerHeight);
+  const vt = area_?.top ?? 0;
   if (!rect) {
     // No target: centered in the window.
-    const top = Math.max(vt + margin + cardH, (vt + vh) / 2 + cardH / 2);
-    return { mode: 'center', side: 'top' as const, offset: 0, margin, line: { left: 0, top, width: window.innerWidth, height: 0 } };
+    const box = { left: (vw - cardW) / 2, top: Math.max(vt + margin, (vt + vh) / 2 - cardH / 2), width: cardW, height: cardH };
+    return { mode: 'center', box, fits: true };
   }
-  const other = prefer === 'bottom' ? 'top' : 'bottom';
-  const side = fits(prefer) ? prefer : fits(other) ? other : null;
-  if (side) return { mode: side, side, offset: GAP, margin, line: rect };
-  // Beside it: the card's height must fit the window, its width the space next to the box.
-  const vw = typeof window === 'undefined' ? 0 : window.innerWidth;
-  const tallOk = cardH + 2 * margin <= vh - vt;
-  const beside = (['right', 'left'] as const).find(
-    (sd) => tallOk && (sd === 'right' ? rect.left + rect.width + GAP + cardW + margin <= vw : rect.left - GAP - cardW - margin >= 0),
-  );
-  if (beside) return { mode: beside, side: beside, offset: GAP, margin, line: rect };
-  // Inside the target, at its bottom edge or the window's (the box is clipped a few px inside the window), minus the
-  // margin, never above the window's top margin.
-  const end = rect.top + rect.height;
-  const bottom = Math.max(vt + margin + cardH, end >= vh - margin ? vh - margin : end - margin);
-  return { mode: 'inside', side: 'top' as const, offset: 0, margin, line: { left: rect.left, top: bottom, width: rect.width, height: 0 } };
+  const clampX = (x: number) => Math.max(margin, Math.min(vw - margin - cardW, x));
+  const clampY = (y: number) => Math.max(vt + margin, Math.min(vh - margin - cardH, y));
+  const midX = rect.left + rect.width / 2 - cardW / 2;
+  const midY = rect.top + rect.height / 2 - cardH / 2;
+  const at: Record<Side, { left: number; top: number }> = {
+    bottom: { left: midX, top: rect.top + rect.height + GAP },
+    top: { left: midX, top: rect.top - GAP - cardH },
+    right: { left: rect.left + rect.width + GAP, top: midY },
+    left: { left: rect.left - GAP - cardW, top: midY },
+  };
+  const order: Side[] = prefer === 'top' ? ['top', 'bottom', 'right', 'left'] : ['bottom', 'top', 'right', 'left'];
+  const options = order.map((side) => {
+    const want = at[side];
+    // Along the target's edge the card may shift to stay inside the window; away from it, it must not.
+    const box = { left: clampX(want.left), top: clampY(want.top), width: cardW, height: cardH };
+    const inside = side === 'bottom' || side === 'top' ? box.top === want.top : box.left === want.left;
+    const onTarget = area(box, rect);
+    const onKept = keep.reduce((n, k) => n + area(box, k), 0);
+    return { mode: side, box, fits: inside && !onTarget && !onKept, onTarget, onKept };
+  });
+  const best = options.find((o) => o.fits) ?? [...options].sort((x, y) => x.onTarget - y.onTarget || x.onKept - y.onKept)[0];
+  return { mode: best.mode, box: best.box, fits: best.fits };
 }
 
 /** The first-use walkthrough: the page goes dark except the part being introduced, with a card beside it. */
@@ -133,6 +148,7 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
   const i = Math.max(0, Math.min(steps.length - 1, controlled ?? inner));
   const step = steps[i];
   const [rect, setRect] = React.useState<Box | null>(null);
+  const [kept, setKept] = React.useState<Box[]>([]);
   const next = React.useRef<HTMLButtonElement>(null);
   const [cardH, setCardH] = React.useState(0);
   const [cardW, setCardW] = React.useState(320);
@@ -190,6 +206,13 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
   // Depends on the step's fields, not the object: inline steps arrays are new on every render.
   const target = step?.target;
   const pad = step?.padding ?? 6;
+  // keepVisible as one stable value for the effect below (an inline array is new on every render).
+  const keepList = step?.keepVisible == null ? [] : Array.isArray(step.keepVisible) ? step.keepVisible : [step.keepVisible];
+  const keepKey = keepList.map((k) => (typeof k === 'string' ? k : '#')).join('|');
+  const keepRef = React.useRef(keepList);
+  React.useLayoutEffect(() => {
+    keepRef.current = keepList;
+  });
   const hasStep = !!step;
   React.useEffect(() => {
     if (!open || !hasStep) return;
@@ -227,16 +250,22 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
           height: Math.max(0, Math.min(window.innerHeight - 3, r.bottom + pad) - t),
         };
       }
-      const k = JSON.stringify(v);
+      const ks: Box[] = [];
+      for (const kt of keepRef.current) {
+        const kr = findTarget(kt)?.getBoundingClientRect();
+        if (kr && kr.width) ks.push({ left: kr.left, top: kr.top, width: kr.width, height: kr.height });
+      }
+      const k = JSON.stringify([v, ks]);
       if (k !== last) {
         last = k;
         setRect(v);
+        setKept(ks);
       }
       raf = requestAnimationFrame(tick);
     };
     tick();
     return () => cancelAnimationFrame(raf);
-  }, [open, hasStep, i, target, pad]);
+  }, [open, hasStep, i, target, pad, keepKey]);
 
   // The card's height decides where it fits. The popup mounts after the first render (in a portal), so it is measured
   // through a callback ref when it appears, and again on every resize.
@@ -270,7 +299,9 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
     const r = el.getBoundingClientRect();
     const top = r.top - pad;
     const bottom = r.bottom + pad;
-    if (bottom + GAP + cardH + m <= ar.bottom || top - GAP - cardH - m >= ar.top) return;
+    // A side already fits: nothing to do.
+    const spot = { left: r.left - pad, top, width: r.width + 2 * pad, height: bottom - top };
+    if (placeCard(spot, cardH, step?.side ?? 'bottom', ar, cardW, kept).fits) return;
     const together = bottom - top + GAP + cardH + 2 * m <= ar.bottom - ar.top;
     const want = together ? ar.top + m + pad : ar.top + m + cardH + GAP + pad;
     // The nearest box that scrolls (AppShell's main), else the window, moves by exactly the difference.
@@ -279,18 +310,15 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
     const dy = r.top - want;
     if (box) box.scrollBy({ top: dy, behavior: 'auto' });
     else window.scrollBy({ top: dy, behavior: 'auto' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- kept moves with every scroll; the room is made once per step
   }, [open, hasStep, i, target, pad, measured, cardH]);
 
-  const area = open && step ? bounds(findTarget(step.target)) : undefined;
-  const place = placeCard(rect, cardH, step?.side ?? 'bottom', area, cardW);
-  const line = place.line;
-  const anchor = React.useMemo(
-    () => ({
-      getBoundingClientRect: () =>
-        line ? new DOMRect(line.left, line.top, line.width, line.height) : new DOMRect(window.innerWidth / 2, window.innerHeight / 2, 0, 0),
-    }),
-    [line?.left, line?.top, line?.width, line?.height], // eslint-disable-line react-hooks/exhaustive-deps
-  );
+  const room = open && step ? bounds(findTarget(step.target)) : undefined;
+  const place = placeCard(rect, cardH, step?.side ?? 'bottom', room, cardW, kept);
+  // The card's top-left corner: a point the popup hangs from (side bottom, aligned at its start).
+  const ax = place.box.left;
+  const ay = place.box.top;
+  const anchor = React.useMemo(() => ({ getBoundingClientRect: () => new DOMRect(ax, ay, 0, 0) }), [ax, ay]);
   if (!open || !step) return null;
   const lastStep = i === steps.length - 1;
   return (
@@ -309,13 +337,11 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
         <Popover.Positioner
           className="ui-float ui-tour-float"
           anchor={anchor}
-          side={place.side}
-          align="center"
-          sideOffset={place.offset}
-          collisionPadding={place.margin}
-          // The side is chosen above; Base UI only keeps the card inside the window horizontally.
-          // Beside the box, it shifts up or down to stay inside the window.
-          collisionAvoidance={{ side: 'none', align: 'shift', fallbackAxisSide: 'none' }}
+          side="bottom"
+          align="start"
+          sideOffset={0}
+          // Where the card goes is worked out above (placeCard), already inside the window.
+          collisionAvoidance={{ side: 'none', align: 'none', fallbackAxisSide: 'none' }}
         >
           <Popover.Popup ref={card} key={i} className="ui-tour-card" data-placement={place.mode} initialFocus={next} onKeyDown={onTab}>
             {/* Taller than the window (phones): this part scrolls, the buttons stay at the bottom. */}
