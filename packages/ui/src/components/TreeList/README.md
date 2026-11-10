@@ -97,3 +97,5 @@ h(UI.TreeList, {
 - 每一項的名稱是「名稱，標籤，meta，完整路徑」，例如「hook_of，推測（規則），×4，src/libibtrace/hooks/ops.c:58」：展開按鈕不算進名稱，畫面上縮寫的路徑（「…」）也不會被念出來。`ariaLabel` 可以整句換掉。
 - 子項目放在 `role="group"` 裡，由上層項目的 `aria-owns` 指向。
 - 展開時 live region 念「已展開，3 個子項目」，收合時念「已收合」。
+- 第 5 層以後名稱前的「L5」標記滑過時顯示「第 5 層」（`title`）；螢幕閱讀器從 `aria-level` 念層數，標記本身不念。
+- 有 `loadChildren` 時，能展開的節點要標 `hasChildren`：還沒展開過也是 `aria-expanded="false"`，螢幕閱讀器分得出它和葉節點。沒標 `hasChildren` 的節點當作葉節點。

@@ -577,3 +577,63 @@ test('TreeList: tags are read in the name, ariaLabel replaces it, and a click on
   await user.keyboard('{Enter}');
   await waitFor(() => expect(item.getAttribute('aria-expanded')).toBe('true'));
 });
+
+test('TreeList with loadChildren: an expandable node not opened yet says aria-expanded="false"; a leaf says nothing', async () => {
+  render(
+    <UI.TreeList
+      kind="plain"
+      label="呼叫流程"
+      items={[
+        {
+          id: 'a',
+          name: 'main',
+          children: [
+            { id: 'b', name: '_run', hasChildren: true },
+            { id: 'c', name: 'leaf' },
+          ],
+        },
+      ]}
+      defaultOpen={['a']}
+      loadChildren={() => [{ id: 'x', name: 'step' }]}
+    />,
+  );
+  expect(screen.getByRole('treeitem', { name: '_run' }).getAttribute('aria-expanded')).toBe('false');
+  expect(screen.getByRole('treeitem', { name: 'leaf' }).hasAttribute('aria-expanded')).toBe(false);
+});
+
+test('TreeList: ArrowRight opens a lazy node, then ArrowDown moves focus to its first child', async () => {
+  render(
+    <UI.TreeList
+      kind="plain"
+      label="呼叫流程"
+      items={[
+        {
+          id: 'a',
+          name: 'main',
+          children: [
+            { id: 'b', name: '_run', hasChildren: true },
+            { id: 'c', name: 'leaf' },
+          ],
+        },
+      ]}
+      defaultOpen={['a']}
+      loadChildren={() => [{ id: 'x', name: 'step' }]}
+    />,
+  );
+  const run = screen.getByRole('treeitem', { name: '_run' });
+  run.focus();
+  await user.keyboard('{ArrowRight}');
+  await waitFor(() => expect(run.getAttribute('aria-expanded')).toBe('true'));
+  await screen.findByRole('treeitem', { name: 'step' });
+  await user.keyboard('{ArrowDown}');
+  expect(document.activeElement).toBe(screen.getByRole('treeitem', { name: 'step' }));
+});
+
+test('CommandPalette: while loading with results already listed, 「搜尋中」 is in the page text under them', async () => {
+  const { rerender } = render(<UI.CommandPalette open onOpenChange={() => {}} filter={false} loading items={[{ label: 'IBTRACE_SHM' }]} />);
+  await user.type(await screen.findByRole('combobox'), 'IB');
+  expect(screen.getAllByRole('option')).toHaveLength(1);
+  expect(document.querySelector('.ui-pal-loading')?.textContent).toBe('搜尋中');
+  rerender(<UI.CommandPalette open onOpenChange={() => {}} filter={false} items={[{ label: 'IBTRACE_SHM' }]} />);
+  expect(document.querySelector('.ui-pal-loading')).toBeNull();
+});

@@ -242,6 +242,9 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
           ) : (
             <p className="ui-pal-empty">{loading ? tr('搜尋中') : empty}</p>
           )}
+          {/* Results already listed while more are on their way: say so in the page text too, not only to a screen
+              reader, so whoever reads the list (a person or a script) knows it is not final yet. */}
+          {loading && shown.length ? <p className="ui-pal-loading">{tr('搜尋中')}</p> : null}
           <div className="ui-pal-keys" aria-hidden="true">
             <span>
               <kbd>↑</kbd>

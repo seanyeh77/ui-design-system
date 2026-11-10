@@ -77,6 +77,7 @@ export const I18N: I18nState = {
       '說明 {name}': 'Explain {name}',
       程式碼: 'Code',
       '第 {n} 行': 'Line {n}',
+      '第 {n} 層': 'Level {n}',
       '縮排 {n} 格': 'indented {n} spaces',
       '縮排 {n} 個 tab': 'indented {n} tabs',
       '縮排 {a} 個 tab、{b} 格': 'indented {a} tabs and {b} spaces',

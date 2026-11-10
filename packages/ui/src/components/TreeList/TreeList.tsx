@@ -344,7 +344,8 @@ export function TreeList(p: TreeListProps) {
         <div className="ui-tree-main">
           <div className="ui-tree-name">
             {r.depth > 3 ? (
-              <span className="ui-tree-depth" aria-hidden="true">
+              // 「L5」 explains itself on hover; a screen reader already hears the level (aria-level).
+              <span className="ui-tree-depth" aria-hidden="true" title={tr('第 {n} 層', { n: r.depth + 1 })}>
                 {'L' + (r.depth + 1)}
               </span>
             ) : null}
