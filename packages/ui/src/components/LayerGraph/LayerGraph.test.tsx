@@ -422,7 +422,8 @@ function expectLabelsClear(container: HTMLElement) {
   if (!canvas) throw new Error('no canvas');
   const c = canvas.getBoundingClientRect();
   const boxes = [...container.querySelectorAll<HTMLElement>('.ui-lg-canvas .ui-lg-node')].map((n) => n.getBoundingClientRect());
-  const labels = [...container.querySelectorAll<HTMLElement>('.ui-lg-label')];
+  // A numbered line's text (NA+B) shows over the lines on hover only, on its ground: not a label in place.
+  const labels = [...container.querySelectorAll<HTMLElement>('.ui-lg-label:not(.is-numbered)')];
   const rects = labels.map((l) => l.getBoundingClientRect());
   const lines = [...container.querySelectorAll<SVGPathElement>('.ui-lg-hit')];
   labels.forEach((label, i) => {
@@ -957,4 +958,137 @@ test('LayerGraph: a line up gets its label nearer its own line than any other li
   const own = dist(paths[drawn.indexOf(up)], r);
   const others = paths.filter((_, i) => drawn[i] !== up).map((p) => dist(p, r));
   expect(own, `label ${JSON.stringify(r)}, own ${own}, others ${others.join(' ')}`).toBeLessThan(Math.min(...others));
+});
+
+test('LayerGraph list: every relation can be selected, one into a shared item too, by click, Enter or Space', async () => {
+  const onEdge = vi.fn();
+  function ListDemo() {
+    const [e, setE] = React.useState<string | null>(null);
+    return (
+      <LayerGraph
+        nodes={ibNodes}
+        edges={ibEdges}
+        selectedEdge={e}
+        onSelectEdge={(id) => {
+          onEdge(id);
+          setE(id);
+        }}
+      />
+    );
+  }
+  render(<ListDemo />);
+  await user.click(screen.getByRole('tab', { name: '清單' }));
+  const shared = screen.getByRole('button', { name: /src\/ibmon → src\/common/ });
+  expect(shared.getAttribute('aria-pressed')).toBe('false');
+  await user.click(shared);
+  expect(onEdge).toHaveBeenLastCalledWith('ibmon->common');
+  expect(shared.getAttribute('aria-pressed')).toBe('true');
+  const env = screen.getByRole('button', { name: /環境變數/ });
+  env.focus();
+  await user.keyboard('{Enter}');
+  expect(onEdge).toHaveBeenLastCalledWith('env');
+  expect(env.getAttribute('aria-pressed')).toBe('true');
+  expect(shared.getAttribute('aria-pressed')).toBe('false');
+  await user.keyboard(' ');
+  expect(onEdge).toHaveBeenLastCalledWith(null);
+});
+
+test('LayerGraph on a phone: starts at the boxes, the leftmost whole; a box selected later scrolls into view', async () => {
+  await page.viewport(412, 915);
+  function Pick() {
+    const [s, setS] = React.useState<string | null>(null);
+    return (
+      <div style={{ width: 348 }}>
+        <button type="button" onClick={() => setS('ucx')}>
+          選 ucx
+        </button>
+        <LayerGraph nodes={ibNodes} edges={ibEdges} selected={s} onSelect={setS} scrollKey="phone-start" />
+      </div>
+    );
+  }
+  const { container } = render(<Pick />);
+  const scroll = container.querySelector<HTMLElement>('.ui-lg-scroll');
+  if (!scroll) throw new Error('no diagram');
+  await waitFor(() => expect(scroll.scrollWidth).toBeGreaterThan(scroll.clientWidth));
+  const s = scroll.getBoundingClientRect();
+  const boxes = () => [...container.querySelectorAll<HTMLElement>('.ui-lg-node')];
+  await waitFor(() => {
+    const left = Math.min(...boxes().map((b) => b.getBoundingClientRect().left));
+    expect(left).toBeGreaterThanOrEqual(s.left);
+    expect(left - s.left).toBeLessThan(24);
+  });
+  await user.click(screen.getByRole('button', { name: '選 ucx' }));
+  await waitFor(() => {
+    const el = boxes().find((x) => x.textContent?.includes('src/ucx_ib_test'));
+    if (!el) throw new Error('no src/ucx_ib_test');
+    const b = el.getBoundingClientRect();
+    expect(b.left).toBeGreaterThanOrEqual(s.left - 0.5);
+    expect(b.right).toBeLessThanOrEqual(s.right + 0.5);
+  });
+  await page.viewport(1280, 800);
+});
+
+test('LayerGraph: a line up never runs behind a box, also after a label written out on the left moved the boxes', async () => {
+  await page.viewport(1366, 768);
+  const up: LayerGraphEdge = { id: 'launch', from: 'ibmon', to: 'ext', inferred: true, label: '啟動（execvp, fork），設定 LD_PRELOAD' };
+  const list = [
+    ...ibEdges.filter((e) => e.id !== 'launch'),
+    { id: 'far', from: 'analysis', to: 'ibmon', inferred: true, label: '來自 analysis（Python），執行 ibmon 與其他許多工具' },
+    up,
+  ];
+  for (const w of [1000, 664]) {
+    const { container, unmount } = render(
+      <div style={{ width: w }}>
+        <LayerGraph nodes={ibNodes} edges={list} onSelectEdge={() => {}} />
+      </div>,
+    );
+    await new Promise((r) => setTimeout(r, 300));
+    const drawn = list.filter((e) => e.to !== 'common');
+    const path = [...container.querySelectorAll<SVGPathElement>('path.ui-lg-edge')][drawn.indexOf(up)];
+    const svg = container.querySelector<SVGSVGElement>('.ui-lg-canvas svg');
+    if (!svg) throw new Error('no svg');
+    const o = svg.getBoundingClientRect();
+    const boxes = [...container.querySelectorAll<HTMLElement>('.ui-lg-node')].filter((b) => !/src\/ibmon|被追蹤的程式/.test(b.textContent ?? ''));
+    const sx = o.width / Number(svg.getAttribute('width'));
+    for (let t = 0; t <= path.getTotalLength(); t += 3) {
+      const pt = path.getPointAtLength(t);
+      const x = o.left + pt.x * sx;
+      const y = o.top + pt.y * sx;
+      for (const b of boxes) {
+        const r = b.getBoundingClientRect();
+        expect(x > r.left + 1 && x < r.right - 1 && y > r.top + 1 && y < r.bottom - 1, `${w} px: behind ${b.textContent}`).toBe(false);
+      }
+    }
+    unmount();
+  }
+});
+
+test('LayerGraph: a label with no spot of its own becomes a number on its line, listed under the diagram (NA+B)', async () => {
+  await page.viewport(1440, 900);
+  // ibtrace's three interpose lines into one box: 「攔截 ucp」, the middle one, has no spot of its own.
+  const crowd: LayerGraphEdge[] = [
+    { id: 'ib', from: 'ext', to: 'lib', inferred: true, label: '攔截 `infiniband`（18 個函式）' },
+    { id: 'ucp', from: 'ext', to: 'lib', inferred: true, label: '攔截 `ucp`（11 個函式）' },
+    { id: 'uct', from: 'ext', to: 'lib', inferred: true, label: '攔截 `uct`（4 個函式）' },
+    { id: 'env', from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
+    { id: 'u17', from: 'ucx', to: 'lib', inferred: true, label: '17 處 `ucp` 呼叫被攔截' },
+  ];
+  const { container } = render(
+    <div style={{ width: 590 }}>
+      <LayerGraph nodes={ibNodes.filter((n) => !n.shared)} edges={crowd} onSelectEdge={() => {}} />
+    </div>,
+  );
+  await new Promise((r) => setTimeout(r, 300));
+  await waitFor(() => expect(container.querySelectorAll('.ui-lg-canvas .ui-lg-num').length).toBeGreaterThan(0));
+  const dots = [...container.querySelectorAll<HTMLElement>('.ui-lg-canvas .ui-lg-num')];
+  const list = screen.getByRole('list', { name: '編號的線' });
+  expect(list.querySelectorAll('li')).toHaveLength(dots.length);
+  // Hidden until the line is hovered; then the full text shows.
+  const hidden = container.querySelector<HTMLElement>('.ui-lg-label.is-numbered');
+  if (!hidden) throw new Error('no numbered label');
+  expect(getComputedStyle(hidden).visibility).toBe('hidden');
+  await user.hover(dots[0]);
+  await waitFor(() => expect(container.querySelector<HTMLElement>('.ui-lg-label.is-numbered.is-shown')).not.toBeNull());
+  // Every label still on the diagram reads as its own line's: none sits over another label.
+  expectLabelsClear(container);
 });

@@ -1,4 +1,4 @@
-<!-- @dsCard group="Data" height=1180 -->
+<!-- @dsCard group="Data" height=1560 -->
 <!doctype html>
 <html lang="zh-Hant">
   <head>
@@ -172,7 +172,45 @@
           }),
         );
       }
-      ReactDOM.createRoot(document.getElementById('root')).render(h('div', null, h(D), h(Long)));
+      // codemap's 檢查筆記 summary in English (round 8): four states with counts. On a phone the row scrolls; the
+      // selected state scrolls into view.
+      function Summary() {
+        var many = CHECKS.concat(
+          CHECKS.map(function (c) {
+            return Object.assign({}, c, { id: c.id + 'b', state: 'review' });
+          }),
+        ).map(function (c, i) {
+          return Object.assign({ state: c.ok ? 'match' : 'wrong' }, c, { id: 'S' + i });
+        });
+        return h(
+          'div',
+          { style: { padding: '0 20px 20px', maxWidth: 600 } },
+          h(U.DataTable, {
+            caption: 'Check notes',
+            rows: many,
+            urlSync: false,
+            search: false,
+            summary: {
+              key: 'state',
+              label: 'Filter by result',
+              unit: function (n) {
+                return n === 1 ? 'item' : 'items';
+              },
+              items: [
+                { value: 'wrong', label: 'Wrong' },
+                { value: 'review', label: 'To review' },
+                { value: 'match', label: 'Matches' },
+                { value: 'indirect', label: 'Indirect' },
+              ],
+            },
+            columns: [
+              { key: 'fn', label: 'Function', width: 128 },
+              { key: 'note', label: 'Note', long: true, width: 160 },
+            ],
+          }),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h('div', null, h(D), h(Long), h(Summary)));
     </script>
   </body>
 </html>

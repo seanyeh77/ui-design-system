@@ -1,4 +1,4 @@
-<!-- @dsCard group="Overlays" height=440 -->
+<!-- @dsCard group="Overlays" height=640 -->
 <!doctype html>
 <html lang="zh-Hant">
   <head>
@@ -36,6 +36,21 @@
               h('div', { style: { color: 'var(--ink-muted)', fontSize: 14 } }, '呼叫 3 個函式'),
             ),
             h('section', { 'data-tour': 'note', style: card }, '檢查筆記：1 個錯誤'),
+            // The table the 「檢查筆記」 step talks about: keepVisible keeps the card off it (codemap round 8).
+            h(
+              'div',
+              { 'data-tour-table': '', style: { marginBottom: 12 } },
+              h(U.DataTable, {
+                columns: [
+                  { key: 'at', label: '位置' },
+                  { key: 'result', label: '結果' },
+                  { key: 'why', label: '說明' },
+                ],
+                rows: [{ id: 1, at: 'docs/DESIGN.md:12', result: '錯誤', why: '引用的行已經改名' }],
+                search: false,
+                urlSync: false,
+              }),
+            ),
             h(
               'p',
               { style: { fontSize: 14, color: 'var(--ink-muted)' } },
@@ -60,7 +75,7 @@
             steps: [
               { target: 'search', title: '搜尋', text: '搜尋函式、檔案、元件與環境變數。快捷鍵 Ctrl K。' },
               { target: 'tree', title: '流程樹', text: '名稱旁的標籤是關係的來源，點選問號查看依據。' },
-              { target: 'note', title: '檢查筆記', text: '錯誤的位置附有修正建議，可直接複製。' },
+              { target: 'note', title: '檢查筆記', text: '錯誤的位置附有修正建議，可直接複製。', keepVisible: '[data-tour-table]' },
             ],
           }),
         );

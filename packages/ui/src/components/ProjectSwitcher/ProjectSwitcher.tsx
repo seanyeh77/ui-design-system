@@ -34,22 +34,32 @@ export interface ProjectSwitcherProps {
 /** The outlined chip in the top bar: which project is shown and whether its data is live; opens a list to switch. */
 export function ProjectSwitcher({ project, status = 'live', statusLabel, options = [], value, onChange, footer, className }: ProjectSwitcherProps) {
   const st = PS_STATUS[status] ? status : 'live';
-  const label = `${project} · ${statusLabel || tr(PS_STATUS[st])}`;
+  const stText = statusLabel || tr(PS_STATUS[st]);
+  const label = `${project} · ${stText}`;
+  // The project name and the status are two parts: when the chip is short of room the status gives way first (on a
+  // phone it is not written, the dot shows it), and the name is cut only after that. The whole text stays in the
+  // name for screen readers and in title.
   const chip = (
     <>
       <span className="ui-projsw-dot" aria-hidden="true" />
-      <span className="ui-projsw-text">{label}</span>
+      <span className="ui-projsw-text" aria-hidden="true">
+        <span className="ui-projsw-name">{project}</span>
+        <span className="ui-projsw-status">
+          {' · '}
+          {stText}
+        </span>
+      </span>
     </>
   );
   if (!options.length || !onChange)
     return (
-      <span className={cx('ui-projsw', 'is-' + st, 'is-static', className)} role="status" aria-label={label}>
+      <span className={cx('ui-projsw', 'is-' + st, 'is-static', className)} role="status" aria-label={label} title={label}>
         {chip}
       </span>
     );
   return (
     <Menu.Root>
-      <Menu.Trigger className={cx('ui-projsw', 'is-' + st, className)} aria-label={tr('切換專案，目前是 {name}', { name: label })}>
+      <Menu.Trigger className={cx('ui-projsw', 'is-' + st, className)} aria-label={tr('切換專案，目前是 {name}', { name: label })} title={label}>
         {chip}
         <Icon name="caret-down" size={14} className="ui-projsw-caret" />
       </Menu.Trigger>

@@ -1,4 +1,4 @@
-<!-- @dsCard group="Data" height=2700 -->
+<!-- @dsCard group="Data" height=3500 -->
 <!doctype html>
 <html lang="zh-Hant">
   <head>
@@ -127,7 +127,14 @@
         return h(
           'div',
           { style: Object.assign({}, card, { maxWidth: 358 }) },
-          h(U.LayerGraph, { nodes: nodes8, edges: edges8, selectedEdge: e[0], onSelectEdge: e[1], sizeLabel: '{n} 個函式', declaredText: '由專案的 rules.json 宣告。' }),
+          h(U.LayerGraph, {
+            nodes: nodes8,
+            edges: edges8,
+            selectedEdge: e[0],
+            onSelectEdge: e[1],
+            sizeLabel: '{n} 個函式',
+            declaredText: '由專案的 rules.json 宣告。',
+          }),
         );
       }
       // a box outside the repository: above every layer, dashed, 「repo 外」, no size bar
@@ -160,6 +167,50 @@
           }),
         );
       }
+      // codemap's ibtrace map (round 8): the list's relations, one into a shared item, can be selected (1); on a phone
+      // it starts at the boxes (4); the line up from src/ibmon has its label beside it, and runs outside the boxes (5).
+      var nodesIb = [
+        { id: 'ext', name: '被追蹤的程式', external: true },
+        { id: 'analysis', name: 'analysis（Python）', layer: 0 },
+        { id: 'cluster', name: 'cluster（Python）', layer: 0 },
+        { id: 'ibmon', name: 'src/ibmon', layer: 1, size: 91 },
+        { id: 'ucx', name: 'src/ucx_ib_test', layer: 1, size: 22 },
+        { id: 'lib', name: 'src/libibtrace', layer: 2, size: 114 },
+        { id: 'common', name: 'src/common', layer: 3, size: 13, shared: true },
+      ];
+      var edgesIb = [
+        { id: 'ib', from: 'ext', to: 'lib', inferred: true, label: '攔截 `infiniband`（18 個函式）' },
+        { id: 'ucp', from: 'ext', to: 'lib', inferred: true, label: '攔截 `ucp`（11 個函式）' },
+        { id: 'uct', from: 'ext', to: 'lib', inferred: true, label: '攔截 `uct`（4 個函式）' },
+        { id: 'launch', from: 'ibmon', to: 'ext', inferred: true, label: '啟動（execvp, fork），設定 LD_PRELOAD' },
+        { id: 'a', from: 'analysis', to: 'ibmon', inferred: true, label: '來自 analysis（Python），執行 `ibmon`' },
+        { id: 'c', from: 'cluster', to: 'ibmon', inferred: true, label: '來自 cluster（Python），執行 `ibmon`' },
+        { id: 'cu', from: 'cluster', to: 'ucx', inferred: true, label: '執行 `ucx_ib_test`' },
+        { id: 'env', from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
+        { id: 'u17', from: 'ucx', to: 'lib', inferred: true, label: '17 處 `ucp` 呼叫被攔截' },
+        { from: 'ibmon', to: 'common', count: 6 },
+        { from: 'lib', to: 'common', count: 5 },
+      ];
+      function Ibtrace() {
+        var s = React.useState(null);
+        var e = React.useState(null);
+        return h(
+          'div',
+          { style: card },
+          h(U.LayerGraph, {
+            nodes: nodesIb,
+            edges: edgesIb,
+            selected: s[0],
+            onSelect: s[1],
+            selectedEdge: e[0],
+            onSelectEdge: e[1],
+            sizeLabel: '{n} 個函式',
+            externalLabel: 'repo 外',
+            scrollKey: 'preview-ibtrace',
+          }),
+          h('p', { style: { margin: '8px 0 0', fontSize: 13, color: 'var(--ink-muted)' } }, '選取的關係：', e[0] || '（無）'),
+        );
+      }
       function Demo() {
         var s = React.useState('net');
         return h(
@@ -176,6 +227,7 @@
           h(BothWays),
           h(External),
           h(HoverLabels),
+          h(Ibtrace),
         );
       }
       ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
