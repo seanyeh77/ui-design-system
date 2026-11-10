@@ -4,6 +4,19 @@ import { tr } from '../../i18n';
 import { cx, monoNums, useNarrow } from '../../internal/util';
 import { LANGUAGE_NAMES, languageOf, tokenize as builtIn, type Tokenizer } from './tokens';
 
+/** A line's indentation, said after its number: a screen reader drops leading spaces, and in Python or YAML
+ * the indentation is the structure (which `if` a line belongs to). Tabs and spaces are said apart. */
+function indentText(line: string): string {
+  const lead = /^[ \t]*/.exec(line)?.[0] ?? '';
+  if (!lead || lead.length === line.length) return '';
+  const tabs = lead.split('\t').length - 1;
+  const spaces = lead.length - tabs;
+  return (
+    tr('，') +
+    (tabs && spaces ? tr('縮排 {a} 個 tab、{b} 格', { a: tabs, b: spaces }) : tabs ? tr('縮排 {n} 個 tab', { n: tabs }) : tr('縮排 {n} 格', { n: spaces }))
+  );
+}
+
 export interface CodeViewProps {
   /** The source text. */
   code: string;
@@ -181,7 +194,7 @@ export function CodeView({
           {n}
         </span>
         <span className="ui-cv-text">
-          <span className="ui-visually-hidden ui-cv-sr">{tr('第 {n} 行', { n }) + tr('：')}</span>
+          <span className="ui-visually-hidden ui-cv-sr">{tr('第 {n} 行', { n }) + indentText(lines[i]) + tr('：')}</span>
           {toks[i].map(([cls, text], j) =>
             cls ? (
               <span key={j} className={cls}>

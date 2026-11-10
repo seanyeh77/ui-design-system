@@ -43,6 +43,8 @@ test('each line is its own item for screen readers, and the target line can take
   const lines = container.querySelectorAll('[role="listitem"]');
   expect(lines.length).toBe(4);
   expect(lines[1].querySelector('.ui-cv-text')?.textContent).toBe('第 63 行：{');
+  // a screen reader drops leading spaces: the indentation is said with the line number
+  expect(lines[2].querySelector('.ui-cv-sr')?.textContent).toBe('第 64 行，縮排 2 格：');
   expect(lines[1].querySelector('.ui-cv-num')?.getAttribute('aria-hidden')).toBe('true');
   expect(lines[1].getAttribute('aria-current')).toBe('location');
   expect(container.querySelector('pre')?.getAttribute('aria-label')).toBe('程式碼');
@@ -57,6 +59,8 @@ test('CodeView: English labels use a plain colon', () => {
     const sr = [...container.querySelectorAll('.ui-visually-hidden')].map((e) => e.textContent ?? '');
     expect(sr.join('|')).not.toContain('：');
     expect(sr).toContain('Line 48: ');
+    const tabbed = render(<CodeView file="src/a.py" code={'if a:\n\tb\n'} start={1} />).container;
+    expect([...tabbed.querySelectorAll('.ui-cv-sr')].map((e) => e.textContent)).toEqual(['Line 1: ', 'Line 2, indented 1 tabs: ']);
     expect(sr).toContain('Language: ');
   } finally {
     setLocale('zh-TW');
