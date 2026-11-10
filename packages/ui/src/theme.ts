@@ -73,6 +73,18 @@ function contrast(a: string, b: string): number {
   return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
 }
 
+/** The accent's text color (accent-text): the accent itself when it reads on both bg and surface (4.5:1); else, in
+ *  light, the accent mixed with black 4 % at a time, in dark with white 5 % at a time, until it reads on both. Only
+ *  text changes: fills, bars, rings and dots keep the accent. */
+export function accentText(hex: string, dark: boolean, bg: string, surface: string): string {
+  const reads = (c: string) => contrast(c, bg) >= 4.5 && contrast(c, surface) >= 4.5;
+  const toward = dark ? '#ffffff' : '#000000';
+  const step = dark ? 0.05 : 0.04;
+  let text = hex;
+  for (let k = 1; k * step <= 1 && !reads(text); k++) text = mixHex(hex, toward, k * step);
+  return text;
+}
+
 /** Derives every accent token from one color (自訂強調色的換算 in docs/guidelines.md).
  *  Returns false for anything but #rrggbb. quiet: apply without storing. */
 export function setAccent(hex: string, quiet = false): boolean {
@@ -83,9 +95,7 @@ export function setAccent(hex: string, quiet = false): boolean {
   const cs = getComputedStyle(root);
   const surface = (cs.getPropertyValue('--surface') || (dark ? '#393530' : '#ffffff')).trim();
   const bg = (cs.getPropertyValue('--bg') || (dark ? '#2f2a25' : '#fcfbfb')).trim();
-  // In dark, lighten the text color until it reads on surface (4.5:1).
-  let text = hex;
-  if (dark) for (let t = 0; t <= 1 && contrast(text, surface) < 4.5; t += 0.05) text = mixHex(hex, '#ffffff', t);
+  const text = accentText(hex, dark, bg.startsWith('#') ? bg : dark ? '#2f2a25' : '#fcfbfb', surface.startsWith('#') ? surface : dark ? '#393530' : '#ffffff');
   const ink = '#171512';
   const vars: Record<string, string> = {
     '--accent': hex,

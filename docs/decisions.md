@@ -458,6 +458,16 @@ Claude 定的細節（待確認）：
 - CodeView：`refHref`、`onRef` 只用在註解和字串裡的路徑；有資料夾和副檔名、或檔名加行號才算。
 - LayerGraph `countLabel`、`sizeLabel` 可以是函式；預設英文單數「1 call」「1 item」。
 
+## 淺色強調色的文字對比保護（2026/11/10）
+
+淺色強調色的文字自動加深到 4.5:1，由 SeanYeh 確認（不另做選項實驗室）。
+
+- 淺色主題：`accent-text` 由強調色混入黑色，每步 4%，直到對 `bg` 與 `surface` 都至少 4.5:1；強調色本身已經達標時等於強調色（預設 `#2457d6` 不變）。參考結果：`#ffe066` → `#7a6c31`、`#c4600f` → `#b4580e`、`#0f8a85` → `#0e7f7a`。
+- 深色主題維持混入白色（每步 5%），但改成對 `bg` 與 `surface` 都達 4.5:1。
+- `accent` 本身（填色、進度條、選取框、色點）不受影響，只有 `accent-text` 改變；用到強調色文字的地方一律讀 `accent-text`。
+
+Claude 定的細節（待確認）：Badge「進行中」的符號和 Alert（info）的圖示緊貼文字，也改讀 `accent-text`（Alert 上方的色條仍是 `accent`）；Switch 開著時白色圓鈕上的勾維持 `accent`（深色主題的 `accent-text` 較亮，放在白底上更看不清）。`code-keyword` 是固定的語法色（淺色 `#2457d6`、深色 `#a3b7ee`），不讀 `accent`，這次沒有改。
+
 ## codemap 第八輪實驗室
 
 使用者的選擇：「S0 NA+B PA」
