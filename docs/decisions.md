@@ -458,6 +458,22 @@ Claude 定的細節（待確認）：
 - CodeView：`refHref`、`onRef` 只用在註解和字串裡的路徑；有資料夾和副檔名、或檔名加行號才算。
 - LayerGraph `countLabel`、`sizeLabel` 可以是函式；預設英文單數「1 call」「1 item」。
 
+## codemap lab3 實驗室
+
+使用者的選擇：「KA RA MA CAB」，另外：「之前選下方都沒有字是因為 ig 是這樣設計，把這個設計為 option」。
+
+- KA：TreeList 整棵樹只佔一個 Tab 停點；列裡的連結和按鈕不在 Tab 順序裡，用 → 進入、← 或 Esc 回到列。（其他選項：KB 維持現狀。）
+- RA：CommandPalette 結果清單下方一行「共 N 筆」；新的選填 `total`，有截斷時寫「顯示 N 筆，另有 M 筆，請輸入更長的字」。（其他選項：R0 不顯示、RB 可捲動時底部淡出加筆數。）
+- MA：MobileTabBar 每個圖示下方加 11 px 文字，取代 T0（只有圖示）成為預設；只有圖示（像 Instagram 那樣）保留成選項 `labels={false}`。（其他選項：MB 只有選中的顯示文字、MC 用 Tour 標出。）
+- CAB：CodeView 在程式碼裡 Home／End／PageUp／PageDown 移動；給 `sections` 時 `[` `]` 跳段。（其他選項：C0 維持、CA、CB 各自單獨。）
+
+Claude 定的細節（待確認）：
+
+- KA：在已展開、而且列裡有連結的列上按 →，先進連結而不是到第一個子項目（實驗室的寫法）；在連結上 ↑ ↓ 直接到上下一列。
+- RA：沒有截斷時螢幕閱讀器仍念「找到 N 筆結果」，畫面寫「共 N 筆」；載入中不顯示筆數。
+- MA：有文字時分頁列高 64 px（原本 60 px），文字就是按鈕的名稱（不再另給 `aria-label`）；AppShell 新增 `tabLabels`。
+- CAB：PageUp／PageDown 一次 20 行；按鍵說明只在程式碼有焦點時顯示在下方；跳段時另外念「{名稱}，第 N 行」。
+
 ## codemap lab3
 
 使用者轉來的工作說明（節錄）：codemap lab3 試用（六種角色、六輪，最後一輪新舊版盲測）的九項回饋。CodeView 念出行首縮排的 patch 直接採用；TreeList 延遲載入節點的 `aria-expanded`、L5 標記的 `title`、CommandPalette 載入中的可讀文字直接修；TreeList 鍵盤進入方式、CommandPalette 結果數、MobileTabBar 文字、CodeView 整個檔案的鍵盤移動是需要決定的項目，先做選項。Switch 點文字不切換請先確認是元件還是 codemap 的問題。
@@ -468,7 +484,7 @@ Claude 定的細節（待確認）：
 - TreeList 鍵盤：ArrowRight 展開後 ArrowDown 進子節點在元件和 codemap 都重現不出來，補了測試；樹列本身已經只佔一個 Tab 停點，Tab 多停的是列裡的連結和按鈕。
 - CommandPalette：已有結果又在載入時，清單下方一行「搜尋中」（13 px、`ink-muted`、上方分隔線）。
 - Switch：`label` 只是 `aria-label`，元件不畫文字；codemap 設定頁的文字在另一個 `div`，是 codemap 的版面問題，不改元件，README 補上把文字和開關包在 `<label>` 裡的寫法。
-- 待選（「codemap lab3 實驗室」）：TreeList 鍵盤（KB 維持現狀、KA 整棵樹一個停點）、CommandPalette 結果數（R0 不顯示、RA 底部一行「共 N 筆」、RB 可捲動時底部淡出加筆數）、MobileTabBar（M0 只有圖示、MA 圖示下方小字、MB 選中的顯示文字、MC 用 Tour 標出）、CodeView 鍵盤（C0 維持、CA Home／End／PageUp／PageDown、CB 呼叫端給段落用 [ ] 跳段、CAB 兩者都有）。
+- 待選（「codemap lab3 實驗室」，結果見上一節）：TreeList 鍵盤（KB 維持現狀、KA 整棵樹一個停點）、CommandPalette 結果數（R0 不顯示、RA 底部一行「共 N 筆」、RB 可捲動時底部淡出加筆數）、MobileTabBar（M0 只有圖示、MA 圖示下方小字、MB 選中的顯示文字、MC 用 Tour 標出）、CodeView 鍵盤（C0 維持、CA Home／End／PageUp／PageDown、CB 呼叫端給段落用 [ ] 跳段、CAB 兩者都有）。
 
 ## 淺色強調色的文字對比保護（2026/11/10）
 

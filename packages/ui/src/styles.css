@@ -877,6 +877,26 @@ body {
 .ui-tabbar-item.is-selected {
   color: var(--accent-text);
 }
+/* MA: an 11 px label under each icon; the pill sits behind the icon only. */
+.ui-tabbar.has-labels {
+  height: 64px;
+}
+.ui-tabbar.has-labels .ui-tabbar-item {
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 2px;
+}
+.ui-tabbar.has-labels .ui-tabbar-pill {
+  top: 8px;
+}
+.ui-tabbar-label {
+  font-size: 11px;
+  line-height: 14px;
+  white-space: nowrap;
+}
+.ui-tabbar-item.is-selected .ui-tabbar-label {
+  font-weight: 700;
+}
 
 @keyframes ui-rise {
   from {
@@ -4417,13 +4437,36 @@ html.ui-theme-fade * {
   color: var(--ink-muted);
   text-align: center;
 }
-.ui-pal-loading {
+.ui-pal-loading,
+.ui-pal-count {
   flex: 0 0 auto;
   margin: 0;
   padding: var(--space-2) var(--space-4);
   border-top: 1px solid var(--line);
   font-size: 13px;
   color: var(--ink-muted);
+}
+/* CodeView: the keys that move inside the code, shown while it has focus. */
+.ui-cv-keys {
+  display: none;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+.ui-cv:focus-within .ui-cv-keys {
+  display: flex;
+}
+.ui-cv-keys kbd {
+  margin-right: var(--space-1);
+  padding: 0 var(--space-1);
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 12px;
 }
 .ui-pal-keys {
   flex: 0 0 auto;

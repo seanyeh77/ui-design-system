@@ -454,7 +454,7 @@ test('AppShell on a phone: the current tab has aria-current', async () => {
       <p>內容</p>
     </UI.AppShell>,
   );
-  await waitFor(() => expect(document.querySelector('.ui-tabbar [aria-current="page"]')?.getAttribute('aria-label')).toBe('架構'));
+  await waitFor(() => expect(document.querySelector('.ui-tabbar [aria-current="page"]')?.textContent).toBe('架構'));
 });
 
 test('LayerGraph: line buttons sit in a group, not an image, and labels are not read twice', () => {
@@ -636,4 +636,62 @@ test('CommandPalette: while loading with results already listed, 「搜尋中」
   expect(document.querySelector('.ui-pal-loading')?.textContent).toBe('搜尋中');
   rerender(<UI.CommandPalette open onOpenChange={() => {}} filter={false} items={[{ label: 'IBTRACE_SHM' }]} />);
   expect(document.querySelector('.ui-pal-loading')).toBeNull();
+});
+
+test('CommandPalette: a line under the results says how many, and with total how many more were cut off (RA)', async () => {
+  const { rerender } = render(<UI.CommandPalette open onOpenChange={() => {}} filter={false} items={[{ label: 'ring_push' }, { label: 'ring_pop' }]} />);
+  await user.type(await screen.findByRole('combobox'), 'ring');
+  expect(document.querySelector('.ui-pal-count')?.textContent).toBe('共 2 筆');
+  await waitFor(() => expect(live()).toBe('找到 2 筆結果'));
+  rerender(<UI.CommandPalette open onOpenChange={() => {}} filter={false} total={19} items={[{ label: 'ring_push' }, { label: 'ring_pop' }]} />);
+  expect(document.querySelector('.ui-pal-count')?.textContent).toBe('顯示 2 筆，另有 17 筆，請輸入更長的字');
+  await waitFor(() => expect(live()).toBe('顯示 2 筆，另有 17 筆，請輸入更長的字'));
+});
+
+test("TreeList: the whole tree is one Tab stop; → goes into a row's link or button, ← or Esc back, ↓ on (KA)", async () => {
+  render(
+    <div>
+      <UI.TreeList
+        kind="plain"
+        label="呼叫流程"
+        items={[
+          {
+            id: 'a',
+            name: 'main',
+            children: [
+              { id: 'b', name: '_run' },
+              { id: 'c', name: 'report' },
+            ],
+          },
+        ]}
+        defaultOpen={['a']}
+        rowActions={(n) => (
+          <button type="button" aria-label={`開啟 ${n.name}`}>
+            開
+          </button>
+        )}
+      />
+      <button type="button">之後</button>
+    </div>,
+  );
+  await user.tab();
+  expect(document.activeElement).toBe(screen.getByRole('treeitem', { name: 'main' }));
+  // Tab leaves the tree: the row buttons are not Tab stops.
+  await user.tab();
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: '之後' }));
+  await user.tab({ shift: true });
+  expect(document.activeElement).toBe(screen.getByRole('treeitem', { name: 'main' }));
+  await user.keyboard('{ArrowDown}');
+  const run = screen.getByRole('treeitem', { name: '_run' });
+  expect(document.activeElement).toBe(run);
+  await user.keyboard('{ArrowRight}');
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: '開啟 _run' }));
+  await user.keyboard('{Escape}');
+  expect(document.activeElement).toBe(run);
+  await user.keyboard('{ArrowRight}');
+  await user.keyboard('{ArrowLeft}');
+  expect(document.activeElement).toBe(run);
+  await user.keyboard('{ArrowRight}');
+  await user.keyboard('{ArrowDown}');
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('treeitem', { name: 'report' })));
 });

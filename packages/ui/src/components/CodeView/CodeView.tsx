@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { InlineCode, type OnRef, type RefHref } from '../InlineCode/InlineCode';
+import { announce } from '../../announce';
 import { tr } from '../../i18n';
 import { cx, monoNums, useNarrow } from '../../internal/util';
 import { LANGUAGE_NAMES, languageOf, tokenize as builtIn, type Tokenizer } from './tokens';
@@ -48,6 +49,9 @@ export interface CodeViewProps {
   onRef?: OnRef;
   /** Scrolls inside the box and keeps the target in view, e.g. '420px'. */
   maxHeight?: string;
+  /** Where sections start, e.g. each function: [ and ] jump to the previous and next one (CB), and the section's
+   *  name is read out with its line. Lines count from start, like target. */
+  sections?: { line: number; label: string }[];
   className?: string;
   /** focusTarget() moves keyboard and screen-reader focus to the target line. */
   ref?: React.Ref<CodeViewHandle>;
@@ -142,6 +146,7 @@ export function CodeView({
   refHref,
   onRef,
   maxHeight,
+  sections,
   className,
   ref,
 }: CodeViewProps) {
@@ -187,6 +192,7 @@ export function CodeView({
         key={i}
         role="listitem"
         className={cx('ui-cv-line', on && 'is-target')}
+        data-n={n}
         aria-current={on && n === ta ? 'location' : undefined}
         tabIndex={on && n === ta ? -1 : undefined}
       >
@@ -208,6 +214,49 @@ export function CodeView({
       </div>,
     );
   }
+  // CA: Home, End, PageUp, PageDown move the focus by line inside the code; CB: [ and ] by section. The focused line
+  // is read out (第 62 行 and its text); a section adds its name.
+  const keys = [
+    { k: 'Home', label: 'Home', what: tr('第一行') },
+    { k: 'End', label: 'End', what: tr('最後一行') },
+    { k: 'PageUp', label: 'PgUp', what: tr('上 20 行') },
+    { k: 'PageDown', label: 'PgDn', what: tr('下 20 行') },
+    ...(sections?.length
+      ? [
+          { k: '[', label: '[', what: tr('上一段') },
+          { k: ']', label: ']', what: tr('下一段') },
+        ]
+      : []),
+  ];
+  const onMove = (e: React.KeyboardEvent<HTMLPreElement>) => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    const items = [...e.currentTarget.querySelectorAll<HTMLElement>('[role="listitem"]')];
+    if (!items.length) return;
+    const nOf = (el: HTMLElement) => Number(el.dataset.n);
+    const at = items.indexOf(document.activeElement instanceof HTMLElement ? document.activeElement : items[0]);
+    const now = at < 0 ? -1 : at;
+    let to = -1;
+    let said = '';
+    if (e.key === 'Home') to = 0;
+    else if (e.key === 'End') to = items.length - 1;
+    else if (e.key === 'PageDown') to = Math.min(items.length - 1, Math.max(0, now) + 20);
+    else if (e.key === 'PageUp') to = Math.max(0, now - 20);
+    else if ((e.key === '[' || e.key === ']') && sections?.length) {
+      const cur = now < 0 ? (e.key === ']' ? -Infinity : Infinity) : nOf(items[now]);
+      const sorted = [...sections].sort((a, b) => a.line - b.line);
+      const s = e.key === ']' ? sorted.find((x) => x.line > cur) : [...sorted].reverse().find((x) => x.line < cur);
+      if (s) {
+        to = items.findIndex((el) => nOf(el) >= s.line);
+        said = s.label;
+      }
+    } else return;
+    e.preventDefault();
+    const el = items[to];
+    if (!el) return;
+    el.tabIndex = -1;
+    el.focus();
+    if (said) announce(tr('{name}，第 {n} 行', { name: said, n: nOf(el) }));
+  };
   const head =
     file || title ? (
       <div className="ui-cv-head">
@@ -234,9 +283,26 @@ export function CodeView({
   return (
     <div className={cx('ui-cv', className)} role="region" aria-label={file || title || tr('原始碼')}>
       {head}
-      <pre ref={body} className="ui-cv-body" style={maxHeight ? { maxHeight } : undefined} tabIndex={0} aria-label={tr('程式碼')}>
+      <pre
+        ref={body}
+        className="ui-cv-body"
+        style={maxHeight ? { maxHeight } : undefined}
+        tabIndex={0}
+        aria-label={tr('程式碼')}
+        aria-keyshortcuts={keys.map((k) => k.k).join(' ')}
+        onKeyDown={onMove}
+      >
         <code role="list">{rows}</code>
       </pre>
+      {/* What the keys do, while the code has focus; a screen reader gets them from aria-keyshortcuts. */}
+      <div className="ui-cv-keys" aria-hidden="true">
+        {keys.map((k) => (
+          <span key={k.k}>
+            <kbd>{k.label}</kbd>
+            {k.what}
+          </span>
+        ))}
+      </div>
       {narrow && canWindow ? (
         <button type="button" className="ui-link-btn ui-cv-more" onClick={() => setAll(!all)}>
           <span>{all ? tr('只顯示第 {n} 行前後', { n: ta }) : monoNums(tr('顯示全部 {n} 行', { n: '\u0001' }), [lines.length])}</span>
