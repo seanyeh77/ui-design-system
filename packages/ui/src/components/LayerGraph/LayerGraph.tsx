@@ -888,7 +888,36 @@ export function LayerGraph(p: LayerGraphProps) {
       }
       return null;
     };
-    const labelEl = (m: (typeof marks)[number], x0: number, top: number, lines: string[] = [m.text], over = false) => (
+    // NA+B: a label with no spot that reads as its own line's becomes a number on the line; the full text is listed
+    // under the diagram, and shows at its old spot (over the lines, on its ground) while the line is hovered or selected.
+    const numbered: { n: number; m: (typeof marks)[number]; x: number; y: number }[] = [];
+    const numberOn = (m: (typeof marks)[number], near: { x0: number; top: number; lw: number }) => {
+      const pts = ptsOf[m.idx] ?? [];
+      const cx = near.x0 + near.lw / 2;
+      const cy = near.top;
+      let best: { x: number; y: number; d: number; clear: boolean } | null = null;
+      for (let k = 0; k + 1 < pts.length; k++) {
+        const [x1, y1] = pts[k];
+        const [x2, y2] = pts[k + 1];
+        const len = Math.hypot(x2 - x1, y2 - y1);
+        for (let t = 12; t <= len - 12; t += 4) {
+          const x = x1 + ((x2 - x1) * t) / len;
+          const y = y1 + ((y2 - y1) * t) / len;
+          // A 20 px dot, 4 px clear of other lines, boxes, labels and other dots.
+          const clear =
+            !segs.some((sg) => sg.idx !== m.idx && gapTo(sg.box, x - 14, 28, y - 14, y + 14) === 0) &&
+            !boxRects.some((q) => x + 14 > q[0] && x - 14 < q[1] && y + 14 > q[2] && y - 14 < q[3]) &&
+            !hits(x - 14, x + 14, y - 14, y + 14) &&
+            !numbered.some((o) => Math.hypot(o.x - x, o.y - y) < 28);
+          const d = Math.hypot(x - cx, y - cy);
+          if (!best || (clear && !best.clear) || (clear === best.clear && d < best.d)) best = { x, y, d, clear };
+        }
+      }
+      const at = best ?? { x: m.tx, y: m.ty - 20 };
+      numbered.push({ n: numbered.length + 1, m, x: Math.round(at.x), y: Math.round(at.y) });
+      return numbered.length;
+    };
+    const labelEl = (m: (typeof marks)[number], x0: number, top: number, lines: string[] = [m.text], over = false, num = 0) => (
       // With onSelectEdge the label selects its edge too (a mouse and touch target; keyboard uses the line itself).
       <span
         key={'l' + m.idx}
@@ -898,6 +927,8 @@ export function LayerGraph(p: LayerGraphProps) {
           'ui-lg-label',
           // Over a line (no clear spot): a solid ground, so the line stops at the label instead of showing between letters.
           over && 'is-over',
+          num > 0 && 'is-numbered',
+          num > 0 && (hover === edgeId(m.e) || m.e === selEdge) && 'is-shown',
           pickEdge && 'is-clickable',
           pickEdge && hover === edgeId(m.e) && 'is-hover',
           m.r && 'is-related',
@@ -945,6 +976,8 @@ export function LayerGraph(p: LayerGraphProps) {
           let top = m.ty + 14;
           for (let k = 0; k < 8 && taken(top); k++) top += 18;
           spot = { x0, top, lw: w, lh: 16, lines: [m.text] };
+          labels.push(labelEl(m, spot.x0, spot.top, spot.lines, true, numberOn(m, spot)));
+          return;
         }
         placed.push([spot.x0, spot.x0 + spot.lw, spot.top - spot.lh / 2 - 4, spot.top + spot.lh / 2 + 4, 6]);
         labels.push(labelEl(m, spot.x0, spot.top, spot.lines));
@@ -1007,7 +1040,9 @@ export function LayerGraph(p: LayerGraphProps) {
           const x0 = x0Of(w);
           const top = find(x0, w, 16, false);
           if (top == null) crowd.add(g);
-          spot = { x0, top: top ?? start0, lw: w, lh: 16, lines: [m.text] };
+          const at = { x0, top: top ?? start0, lw: w, lh: 16, lines: [m.text] };
+          labels.push(labelEl(m, at.x0, at.top, at.lines, true, numberOn(m, at)));
+          return;
         }
         // 4 px above and below too, so a label placed later does not sit flush against it.
         placed.push([spot.x0, spot.x0 + spot.lw, spot.top - spot.lh / 2 - 4, spot.top + spot.lh / 2 + 4, 6]);
@@ -1101,6 +1136,11 @@ export function LayerGraph(p: LayerGraphProps) {
           spot = { x0, top, lw: w, lh: 16, lines: [m.text] };
         }
       }
+      if (over) {
+        // NA+B: a number on its line; the text shows only while the line is hovered or selected, so it takes no room.
+        labels.push(labelEl(m, spot.x0, spot.top, spot.lines, true, numberOn(m, spot)));
+        return;
+      }
       // 4 px above and below: a label placed later keeps a visible gap from this one (2 px read as touching).
       placed.push([spot.x0, spot.x0 + spot.lw, spot.top - spot.lh / 2 - 4, spot.top + spot.lh / 2 + 4, 6]);
       // 4 px for the label's own padding and the canvas measure's rounding.
@@ -1113,7 +1153,21 @@ export function LayerGraph(p: LayerGraphProps) {
       .sort((m, n) => Number(!!m.up) - Number(!!n.up) || m.ty - n.ty || m.tx - n.tx)
       .forEach((m) => place(m, false));
     later.forEach((m) => place(m, true));
-    return { paths, labels, hitPaths, need, crowd, wide, least, covered };
+    // The dots go over the lines; each also shows its line's text while hovered.
+    for (const o of numbered)
+      labels.push(
+        <span
+          key={'n' + o.m.idx}
+          className={cx('ui-lg-num', o.m.dim && 'is-dim', (hover === edgeId(o.m.e) || o.m.e === selEdge) && 'is-on')}
+          style={{ left: o.x, top: o.y }}
+          aria-hidden="true"
+          onPointerEnter={pickEdge ? () => setHover(edgeId(o.m.e)) : undefined}
+          onPointerLeave={pickEdge ? () => setHover(null) : undefined}
+        >
+          {o.n}
+        </span>,
+      );
+    return { paths, labels, hitPaths, need, crowd, wide, least, covered, numbered };
   };
   // Room for the lanes: LANE_H px per labelled line into one box, plus the arrow and a margin.
   for (const id in laneCount) {
@@ -1159,7 +1213,7 @@ export function LayerGraph(p: LayerGraphProps) {
     W = Math.ceil(drawn.wide);
     drawn = draw();
   }
-  const { paths, labels, hitPaths } = drawn;
+  const { paths, labels, hitPaths, numbered } = drawn;
   // Where the boxes start, and where the selected one is: the diagram scrolls there (below).
   const firstX = Math.min(...main.filter((n) => pos[n.id]).map((n) => boxOf(n.id).x), W);
   const selBox = sel != null && pos[sel] ? boxOf(sel) : null;
@@ -1434,6 +1488,19 @@ export function LayerGraph(p: LayerGraphProps) {
         </div>
       </div>
       {showList ? null : <ScrollHint show={overflows} done={scrolled} />}
+      {showList || !numbered.length ? null : (
+        // NA: the text of each numbered line, in number order, under the diagram.
+        <ol className="ui-lg-numlist" aria-label={tr('編號的線')}>
+          {numbered.map((o) => (
+            <li key={o.n} className={cx(o.m.dim && 'is-dim')}>
+              <span className="ui-lg-num is-static" aria-hidden="true">
+                {o.n}
+              </span>
+              <span>{labelParts(o.m.text)}</span>
+            </li>
+          ))}
+        </ol>
+      )}
       {shared.length && !showList ? (
         <div className="ui-lg-shared">
           <div className="ui-lg-shared-title">{p.sharedLabel || tr('共用項目')}</div>

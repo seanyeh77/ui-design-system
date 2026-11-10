@@ -127,7 +127,14 @@
         return h(
           'div',
           { style: Object.assign({}, card, { maxWidth: 358 }) },
-          h(U.LayerGraph, { nodes: nodes8, edges: edges8, selectedEdge: e[0], onSelectEdge: e[1], sizeLabel: '{n} 個函式', declaredText: '由專案的 rules.json 宣告。' }),
+          h(U.LayerGraph, {
+            nodes: nodes8,
+            edges: edges8,
+            selectedEdge: e[0],
+            onSelectEdge: e[1],
+            sizeLabel: '{n} 個函式',
+            declaredText: '由專案的 rules.json 宣告。',
+          }),
         );
       }
       // a box outside the repository: above every layer, dashed, 「repo 外」, no size bar

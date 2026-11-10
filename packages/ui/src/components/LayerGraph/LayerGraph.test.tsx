@@ -422,7 +422,8 @@ function expectLabelsClear(container: HTMLElement) {
   if (!canvas) throw new Error('no canvas');
   const c = canvas.getBoundingClientRect();
   const boxes = [...container.querySelectorAll<HTMLElement>('.ui-lg-canvas .ui-lg-node')].map((n) => n.getBoundingClientRect());
-  const labels = [...container.querySelectorAll<HTMLElement>('.ui-lg-label')];
+  // A numbered line's text (NA+B) shows over the lines on hover only, on its ground: not a label in place.
+  const labels = [...container.querySelectorAll<HTMLElement>('.ui-lg-label:not(.is-numbered)')];
   const rects = labels.map((l) => l.getBoundingClientRect());
   const lines = [...container.querySelectorAll<SVGPathElement>('.ui-lg-hit')];
   labels.forEach((label, i) => {
@@ -1060,4 +1061,34 @@ test('LayerGraph: a line up never runs behind a box, also after a label written 
     }
     unmount();
   }
+});
+
+test('LayerGraph: a label with no spot of its own becomes a number on its line, listed under the diagram (NA+B)', async () => {
+  await page.viewport(1440, 900);
+  // ibtrace's three interpose lines into one box: 「攔截 ucp」, the middle one, has no spot of its own.
+  const crowd: LayerGraphEdge[] = [
+    { id: 'ib', from: 'ext', to: 'lib', inferred: true, label: '攔截 `infiniband`（18 個函式）' },
+    { id: 'ucp', from: 'ext', to: 'lib', inferred: true, label: '攔截 `ucp`（11 個函式）' },
+    { id: 'uct', from: 'ext', to: 'lib', inferred: true, label: '攔截 `uct`（4 個函式）' },
+    { id: 'env', from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
+    { id: 'u17', from: 'ucx', to: 'lib', inferred: true, label: '17 處 `ucp` 呼叫被攔截' },
+  ];
+  const { container } = render(
+    <div style={{ width: 590 }}>
+      <LayerGraph nodes={ibNodes.filter((n) => !n.shared)} edges={crowd} onSelectEdge={() => {}} />
+    </div>,
+  );
+  await new Promise((r) => setTimeout(r, 300));
+  await waitFor(() => expect(container.querySelectorAll('.ui-lg-canvas .ui-lg-num').length).toBeGreaterThan(0));
+  const dots = [...container.querySelectorAll<HTMLElement>('.ui-lg-canvas .ui-lg-num')];
+  const list = screen.getByRole('list', { name: '編號的線' });
+  expect(list.querySelectorAll('li')).toHaveLength(dots.length);
+  // Hidden until the line is hovered; then the full text shows.
+  const hidden = container.querySelector<HTMLElement>('.ui-lg-label.is-numbered');
+  if (!hidden) throw new Error('no numbered label');
+  expect(getComputedStyle(hidden).visibility).toBe('hidden');
+  await user.hover(dots[0]);
+  await waitFor(() => expect(container.querySelector<HTMLElement>('.ui-lg-label.is-numbered.is-shown')).not.toBeNull());
+  // Every label still on the diagram reads as its own line's: none sits over another label.
+  expectLabelsClear(container);
 });
