@@ -47,6 +47,9 @@ export interface CommandPaletteProps<T extends PaletteItem = PaletteItem> {
   onQueryChange?: (query: string) => void;
   /** Shows 「搜尋中」 when there are no items yet. */
   loading?: boolean;
+  /** How many matched before you cut the list down to items (RA): the line under the results then says how many
+   *  more there are, e.g. 「顯示 30 筆，另有 17 筆，請輸入更長的字」. Without it the line says 「共 30 筆」. */
+  total?: number;
   /** Most results shown. Default 50. */
   limit?: number;
   /** Ctrl K / ⌘K toggles it. Default true. */
@@ -81,6 +84,7 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
     filter = true,
     onQueryChange,
     loading,
+    total,
     limit = 50,
     hotkey = true,
     defaultQuery = '',
@@ -174,7 +178,10 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
   const empty = query ? none(q.trim()) : emptyText || tr('輸入名稱開始搜尋');
   // The page's live region reads the result count (or 「找不到…」) after typing settles; a message inserted fresh
   // into the dialog is not read by most screen readers.
-  const said = !open ? '' : !query ? '' : loading ? tr('搜尋中') : shown.length ? tr('找到 {n} 筆結果', { n: shown.length }) : empty;
+  // RA: a line under the results with the count, and how many were cut off; a cut list is read out the same way.
+  const more = total != null && total > shown.length ? total - shown.length : 0;
+  const count = more ? tr('顯示 {n} 筆，另有 {m} 筆，請輸入更長的字', { n: shown.length, m: more }) : tr('共 {n} 筆', { n: shown.length });
+  const said = !open ? '' : !query ? '' : loading ? tr('搜尋中') : shown.length ? (more ? count : tr('找到 {n} 筆結果', { n: shown.length })) : empty;
   // Read again for every new query and every end of loading, also when the text is the same (「找到 2 筆結果」 for
   // 「IB」 and then for 「IBT」).
   React.useEffect(() => {
@@ -242,6 +249,15 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
           ) : (
             <p className="ui-pal-empty">{loading ? tr('搜尋中') : empty}</p>
           )}
+          {/* Results already listed while more are on their way: say so in the page text too, not only to a screen
+              reader, so whoever reads the list (a person or a script) knows it is not final yet. */}
+          {loading && shown.length ? <p className="ui-pal-loading">{tr('搜尋中')}</p> : null}
+          {query && !loading && shown.length ? (
+            // Read out through the live region already (said): here for the eyes only.
+            <p className="ui-pal-count" aria-hidden="true">
+              {count}
+            </p>
+          ) : null}
           <div className="ui-pal-keys" aria-hidden="true">
             <span>
               <kbd>↑</kbd>

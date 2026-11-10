@@ -27,6 +27,8 @@ export interface AppShellProps {
   actions?: React.ReactNode;
   /** The page: Cards and sections, 32 px apart. */
   children: React.ReactNode;
+  /** Labels under the phone tab bar's icons (MobileTabBar labels). Default true. */
+  tabLabels?: boolean;
   className?: string;
 }
 
@@ -38,7 +40,7 @@ const MORE = '\u0000more';
 /** The dashboard frame: sidebar (240 px, 72 px collapsed) above 1024 px, a drawer from the top bar's menu button from
  *  600 to 1024 px, and bottom tabs on phones.
  *  The top bar hides while scrolling down and returns when scrolling up. */
-export function AppShell({ nav, value, onNavigate, brand, title, breadcrumb, onSearch, actions, children, className }: AppShellProps) {
+export function AppShell({ nav, value, onNavigate, brand, title, breadcrumb, onSearch, actions, children, tabLabels, className }: AppShellProps) {
   const phone = useNarrow();
   // 600 to 1024 px (tablets, narrow windows): no sidebar; the top bar's menu button opens the whole nav in a drawer.
   const tablet = useMedia('(min-width: 600px) and (max-width: 1024px)');
@@ -125,7 +127,7 @@ export function AppShell({ nav, value, onNavigate, brand, title, breadcrumb, onS
         <main ref={main} className="ui-shell-main" tabIndex={-1}>
           {children}
         </main>
-        {phone && tabs.length ? <MobileTabBar items={tabs} value={tabValue} onChange={onTab} /> : null}
+        {phone && tabs.length ? <MobileTabBar items={tabs} value={tabValue} onChange={onTab} labels={tabLabels} /> : null}
         {phone || tablet ? (
           <Drawer open={moreOpen} onClose={() => setMoreOpen(false)} title={tr('全部頁面')} side={tablet ? 'left' : 'right'} width={tablet ? 300 : undefined}>
             <SideNav

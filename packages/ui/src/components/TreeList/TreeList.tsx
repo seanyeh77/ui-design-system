@@ -256,8 +256,35 @@ export function TreeList(p: TreeListProps) {
     want.current = rows[j].n.id;
     setFocusId(rows[j].n.id);
   };
+  // KA: the whole tree is one Tab stop. Links and buttons inside a row are taken out of the Tab order (below) and
+  // reached with →; ← or Esc goes back to the row, ↑↓ on to the next row.
+  const treeEl = React.useRef<HTMLDivElement>(null);
+  React.useLayoutEffect(() => {
+    for (const el of treeEl.current?.querySelectorAll<HTMLElement>('[role="treeitem"] :is(a[href], button, input, select, textarea, [tabindex])') ?? [])
+      if (el.tabIndex >= 0 && el.getAttribute('role') !== 'treeitem') el.tabIndex = -1;
+  });
+  const inner = (row: Element) =>
+    [...row.querySelectorAll<HTMLElement>('a[href], button, input, select, textarea, [tabindex]')].filter(
+      (el) =>
+        el.closest('[role="treeitem"]') === row && el.getAttribute('role') !== 'treeitem' && !el.closest('[aria-hidden="true"]') && !el.matches(':disabled'),
+    );
   const onKey = (e: React.KeyboardEvent) => {
-    if ((e.target as HTMLElement).getAttribute('role') !== 'treeitem' || !rows.length || browserKey(e)) return;
+    if (!rows.length || browserKey(e)) return;
+    const t = e.target as HTMLElement;
+    const row = t.closest('[role="treeitem"]');
+    if (row && row !== t) {
+      // In a row's link or button: Enter and Space are its own.
+      const list = inner(row);
+      const i = list.indexOf(t);
+      if (e.key === 'ArrowRight' && i < list.length - 1) list[i + 1].focus();
+      else if (e.key === 'ArrowLeft' && i > 0) list[i - 1].focus();
+      else if (e.key === 'ArrowLeft' || e.key === 'Escape') (row as HTMLElement).focus();
+      else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') go(cur + (e.key === 'ArrowDown' ? 1 : -1));
+      else return;
+      e.preventDefault();
+      return;
+    }
+    if (t.getAttribute('role') !== 'treeitem') return;
     const r = rows[cur];
     const k = e.key;
     const handled = ['ArrowDown', 'ArrowUp', 'Home', 'End', 'ArrowRight', 'ArrowLeft', 'Enter'].includes(k) || (k === ' ' && selectable);
@@ -268,7 +295,9 @@ export function TreeList(p: TreeListProps) {
     else if (k === 'Home') go(0);
     else if (k === 'End') go(rows.length - 1);
     else if (k === 'ArrowRight') {
+      const list = inner(t);
       if (r.isF && !r.open) toggle(r.n);
+      else if (list.length) list[0].focus();
       else if (r.isF) go(cur + 1);
     } else if (k === 'ArrowLeft') {
       if (r.isF && r.open) toggle(r.n);
@@ -344,7 +373,8 @@ export function TreeList(p: TreeListProps) {
         <div className="ui-tree-main">
           <div className="ui-tree-name">
             {r.depth > 3 ? (
-              <span className="ui-tree-depth" aria-hidden="true">
+              // 「L5」 explains itself on hover; a screen reader already hears the level (aria-level).
+              <span className="ui-tree-depth" aria-hidden="true" title={tr('第 {n} 層', { n: r.depth + 1 })}>
                 {'L' + (r.depth + 1)}
               </span>
             ) : null}
@@ -606,6 +636,7 @@ export function TreeList(p: TreeListProps) {
           aria-label={p.label || (typeof p.title === 'string' ? p.title : undefined)}
           aria-multiselectable={selectable || undefined}
           className="ui-tree-list"
+          ref={treeEl}
           onKeyDown={onKey}
         >
           {nest(0, 0)[0]}
