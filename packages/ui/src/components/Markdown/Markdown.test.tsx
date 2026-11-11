@@ -220,3 +220,29 @@ test('Markdown alerts: no space left under the last line', () => {
   const p = container.querySelector('.ui-alert-body p') as HTMLElement;
   expect(getComputedStyle(p).marginBottom).toBe('0px');
 });
+
+test('Markdown tables: names, paths and words stay whole; only spaces and CJK break lines', async () => {
+  await page.viewport(1280, 900);
+  const src = [
+    '| 函式 | 指令 | 位置 | network namespace | 執行方式 |',
+    '|---|---|---|---|---|',
+    '| [_run](fn:a)（包裝函式） | `ip netns exec {namespace} {argv}` | `harness/controller.py:91` | 依呼叫處 | subprocess.run，逾時 timeout |',
+    "| [VirtualRouter._probe_neighbor](fn:b) | `ip netns exec l3-r{as_id} ping {'-6' if family == 6 else '-4'} -n -c 1 -W 1 -I {device} {gateway}` | `harness/controller.py:684` | l3-r{as_id} | subprocess.Popen，沒有逾時 |",
+  ].join('\n');
+  render(
+    <div style={{ width: 860 }}>
+      <Markdown schemes={['fn']} linkHref={(h) => '#' + h} refHref={(r) => '#' + r}>
+        {src}
+      </Markdown>
+    </div>,
+  );
+  const oneLine = (el: Element) => el.getClientRects().length === 1;
+  expect(oneLine(screen.getByRole('link', { name: 'VirtualRouter._probe_neighbor' }))).toBe(true);
+  expect(oneLine(screen.getByRole('link', { name: 'harness/controller.py:684' }))).toBe(true);
+  const word = [...document.querySelectorAll('td')].find((t) => t.textContent?.startsWith('subprocess.Popen')) as HTMLElement;
+  const range = document.createRange();
+  const text = word.firstChild as Text;
+  range.setStart(text, 0);
+  range.setEnd(text, 'subprocess.Popen'.length);
+  expect(range.getClientRects().length).toBe(1);
+});

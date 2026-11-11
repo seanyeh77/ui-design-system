@@ -6311,7 +6311,9 @@ html.ui-theme-fade * {
   font-size: 16px;
   line-height: 1.65;
   color: var(--ink);
-  overflow-wrap: anywhere;
+  /* break-word, not anywhere: a long word still wraps, but a table does not think every column can shrink to one
+     letter and squash identifiers such as VirtualRouter._probe_neighbor into a letter per line. */
+  overflow-wrap: break-word;
 }
 .ui-md.is-small {
   font-size: 13px;
@@ -6466,10 +6468,16 @@ html.ui-theme-fade * {
 }
 .ui-md-table .ui-code {
   white-space: normal;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
-.ui-md-table td:has(.ui-code) {
-  min-width: 14em;
+/* A command wraps at its spaces; a path or a name in code never breaks inside. */
+.ui-md-table .ui-code.is-link {
+  white-space: nowrap;
+}
+/* A cell of code that wraps (a command) keeps at least 16 em, so it reads in a few lines instead of a word per line;
+   when the columns do not fit, the table scrolls sideways. */
+.ui-md-table td:has(> .ui-code:not(.is-link)) {
+  min-width: 16em;
 }
 /* TB: under 480 px each row is a card: the column name above each value, rows divided by a line. */
 @container (max-width: 479px) {

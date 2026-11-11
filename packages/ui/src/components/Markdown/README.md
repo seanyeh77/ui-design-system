@@ -61,11 +61,11 @@ CodeView 不內建預覽：由使用的地方在面板上方放 `UI.Tabs`（「�
 
 `topLevel` 是 `#` 對應的 HTML 層級：`#` 是 h`topLevel`，`##` 再低一層，依此類推（最多 h6）。預設 4。
 
-| 放在哪裡 | 原文的最高標題 | `topLevel` | 結果 |
-|---|---|---|---|
-| 頁面裡、h2 或 h3 底下 | `#` | 4（預設） | `#` 是 h4 |
-| Section 裡（Section 標題是 h3） | `#` | 4 | `#` 是 h4 |
-| Section 裡，原文從 `###` 開始寫 | `###` | 2 | `###` 是 h4 |
+| 放在哪裡                        | 原文的最高標題 | `topLevel` | 結果        |
+| ------------------------------- | -------------- | ---------- | ----------- |
+| 頁面裡、h2 或 h3 底下           | `#`            | 4（預設）  | `#` 是 h4   |
+| Section 裡（Section 標題是 h3） | `#`            | 4          | `#` 是 h4   |
+| Section 裡，原文從 `###` 開始寫 | `###`          | 2          | `###` 是 h4 |
 
 - 大小跟著層級：h4 20 px，h5、h6 16 px 粗體。在 Section 裡，h4 改成 16 px 粗體，不比 Section 的 20 px 標題大。
 
@@ -91,12 +91,20 @@ var report = [
   '> 3 個指令沒有設逾時。',
 ].join('\n');
 
-h(UI.Markdown, {
-  topLevel: 2,
-  schemes: ['fn'],
-  linkHref: function (href) { return href.startsWith('fn:') ? '#flow=' + encodeURIComponent(href.slice(3)) : href; },
-  refHref: function (ref) { return '#code=' + encodeURIComponent(ref); },
-}, report);
+h(
+  UI.Markdown,
+  {
+    topLevel: 2,
+    schemes: ['fn'],
+    linkHref: function (href) {
+      return href.startsWith('fn:') ? '#flow=' + encodeURIComponent(href.slice(3)) : href;
+    },
+    refHref: function (ref) {
+      return '#code=' + encodeURIComponent(ref);
+    },
+  },
+  report,
+);
 ```
 
 畫面就是這份文字；「複製成 Markdown」直接複製 `report`，貼到 GitHub 或 Notion 時表格、收合區塊、提示框都還在。
@@ -104,14 +112,24 @@ h(UI.Markdown, {
 ## 範例：Section 裡放 Markdown
 
 ```js
-h(UI.SectionGroup, null,
-  h(UI.Section, {
-    id: 'external',
-    title: '外部指令',
-    summary: '29 個指令、4 個 namespace、3 個沒有逾時',
-    defaultOpen: true,
-    actions: h(UI.IconButton, { icon: 'copy', label: '複製這一段', onClick: function () { navigator.clipboard.writeText(report); } }),
-  },
+h(
+  UI.SectionGroup,
+  null,
+  h(
+    UI.Section,
+    {
+      id: 'external',
+      title: '外部指令',
+      summary: '29 個指令、4 個 namespace、3 個沒有逾時',
+      defaultOpen: true,
+      actions: h(UI.IconButton, {
+        icon: 'copy',
+        label: '複製這一段',
+        onClick: function () {
+          navigator.clipboard.writeText(report);
+        },
+      }),
+    },
     h(UI.Markdown, { topLevel: 2, schemes: ['fn'], linkHref: linkHref, refHref: refHref }, report),
   ),
 );
