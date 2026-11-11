@@ -133,6 +133,20 @@ function byCount(n: number, one: string, many: string): string {
   return t && t !== one ? t : tr(many);
 }
 
+/** The width of text in a font (`600 13px` and mono or sans), measured on a canvas. */
+function textWidth(text: string, size: number, code: boolean): number {
+  if (measure === undefined) measure = document.createElement('canvas').getContext('2d');
+  const c = measure;
+  if (!c) return text.length * size * 0.6;
+  const cs = getComputedStyle(document.documentElement);
+  c.font = `600 ${size}px ` + ((code ? cs.getPropertyValue('--font-mono') : cs.getPropertyValue('--font-sans')) || 'sans-serif');
+  return c.measureText(text).width;
+}
+
+// T: a tag on the name's line leaves the name at least this many characters; fewer, and every tag of the diagram goes
+// on its own line under the name.
+const TAG_KEEP = 8;
+
 function labelWidth(text: string): number {
   const parts = text.split(SPLIT).filter(Boolean);
   if (measure === undefined) measure = document.createElement('canvas').getContext('2d');
@@ -255,7 +269,6 @@ export function LayerGraph(p: LayerGraphProps) {
   const [fit, setFit] = React.useState<{ at: number; nw: number; col: number; scale: number; full?: boolean } | null>(null);
   const fitted = fit && fit.at === avail ? fit : null;
   const NW = fitted?.nw ?? (p.nodeWidth || 200);
-  const NH = 60;
   const GAP = 56;
   // Space added between boxes, 24 px at a time (up to 5 times), while a label still has to cover a line.
   // Kept per diagram and per width: other boxes or lines, or a resized box, start again from no added space.
@@ -281,6 +294,16 @@ export function LayerGraph(p: LayerGraphProps) {
   const sizeOf = (n: LayerGraphNode) => (n.external && !n.shared ? undefined : (n.size ?? n.fns));
   const sharedIds = new Set(all.filter((n) => n.shared).map((n) => n.id));
   const main = all.filter((n) => !n.shared);
+  // T (option 1): beside the name, a tag would cut some name to fewer than TAG_KEEP characters at this box width: every
+  // tag moves to its own line under the name and the boxes grow from 60 to 76 px, so all boxes stay the same height.
+  const tagLine = main.some((n) => {
+    if (!n.tag) return false;
+    const name = n.name || n.id;
+    const tagW = textWidth(n.tag, 12, false) + 12 + (n.tagTone === 'warning' ? 15 : 0);
+    const room = NW - (n.external ? 24 : 28) - 6 - tagW;
+    return room < textWidth(name.slice(0, TAG_KEEP), 13, true) + (name.length > TAG_KEEP ? 1 : 0);
+  });
+  const NH = tagLine ? 76 : 60;
   const shared = all.filter((n) => n.shared);
   const edges = p.edges.filter((e) => !sharedIds.has(e.from) && !sharedIds.has(e.to));
   // Lines with a label of their own and no count: inferred, or declared by the project (DC).
@@ -1250,9 +1273,10 @@ export function LayerGraph(p: LayerGraphProps) {
       >
         <span className="ui-lg-head">
           <span className="ui-lg-name">{n.name || n.id}</span>
-          {tagOf(n)}
+          {tagLine ? null : tagOf(n)}
           {used ? <span className="ui-lg-use">{monoNums(useText.replace('{n}', '\u0001'), [used])}</span> : null}
         </span>
+        {tagLine ? tagOf(n) : null}
         {n.external ? <span className="ui-lg-ext">{externalText}</span> : null}
         {size != null ? (
           <span className="ui-lg-size">

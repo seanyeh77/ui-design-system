@@ -1123,3 +1123,25 @@ test('LayerGraph: tag stays whole beside a cut name, in the list and in the name
   expect(items[0]).toBe('controller_with_a_long_name.py可修改，88 個項目');
   expect(screen.getByRole('button', { name: 'routing_with_a_long_name.py 受保護' })).toBeTruthy();
 });
+
+// T option 1: on a phone the tag would leave fewer than 8 characters of a name: every tag goes on its own line.
+test('LayerGraph: tags move under the names when a name would keep fewer than 8 characters', () => {
+  const { container } = render(
+    <div style={{ width: 300 }}>
+      <LayerGraph
+        nodes={[
+          { id: 'cli', name: 'src/cli', layer: 0, size: 34 },
+          { id: 'server', name: 'src/server', layer: 0, size: 88, tag: '受保護', tagTone: 'warning' },
+        ]}
+        edges={[]}
+      />
+    </div>,
+  );
+  const boxes = [...container.querySelectorAll<HTMLElement>('.ui-lg-node')];
+  expect(boxes.every((b) => b.style.height === '76px')).toBe(true);
+  const server = boxes[1];
+  expect(server.querySelector('.ui-lg-head .ui-lg-tag')).toBeNull();
+  expect(server.querySelector(':scope > .ui-lg-tag')?.textContent).toBe('受保護');
+  const name = server.querySelector('.ui-lg-name') as HTMLElement;
+  expect(name.scrollWidth).toBeLessThanOrEqual(name.clientWidth);
+});

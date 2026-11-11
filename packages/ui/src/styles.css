@@ -5632,6 +5632,9 @@ html.ui-theme-fade * {
   line-height: 16px;
   white-space: nowrap;
 }
+.ui-lg-node > .ui-lg-tag {
+  align-self: flex-start;
+}
 .ui-lg-tag.is-warning {
   background: var(--warning-soft);
   color: var(--warning-text);
