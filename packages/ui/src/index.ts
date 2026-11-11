@@ -68,6 +68,10 @@ export type { GraphLegendItem, GraphLegendProps } from './components/Graph/Graph
 export { IconButton } from './components/IconButton/IconButton';
 export type { IconButtonProps } from './components/IconButton/IconButton';
 export { InlineCode, isCodeRef, CodeText } from './components/InlineCode/InlineCode';
+export { Markdown, safeHref } from './components/Markdown/Markdown';
+export type { MarkdownProps } from './components/Markdown/Markdown';
+export { Section, SectionGroup } from './components/Section/Section';
+export type { SectionProps, SectionGroupProps } from './components/Section/Section';
 export type { CodeTextProps, InlineCodeProps, OnRef, RefHref } from './components/InlineCode/InlineCode';
 export { KpiCard } from './components/KpiCard/KpiCard';
 export type { KpiCardProps } from './components/KpiCard/KpiCard';

@@ -9,7 +9,7 @@
 - 手機上（寬度小於 600 px）只顯示目標行前後 2 行（`context`），下方「顯示全部 N 行」。
 - 標題列：`file` 顯示路徑，給 `fileHref` 或 `onFile` 變成連結；右邊用次要文字色寫程式語言，是純文字不是按鈕，C 寫成「C 語言」（單一個「C」看起來像按鈕），螢幕閱讀器讀「程式語言：C 語言」。`languageLabel` 換掉這個字，`false` 不顯示。沒有檔案時可以給 `title`。
 - 註解和字串裡的路徑可以變成連結：給 `refHref: (path) => 連結`（回傳 `undefined` 的不變）或 `onRef: (path, e) => …`，和 `CodeText` 一樣。算路徑的：有資料夾和副檔名的（`docs/design/ring-overrun.md`）、檔名加行號（`ring.c:42`、`src/app.c:86-90`）；程式碼本身和只有檔名的（`printf.h`）不算。有連結時是 `<a>`，只有 `onRef` 時是按鈕；強調文字色、底線。
-- 專案自己在 CodeView 旁加複製按鈕時，放在程式碼區塊外（例如卡片標題列），用有文字或圖示的按鈕，不要放在語言標示旁邊。
+- 複製：`copy` 在標題列最右邊（語言標示的右側）放一個複製的小圖示（32 px，手機 48 px），複製整段程式碼後 2 秒變成勾，提示「已複製」；沒有 `file`、`title` 時也會顯示標題列。`onCopy`、`onCopyError` 接手結果，例如複製失敗時用 Toast 說明。預設不顯示；Markdown 的程式碼區塊預設顯示。
 
 ```js
 h(UI.CodeView, {

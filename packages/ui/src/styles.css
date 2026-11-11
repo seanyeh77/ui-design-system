@@ -4902,6 +4902,34 @@ html.ui-theme-fade * {
   color: var(--ink-muted);
   white-space: nowrap;
 }
+/* A small copy icon at the right of the header, as in Suggestion; 48 px on phones. */
+.ui-cv-copy {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  margin-right: calc(-1 * var(--space-1));
+  border-color: transparent;
+}
+.ui-cv-lang + .ui-cv-copy {
+  margin-left: 0;
+}
+.ui-cv-copy:first-child,
+.ui-cv-file + .ui-cv-copy,
+.ui-cv-title + .ui-cv-copy {
+  margin-left: auto;
+}
+.ui-cv-copy:hover {
+  background: var(--surface);
+}
+.ui-cv-copy.is-copied {
+  color: var(--success-text);
+}
+@media (max-width: 599px) {
+  .ui-cv-copy {
+    width: var(--touch-target);
+    height: var(--touch-target);
+  }
+}
 .ui-cv-body {
   margin: 0;
   padding: 6px 0;
@@ -6053,4 +6081,241 @@ html.ui-theme-fade * {
   outline: none;
   border-radius: var(--radius-sm);
   box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+/* Section: a part of a page that closes to its title and a one-line summary (SLR4LANG). */
+.ui-sec + .ui-sec {
+  border-top: 1px solid var(--line);
+}
+.ui-sec-h {
+  margin: 0;
+  font: inherit;
+}
+.ui-sec-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 48px;
+  padding: var(--space-2) 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ui-sec-btn:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--accent));
+  outline-offset: 2px;
+}
+.ui-sec-caret {
+  flex: none;
+  color: var(--ink-muted);
+  transition: transform 260ms ease;
+}
+.ui-sec.is-open .ui-sec-caret {
+  transform: rotate(90deg);
+}
+.ui-sec-title {
+  flex: none;
+  max-width: 100%;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ui-sec-sum {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: var(--space-1);
+  color: var(--ink-muted);
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ui-sec-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 260ms ease;
+}
+.ui-sec.is-open > .ui-sec-body {
+  grid-template-rows: 1fr;
+}
+.ui-sec-in {
+  min-height: 0;
+  overflow: hidden;
+}
+.ui-sec-content {
+  padding: var(--space-1) 0 var(--space-4);
+}
+.ui-sec-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding-bottom: var(--space-2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-sec-caret,
+  .ui-sec-body {
+    transition: none;
+  }
+}
+
+/* Markdown: project documents and code comments in the system's type; # is an h4 (20 px). */
+.ui-md {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.ui-md.is-small {
+  font-size: 13px;
+  line-height: 20px;
+}
+.ui-md > :first-child {
+  margin-top: 0;
+}
+.ui-md > :last-child {
+  margin-bottom: 0;
+}
+.ui-md p,
+.ui-md ul,
+.ui-md ol,
+.ui-md blockquote,
+.ui-md hr,
+.ui-md .ui-md-code,
+.ui-md .ui-md-table-wrap {
+  margin: 0 0 var(--space-3);
+}
+.ui-md h4.ui-md-h {
+  margin: var(--space-5) 0 var(--space-2);
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 700;
+}
+.ui-md h5.ui-md-h,
+.ui-md h6.ui-md-h,
+.ui-md h3.ui-md-h {
+  margin: var(--space-4) 0 var(--space-1);
+  font-size: 1em;
+  line-height: inherit;
+  font-weight: 700;
+}
+.ui-md h3.ui-md-h {
+  font-size: 25px;
+  line-height: 32px;
+}
+.ui-md.is-small h4.ui-md-h {
+  font-size: 13px;
+  line-height: 20px;
+}
+.ui-md ul,
+.ui-md ol {
+  padding-left: var(--space-6);
+}
+.ui-md li > ul,
+.ui-md li > ol,
+.ui-md li > p {
+  margin: var(--space-1) 0 0;
+}
+.ui-md blockquote {
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--line);
+  color: var(--ink-muted);
+}
+.ui-md hr {
+  height: 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+.ui-md-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.ui-md-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 1px var(--line);
+}
+.ui-md-table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 14px;
+  line-height: 20px;
+}
+.ui-md-table th {
+  background: var(--surface-sub);
+  font-weight: 700;
+  text-align: left;
+  white-space: nowrap;
+}
+.ui-md-table th,
+.ui-md-table td {
+  padding: 10px 12px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.ui-md-table th:last-child,
+.ui-md-table td:last-child {
+  border-right: 0;
+}
+.ui-md-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.ui-md-table tbody tr:nth-child(even) {
+  background: var(--surface-sub);
+}
+.ui-md-table td.is-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* DetailList labelWidth="auto": the label column as wide as the longest label (at most 40 %), on every row. */
+.ui-dl.is-auto {
+  display: grid;
+  grid-template-columns: fit-content(40%) minmax(0, 1fr);
+  column-gap: var(--space-6);
+}
+.ui-dl.is-auto > .ui-dl-item {
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  column-gap: var(--space-6);
+}
+.ui-dl.is-fixed > .ui-dl-item {
+  grid-template-columns: var(--dl-label) minmax(0, 1fr);
+}
+/* labelSize="body": the label in the value's size and the ink color. */
+.ui-dl.is-body .ui-dl-item dt {
+  color: var(--ink);
+  font-size: inherit;
+  line-height: inherit;
+}
+@container (max-width: 599px) {
+  .ui-dl.is-auto > .ui-dl-item {
+    display: block;
+  }
+  .ui-dl.is-fixed > .ui-dl-item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ui-dl.is-body .ui-dl-item dt {
+    font-size: 13px;
+    line-height: 20px;
+  }
 }
