@@ -1,6 +1,6 @@
 {
   "name": "@seanyeh77/ui-cli",
-  "version": "0.17.0",
+  "version": "0.18.0",
   "description": "Checks a page against SeanYeh's design system and prints component docs: ui check, ui docs, ui list.",
   "license": "MIT",
   "author": "Hsiu-An Yeh",
