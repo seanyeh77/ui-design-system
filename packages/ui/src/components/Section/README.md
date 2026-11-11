@@ -8,30 +8,30 @@
 - 摘要是按鈕的一部分，會跟著標題念出來；不要放連結或按鈕。
 
 ```js
-h(UI.Section, { id: 'external', title: '外部指令', summary: '29 個指令、4 個 namespace、3 個沒有逾時', lazy: true },
-  h(UI.DataTable, { /* … */ }),
-);
+h(UI.Section, { id: 'external', title: '外部指令', summary: '29 個指令、4 個 namespace、3 個沒有逾時', lazy: true }, h(UI.DataTable, {/* … */}));
 ```
 
 ## Props
 
-| Prop | 說明 |
-|---|---|
-| `title` | 段落標題。 |
-| `summary` | 標題右邊的一行重點，收合時也顯示。可放 ReactNode，但不放互動元素。 |
-| `defaultOpen` | 不受控：一開始是否展開，預設 `false`。有記住的狀態（`storageKey`）時以記住的為準。 |
-| `open`、`onOpenChange` | 受控用法。點標題、網址跳到這段、「全部展開／全部收合」都會呼叫 `onOpenChange`。 |
-| `id` | 錨點。網址 hash 是這個 id（載入時，或點了頁內的 `#id` 連結）時自動展開，並捲到標題。 |
-| `lazy` | 收合時完全不渲染內容。預設 `false`：內容留在頁面上但隱藏（`hidden="until-found"`），瀏覽器的頁內搜尋（Ctrl+F）找到裡面的字時自動展開。很長的段落（例如上百筆的表格）再設 `lazy`。 |
-| `storageKey` | 用這個 key 把開合狀態存在 localStorage（`ui-section:<key>`）。讀寫失敗時照常運作，只是不記住。 |
-| `level` | 標題的 heading 層級，預設 3。 |
+| Prop                   | 說明                                                                                                                                                                              |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `title`                | 段落標題。                                                                                                                                                                        |
+| `summary`              | 標題右邊的一行重點，收合時也顯示。可放 ReactNode，但不放互動元素。                                                                                                                |
+| `defaultOpen`          | 不受控：一開始是否展開，預設 `false`。有記住的狀態（`storageKey`）時以記住的為準。                                                                                                |
+| `open`、`onOpenChange` | 受控用法。點標題、網址跳到這段、「全部展開／全部收合」都會呼叫 `onOpenChange`。                                                                                                   |
+| `id`                   | 錨點。網址 hash 是這個 id（載入時，或點了頁內的 `#id` 連結）時自動展開，並捲到標題。                                                                                              |
+| `lazy`                 | 收合時完全不渲染內容。預設 `false`：內容留在頁面上但隱藏（`hidden="until-found"`），瀏覽器的頁內搜尋（Ctrl+F）找到裡面的字時自動展開。很長的段落（例如上百筆的表格）再設 `lazy`。 |
+| `storageKey`           | 用這個 key 把開合狀態存在 localStorage（`ui-section:<key>`）。讀寫失敗時照常運作，只是不記住。                                                                                    |
+| `level`                | 標題的 heading 層級，預設 3。                                                                                                                                                     |
 
 ## SectionGroup
 
 一組 Section，上方右側有「全部展開」與「全部收合」兩個按鈕，各帶圖示；全部已展開時「全部展開」停用，全部已收合時「全部收合」停用。
 
 ```js
-h(UI.SectionGroup, { actions: h(UI.Button, { icon: 'link' }, '複製連結') },
+h(
+  UI.SectionGroup,
+  { actions: h(UI.Button, { icon: 'link' }, '複製連結') },
   h(UI.Section, { title: '元件', summary: '6 個元件、138 個函式', defaultOpen: true }, '…'),
   h(UI.Section, { title: '進入與結束', summary: '2 個進入點', defaultOpen: true }, '…'),
   h(UI.Section, { title: '外部指令', summary: '29 個指令', lazy: true }, '…'),

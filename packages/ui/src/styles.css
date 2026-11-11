@@ -5224,7 +5224,15 @@ html.ui-theme-fade * {
 }
 .ui-lg-bar {
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--space-2);
+}
+/* The page's own controls at the left of the row, 「圖／清單」 at the right. */
+.ui-lg-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-right: auto;
 }
 /* The line-label switch and its text, beside 「圖／清單」: the whole row is the 48 px target. */
 .ui-lg-labels-switch {
@@ -6102,9 +6110,38 @@ html.ui-theme-fade * {
 .ui-sec + .ui-sec {
   border-top: 1px solid var(--line);
 }
+.ui-sec {
+  container-type: inline-size;
+}
+.ui-sec-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
 .ui-sec-h {
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
   font: inherit;
+}
+/* Actions right of the summary, outside the button: a click there does not open or close the section. */
+.ui-sec-actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+/* AY: under 480 px the summary goes under the title, whole, lined up with it. */
+@container (max-width: 479px) {
+  .ui-sec-btn {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+  .ui-sec-sum {
+    flex-basis: 100%;
+    padding-left: 26px;
+    white-space: normal;
+  }
 }
 .ui-sec-btn {
   display: flex;
@@ -6300,6 +6337,101 @@ html.ui-theme-fade * {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+/* DA: a <details> block in Markdown: the summary is a button with a caret; closed content stays findable. */
+.ui-md-details {
+  margin: 0 0 var(--space-3);
+}
+.ui-md-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.ui-md-caret {
+  flex: none;
+  color: var(--ink-muted);
+  transition: transform 260ms ease;
+}
+.ui-md-details.is-open .ui-md-caret {
+  transform: rotate(90deg);
+}
+.ui-md-details-body > :last-child {
+  margin-bottom: 0;
+}
+.ui-md .ui-md-alert {
+  margin: 0 0 var(--space-3);
+}
+.ui-md-alert .ui-alert-body > :last-child {
+  margin-bottom: 0;
+}
+/* Tables in a narrow panel: the table scrolls inside its frame; code in a cell wraps instead of widening it. */
+.ui-md-table-wrap {
+  container-type: inline-size;
+}
+.ui-md-table .ui-code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.ui-md-table td:has(.ui-code) {
+  min-width: 14em;
+}
+/* TB: under 480 px each row is a card: the column name above each value, rows divided by a line. */
+@container (max-width: 479px) {
+  .ui-md-table,
+  .ui-md-table tbody,
+  .ui-md-table tr,
+  .ui-md-table td {
+    display: block;
+    min-width: 0;
+  }
+  .ui-md-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .ui-md-table tr {
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--line);
+  }
+  .ui-md-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+  .ui-md-table tbody tr:nth-child(even) {
+    background: none;
+  }
+  .ui-md-table td,
+  .ui-md-table td:has(.ui-code) {
+    min-width: 0;
+    padding: var(--space-1) 0;
+    border: 0;
+    text-align: left !important;
+  }
+  .ui-md-table td::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--ink-muted);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 20px;
+  }
+}
+/* Headings of Markdown inside a Section stay under the section's 20 px title. */
+.ui-sec-content .ui-md h4.ui-md-h {
+  font-size: 16px;
+  line-height: 24px;
 }
 
 /* DetailList labelWidth="auto": the label column as wide as the longest label (at most 40 %), on every row. */

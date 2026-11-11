@@ -17,13 +17,21 @@
           h(
             U.SectionGroup,
             null,
-            h(U.Section, { title: '元件', summary: '6 個元件、138 個函式', defaultOpen: true },
-              h(U.DetailList, { labelWidth: 'auto', labelSize: 'body', items: [
-                { label: 'src/libibtrace', value: '攔截 infiniband 呼叫，18 個函式' },
-                { label: 'src/ibmon', value: '讀共享記憶體並顯示，91 個函式' },
-              ] }),
+            h(
+              U.Section,
+              { title: '元件', summary: '6 個元件、138 個函式', defaultOpen: true },
+              h(U.DetailList, {
+                labelWidth: 'auto',
+                labelSize: 'body',
+                items: [
+                  { label: 'src/libibtrace', value: '攔截 infiniband 呼叫，18 個函式' },
+                  { label: 'src/ibmon', value: '讀共享記憶體並顯示，91 個函式' },
+                ],
+              }),
             ),
-            h(U.Section, { title: '進入與結束', summary: '2 個進入點、1 個結束點', defaultOpen: true },
+            h(
+              U.Section,
+              { title: '進入與結束', summary: '2 個進入點、1 個結束點', defaultOpen: true },
               h(U.Markdown, null, '`main`（`src/cli/main.c:12`）與 `ibtrace_init`，由 **LD_PRELOAD** 載入。'),
             ),
             h(U.Section, { id: 'external', title: '外部指令', summary: '29 個指令、4 個 namespace、3 個沒有逾時', lazy: true }, 'ibv_post_send：14 個呼叫處'),

@@ -458,6 +458,29 @@ Claude 定的細節（待確認）：
 - CodeView：`refHref`、`onRef` 只用在註解和字串裡的路徑；有資料夾和副檔名、或檔名加行號才算。
 - LayerGraph `countLabel`、`sizeLabel` 可以是函式；預設英文單數「1 call」「1 item」。
 
+## Markdown 撐起整份概觀實驗室
+
+使用者的選擇：「DA TB NB AY，另外現在 codemap 會有上面兩個開關分散且不同 row 的問題」。
+
+- DA：Markdown 只放行 `<details>` 與 `<summary>`，屬性一律去掉；其他 HTML 照舊不執行。（其他選項：DB 自訂 `:::details` 語法。）
+- TB：Markdown 的表格不到 480 px 時每列一張卡片，欄名在上、值在下。（其他選項：TA 一律是表格。）
+- NB：`>` 仍是引用；另外支援 GitHub 的 `> [!NOTE]` 等提示框，用 Alert 顯示。（其他選項：NA 引用一律是 13 px 次要文字。）
+- AY：Section 不到 480 px 時摘要移到標題下一行，`actions` 留在標題右邊。（其他選項：AX 同一列，摘要先截斷。）
+- codemap 架構頁的「依元件／依檔案」與 LayerGraph 的「圖／清單」分在兩列。
+
+Claude 定的細節（待確認）：
+
+- LayerGraph 新的選填 `toolbar`：頁面的控制項放在「圖／清單」同一列的左邊，「圖／清單」在右邊；窄時這一列換行。
+- 可收合區塊一開始收合（`open` 屬性也去掉）；標題列 16 px 粗 600、左邊 16 px 箭頭、260 ms。
+- 提示框對應：NOTE、IMPORTANT 是 info，TIP 是 success，WARNING 是 warning，CAUTION 是 danger；不顯示「Note」這類標題。
+- 表格格子裡有行內程式碼時，該欄至少 14 字寬；卡片模式不分欄靠右。
+- `schemes` 列出的 scheme 沒有 `linkHref` 回傳的網址、也沒有 `onLink` 時只顯示文字。
+- `topLevel` 可設 1 到 6；Section 裡 Markdown 的 h4 改成 16 px，不比 Section 標題大。
+
+## Markdown 撐起整份概觀
+
+使用者轉來的工作說明（節錄）：codemap 架構頁的「概觀」每段展開後的內容改成 codemap 產生的 Markdown，交給 `UI.Markdown` 顯示，畫面和「複製成 Markdown」完全相同。Markdown 還缺：可收合的區塊（A 放行 `<details>`、B 自訂 `:::details`）、表格在 440 到 620 px 窄面板裡、自訂連結 scheme（`fn:`）、註記用的次要文字（A 引用一律是次要文字、B 支援 `> [!NOTE]`）、Section 的動作區，以及文件範例與 `topLevel` 的說明。
+
 ## 程式碼區塊的樣子
 
 使用者的問題：「code 怎麼看起來這麼醜」；選擇：「KB VA」。

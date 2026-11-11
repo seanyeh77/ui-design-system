@@ -31,7 +31,8 @@ def flow_priority(flow, link):
 | large | 480 |
 `;
 
-test('Markdown: blocks, demoted headings, inline syntax; no HTML runs', () => {
+test('Markdown: blocks, demoted headings, inline syntax; no HTML runs', async () => {
+  await page.viewport(1280, 800);
   const { container } = render(<Markdown>{doc}</Markdown>);
   expect(screen.getByRole('heading', { level: 4, name: '執行方式' })).toBeTruthy();
   expect(container.querySelector('strong')?.textContent).toBe('harness/run.sh');
@@ -120,4 +121,102 @@ test('Markdown code blocks (KB): a 32 px header with no rule, no line numbers, c
   expect(cv.querySelector('[role="listitem"]')?.textContent).toContain('第 1 行');
   const text = cv.querySelector('.ui-cv-text') as HTMLElement;
   expect(Math.round(text.getBoundingClientRect().left - cv.getBoundingClientRect().left)).toBe(16);
+});
+
+const overview = `### harness/controller.py（可修改）
+
+| 指令 | 位置 | namespace | 逾時 |
+|---|---|---|---|
+| \`ip netns exec l3-r{as_id} ip -j route\` | [\`_sync_as\`](fn:harness/controller.py:VirtualRouter._sync_as) \`harness/controller.py:540\` | l3-r{as_id} | 5 秒 |
+| \`osken-manager --ofp-tcp-listen-port 6653 …\` | \`harness/runtime.py:421\` | 呼叫者的 namespace | 沒有 |
+
+<details open onclick="alert(1)"><summary>另有 49 處呼叫</summary>
+
+| 指令 | 位置 |
+|---|---|
+| \`ovs-vsctl show\` | \`harness/runtime.py:88\` |
+
+</details>
+
+之後的段落 <b>粗</b>。`;
+
+test('Markdown details (DA): a closed block with a button; attributes dropped; other HTML still dropped; find opens it', async () => {
+  const { container } = render(<Markdown topLevel={2}>{overview}</Markdown>);
+  expect(screen.getByRole('heading', { level: 4, name: 'harness/controller.py（可修改）' })).toBeTruthy();
+  const btn = screen.getByRole('button', { name: '另有 49 處呼叫' });
+  expect(btn.getAttribute('aria-expanded')).toBe('false');
+  const body = document.getElementById(btn.getAttribute('aria-controls') ?? '') as HTMLElement;
+  expect(body.getAttribute('hidden')).toBe('until-found');
+  expect(body.textContent).toContain('ovs-vsctl show');
+  expect(container.querySelector('details, b, [onclick]')).toBeNull();
+  expect(container.textContent).toContain('之後的段落 粗');
+  await userEvent.setup().click(btn);
+  expect(btn.getAttribute('aria-expanded')).toBe('true');
+  expect(body.hasAttribute('hidden')).toBe(false);
+  await userEvent.setup().click(btn);
+  body.dispatchEvent(new Event('beforematch'));
+  await screen.findByRole('button', { name: '另有 49 處呼叫', expanded: true });
+});
+
+test('Markdown schemes: fn: goes to linkHref and onLink as written; never javascript:, data:, vbscript:', async () => {
+  const seen: string[] = [];
+  const src = '[a](fn:x.py:f) [b](javascript:alert(1)) [c](vbscript:x) [d](data:text/html,x)';
+  const { container, unmount } = render(<Markdown>{src}</Markdown>);
+  expect(container.querySelectorAll('a, button').length).toBe(0);
+  unmount();
+  render(
+    <Markdown
+      schemes={['fn', 'javascript', 'data', 'vbscript']}
+      linkHref={(h) => (h.startsWith('fn:') ? '#flow=' + h.slice(3) : h)}
+      onLink={(h) => seen.push(h)}
+    >
+      {src}
+    </Markdown>,
+  );
+  const a = screen.getByRole('link', { name: 'a' });
+  expect(a.getAttribute('href')).toBe('#flow=x.py:f');
+  expect(screen.queryByRole('link', { name: 'b' })).toBeNull();
+  expect(screen.queryByRole('link', { name: 'c' })).toBeNull();
+  expect(screen.queryByRole('link', { name: 'd' })).toBeNull();
+  await userEvent.setup().click(a);
+  expect(seen).toEqual(['fn:x.py:f']);
+});
+
+test('Markdown alerts (NB): > [!WARNING] is an Alert; a plain > stays a quote', () => {
+  const { container } = render(<Markdown>{'> 僅列出程式碼中的事實。\n\n> [!WARNING]\n> 沒有逾時的指令卡住時，整個實驗會一起停住。'}</Markdown>);
+  expect(container.querySelector('blockquote')?.textContent).toBe('僅列出程式碼中的事實。');
+  const alert = container.querySelector('.ui-alert.ui-alert-warning') as HTMLElement;
+  expect(alert.textContent).toContain('沒有逾時的指令卡住時');
+  expect(alert.textContent).not.toContain('[!WARNING]');
+});
+
+test('Markdown tables (TB): code wraps inside cells; under 480 px each row is a card with the column names', async () => {
+  await page.viewport(1280, 800);
+  const { container, rerender } = render(
+    <div style={{ width: 620 }}>
+      <Markdown>{overview}</Markdown>
+    </div>,
+  );
+  const td = container.querySelector('td') as HTMLElement;
+  expect(getComputedStyle(td).display).toBe('table-cell');
+  const code = td.querySelector('.ui-code') as HTMLElement;
+  expect(code.getBoundingClientRect().right).toBeLessThanOrEqual(td.getBoundingClientRect().right + 1);
+  const wrap = container.querySelector('.ui-md-table-wrap') as HTMLElement;
+  expect(wrap.tabIndex).toBe(0);
+  expect(wrap.getAttribute('aria-label')).toBe('指令、位置、namespace、逾時');
+  expect((container.firstElementChild as HTMLElement).scrollWidth).toBeLessThanOrEqual(620);
+  rerender(
+    <div style={{ width: 400 }}>
+      <Markdown>{overview}</Markdown>
+    </div>,
+  );
+  expect(getComputedStyle(td).display).toBe('block');
+  expect(getComputedStyle(td, '::before').content).toBe('"指令"');
+  expect(wrap.scrollWidth).toBeLessThanOrEqual(wrap.clientWidth);
+});
+
+test('Markdown alerts: no space left under the last line', () => {
+  const { container } = render(<Markdown>{'> [!NOTE]\n> 一行。'}</Markdown>);
+  const p = container.querySelector('.ui-alert-body p') as HTMLElement;
+  expect(getComputedStyle(p).marginBottom).toBe('0px');
 });

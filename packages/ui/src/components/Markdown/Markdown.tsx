@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { Alert, type AlertTone } from '../Alert/Alert';
+import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
 import { CodeView } from '../CodeView/CodeView';
 import { languageOf } from '../CodeView/tokens';
@@ -14,7 +16,17 @@ type Block =
   | { t: 'quote'; blocks: Block[] }
   | { t: 'list'; ordered: boolean; start: number; items: Block[][] }
   | { t: 'table'; head: string[]; align: ('left' | 'right' | 'center' | null)[]; rows: string[][] }
-  | { t: 'hr' };
+  | { t: 'hr' }
+  | { t: 'details'; summary: string; blocks: Block[] }
+  | { t: 'alert'; tone: AlertTone; blocks: Block[] };
+
+// DA: <details> and <summary> are the only HTML let through, without attributes; they make a closed block.
+const DETAILS_OPEN = /^\s*<details\b[^>]*>/i;
+const DETAILS_TAG = /<(\/?)details\b[^>]*>/gi;
+const SUMMARY = /<summary\b[^>]*>([\s\S]*?)<\/summary>/i;
+// NB: GitHub's alerts, > [!NOTE] and the like, shown as the system's Alert.
+const ALERT = /^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i;
+const ALERT_TONE: Record<string, AlertTone> = { NOTE: 'info', TIP: 'success', IMPORTANT: 'info', WARNING: 'warning', CAUTION: 'danger' };
 
 const FENCE = /^ {0,3}(`{3,}|~{3,})\s*([\w+#.-]*)/;
 const HEADING = /^ {0,3}(#{1,6})(?:\s+(.*?))?\s*#*\s*$/;
@@ -59,6 +71,29 @@ function parse(lines: string[]): Block[] {
       i++;
       continue;
     }
+    if (DETAILS_OPEN.test(line)) {
+      // The matching </details>, counting nested ones; what follows it on the line goes on as more Markdown.
+      const rest = lines.slice(i).join('\n');
+      DETAILS_TAG.lastIndex = 0;
+      let depth = 0;
+      let open = -1;
+      let close = rest.length;
+      let after = rest.length;
+      for (let m = DETAILS_TAG.exec(rest); m; m = DETAILS_TAG.exec(rest)) {
+        if (!m[1]) {
+          if (depth++ === 0) open = m.index + m[0].length;
+        } else if (--depth === 0) {
+          close = m.index;
+          after = m.index + m[0].length;
+          break;
+        }
+      }
+      let inner = rest.slice(open, close);
+      const sum = SUMMARY.exec(inner);
+      if (sum) inner = inner.slice(0, sum.index) + inner.slice(sum.index + sum[0].length);
+      out.push({ t: 'details', summary: (sum?.[1] ?? '').trim(), blocks: parse(inner.split('\n')) });
+      return out.concat(parse(rest.slice(after).split('\n')));
+    }
     const fence = FENCE.exec(line);
     if (fence) {
       const mark = fence[1];
@@ -86,7 +121,9 @@ function parse(lines: string[]): Block[] {
         body.push(QUOTE.exec(lines[i])?.[1] ?? lines[i]);
         i++;
       }
-      out.push({ t: 'quote', blocks: parse(body) });
+      const alert = body.length > 0 ? ALERT.exec(body[0]) : null;
+      if (alert) out.push({ t: 'alert', tone: ALERT_TONE[alert[1].toUpperCase()], blocks: parse(body.slice(1)) });
+      else out.push({ t: 'quote', blocks: parse(body) });
       continue;
     }
     const item = ITEM.exec(line);
@@ -164,7 +201,12 @@ export function safeHref(href: string): string | undefined {
 const PATH = /^(?:\.{1,2}\/)?(?:[\w.-]+\/)*[\w.-]+\.[A-Za-z0-9]+(?::\d+(?:-\d+)?)?$/;
 const isPath = (s: string) => PATH.test(s) && (s.includes('/') || /:\d/.test(s));
 
+// Never links, even when listed in schemes.
+const BLOCKED = ['javascript', 'data', 'vbscript'];
+
 interface Ctx {
+  /** Extra schemes (fn, file) handed to linkHref and onLink as they are. */
+  schemes?: string[];
   /** The next key: counted from 0 on every render, so the same source gives the same keys. */
   k: () => string;
   linkHref?: (href: string) => string | undefined | null;
@@ -353,9 +395,12 @@ function findClose(src: string, from: number, run: string): number {
 }
 
 function link(raw: string, children: React.ReactNode, c: Ctx): React.ReactNode {
-  const safe = safeHref(raw);
+  // A scheme listed in schemes (fn:, file:) is up to linkHref and onLink: no address of its own.
+  const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(raw.trim())?.[1].toLowerCase();
+  const own = !!scheme && !BLOCKED.includes(scheme) && !!c.schemes?.some((x) => x.toLowerCase() === scheme);
+  const safe = own ? raw.trim() : safeHref(raw);
   if (safe === undefined) return <React.Fragment key={c.k()}>{children}</React.Fragment>;
-  const href = c.linkHref ? c.linkHref(safe) || undefined : safe;
+  const href = c.linkHref ? c.linkHref(safe) || undefined : own ? undefined : safe;
   if (!href && !c.onLink) return <React.Fragment key={c.k()}>{children}</React.Fragment>;
   const outside = !!href && /^https?:/i.test(href);
   const onLink = c.onLink;
@@ -405,7 +450,10 @@ export interface MarkdownProps {
   /** small: 13 px, for notes. Default: the same 16 px as the text around it. */
   size?: 'body' | 'small';
   /** The heading level `#` becomes. Default 4: # is an h4 (20 px), ## an h5, ### and deeper h6 (both 16 px bold). */
-  topLevel?: 3 | 4 | 5 | 6;
+  topLevel?: 1 | 2 | 3 | 4 | 5 | 6;
+  /** Link schemes of your own, such as ['fn', 'file']: [_sync_as](fn:harness/controller.py:VirtualRouter._sync_as)
+   *  goes to linkHref and onLink as written, which decide what it opens. javascript:, data: and vbscript: never link. */
+  schemes?: string[];
   /** The address of a link (after the http, https, mailto or relative check); return undefined for no link. */
   linkHref?: (href: string) => string | undefined | null;
   /** A plain click on a link (the default navigation is prevented; Ctrl, ⌘ or Shift still open linkHref). */
@@ -423,7 +471,7 @@ export interface MarkdownProps {
 export function Markdown(p: MarkdownProps) {
   // Keys count from 0 on every render, so the same source gives the same keys and nothing remounts.
   let n = 0;
-  const c: Ctx = { k: () => 'm' + n++, linkHref: p.linkHref, onLink: p.onLink, refHref: p.refHref, onRef: p.onRef };
+  const c: Ctx = { k: () => 'm' + n++, schemes: p.schemes, linkHref: p.linkHref, onLink: p.onLink, refHref: p.refHref, onRef: p.onRef };
   const src = String(p.children ?? '').replace(/\r\n?/g, '\n');
   const cls = cx('ui-md', p.size === 'small' && 'is-small', p.className);
   if (p.inline) return <span className={cx(cls, 'is-inline')}>{inline(src.trim().replace(/\n\s*\n/g, '\n'), c)}</span>;
@@ -443,6 +491,18 @@ export function Markdown(p: MarkdownProps) {
           return <p key={c.k()}>{inline(b.text, c)}</p>;
         case 'hr':
           return <hr key={c.k()} />;
+        case 'details':
+          return (
+            <MdDetails key={c.k()} summary={inline(b.summary, c)}>
+              {render(b.blocks)}
+            </MdDetails>
+          );
+        case 'alert':
+          return (
+            <Alert key={c.k()} tone={b.tone} className="ui-md-alert">
+              {render(b.blocks)}
+            </Alert>
+          );
         case 'quote':
           return <blockquote key={c.k()}>{render(b.blocks)}</blockquote>;
         case 'list': {
@@ -493,7 +553,7 @@ export function Markdown(p: MarkdownProps) {
                   {b.rows.map((r, ri) => (
                     <tr key={ri}>
                       {Array.from({ length: n }, (_, j) => (
-                        <td key={j} className={numeric[j] ? 'is-num' : undefined} style={align(j)}>
+                        <td key={j} className={numeric[j] ? 'is-num' : undefined} style={align(j)} data-label={plain(b.head[j] ?? '')}>
                           {inline(r[j] ?? '', c)}
                         </td>
                       ))}
@@ -507,4 +567,42 @@ export function Markdown(p: MarkdownProps) {
       }
     });
   return <div className={cls}>{render(parse(src.split('\n')))}</div>;
+}
+
+/** A header cell as plain text, for the label above each value when a narrow table turns into cards. */
+const plain = (md: string) =>
+  md
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/[`*_]/g, '')
+    .trim();
+
+/** DA: a <details> block: a button with the summary, closed at first. The closed content stays in the page
+ *  (hidden="until-found"), so the browser's find opens it, as in Section. */
+function MdDetails({ summary, children }: { summary: React.ReactNode; children: React.ReactNode }) {
+  const [open, setOpen] = React.useState(false);
+  const id = React.useId();
+  const body = React.useRef<HTMLDivElement>(null);
+  React.useLayoutEffect(() => {
+    const el = body.current;
+    if (!el) return;
+    if (open) {
+      el.removeAttribute('hidden');
+      return;
+    }
+    el.setAttribute('hidden', 'until-found');
+    const found = () => setOpen(true);
+    el.addEventListener('beforematch', found);
+    return () => el.removeEventListener('beforematch', found);
+  }, [open]);
+  return (
+    <div className={cx('ui-md-details', open && 'is-open')}>
+      <button type="button" className="ui-md-summary" aria-expanded={open} aria-controls={id} onClick={() => setOpen(!open)}>
+        <Icon name="caret-right" size={16} className="ui-md-caret" />
+        <span>{summary}</span>
+      </button>
+      <div id={id} ref={body} className="ui-md-details-body">
+        {children}
+      </div>
+    </div>
+  );
 }
