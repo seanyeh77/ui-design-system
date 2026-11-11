@@ -8,6 +8,7 @@ import { format } from '../../format';
 import { cx, monoNums } from '../../internal/util';
 import { ScrollHint, useScrollHint } from '../../internal/scrollHint';
 import { devWarn } from '../../internal/dev';
+import { Icon } from '../../icons/Icon';
 
 export interface LayerGraphNode {
   id: string;
@@ -25,6 +26,11 @@ export interface LayerGraphNode {
    *  「repo 外」 (externalLabel) under the name. Not in any layer and no size bar; its lines, selection and list entry
    *  work like any box's. */
   external?: boolean;
+  /** A short tag beside the name (「可修改」「受保護」): on the same line, never cut; the name is cut first. In the list
+   *  and in what a screen reader says too. Keep it to a few characters. */
+  tag?: string;
+  /** warning: the tag in the warning colors with a lock, for a box that must not be changed. Default neutral. */
+  tagTone?: 'neutral' | 'warning';
 }
 
 export interface LayerGraphEdge {
@@ -126,6 +132,20 @@ function byCount(n: number, one: string, many: string): string {
   const t = n === 1 ? tr(one) : '';
   return t && t !== one ? t : tr(many);
 }
+
+/** The width of text in a font (`600 13px` and mono or sans), measured on a canvas. */
+function textWidth(text: string, size: number, code: boolean): number {
+  if (measure === undefined) measure = document.createElement('canvas').getContext('2d');
+  const c = measure;
+  if (!c) return text.length * size * 0.6;
+  const cs = getComputedStyle(document.documentElement);
+  c.font = `600 ${size}px ` + ((code ? cs.getPropertyValue('--font-mono') : cs.getPropertyValue('--font-sans')) || 'sans-serif');
+  return c.measureText(text).width;
+}
+
+// T: a tag on the name's line leaves the name at least this many characters; fewer, and every tag of the diagram goes
+// on its own line under the name.
+const TAG_KEEP = 8;
 
 function labelWidth(text: string): number {
   const parts = text.split(SPLIT).filter(Boolean);
@@ -249,7 +269,6 @@ export function LayerGraph(p: LayerGraphProps) {
   const [fit, setFit] = React.useState<{ at: number; nw: number; col: number; scale: number; full?: boolean } | null>(null);
   const fitted = fit && fit.at === avail ? fit : null;
   const NW = fitted?.nw ?? (p.nodeWidth || 200);
-  const NH = 60;
   const GAP = 56;
   // Space added between boxes, 24 px at a time (up to 5 times), while a label still has to cover a line.
   // Kept per diagram and per width: other boxes or lines, or a resized box, start again from no added space.
@@ -275,6 +294,16 @@ export function LayerGraph(p: LayerGraphProps) {
   const sizeOf = (n: LayerGraphNode) => (n.external && !n.shared ? undefined : (n.size ?? n.fns));
   const sharedIds = new Set(all.filter((n) => n.shared).map((n) => n.id));
   const main = all.filter((n) => !n.shared);
+  // T (option 1): beside the name, a tag would cut some name to fewer than TAG_KEEP characters at this box width: every
+  // tag moves to its own line under the name and the boxes grow from 60 to 76 px, so all boxes stay the same height.
+  const tagLine = main.some((n) => {
+    if (!n.tag) return false;
+    const name = n.name || n.id;
+    const tagW = textWidth(n.tag, 12, false) + 12 + (n.tagTone === 'warning' ? 15 : 0);
+    const room = NW - (n.external ? 24 : 28) - 6 - tagW;
+    return room < textWidth(name.slice(0, TAG_KEEP), 13, true) + (name.length > TAG_KEEP ? 1 : 0);
+  });
+  const NH = tagLine ? 76 : 60;
   const shared = all.filter((n) => n.shared);
   const edges = p.edges.filter((e) => !sharedIds.has(e.from) && !sharedIds.has(e.to));
   // Lines with a label of their own and no count: inferred, or declared by the project (DC).
@@ -782,7 +811,7 @@ export function LayerGraph(p: LayerGraphProps) {
             d={d}
             role="button"
             tabIndex={0}
-            aria-label={tr('{from} → {to}，{what}', {
+            aria-label={tr('{from} 到 {to}，{what}', {
               from: nameOf(e.from),
               to: nameOf(e.to),
               what: markText(e).replace(/`/g, ''),
@@ -1220,6 +1249,14 @@ export function LayerGraph(p: LayerGraphProps) {
   const sizeText = (n: number) => withNum(p.sizeLabel, n, () => byCount(n, '1 個項目', '{n} 個項目'));
   const externalText = p.externalLabel ?? tr('repo 外');
   const useText = p.useLabel ?? tr('使用 {n} 次');
+  // T: a short tag beside the name; the name is cut first (flex: none here, min-width: 0 on the name).
+  const tagOf = (n: LayerGraphNode) =>
+    n.tag ? (
+      <span className={cx('ui-lg-tag', n.tagTone === 'warning' && 'is-warning')}>
+        {n.tagTone === 'warning' ? <Icon name="lock" size={12} /> : null}
+        {n.tag}
+      </span>
+    ) : null;
   const nodes = main.map((n) => {
     const q = pos[n.id];
     const on = n.id === sel;
@@ -1236,8 +1273,10 @@ export function LayerGraph(p: LayerGraphProps) {
       >
         <span className="ui-lg-head">
           <span className="ui-lg-name">{n.name || n.id}</span>
+          {tagLine ? null : tagOf(n)}
           {used ? <span className="ui-lg-use">{monoNums(useText.replace('{n}', '\u0001'), [used])}</span> : null}
         </span>
+        {tagLine ? tagOf(n) : null}
         {n.external ? <span className="ui-lg-ext">{externalText}</span> : null}
         {size != null ? (
           <span className="ui-lg-size">
@@ -1266,7 +1305,10 @@ export function LayerGraph(p: LayerGraphProps) {
         aria-pressed={p.onSelect ? on : undefined}
         onClick={p.onSelect ? () => pick(s.id, on) : undefined}
       >
-        <span className="ui-lg-name">{s.name || s.id}</span>
+        <span className="ui-lg-head">
+          <span className="ui-lg-name">{s.name || s.id}</span>
+          {tagOf(s)}
+        </span>
         <span className="ui-lg-shared-meta">{monoNums(sharedMeta.replace('{a}', '\u0001').replace('{b}', '\u0002'), [Object.keys(by).length, total])}</span>
       </button>
     );
@@ -1301,7 +1343,10 @@ export function LayerGraph(p: LayerGraphProps) {
               n.id === sel,
               !near(n.id),
               p.onSelect ? () => pick(n.id, n.id === sel) : undefined,
-              <span className="ui-lg-code">{n.name || n.id}</span>,
+              <>
+                <span className="ui-lg-code">{n.name || n.id}</span>
+                {tagOf(n)}
+              </>,
               n.external && !n.shared ? (
                 <span className="ui-lg-limeta">
                   {tr('，')}
@@ -1334,7 +1379,8 @@ export function LayerGraph(p: LayerGraphProps) {
                 // The whole line is the button, so its name says what the relation is, as on the diagram: three lines
                 // between the same two boxes no longer share the name 「A → B」.
                 <>
-                  <span className="ui-lg-code">{nameOf(e.from)}</span> → <span className="ui-lg-code">{nameOf(e.to)}</span>
+                  <span className="ui-lg-code">{nameOf(e.from)}</span> <span aria-hidden="true">→</span>
+                  <span className="ui-visually-hidden">{tr('到')}</span> <span className="ui-lg-code">{nameOf(e.to)}</span>
                   <span className="ui-lg-limeta">
                     {tr('：')}
                     {labelParts(edgeText(e))}

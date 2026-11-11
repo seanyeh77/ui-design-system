@@ -4285,7 +4285,8 @@ html.ui-theme-fade * {
   top: 12vh;
   width: 640px;
   max-width: calc(100vw - 24px);
-  max-height: min(560px, 76vh);
+  /* PB: down to 24 px above the bottom of the window. */
+  max-height: calc(88vh - 24px);
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
@@ -4423,7 +4424,17 @@ html.ui-theme-fade * {
 }
 .ui-pal-detail {
   font-size: 13px;
+  line-height: 20px;
   color: var(--ink-muted);
+}
+/* PA: the description wraps onto a second line; cut from the third. */
+.ui-pal .ui-pal-detail {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .ui-pal-detail .ui-code {
   padding: 0;
@@ -5604,6 +5615,37 @@ html.ui-theme-fade * {
   align-items: center;
   gap: 6px;
   min-width: 0;
+}
+/* T: a short tag beside the name; it keeps its width and the name is cut first. */
+.ui-lg-tag {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 6px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink-muted);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+}
+.ui-lg-node > .ui-lg-tag {
+  align-self: flex-start;
+}
+.ui-lg-tag.is-warning {
+  background: var(--warning-soft);
+  color: var(--warning-text);
+}
+.ui-lg-libtn .ui-lg-tag {
+  margin-left: var(--space-2);
+  vertical-align: 1px;
+  background: var(--surface-sub);
+}
+.ui-lg-libtn .ui-lg-tag.is-warning {
+  background: var(--warning-soft);
 }
 /* On a box that uses the selected shared item: on its top edge, so the name keeps its full width. */
 .ui-lg-use {

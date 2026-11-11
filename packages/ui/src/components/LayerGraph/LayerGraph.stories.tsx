@@ -124,6 +124,31 @@ export const InferredOnly = {
   ),
 };
 
+// TAW: short tags beside the names; in a 680 px card three boxes in a row cut the names first, never the tags.
+const tagged = [
+  { id: 'ctrl', name: 'controller.py', layer: 0, size: 88, tag: '可修改' },
+  { id: 'route', name: 'routing.py', layer: 0, size: 64, tag: '受保護', tagTone: 'warning' as const },
+  { id: 'topo', name: 'topology_builder.py', layer: 0, size: 41, tag: '可修改' },
+  { id: 'oracle', name: 'harness/oracle.py', layer: 1, size: 120, tag: '受保護', tagTone: 'warning' as const },
+  { id: 'runner', name: 'experiment_runner.py', layer: 1, size: 23 },
+  { id: 'grader', name: 'grader.py', layer: 1, size: 18, tag: '受保護', tagTone: 'warning' as const },
+];
+export const Tags = {
+  render: () => (
+    <div style={{ ...card, maxWidth: 680 }}>
+      <UI.LayerGraph
+        nodes={tagged}
+        edges={[
+          { from: 'ctrl', to: 'oracle', count: 14 },
+          { from: 'route', to: 'oracle', count: 6 },
+          { from: 'topo', to: 'runner', count: 3 },
+        ]}
+        sizeLabel="{n} 個函式"
+      />
+    </div>
+  ),
+};
+
 // A phone-width box: the diagram scrolls, with the fade on the right and the hint under it, clear of the boxes.
 export const Narrow = {
   render: () => (
