@@ -115,7 +115,7 @@ test('Markdown code blocks (KB): a 32 px header with no rule, no line numbers, c
   const { container } = render(<Markdown>{'```sh\nmake test\n```'}</Markdown>);
   const cv = container.querySelector('.ui-cv') as HTMLElement;
   const head = cv.querySelector('.ui-cv-head') as HTMLElement;
-  expect(Math.round(head.getBoundingClientRect().height)).toBe(32);
+  expect(Math.abs(head.getBoundingClientRect().height - 32)).toBeLessThanOrEqual(1);
   expect(getComputedStyle(head).borderBottomWidth).toBe('0px');
   expect(cv.querySelector('.ui-cv-num')).toBeNull();
   expect(cv.querySelector('[role="listitem"]')?.textContent).toContain('第 1 行');

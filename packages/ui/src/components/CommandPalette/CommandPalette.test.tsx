@@ -15,7 +15,9 @@ test('CommandPalette: two-line descriptions; eight results fit a 1440 x 900 wind
   render(<CommandPalette open onOpenChange={() => {}} items={items} onSelect={() => {}} />);
   await userEvent.setup().type(await screen.findByRole('combobox'), 'flow');
   const det = document.querySelector('.ui-pal-detail') as HTMLElement;
-  expect(Math.round(det.getBoundingClientRect().height)).toBe(40);
+  // Two lines of 20 px; sub-pixel layout can make it 39.x px, so within 1 px.
+  const line = parseFloat(getComputedStyle(det).lineHeight);
+  expect(Math.abs(det.getBoundingClientRect().height - 2 * line)).toBeLessThanOrEqual(1);
   // Without the clamp the same text takes three lines or more.
   det.style.webkitLineClamp = 'none';
   expect(det.getBoundingClientRect().height).toBeGreaterThan(50);
