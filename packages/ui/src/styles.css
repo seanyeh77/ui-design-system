@@ -4902,6 +4902,20 @@ html.ui-theme-fade * {
   color: var(--ink-muted);
   white-space: nowrap;
 }
+/* No line numbers: the code starts 16 px in, like the header text. */
+.ui-cv.no-nums .ui-cv-text {
+  margin-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+/* KB: a Markdown code block has a low header (32 px) with no rule under it. */
+.ui-md-code .ui-cv-head {
+  min-height: 32px;
+  padding-left: var(--space-4);
+  border-bottom: 0;
+}
+.ui-md-code .ui-cv-body {
+  padding: 2px 0 10px;
+}
 /* A small copy icon at the right of the header, as in Suggestion; 48 px on phones. */
 .ui-cv-copy {
   flex: 0 0 auto;
@@ -4961,7 +4975,8 @@ html.ui-theme-fade * {
 .ui-cv-num {
   flex: 0 0 auto;
   box-sizing: border-box;
-  padding-right: var(--space-3);
+  /* VA: off the left edge, and clear of the code. */
+  padding: 0 var(--space-4) 0 var(--space-3);
   text-align: right;
   color: var(--ink-muted);
   font-variant-numeric: tabular-nums;

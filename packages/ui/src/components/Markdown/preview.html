@@ -32,10 +32,18 @@
         h(
           'div',
           { style: { maxWidth: 720 } },
-          h(U.Markdown, {
-            refHref: function (r) { return '#' + r; },
-            linkHref: function (x) { return '#' + x; },
-          }, readme),
+          h(
+            U.Markdown,
+            {
+              refHref: function (r) {
+                return '#' + r;
+              },
+              linkHref: function (x) {
+                return '#' + x;
+              },
+            },
+            readme,
+          ),
         ),
       );
     </script>

@@ -464,6 +464,7 @@ export function Markdown(p: MarkdownProps) {
               language={fenceLang(b.lang)}
               languageLabel={b.lang ? undefined : false}
               copy
+              lineNumbers={false}
               refHref={p.refHref}
               onRef={p.onRef}
             />

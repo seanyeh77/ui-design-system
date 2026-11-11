@@ -54,6 +54,9 @@ export interface CodeViewProps {
   /** Where sections start, e.g. each function: [ and ] jump to the previous and next one (CB), and the section's
    *  name is read out with its line. Lines count from start, like target. */
   sections?: { line: number; label: string }[];
+  /** false: no line numbers, for short snippets nobody refers to by line (Markdown code blocks). Screen readers still
+   *  hear 「第 n 行」. Default true. */
+  lineNumbers?: boolean;
   /** A small copy icon at the right of the header: copies the whole code and turns into a check for 2 s. Shows the
    *  header even without file or title. Default false. */
   copy?: boolean;
@@ -157,6 +160,7 @@ export function CodeView({
   maxHeight,
   sections,
   copy,
+  lineNumbers = true,
   onCopy,
   onCopyError,
   className,
@@ -208,9 +212,12 @@ export function CodeView({
         aria-current={on && n === ta ? 'location' : undefined}
         tabIndex={on && n === ta ? -1 : undefined}
       >
-        <span className="ui-cv-num" style={{ width: digits + 2 + 'ch' }} aria-hidden="true">
-          {n}
-        </span>
+        {lineNumbers ? (
+          // VA: 12 px before the number, 16 px between it and the code.
+          <span className="ui-cv-num" style={{ width: `calc(${digits}ch + 28px)` }} aria-hidden="true">
+            {n}
+          </span>
+        ) : null}
         <span className="ui-cv-text">
           <span className="ui-visually-hidden ui-cv-sr">{tr('第 {n} 行', { n }) + indentText(lines[i]) + tr('：')}</span>
           {toks[i].map(([cls, text], j) =>
@@ -316,7 +323,7 @@ export function CodeView({
       </div>
     ) : null;
   return (
-    <div className={cx('ui-cv', className)} role="region" aria-label={file || title || tr('原始碼')}>
+    <div className={cx('ui-cv', !lineNumbers && 'no-nums', className)} role="region" aria-label={file || title || tr('原始碼')}>
       {head}
       <pre
         ref={body}

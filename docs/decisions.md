@@ -458,6 +458,15 @@ Claude 定的細節（待確認）：
 - CodeView：`refHref`、`onRef` 只用在註解和字串裡的路徑；有資料夾和副檔名、或檔名加行號才算。
 - LayerGraph `countLabel`、`sizeLabel` 可以是函式；預設英文單數「1 call」「1 item」。
 
+## 程式碼區塊的樣子
+
+使用者的問題：「code 怎麼看起來這麼醜」；選擇：「KB VA」。
+
+- KB：Markdown 的程式碼區塊用 32 px 的矮標題列（語言名稱與複製圖示）、沒有分隔線、沒有行號，程式碼左右 16 px。（其他選項：K0 現狀、KA 沒有標題列，語言與複製圖示在右上角、KC 保留行號只修內距。）
+- VA：所有 CodeView 的行號左邊留 12 px，和程式碼隔 16 px。（其他選項：V0 現狀，行號貼著左邊框、隔 12 px。）
+
+Claude 定的細節（待確認）：CodeView 新的選填 `lineNumbers`（預設 true）；沒有行號時程式碼左邊 16 px，螢幕閱讀器仍念「第 n 行」。
+
 ## 可收合段落、Markdown、DetailList 實驗室
 
 使用者的選擇：「SLR4LANG MXVU DA 全部展開全部收合 UI 不要只有文字」，接著「要有 copy 小 icon。」

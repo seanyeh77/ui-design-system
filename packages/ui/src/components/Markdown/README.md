@@ -2,7 +2,7 @@
 
 顯示專案文件與程式註解裡的 Markdown，例如 README.md 的摘錄、檔案開頭的註解、側邊面板裡 .md 檔的預覽。
 
-- 支援：段落與換行、標題、粗體、斜體、行內程式碼（`UI.InlineCode`）、程式碼區塊（`UI.CodeView`，依語言上色，右上有複製的小圖示）、連結、項目與編號清單（可巢狀）、引用、表格、水平線。圖片只顯示替代文字，不載入。
+- 支援：段落與換行、標題、粗體、斜體、行內程式碼（`UI.InlineCode`）、程式碼區塊（`UI.CodeView`，依語言上色；32 px 的矮標題列只有語言名稱和複製的小圖示，沒有分隔線也沒有行號，程式碼左右留 16 px）、連結、項目與編號清單（可巢狀）、引用、表格、水平線。圖片只顯示替代文字，不載入。
 - 標題降級：`#` 顯示成 h4（20 px），`##` 是 h5，`###` 以下是 h6（兩者都是 16 px 粗體）。用 `topLevel` 改 `#` 對應的層級。
 - 字級：正文和周圍文字同字級（16 px）；`size="small"` 是 13 px，給註記用。
 - 表格：灰底粗體表頭、斑馬紋加格線；全是數字的欄自動靠右、等寬數字。比容器寬時左右捲動。
@@ -16,12 +16,24 @@
 ## 連結與路徑
 
 ```js
-h(UI.Markdown, {
-  linkHref: function (href) { return '#open=' + href; },        // 連結的網址；回傳 undefined 表示不做連結
-  onLink: function (href, e) { openInPanel(href); },          // 一般點擊（Ctrl、⌘、Shift 仍照 linkHref 開新分頁）
-  refHref: function (ref) { return '#code=' + ref; },          // 行內程式碼是路徑時，例如 `harness/routing.py:108`
-  onRef: function (ref, e) { openInPanel(ref); },
-}, readme);
+h(
+  UI.Markdown,
+  {
+    linkHref: function (href) {
+      return '#open=' + href;
+    }, // 連結的網址；回傳 undefined 表示不做連結
+    onLink: function (href, e) {
+      openInPanel(href);
+    }, // 一般點擊（Ctrl、⌘、Shift 仍照 linkHref 開新分頁）
+    refHref: function (ref) {
+      return '#code=' + ref;
+    }, // 行內程式碼是路徑時，例如 `harness/routing.py:108`
+    onRef: function (ref, e) {
+      openInPanel(ref);
+    },
+  },
+  readme,
+);
 ```
 
 - 行內程式碼是路徑（有資料夾的檔名 `docs/a.md`，或檔名加行號 `routing.py:108`）時走 `refHref`、`onRef`，和 CodeView、CodeText 一致；`make` 這類一般程式碼不是連結。程式碼區塊裡註解與字串中的路徑也一樣。

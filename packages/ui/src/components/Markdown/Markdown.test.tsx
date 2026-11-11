@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest';
+import { page } from 'vitest/browser';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { Markdown } from '../../index';
@@ -106,4 +107,17 @@ test('Markdown: code blocks have a small copy icon that copies the code', async 
   container.addEventListener('copy', () => copied.push('event'));
   await userEvent.setup().click(btn);
   await screen.findByRole('button', { name: '已複製' });
+});
+
+test('Markdown code blocks (KB): a 32 px header with no rule, no line numbers, code 16 px in; CodeView numbers 12 px in (VA)', async () => {
+  await page.viewport(1280, 800);
+  const { container } = render(<Markdown>{'```sh\nmake test\n```'}</Markdown>);
+  const cv = container.querySelector('.ui-cv') as HTMLElement;
+  const head = cv.querySelector('.ui-cv-head') as HTMLElement;
+  expect(Math.round(head.getBoundingClientRect().height)).toBe(32);
+  expect(getComputedStyle(head).borderBottomWidth).toBe('0px');
+  expect(cv.querySelector('.ui-cv-num')).toBeNull();
+  expect(cv.querySelector('[role="listitem"]')?.textContent).toContain('第 1 行');
+  const text = cv.querySelector('.ui-cv-text') as HTMLElement;
+  expect(Math.round(text.getBoundingClientRect().left - cv.getBoundingClientRect().left)).toBe(16);
 });
