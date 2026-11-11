@@ -1,0 +1,51 @@
+<!-- @dsCard group="Data" height=640 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>Markdown — preview</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      var readme = [
+        '# 執行方式',
+        '',
+        '先跑 `make`，再用 **harness/run.sh** 啟動。評分方式見 [評分](docs/grading.md) 與 `harness/oracle.py:126`。',
+        '',
+        '- 修改 `controller.py` 前先跑全部的測試',
+        '- 不要修改 `harness/` 底下的檔案',
+        '',
+        '```python',
+        'def flow_priority(flow, link):',
+        '    return 7 if flow.urgent else 0  # 越大越先送',
+        '```',
+        '',
+        '| 測資 | 筆數 |',
+        '|---|---|',
+        '| small | 12 |',
+        '| large | 480 |',
+      ].join('\n');
+      ReactDOM.createRoot(document.getElementById('root')).render(
+        h(
+          'div',
+          { style: { maxWidth: 720 } },
+          h(
+            U.Markdown,
+            {
+              refHref: function (r) {
+                return '#' + r;
+              },
+              linkHref: function (x) {
+                return '#' + x;
+              },
+            },
+            readme,
+          ),
+        ),
+      );
+    </script>
+  </body>
+</html>

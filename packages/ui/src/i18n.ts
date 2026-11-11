@@ -233,6 +233,7 @@ export const I18N: I18nState = {
       建議修正: 'Suggested fix',
       複製修正: 'Copy fix',
       已複製: 'Copied',
+      複製程式碼: 'Copy code',
       '原本：': 'Before: ',
       '改成：': 'After: ',
       關閉說明: 'Close explanation',

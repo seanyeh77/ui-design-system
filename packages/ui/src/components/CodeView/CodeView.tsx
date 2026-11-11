@@ -2,7 +2,9 @@ import * as React from 'react';
 import { InlineCode, type OnRef, type RefHref } from '../InlineCode/InlineCode';
 import { announce } from '../../announce';
 import { tr } from '../../i18n';
-import { cx, monoNums, useNarrow } from '../../internal/util';
+import { copyText, cx, monoNums, useNarrow } from '../../internal/util';
+import { CHECK } from '../../icons/Icon';
+import { IconButton } from '../IconButton/IconButton';
 import { LANGUAGE_NAMES, languageOf, tokenize as builtIn, type Tokenizer } from './tokens';
 
 /** A line's indentation, said after its number: a screen reader drops leading spaces, and in Python or YAML
@@ -52,6 +54,16 @@ export interface CodeViewProps {
   /** Where sections start, e.g. each function: [ and ] jump to the previous and next one (CB), and the section's
    *  name is read out with its line. Lines count from start, like target. */
   sections?: { line: number; label: string }[];
+  /** false: no line numbers, for short snippets nobody refers to by line (Markdown code blocks). Screen readers still
+   *  hear 「第 n 行」. Default true. */
+  lineNumbers?: boolean;
+  /** A small copy icon at the right of the header: copies the whole code and turns into a check for 2 s. Shows the
+   *  header even without file or title. Default false. */
+  copy?: boolean;
+  /** Called after copying, with the text. */
+  onCopy?: (text: string) => void;
+  /** Copying failed (the browser does not allow the clipboard): say so, for example in a Toast. */
+  onCopyError?: () => void;
   className?: string;
   /** focusTarget() moves keyboard and screen-reader focus to the target line. */
   ref?: React.Ref<CodeViewHandle>;
@@ -147,6 +159,10 @@ export function CodeView({
   onRef,
   maxHeight,
   sections,
+  copy,
+  lineNumbers = true,
+  onCopy,
+  onCopyError,
   className,
   ref,
 }: CodeViewProps) {
@@ -196,9 +212,12 @@ export function CodeView({
         aria-current={on && n === ta ? 'location' : undefined}
         tabIndex={on && n === ta ? -1 : undefined}
       >
-        <span className="ui-cv-num" style={{ width: digits + 2 + 'ch' }} aria-hidden="true">
-          {n}
-        </span>
+        {lineNumbers ? (
+          // VA: 12 px before the number, 16 px between it and the code.
+          <span className="ui-cv-num" style={{ width: `calc(${digits}ch + 28px)` }} aria-hidden="true">
+            {n}
+          </span>
+        ) : null}
         <span className="ui-cv-text">
           <span className="ui-visually-hidden ui-cv-sr">{tr('第 {n} 行', { n }) + indentText(lines[i]) + tr('：')}</span>
           {toks[i].map(([cls, text], j) =>
@@ -257,8 +276,23 @@ export function CodeView({
     el.focus();
     if (said) announce(tr('{name}，第 {n} 行', { name: said, n: nOf(el) }));
   };
+  const [copied, setCopied] = React.useState(false);
+  const copyTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
+  React.useEffect(() => () => clearTimeout(copyTimer.current), []);
+  const doCopy = () => {
+    copyText(code).then(
+      () => {
+        setCopied(true);
+        announce(tr('已複製'));
+        clearTimeout(copyTimer.current);
+        copyTimer.current = setTimeout(() => setCopied(false), 2000);
+        onCopy?.(code);
+      },
+      () => onCopyError?.(),
+    );
+  };
   const head =
-    file || title ? (
+    file || title || copy ? (
       <div className="ui-cv-head">
         {file ? (
           fileHref || onFile ? (
@@ -268,9 +302,9 @@ export function CodeView({
           ) : (
             <span className="ui-cv-file">{file}</span>
           )
-        ) : (
+        ) : title ? (
           <span className="ui-cv-title">{title}</span>
-        )}
+        ) : null}
         {languageLabel !== false && lang !== 'plain' ? (
           // Plain text, not a control: the screen reader hears 「程式語言：C 語言」.
           <span className="ui-cv-lang">
@@ -278,10 +312,18 @@ export function CodeView({
             {tr(languageLabel || LANGUAGE_NAMES[lang] || lang)}
           </span>
         ) : null}
+        {copy ? (
+          <IconButton
+            className={cx('ui-cv-copy', copied && 'is-copied')}
+            label={copied ? tr('已複製') : tr('複製程式碼')}
+            icon={copied ? CHECK : 'copy'}
+            onClick={doCopy}
+          />
+        ) : null}
       </div>
     ) : null;
   return (
-    <div className={cx('ui-cv', className)} role="region" aria-label={file || title || tr('原始碼')}>
+    <div className={cx('ui-cv', !lineNumbers && 'no-nums', className)} role="region" aria-label={file || title || tr('原始碼')}>
       {head}
       <pre
         ref={body}

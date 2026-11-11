@@ -458,6 +458,45 @@ Claude 定的細節（待確認）：
 - CodeView：`refHref`、`onRef` 只用在註解和字串裡的路徑；有資料夾和副檔名、或檔名加行號才算。
 - LayerGraph `countLabel`、`sizeLabel` 可以是函式；預設英文單數「1 call」「1 item」。
 
+## 程式碼區塊的樣子
+
+使用者的問題：「code 怎麼看起來這麼醜」；選擇：「KB VA」。
+
+- KB：Markdown 的程式碼區塊用 32 px 的矮標題列（語言名稱與複製圖示）、沒有分隔線、沒有行號，程式碼左右 16 px。（其他選項：K0 現狀、KA 沒有標題列，語言與複製圖示在右上角、KC 保留行號只修內距。）
+- VA：所有 CodeView 的行號左邊留 12 px，和程式碼隔 16 px。（其他選項：V0 現狀，行號貼著左邊框、隔 12 px。）
+
+Claude 定的細節（待確認）：CodeView 新的選填 `lineNumbers`（預設 true）；沒有行號時程式碼左邊 16 px，螢幕閱讀器仍念「第 n 行」。
+
+## 可收合段落、Markdown、DetailList 實驗室
+
+使用者的選擇：「SLR4LANG MXVU DA 全部展開全部收合 UI 不要只有文字」，接著「要有 copy 小 icon。」
+
+- SL：段落之間一條細線。（其他選項：SN 只有間距、SU 標題下方一條線。）
+- R：摘要在標題右邊同一行，放不下時以「…」截斷。（其他選項：D 標題下一行。）
+- 4：標題用 h4 字級 20 px。（其他選項：3 h3 25 px。）
+- L：箭頭在標題左邊。（其他選項：R 最右邊。）
+- A：展開與收合 260 ms，和 TreeList 一樣。（其他選項：B 300 ms、0 不做動畫。）
+- N：預設不 lazy：收合的內容留在頁面上（`hidden="until-found"`），頁內搜尋找到時自動展開。（其他選項：Y 預設 lazy。）
+- G：`SectionGroup` 元件，上方右側內建「全部展開」「全部收合」；按鈕要有圖示，不能只有文字。（其他選項：C 共用 context、N 不做。）
+- MX：原文裡的 HTML 標籤去掉，只留文字。（其他選項：MT 當文字顯示。）
+- MV：Markdown 的程式碼區塊用 CodeView。（其他選項：MT 灰底區塊。）
+- MU：.md 檔的「原始碼／預覽」由使用的地方放 Tabs，CodeView 不加 `preview`。（其他選項：MP CodeView 的 preview 選項。）
+- DA：DetailList 新增 `labelWidth`（`'auto'` 或 px）與 `labelSize`（`'small'`、`'body'`）。（其他選項：DB 寬面板也放上方、DC 左欄最寬 160 px。）
+- 程式碼區塊要有複製的小圖示。
+
+Claude 定的細節（待確認）：
+
+- 「全部展開」「全部收合」用 Phosphor 的 arrows-out-line-vertical、arrows-in-line-vertical，一般（secondary）按鈕；全部已展開時「全部展開」停用，全部已收合時「全部收合」停用。
+- 摘要 13 px、次要文字色；標題太長時標題也以「…」截斷。
+- `id` 對應網址 hash：載入時與 `hashchange` 時展開並捲到標題。
+- Markdown：`#` 對應 h4（`topLevel` 可改）；`##` 是 h5，`###` 以下 h6，都是 16 px 粗體。中文換行接起來不加空格。全是數字的表格欄自動靠右。圖片只顯示替代文字。沒有給 `onLink` 的外部連結在新分頁開啟。
+- 複製圖示：CodeView 新的選填 `copy`，32 px（手機 48 px）放在標題列最右邊、語言標示的右側，複製後 2 秒變成勾，提示「已複製」，和 Suggestion 一樣；Markdown 的程式碼區塊預設開啟，CodeView 預設不開。這取代「codemap 新手試用」時 Claude 定的「CodeView 本身沒有複製按鈕，複製按鈕放在程式碼區塊外」。
+- DetailList `labelWidth: 'auto'`：左欄最寬 40%，名稱和值隔 24 px；600 px 以下名稱在上，`labelSize: 'body'` 的名稱回到 13 px（ink 色）。預設值不變（30%、13 px 次要色）。
+
+## 可收合段落、Markdown、DetailList
+
+使用者轉來的工作說明（節錄）：codemap 架構頁右側的「概觀」很難讀：段落標題 13 px 比內容 16 px 小、DetailList 的欄位名稱在寬面板裡和值隔很遠、九個段落全部展開約 9000 px、字級混雜；檔案註解與專案文件的 Markdown 當純文字顯示。方向是概觀改成一連串可收合的段落，標題放大，標題旁一行重點數字，預設只展開「元件」和「進入與結束」，並支援 Markdown。要新增可收合段落與 Markdown 兩個元件，以及 DetailList 寬面板的選項；標「需要決定」的先做選項。
+
 ## codemap 第 7 輪實驗室
 
 使用者的選擇：「好」（同意 Claude 推薦的 TAW PAB E0 LA）。

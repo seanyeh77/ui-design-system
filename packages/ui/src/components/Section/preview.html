@@ -1,0 +1,36 @@
+<!-- @dsCard group="Layout" height=520 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>Section — preview</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      ReactDOM.createRoot(document.getElementById('root')).render(
+        h(
+          'div',
+          { style: { maxWidth: 760 } },
+          h(
+            U.SectionGroup,
+            null,
+            h(U.Section, { title: '元件', summary: '6 個元件、138 個函式', defaultOpen: true },
+              h(U.DetailList, { labelWidth: 'auto', labelSize: 'body', items: [
+                { label: 'src/libibtrace', value: '攔截 infiniband 呼叫，18 個函式' },
+                { label: 'src/ibmon', value: '讀共享記憶體並顯示，91 個函式' },
+              ] }),
+            ),
+            h(U.Section, { title: '進入與結束', summary: '2 個進入點、1 個結束點', defaultOpen: true },
+              h(U.Markdown, null, '`main`（`src/cli/main.c:12`）與 `ibtrace_init`，由 **LD_PRELOAD** 載入。'),
+            ),
+            h(U.Section, { id: 'external', title: '外部指令', summary: '29 個指令、4 個 namespace、3 個沒有逾時', lazy: true }, 'ibv_post_send：14 個呼叫處'),
+            h(U.Section, { title: '文件摘錄', summary: 'README.md、AGENTS.md' }, h(U.Markdown, null, '先跑 `make`，再用 **harness/run.sh** 啟動。')),
+          ),
+        ),
+      );
+    </script>
+  </body>
+</html>

@@ -131,3 +131,15 @@ test('CodeView: Home, End, PageUp, PageDown move by line (CA); [ and ] by sectio
   await user.keyboard('[[');
   expect(at()).toBe('10');
 });
+
+test('CodeView line numbers (VA): 12 px from the left edge, 16 px before the code', () => {
+  const { container } = render(<CodeView code={'int a;\nint b;'} start={70} />);
+  const cv = container.querySelector('.ui-cv') as HTMLElement;
+  const num = cv.querySelector('.ui-cv-num') as HTMLElement;
+  const range = document.createRange();
+  range.selectNodeContents(num);
+  const digits = range.getBoundingClientRect();
+  expect(Math.round(digits.left - cv.getBoundingClientRect().left)).toBe(12);
+  const text = cv.querySelector('.ui-cv-text') as HTMLElement;
+  expect(Math.round(text.getBoundingClientRect().left - digits.right)).toBe(16);
+});
