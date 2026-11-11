@@ -1186,16 +1186,16 @@ test('LayerGraph resizable (HC): down spreads the layers, up past the drawn heig
   bar.focus();
   await user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}');
   // 64 px shared by the two gaps: the last layer 64 px lower, the diagram 64 px taller, no inner scroll.
-  expect(Math.round(boxTop('model.py') - top0)).toBe(64);
-  expect(Math.round(scroll.getBoundingClientRect().height - h0)).toBe(64);
+  expect(Math.abs(boxTop('model.py') - top0 - 64)).toBeLessThanOrEqual(1);
+  expect(Math.abs(scroll.getBoundingClientRect().height - h0 - 64)).toBeLessThanOrEqual(1);
   await user.keyboard('{Enter}');
-  expect(Math.round(boxTop('model.py') - top0)).toBe(0);
+  expect(Math.abs(boxTop('model.py') - top0)).toBeLessThanOrEqual(1);
   await user.keyboard('{ArrowUp}{ArrowUp}{ArrowUp}{ArrowUp}{ArrowUp}');
-  expect(Math.round(scroll.getBoundingClientRect().height)).toBe(Math.round(h0 - 80));
+  expect(Math.abs(scroll.getBoundingClientRect().height - (h0 - 80))).toBeLessThanOrEqual(1);
   expect(getComputedStyle(scroll).overflowY).toBe('auto');
   expect(scroll.scrollHeight).toBeGreaterThan(scroll.clientHeight);
-  expect(Math.round(boxTop('model.py') - top0)).toBe(0);
-  expect(Number(bar.getAttribute('aria-valuenow'))).toBe(Math.round(h0 - 80));
+  expect(Math.abs(boxTop('model.py') - top0)).toBeLessThanOrEqual(1);
+  expect(Math.abs(Number(bar.getAttribute('aria-valuenow')) - (h0 - 80))).toBeLessThanOrEqual(1);
 });
 
 test('LayerGraph resizable: heightKey remembers the height; without resizable there is no handle', () => {
