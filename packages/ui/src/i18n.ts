@@ -101,6 +101,8 @@ export const I18N: I18nState = {
       到: 'to',
       '{label}（{inferred}）': '{label} ({inferred})',
       調整面板寬度: 'Resize the panel',
+      調整架構圖高度: 'Resize the diagram height',
+      '{n} px': '{n} px',
       '主要區域 {a} px，面板 {b} px': 'Main area {a} px, panel {b} px',
       'repo 外': 'outside the repo',
       詳細: 'Details',

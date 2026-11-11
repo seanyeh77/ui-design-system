@@ -458,6 +458,18 @@ Claude 定的細節（待確認）：
 - CodeView：`refHref`、`onRef` 只用在註解和字串裡的路徑；有資料夾和副檔名、或檔名加行號才算。
 - LayerGraph `countLabel`、`sizeLabel` 可以是函式；預設英文單數「1 call」「1 item」。
 
+## 架構圖的高度
+
+使用者的要求：「我希望 graph 上下高度也可以調整」；選擇：「HC」。
+
+- HC：拖拉架構圖下緣的把手。往下拖時層與層之間的距離拉開；拖到比原本還矮時，改成在框內上下捲動。（其他選項：HA 只改顯示區的高度、HB 只改層距。）
+
+Claude 定的細節（待確認）：
+
+- LayerGraph 新的選填 `resizable`（預設 false）與 `heightKey`；把手和 SplitPane 的分隔線同樣式，橫放。
+- 每個間距最多多 200 px；框最矮 160 px；鍵盤 ↑↓ 每次 16 px，Enter 或雙擊回到原本的高度。
+- 「清單」模式不顯示把手。
+
 ## Markdown 撐起整份概觀實驗室
 
 使用者的選擇：「DA TB NB AY，另外現在 codemap 會有上面兩個開關分散且不同 row 的問題」。
