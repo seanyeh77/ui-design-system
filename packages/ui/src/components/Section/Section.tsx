@@ -54,6 +54,9 @@ export interface SectionProps {
   lazy?: boolean;
   /** Remembers open or closed in localStorage under this key. If storage fails it works the same, without remembering. */
   storageKey?: string;
+  /** Controls right of the summary, such as a copy IconButton. Outside the title button: clicking them does not open
+   *  or close the section. */
+  actions?: React.ReactNode;
   /** Heading level of the title. Default 3. The size stays 20 px whatever the level. */
   level?: 2 | 3 | 4 | 5 | 6;
   children?: React.ReactNode;
@@ -146,13 +149,16 @@ export function Section(p: SectionProps) {
   const showContent = !p.lazy || open || linger;
   return (
     <section id={p.id} className={cx('ui-sec', open && 'is-open', p.className)}>
-      <H ref={head} className="ui-sec-h">
-        <button type="button" className="ui-sec-btn" aria-expanded={open} aria-controls={body} onClick={() => set(!open)}>
-          <Icon name="caret-right" size={18} className="ui-sec-caret" />
-          <span className="ui-sec-title">{p.title}</span>
-          {p.summary != null && p.summary !== false ? <span className="ui-sec-sum">{p.summary}</span> : null}
-        </button>
-      </H>
+      <div className="ui-sec-row">
+        <H ref={head} className="ui-sec-h">
+          <button type="button" className="ui-sec-btn" aria-expanded={open} aria-controls={body} onClick={() => set(!open)}>
+            <Icon name="caret-right" size={18} className="ui-sec-caret" />
+            <span className="ui-sec-title">{p.title}</span>
+            {p.summary != null && p.summary !== false ? <span className="ui-sec-sum">{p.summary}</span> : null}
+          </button>
+        </H>
+        {p.actions ? <div className="ui-sec-actions">{p.actions}</div> : null}
+      </div>
       <div id={body} className="ui-sec-body">
         <div ref={inner} className="ui-sec-in">
           {showContent ? <div className="ui-sec-content">{p.children}</div> : null}

@@ -1145,3 +1145,15 @@ test('LayerGraph: tags move under the names when a name would keep fewer than 8 
   const name = server.querySelector('.ui-lg-name') as HTMLElement;
   expect(name.scrollWidth).toBeLessThanOrEqual(name.clientWidth);
 });
+
+test('LayerGraph toolbar: the page own switch on the same row as 「圖／清單」, at its left', () => {
+  render(
+    <div style={{ width: 880 }}>
+      <LayerGraph nodes={[{ id: 'a', name: 'a.py', layer: 0, size: 3 }]} edges={[]} toolbar={<button type="button">依檔案</button>} />
+    </div>,
+  );
+  const own = screen.getByRole('button', { name: '依檔案' }).getBoundingClientRect();
+  const view = screen.getByRole('tab', { name: '圖' }).getBoundingClientRect();
+  expect(Math.abs(own.top + own.height / 2 - (view.top + view.height / 2))).toBeLessThan(2);
+  expect(own.right).toBeLessThan(view.left);
+});

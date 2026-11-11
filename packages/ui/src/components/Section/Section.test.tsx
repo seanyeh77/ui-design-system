@@ -128,3 +128,34 @@ test('SectionGroup: 「全部展開」「全部收合」 with icons; the one tha
   for (const n of ['元件', '外部指令', '設定']) expect(screen.getByRole('button', { name: n }).getAttribute('aria-expanded')).toBe('false');
   await waitFor(() => expect((collapse as HTMLButtonElement).disabled).toBe(true));
 });
+
+test('Section actions: beside the summary, outside the title button; clicking them does not toggle; under 480 px the summary goes under the title', async () => {
+  let copied = 0;
+  const { container } = render(
+    <div style={{ width: 700 }}>
+      <Section
+        title="外部指令"
+        summary="29 個指令、4 個 namespace、3 個沒有逾時"
+        actions={
+          <button type="button" onClick={() => copied++}>
+            複製
+          </button>
+        }
+      >
+        內容
+      </Section>
+    </div>,
+  );
+  const toggle = screen.getByRole('button', { name: '外部指令 29 個指令、4 個 namespace、3 個沒有逾時' });
+  const copy = screen.getByRole('button', { name: '複製' });
+  expect(toggle.contains(copy)).toBe(false);
+  await userEvent.setup().click(copy);
+  expect(copied).toBe(1);
+  expect(toggle.getAttribute('aria-expanded')).toBe('false');
+  const title = container.querySelector('.ui-sec-title') as HTMLElement;
+  const sum = container.querySelector('.ui-sec-sum') as HTMLElement;
+  expect(Math.round(sum.getBoundingClientRect().top)).toBeLessThan(Math.round(title.getBoundingClientRect().bottom));
+  (container.firstElementChild as HTMLElement).style.width = '400px';
+  await waitFor(() => expect(sum.getBoundingClientRect().top).toBeGreaterThanOrEqual(title.getBoundingClientRect().bottom - 1));
+  expect(Math.round(copy.getBoundingClientRect().top)).toBeLessThan(Math.round(sum.getBoundingClientRect().top));
+});

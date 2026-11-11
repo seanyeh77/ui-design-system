@@ -27,6 +27,18 @@
         '|---|---|',
         '| small | 12 |',
         '| large | 480 |',
+        '',
+        '<details><summary>另有 49 處呼叫</summary>',
+        '',
+        '| 指令 | 位置 | namespace | 逾時 |',
+        '|---|---|---|---|',
+        '| `ip netns exec l3-r{as_id} ip -j route` | [`_sync_as`](fn:harness/controller.py:VirtualRouter._sync_as) `harness/controller.py:540` | l3-r{as_id} | 5 秒 |',
+        '| `osken-manager --ofp-tcp-listen-port 6653 …` | `harness/runtime.py:421` | 呼叫者的 namespace | 沒有 |',
+        '',
+        '</details>',
+        '',
+        '> [!WARNING]',
+        '> 3 個指令沒有設逾時。',
       ].join('\n');
       ReactDOM.createRoot(document.getElementById('root')).render(
         h(

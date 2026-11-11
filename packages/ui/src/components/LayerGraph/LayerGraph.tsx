@@ -102,6 +102,9 @@ export interface LayerGraphProps {
   /** The 「圖／清單」 switch above the diagram; the list shows every box and line as text, also for screen readers.
    *  false hides the switch. */
   listView?: boolean;
+  /** Controls of the page on the same row as 「圖／清單」, at its left, such as the page's own 「依元件／依檔案」 Tabs,
+   *  so two switches do not sit on two rows. */
+  toolbar?: React.ReactNode;
   /** Headings of the list: { nodes, edges }. Default 「項目」 and 「關係」. */
   listLabels?: { nodes?: string; edges?: string };
   /** Remembers the sideways scroll under this name when the diagram unmounts and comes back (another block, another
@@ -1464,8 +1467,9 @@ export function LayerGraph(p: LayerGraphProps) {
   }, [coveredNow, spread, spreadKey]);
   return (
     <div className={cx('ui-graph ui-lg', p.className)}>
-      {p.listView === false && !toggleShown ? null : (
+      {p.listView === false && !toggleShown && !p.toolbar ? null : (
         <div className="ui-lg-bar">
+          {p.toolbar ? <div className="ui-lg-toolbar">{p.toolbar}</div> : null}
           {toggleShown && p.labelToggle === 'icon' ? (
             // TC: a tag button beside 「圖／清單」; pressed (accent-soft, filled tag) while every label shows.
             <IconButton className="ui-lg-labels-btn" icon="tag" filled={labelsOn} label={tr('顯示線上文字')} aria-pressed={labelsOn} onClick={switchLabels} />
