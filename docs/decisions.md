@@ -458,6 +458,27 @@ Claude 定的細節（待確認）：
 - CodeView：`refHref`、`onRef` 只用在註解和字串裡的路徑；有資料夾和副檔名、或檔名加行號才算。
 - LayerGraph `countLabel`、`sizeLabel` 可以是函式；預設英文單數「1 call」「1 item」。
 
+## codemap 第 7 輪實驗室
+
+使用者的選擇：「好」（同意 Claude 推薦的 TAW PAB E0 LA）。
+
+- TA：LayerGraph 方框新的選填 `tag`，短標籤放在名稱右邊同一行；方框變窄時名稱先截斷，標籤完整。清單和螢幕閱讀器也帶上標籤。（其他選項：T0 接在名稱後面、TB 名稱下一行、TC 左邊框換色加圖例。）
+- W：新的選填 `tagTone: 'warning'`，標籤用 `warning-text` 文字、`warning-soft` 底，加鎖頭圖示，不只靠顏色。（其他選項：N 全部中性。）
+- PA：CommandPalette 每筆說明最多兩行，第三行起截斷。（其他選項：P0 一行、PB 選中的那筆顯示全文。）
+- PB：CommandPalette 最高延伸到視窗底部留 24 px（`calc(88vh - 24px)`），取代 `min(560px, 76vh)`；1440 x 900 下 768 px，8 筆兩行的結果都看得到。手機維持 55% 螢幕。（其他選項：P0 最高 560 px、PA 視窗的 70%。）
+- E0：TreeList 不加 `onActivate`；codemap 已把「從這裡追蹤流程」移到面板頂端。（其他選項：EA Enter 與雙擊、EB 只有 Enter、EC 已選取時再按 Enter。）
+- LA：LayerGraph 的線念「起點 到 終點，標籤」（英文 to），不再用「→」。
+
+Claude 定的細節（待確認）：
+
+- TA：標籤 12 px、粗 600、`ink-muted` 字、白底（方框內）或 `surface-sub` 底（清單裡）、`radius-sm`；共用項目的小方框也顯示標籤。
+- LA：清單模式畫面上仍寫「→」，「→」對螢幕閱讀器隱藏，另外念一個看不見的「到」。
+- 第 2 項「線在 Tab 順序裡沒有角色」：線從選取功能加入時就是 `role="button"`，有名稱與 `aria-pressed`，也有測試；在 codemap 目前的建置用 Tab 到線上念得出名稱。沒有改元件，只把念法改成 LA。
+
+## codemap 第 7 輪
+
+使用者轉來的工作說明（節錄）：codemap lab3 第 7 輪試用（六種角色各 14 題，另做新舊版盲測）的四項回饋。LayerGraph 方框上的短標籤、CommandPalette 說明被截斷與清單太矮、TreeList 節點上按 Enter 是需要決定的項目，先做選項；LayerGraph 的線在 Tab 順序裡沒有角色，建議給 `role="button"` 與名稱，例如「controller.py 到 routing.py，14 次」。
+
 ## codemap lab3 實驗室
 
 使用者的選擇：「KA RA MA CAB」，另外：「之前選下方都沒有字是因為 ig 是這樣設計，把這個設計為 option」。

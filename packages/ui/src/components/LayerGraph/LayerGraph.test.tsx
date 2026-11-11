@@ -40,13 +40,13 @@ function Demo({ onEdge, onBox }: { onEdge: (id: string | null) => void; onBox: (
 
 test('LayerGraph: without onSelectEdge, lines are not buttons', () => {
   render(<LayerGraph nodes={nodes} edges={edges} />);
-  expect(screen.queryByRole('button', { name: /→/ })).toBeNull();
+  expect(screen.queryByRole('button', { name: / 到 / })).toBeNull();
 });
 
 test('LayerGraph: clicking a line selects it, again clears it; the label works too', async () => {
   const onEdge = vi.fn();
   render(<Demo onEdge={onEdge} onBox={() => {}} />);
-  const line = screen.getByRole('button', { name: 'src/cli → src/libibtrace，7 次' });
+  const line = screen.getByRole('button', { name: 'src/cli 到 src/libibtrace，7 次' });
   await user.click(line);
   expect(onEdge).toHaveBeenLastCalledWith('cli->lib');
   expect(line.getAttribute('aria-pressed')).toBe('true');
@@ -54,7 +54,7 @@ test('LayerGraph: clicking a line selects it, again clears it; the label works t
   expect(onEdge).toHaveBeenLastCalledWith(null);
   await user.click(screen.getByText('IBTRACE_SHM'));
   expect(onEdge).toHaveBeenLastCalledWith('shm');
-  expect(screen.getByRole('button', { name: 'src/ibmon → src/libibtrace，環境變數 IBTRACE_SHM' }).getAttribute('aria-pressed')).toBe('true');
+  expect(screen.getByRole('button', { name: 'src/ibmon 到 src/libibtrace，環境變數 IBTRACE_SHM' }).getAttribute('aria-pressed')).toBe('true');
 });
 
 test('LayerGraph: a line and a box are never selected together', async () => {
@@ -63,7 +63,7 @@ test('LayerGraph: a line and a box are never selected together', async () => {
   render(<Demo onEdge={onEdge} onBox={onBox} />);
   await user.click(screen.getByRole('button', { name: /^src\/cli 18/ }));
   expect(onBox).toHaveBeenLastCalledWith('cli');
-  await user.click(screen.getByRole('button', { name: 'src/cli → src/libibtrace，7 次' }));
+  await user.click(screen.getByRole('button', { name: 'src/cli 到 src/libibtrace，7 次' }));
   expect(onBox).toHaveBeenLastCalledWith(null);
   expect(onEdge).toHaveBeenLastCalledWith('cli->lib');
   await user.click(screen.getByRole('button', { name: /^src\/ibmon 91/ }));
@@ -76,7 +76,7 @@ test('LayerGraph: Tab reaches the lines after the boxes; Enter selects, Escape c
   render(<Demo onEdge={onEdge} onBox={() => {}} />);
   // The line-label switch, the 「圖／清單」 tabs, the three boxes, then the lines.
   for (let k = 0; k < 6; k++) await user.tab();
-  expect(document.activeElement?.getAttribute('aria-label')).toBe('src/ibmon → src/libibtrace，環境變數 IBTRACE_SHM');
+  expect(document.activeElement?.getAttribute('aria-label')).toBe('src/ibmon 到 src/libibtrace，環境變數 IBTRACE_SHM');
   await user.keyboard('{Enter}');
   expect(onEdge).toHaveBeenLastCalledWith('shm');
   await user.keyboard('{Escape}');
@@ -89,7 +89,7 @@ test('LayerGraph: Tab reaches the lines after the boxes; Enter selects, Escape c
 test('LayerGraph: a click on the empty diagram clears the selected line', async () => {
   const onEdge = vi.fn();
   const { container } = render(<Demo onEdge={onEdge} onBox={() => {}} />);
-  await user.click(screen.getByRole('button', { name: 'src/cli → src/libibtrace，7 次' }));
+  await user.click(screen.getByRole('button', { name: 'src/cli 到 src/libibtrace，7 次' }));
   const canvas = container.querySelector<HTMLElement>('.ui-lg-canvas');
   if (!canvas) throw new Error('no canvas');
   await user.pointer({
@@ -104,7 +104,7 @@ test('LayerGraph: hovering a selectable line makes it darker and 2 px thicker; i
   const { container } = render(<Demo onEdge={() => {}} onBox={() => {}} />);
   const line = container.querySelectorAll<SVGPathElement>('.ui-lg-edge')[0];
   const before = Number(line.getAttribute('stroke-width'));
-  await user.hover(screen.getByRole('button', { name: 'src/ibmon → src/libibtrace，環境變數 IBTRACE_SHM' }));
+  await user.hover(screen.getByRole('button', { name: 'src/ibmon 到 src/libibtrace，環境變數 IBTRACE_SHM' }));
   expect(line.classList.contains('is-hover')).toBe(true);
   expect(Number(line.getAttribute('stroke-width'))).toBe(before + 2);
   expect(container.querySelector('.ui-lg-label')?.classList.contains('is-hover')).toBe(true);
@@ -236,7 +236,7 @@ test('LayerGraph: a line up can be selected, hovered and used from the keyboard'
       onSelectEdge={onEdge}
     />,
   );
-  const line = screen.getByRole('button', { name: 'src/libibtrace → src/ibmon，經由 src/common 傳資料' });
+  const line = screen.getByRole('button', { name: 'src/libibtrace 到 src/ibmon，經由 src/common 傳資料' });
   await user.click(line);
   expect(onEdge).toHaveBeenLastCalledWith('ring');
   await user.hover(line);
@@ -256,9 +256,9 @@ test('LayerGraph: the list view shows every box and line as text, selectable lik
   await user.click(screen.getByRole('tab', { name: '清單' }));
   const list = container.querySelector('.ui-lg-list');
   expect(list?.textContent).toContain('src/ibmon，91 個函式');
-  expect(list?.textContent).toContain('src/ibmon → src/libibtrace：環境變數 IBTRACE_SHM（推測）');
-  expect(list?.textContent).toContain('src/cli → src/libibtrace：7 次');
-  await user.click(screen.getByRole('button', { name: 'src/cli → src/libibtrace：7 次' }));
+  expect(list?.textContent).toContain('src/ibmon →到 src/libibtrace：環境變數 IBTRACE_SHM（推測）');
+  expect(list?.textContent).toContain('src/cli →到 src/libibtrace：7 次');
+  await user.click(screen.getByRole('button', { name: 'src/cli 到 src/libibtrace：7 次' }));
   expect(onEdge).toHaveBeenLastCalledWith('cli->lib');
   await user.click(screen.getByRole('button', { name: 'src/ibmon' }));
   expect(onBox).toHaveBeenLastCalledWith('ibmon');
@@ -516,7 +516,7 @@ test('LayerGraph: a shared item counts every item that uses it, other shared ite
   expect(chip?.querySelector('.ui-lg-shared-meta')?.textContent).toBe('3 個項目使用，共 15 次');
   // The list: the same three lines into src/common, 6 + 7 + 2 = 15 times.
   await userEvent.setup().click(screen.getByRole('tab', { name: '清單' }));
-  const into = [...container.querySelectorAll('.ui-lg-li')].filter((li) => /→\s*src\/common：/.test(li.textContent ?? ''));
+  const into = [...container.querySelectorAll('.ui-lg-li')].filter((li) => /→到\s*src\/common：/.test(li.textContent ?? ''));
   expect(into.length).toBe(3);
   expect(into.reduce((a, li) => a + Number(/(\d+) 次/.exec(li.textContent ?? '')?.[1] ?? 0), 0)).toBe(15);
 });
@@ -546,7 +546,7 @@ test('LayerGraph: an external box sits above every layer, dashed, 「repo 外」
   expect(box.getBoundingClientRect().bottom).toBeLessThan(ibmon.getBoundingClientRect().top);
   // Its line is drawn and selectable like any other.
   expect(container.querySelector('[data-edge="verbs"]')).not.toBeNull();
-  expect(screen.getByRole('button', { name: '被追蹤的程式 → src/libibtrace，攔截 verbs' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: '被追蹤的程式 到 src/libibtrace，攔截 verbs' })).toBeTruthy();
   await userEvent.setup().click(box);
   expect(onSelect).toHaveBeenLastCalledWith('app');
   // The list says it is outside the repository.
@@ -573,7 +573,7 @@ test('LayerGraph list in English: ASCII separators, no full-width punctuation', 
     expect(text).toEqual([
       'traced program, outside the repo',
       'src/libibtrace, 114 items',
-      'traced program → src/libibtrace: Interposes infiniband (18 functions) (Inferred)',
+      'traced program →to src/libibtrace: Interposes infiniband (18 functions) (Inferred)',
     ]);
     expect(text.join('')).not.toMatch(/[，：（）]/);
   } finally {
@@ -683,7 +683,7 @@ test('LayerGraph: two lines with the same label each get their source in front',
   expect(texts).toContain('來自src/cli，經由execvp傳資料（執行ibmon）');
   expect(texts).toContain('來自src/libibtrace，經由execvp傳資料（執行ibmon）');
   expect(texts).toContain('環境變數IBTRACE_SHM');
-  expect(screen.getByRole('button', { name: 'src/cli → src/ibmon，來自 src/cli，經由 execvp 傳資料（執行 ibmon）' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'src/cli 到 src/ibmon，來自 src/cli，經由 execvp 傳資料（執行 ibmon）' })).toBeTruthy();
 });
 
 test('LayerGraph: a line between two boxes of one layer runs under the row, into the bottom of its target', async () => {
@@ -729,10 +729,10 @@ test('LayerGraph: the external box keeps its whole name when the boxes narrow', 
 test('LayerGraph list: each relation button is named with its description, not only 「A → B」', async () => {
   render(<LayerGraph nodes={cmNodes} edges={cmEdges} legend={false} onSelectEdge={() => {}} countLabel={(n) => (n === 1 ? '1 call' : `${n} calls`)} />);
   await user.click(screen.getByRole('tab', { name: '清單' }));
-  const names = screen.getAllByRole('button', { name: /^被追蹤的程式 → src\/libibtrace/ }).map((b) => b.textContent);
+  const names = screen.getAllByRole('button', { name: /^被追蹤的程式 到 src\/libibtrace/ }).map((b) => b.textContent);
   expect(names).toHaveLength(3);
   expect(new Set(names).size).toBe(3);
-  expect(screen.getByRole('button', { name: 'src/ibmon → src/common：20 calls' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'src/ibmon 到 src/common：20 calls' })).toBeTruthy();
 });
 
 test('LayerGraph: countLabel and sizeLabel can be functions of the number; English says 「1 call」', async () => {
@@ -978,7 +978,7 @@ test('LayerGraph list: every relation can be selected, one into a shared item to
   }
   render(<ListDemo />);
   await user.click(screen.getByRole('tab', { name: '清單' }));
-  const shared = screen.getByRole('button', { name: /src\/ibmon → src\/common/ });
+  const shared = screen.getByRole('button', { name: /src\/ibmon 到 src\/common/ });
   expect(shared.getAttribute('aria-pressed')).toBe('false');
   await user.click(shared);
   expect(onEdge).toHaveBeenLastCalledWith('ibmon->common');
@@ -1091,4 +1091,35 @@ test('LayerGraph: a label with no spot of its own becomes a number on its line, 
   await waitFor(() => expect(container.querySelector<HTMLElement>('.ui-lg-label.is-numbered.is-shown')).not.toBeNull());
   // Every label still on the diagram reads as its own line's: none sits over another label.
   expectLabelsClear(container);
+});
+
+// TAW: a short tag beside the name; the name is cut first, the tag never; warning tags carry a lock; list and names too.
+test('LayerGraph: tag stays whole beside a cut name, in the list and in the name; warning has a lock (TAW)', async () => {
+  const { container } = render(
+    <div style={{ width: 680 }}>
+      <LayerGraph
+        nodes={[
+          { id: 'c', name: 'controller_with_a_long_name.py', layer: 0, size: 88, tag: '可修改' },
+          { id: 'r', name: 'routing_with_a_long_name.py', layer: 0, size: 64, tag: '受保護', tagTone: 'warning' },
+          { id: 't', name: 'topology_builder_long.py', layer: 0, size: 41 },
+        ]}
+        edges={[]}
+        onSelect={() => {}}
+      />
+    </div>,
+  );
+  const box = screen.getByRole('button', { name: /^controller_with_a_long_name\.py 可修改/ });
+  const name = box.querySelector('.ui-lg-name') as HTMLElement;
+  const tag = box.querySelector('.ui-lg-tag') as HTMLElement;
+  expect(name.scrollWidth).toBeGreaterThan(name.clientWidth);
+  expect(tag.scrollWidth).toBeLessThanOrEqual(tag.clientWidth);
+  expect(tag.getBoundingClientRect().right).toBeLessThanOrEqual(box.getBoundingClientRect().right);
+  expect(tag.querySelector('svg')).toBeNull();
+  const warn = screen.getByRole('button', { name: /^routing_with_a_long_name\.py 受保護/ }).querySelector('.ui-lg-tag');
+  expect(warn?.classList.contains('is-warning')).toBe(true);
+  expect(warn?.querySelector('svg')).not.toBeNull();
+  await user.click(screen.getByRole('tab', { name: '清單' }));
+  const items = [...container.querySelectorAll('.ui-lg-li')].map((li) => li.textContent);
+  expect(items[0]).toBe('controller_with_a_long_name.py可修改，88 個項目');
+  expect(screen.getByRole('button', { name: 'routing_with_a_long_name.py 受保護' })).toBeTruthy();
 });

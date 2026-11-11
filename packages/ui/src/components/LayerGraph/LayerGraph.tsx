@@ -8,6 +8,7 @@ import { format } from '../../format';
 import { cx, monoNums } from '../../internal/util';
 import { ScrollHint, useScrollHint } from '../../internal/scrollHint';
 import { devWarn } from '../../internal/dev';
+import { Icon } from '../../icons/Icon';
 
 export interface LayerGraphNode {
   id: string;
@@ -25,6 +26,11 @@ export interface LayerGraphNode {
    *  「repo 外」 (externalLabel) under the name. Not in any layer and no size bar; its lines, selection and list entry
    *  work like any box's. */
   external?: boolean;
+  /** A short tag beside the name (「可修改」「受保護」): on the same line, never cut; the name is cut first. In the list
+   *  and in what a screen reader says too. Keep it to a few characters. */
+  tag?: string;
+  /** warning: the tag in the warning colors with a lock, for a box that must not be changed. Default neutral. */
+  tagTone?: 'neutral' | 'warning';
 }
 
 export interface LayerGraphEdge {
@@ -782,7 +788,7 @@ export function LayerGraph(p: LayerGraphProps) {
             d={d}
             role="button"
             tabIndex={0}
-            aria-label={tr('{from} → {to}，{what}', {
+            aria-label={tr('{from} 到 {to}，{what}', {
               from: nameOf(e.from),
               to: nameOf(e.to),
               what: markText(e).replace(/`/g, ''),
@@ -1220,6 +1226,14 @@ export function LayerGraph(p: LayerGraphProps) {
   const sizeText = (n: number) => withNum(p.sizeLabel, n, () => byCount(n, '1 個項目', '{n} 個項目'));
   const externalText = p.externalLabel ?? tr('repo 外');
   const useText = p.useLabel ?? tr('使用 {n} 次');
+  // T: a short tag beside the name; the name is cut first (flex: none here, min-width: 0 on the name).
+  const tagOf = (n: LayerGraphNode) =>
+    n.tag ? (
+      <span className={cx('ui-lg-tag', n.tagTone === 'warning' && 'is-warning')}>
+        {n.tagTone === 'warning' ? <Icon name="lock" size={12} /> : null}
+        {n.tag}
+      </span>
+    ) : null;
   const nodes = main.map((n) => {
     const q = pos[n.id];
     const on = n.id === sel;
@@ -1236,6 +1250,7 @@ export function LayerGraph(p: LayerGraphProps) {
       >
         <span className="ui-lg-head">
           <span className="ui-lg-name">{n.name || n.id}</span>
+          {tagOf(n)}
           {used ? <span className="ui-lg-use">{monoNums(useText.replace('{n}', '\u0001'), [used])}</span> : null}
         </span>
         {n.external ? <span className="ui-lg-ext">{externalText}</span> : null}
@@ -1266,7 +1281,10 @@ export function LayerGraph(p: LayerGraphProps) {
         aria-pressed={p.onSelect ? on : undefined}
         onClick={p.onSelect ? () => pick(s.id, on) : undefined}
       >
-        <span className="ui-lg-name">{s.name || s.id}</span>
+        <span className="ui-lg-head">
+          <span className="ui-lg-name">{s.name || s.id}</span>
+          {tagOf(s)}
+        </span>
         <span className="ui-lg-shared-meta">{monoNums(sharedMeta.replace('{a}', '\u0001').replace('{b}', '\u0002'), [Object.keys(by).length, total])}</span>
       </button>
     );
@@ -1301,7 +1319,10 @@ export function LayerGraph(p: LayerGraphProps) {
               n.id === sel,
               !near(n.id),
               p.onSelect ? () => pick(n.id, n.id === sel) : undefined,
-              <span className="ui-lg-code">{n.name || n.id}</span>,
+              <>
+                <span className="ui-lg-code">{n.name || n.id}</span>
+                {tagOf(n)}
+              </>,
               n.external && !n.shared ? (
                 <span className="ui-lg-limeta">
                   {tr('，')}
@@ -1334,7 +1355,8 @@ export function LayerGraph(p: LayerGraphProps) {
                 // The whole line is the button, so its name says what the relation is, as on the diagram: three lines
                 // between the same two boxes no longer share the name 「A → B」.
                 <>
-                  <span className="ui-lg-code">{nameOf(e.from)}</span> → <span className="ui-lg-code">{nameOf(e.to)}</span>
+                  <span className="ui-lg-code">{nameOf(e.from)}</span> <span aria-hidden="true">→</span>
+                  <span className="ui-visually-hidden">{tr('到')}</span> <span className="ui-lg-code">{nameOf(e.to)}</span>
                   <span className="ui-lg-limeta">
                     {tr('：')}
                     {labelParts(edgeText(e))}

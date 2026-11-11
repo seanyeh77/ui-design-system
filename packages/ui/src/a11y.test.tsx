@@ -469,7 +469,7 @@ test('LayerGraph: line buttons sit in a group, not an image, and labels are not 
     />,
   );
   expect(container.querySelector('.ui-lg-hits')?.getAttribute('role')).toBe('group');
-  expect(screen.getByRole('button', { name: 'src/ibmon → src/libibtrace，環境變數 IBTRACE_SHM' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'src/ibmon 到 src/libibtrace，環境變數 IBTRACE_SHM' })).toBeTruthy();
   expect(container.querySelector('.ui-lg-label')?.getAttribute('aria-hidden')).toBe('true');
 });
 
