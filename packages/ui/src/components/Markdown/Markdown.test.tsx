@@ -246,3 +246,61 @@ test('Markdown tables: names, paths and words stay whole; only spaces and CJK br
   range.setEnd(text, 'subprocess.Popen'.length);
   expect(range.getClientRects().length).toBe(1);
 });
+
+const wide = ['| 函式 | 指令 | 位置 |', '|---|---|---|', '| [_run](fn:a) | `ip netns exec {namespace} {argv}` | `harness/controller.py:91` |'].join('\n');
+
+test('Markdown tables (TA): a column border drags with ← →; Enter goes back to widths by content', async () => {
+  await page.viewport(1280, 900);
+  const user = userEvent.setup();
+  render(
+    <div style={{ width: 860 }}>
+      <Markdown refHref={(r) => '#' + r}>{wide}</Markdown>
+    </div>,
+  );
+  const th = screen.getByRole('columnheader', { name: /指令/ });
+  const w0 = th.getBoundingClientRect().width;
+  const handle = screen.getByRole('separator', { name: '調整「指令」欄寬' });
+  expect(handle.getAttribute('aria-orientation')).toBe('vertical');
+  handle.focus();
+  await user.keyboard('{ArrowRight}{ArrowRight}{ArrowRight}');
+  expect(Math.abs(th.getBoundingClientRect().width - (w0 + 48))).toBeLessThanOrEqual(1);
+  expect(Math.abs(Number(handle.getAttribute('aria-valuenow')) - (w0 + 48))).toBeLessThanOrEqual(1);
+  await user.keyboard('{Enter}');
+  expect(Math.abs(th.getBoundingClientRect().width - w0)).toBeLessThanOrEqual(1);
+});
+
+test('Markdown tables (TB): the corner button shows the whole table in a wide dialog; hidden when rows are cards', async () => {
+  await page.viewport(1280, 900);
+  const user = userEvent.setup();
+  const { rerender } = render(
+    <div style={{ width: 620 }}>
+      <Markdown>{wide}</Markdown>
+    </div>,
+  );
+  await user.click(screen.getByRole('button', { name: '放大表格' }));
+  const dialog = await screen.findByRole('dialog', { name: '表格' });
+  expect(dialog.querySelector('table')?.textContent).toContain('harness/controller.py:91');
+  expect(dialog.getBoundingClientRect().width).toBeGreaterThan(1000);
+  await user.keyboard('{Escape}');
+  rerender(
+    <div style={{ width: 400 }}>
+      <Markdown>{wide}</Markdown>
+    </div>,
+  );
+  const big = screen.getByRole('button', { name: '放大表格', hidden: true });
+  expect(getComputedStyle(big.parentElement as HTMLElement).display).toBe('none');
+});
+
+test('Markdown tables (TA): after a drag the other columns keep their words whole', async () => {
+  await page.viewport(1280, 900);
+  render(
+    <div style={{ width: 860 }}>
+      <Markdown>{'| 函式 | 指令 |\n|---|---|\n| [VirtualRouter._probe_neighbor](a.md) | `ip netns exec {namespace} {argv}` |'}</Markdown>
+    </div>,
+  );
+  const link = screen.getByRole('link', { name: 'VirtualRouter._probe_neighbor' });
+  expect(link.getClientRects().length).toBe(1);
+  screen.getByRole('separator', { name: '調整「指令」欄寬' }).focus();
+  await userEvent.setup().keyboard('{ArrowRight}');
+  expect(link.getClientRects().length).toBe(1);
+});

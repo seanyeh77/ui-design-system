@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { Alert, type AlertTone } from '../Alert/Alert';
 import { Icon } from '../../icons/Icon';
+import { Dialog } from '../Dialog/Dialog';
+import { IconButton } from '../IconButton/IconButton';
+import { tr } from '../../i18n';
 import { cx } from '../../internal/util';
 import { CodeView } from '../CodeView/CodeView';
 import { languageOf } from '../CodeView/tokens';
@@ -538,30 +541,15 @@ export function Markdown(p: MarkdownProps) {
             return a ? { textAlign: a } : undefined;
           };
           return (
-            <div key={c.k()} className="ui-md-table-wrap" tabIndex={0} role="region" aria-label={b.head.join('、')}>
-              <table className="ui-md-table">
-                <thead>
-                  <tr>
-                    {b.head.map((h, j) => (
-                      <th key={j} style={align(j)}>
-                        {inline(h, c)}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {b.rows.map((r, ri) => (
-                    <tr key={ri}>
-                      {Array.from({ length: n }, (_, j) => (
-                        <td key={j} className={numeric[j] ? 'is-num' : undefined} style={align(j)} data-label={plain(b.head[j] ?? '')}>
-                          {inline(r[j] ?? '', c)}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <MdTable
+              key={c.k()}
+              label={b.head.map(plain).join('、')}
+              heads={b.head.map((h) => inline(h, c))}
+              headText={b.head.map(plain)}
+              rows={b.rows.map((r) => Array.from({ length: n }, (_, j) => inline(r[j] ?? '', c)))}
+              numeric={numeric}
+              align={align}
+            />
           );
         }
       }
@@ -603,6 +591,144 @@ function MdDetails({ summary, children }: { summary: React.ReactNode; children: 
       <div id={id} ref={body} className="ui-md-details-body">
         {children}
       </div>
+    </div>
+  );
+}
+
+// TA: a dragged column is at least this wide (px).
+const MIN_COL = 48;
+
+/** A Markdown table: column borders in the header drag (TA); the corner button shows the whole table in a wide dialog
+ *  (TB). Under 480 px every row is a card instead, without either. */
+function MdTable(p: {
+  label: string;
+  heads: React.ReactNode[];
+  headText: string[];
+  rows: React.ReactNode[][];
+  numeric: boolean[];
+  align: (j: number) => React.CSSProperties | undefined;
+}) {
+  const [widths, setWidths] = React.useState<number[] | null>(null);
+  const [big, setBig] = React.useState(false);
+  const [dragging, setDragging] = React.useState(-1);
+  const [measured, setMeasured] = React.useState<number[]>([]);
+  const table = React.useRef<HTMLTableElement>(null);
+  const drag = React.useRef<{ j: number; x: number; base: number[] } | null>(null);
+  const measure = React.useCallback(
+    () =>
+      // Rounded up: a fixed column a fraction of a pixel narrower than it was drawn would wrap its longest word.
+      [...(table.current?.querySelectorAll<HTMLElement>('thead th') ?? [])].map((th) => Math.ceil(th.getBoundingClientRect().width)),
+    [],
+  );
+  React.useLayoutEffect(() => {
+    const el = table.current;
+    if (!el) return;
+    const update = () => {
+      const m = measure();
+      setMeasured((old) => (old.length === m.length && old.every((v, i) => v === m[i]) ? old : m));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [measure]);
+  const widen = (j: number, base: number[], to: number) => {
+    const next = base.slice();
+    next[j] = Math.max(MIN_COL, Math.round(to));
+    setWidths(next);
+  };
+  const body = (resize: boolean) => (
+    <table
+      ref={resize ? table : undefined}
+      className="ui-md-table"
+      style={resize && widths ? { width: widths.reduce((a, b) => a + b, 0), tableLayout: 'fixed', minWidth: 0 } : undefined}
+    >
+      {resize && widths ? (
+        <colgroup>
+          {widths.map((w, j) => (
+            <col key={j} style={{ width: w }} />
+          ))}
+        </colgroup>
+      ) : null}
+      <thead>
+        <tr>
+          {p.heads.map((h, j) => (
+            <th key={j} style={p.align(j)}>
+              {h}
+              {resize ? (
+                <span
+                  className={cx('ui-md-col-resize', dragging === j && 'is-dragging')}
+                  role="separator"
+                  aria-orientation="vertical"
+                  aria-label={tr('調整「{name}」欄寬', { name: p.headText[j] })}
+                  aria-valuenow={widths?.[j] ?? measured[j] ?? 0}
+                  aria-valuemin={MIN_COL}
+                  tabIndex={0}
+                  onPointerDown={(e) => {
+                    if (e.button !== 0) return;
+                    e.preventDefault();
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                    drag.current = { j, x: e.clientX, base: widths ?? measure() };
+                    setDragging(j);
+                  }}
+                  onPointerMove={(e) => {
+                    const d = drag.current;
+                    if (d) widen(d.j, d.base, d.base[d.j] + e.clientX - d.x);
+                  }}
+                  onPointerUp={() => {
+                    drag.current = null;
+                    setDragging(-1);
+                  }}
+                  onPointerCancel={() => {
+                    drag.current = null;
+                    setDragging(-1);
+                  }}
+                  onDoubleClick={() => setWidths(null)}
+                  onKeyDown={(e) => {
+                    if (e.altKey || e.metaKey || e.ctrlKey) return;
+                    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                      e.preventDefault();
+                      const base = widths ?? measure();
+                      widen(j, base, base[j] + (e.key === 'ArrowRight' ? 16 : -16));
+                    } else if (e.key === 'Enter') {
+                      e.preventDefault();
+                      setWidths(null);
+                    }
+                  }}
+                />
+              ) : null}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {p.rows.map((r, ri) => (
+          <tr key={ri}>
+            {r.map((cell, j) => (
+              <td key={j} className={p.numeric[j] ? 'is-num' : undefined} style={p.align(j)} data-label={p.headText[j]}>
+                {cell}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+  return (
+    <div className={cx('ui-md-tablebox', dragging >= 0 && 'is-resizing')}>
+      <div className="ui-md-table-tools">
+        <IconButton className="ui-md-table-big" icon="corners-out" label={tr('放大表格')} onClick={() => setBig(true)} />
+      </div>
+      <div className="ui-md-table-wrap" tabIndex={0} role="region" aria-label={p.label}>
+        {body(true)}
+      </div>
+      {big ? (
+        <Dialog open onClose={() => setBig(false)} title={tr('表格')} className="ui-md-table-dialog">
+          <div className="ui-md ui-md-table-wrap" tabIndex={0} role="region" aria-label={p.label}>
+            {body(false)}
+          </div>
+        </Dialog>
+      ) : null}
     </div>
   );
 }

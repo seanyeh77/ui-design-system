@@ -6463,8 +6463,84 @@ html.ui-theme-fade * {
   margin-bottom: 0;
 }
 /* Tables in a narrow panel: the table scrolls inside its frame; code in a cell wraps instead of widening it. */
-.ui-md-table-wrap {
+.ui-md-tablebox {
   container-type: inline-size;
+  margin: 0 0 var(--space-3);
+}
+.ui-md .ui-md-tablebox .ui-md-table-wrap {
+  margin: 0;
+}
+/* TB: the corner button above the table's right end shows the whole table in a wide dialog. */
+.ui-md-table-tools {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-1);
+}
+.ui-md-table-big {
+  width: 32px;
+  height: 32px;
+  border-color: transparent;
+}
+.ui-md-table-big:hover {
+  background: var(--surface-sub);
+}
+.ui-dialog.ui-md-table-dialog {
+  width: min(1200px, calc(100vw - 48px));
+}
+.ui-md-table-dialog .ui-md-table-wrap {
+  max-height: calc(100vh - 200px);
+  overflow: auto;
+}
+/* TA: each header cell's right border drags; the line turns 3 px accent while hovered, dragged or focused. */
+.ui-md-table th {
+  position: relative;
+}
+.ui-md-col-resize {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: -6px;
+  z-index: 1;
+  width: 11px;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+}
+.ui-md-table th:last-child .ui-md-col-resize {
+  right: 0;
+  width: 6px;
+}
+.ui-md-col-resize::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  transform: translateX(-50%);
+  border-radius: 2px;
+  background: var(--accent);
+  transition: width 0.15s ease;
+}
+.ui-md-table th:last-child .ui-md-col-resize::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+.ui-md-col-resize:hover::after,
+.ui-md-col-resize.is-dragging::after,
+.ui-md-col-resize:focus-visible::after {
+  width: 3px;
+}
+/* A finger cannot hit an 11 px border: on touch screens the corner button shows the whole table instead. */
+@media (pointer: coarse) {
+  .ui-md-col-resize {
+    display: none;
+  }
+}
+.ui-md-tablebox.is-resizing {
+  cursor: col-resize;
+  user-select: none;
 }
 .ui-md-table .ui-code {
   white-space: normal;
@@ -6487,6 +6563,18 @@ html.ui-theme-fade * {
   .ui-md-table td {
     display: block;
     min-width: 0;
+  }
+  .ui-md-table-tools {
+    display: none;
+  }
+  .ui-md-col-resize {
+    display: none;
+  }
+  .ui-md-table {
+    width: auto !important;
+  }
+  .ui-md-table colgroup {
+    display: none;
   }
   .ui-md-table thead {
     position: absolute;
