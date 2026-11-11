@@ -102,6 +102,12 @@ export interface LayerGraphProps {
   /** The 「圖／清單」 switch above the diagram; the list shows every box and line as text, also for screen readers.
    *  false hides the switch. */
   listView?: boolean;
+  /** HC: a handle under the diagram to drag its height, like SplitPane's divider. Down: the layers move apart (the gaps
+   *  between them grow), so lines and their labels have more room. Up past the drawn height: the diagram scrolls up and
+   *  down inside a shorter frame. ↑↓ 16 px, Enter or a double-click goes back. Default false. */
+  resizable?: boolean;
+  /** Remembers the dragged height in localStorage under this name (ui-lg-height:<name>). */
+  heightKey?: string;
   /** Controls of the page on the same row as 「圖／清單」, at its left, such as the page's own 「依元件／依檔案」 Tabs,
    *  so two switches do not sit on two rows. */
   toolbar?: React.ReactNode;
@@ -149,6 +155,73 @@ function textWidth(text: string, size: number, code: boolean): number {
 // T: a tag on the name's line leaves the name at least this many characters; fewer, and every tag of the diagram goes
 // on its own line under the name.
 const TAG_KEEP = 8;
+
+// HC: the shortest frame a dragged diagram keeps (px), and the most each gap between layers grows (px).
+const MIN_FRAME = 160;
+const MAX_EXTRA = 200;
+
+/** HC: the bar under the diagram: drag it, ↑↓ 16 px, Enter or a double-click back to the drawn height. */
+function HeightHandle(p: {
+  value: number;
+  min: number;
+  max: number;
+  start: () => number;
+  onDrag: (d: number) => void;
+  onKey: (step: number) => void;
+  onReset: () => void;
+}) {
+  const [dragging, setDragging] = React.useState(false);
+  const from = React.useRef<{ y: number; d: number } | null>(null);
+  return (
+    <div
+      className={cx('ui-lg-resize', dragging && 'is-dragging')}
+      role="separator"
+      aria-orientation="horizontal"
+      aria-label={tr('調整架構圖高度')}
+      aria-valuenow={p.value}
+      aria-valuemin={p.min}
+      aria-valuemax={p.max}
+      aria-valuetext={tr('{n} px', { n: p.value })}
+      tabIndex={0}
+      onPointerDown={(e) => {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        e.currentTarget.setPointerCapture(e.pointerId);
+        from.current = { y: e.clientY, d: p.start() };
+        setDragging(true);
+      }}
+      onPointerMove={(e) => {
+        if (!from.current) return;
+        p.onDrag(from.current.d + e.clientY - from.current.y);
+      }}
+      onPointerUp={() => {
+        from.current = null;
+        setDragging(false);
+      }}
+      onPointerCancel={() => {
+        from.current = null;
+        setDragging(false);
+      }}
+      onDoubleClick={p.onReset}
+      onKeyDown={(e) => {
+        if (e.altKey || e.metaKey || e.ctrlKey) return;
+        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          p.onKey(e.key === 'ArrowUp' ? -16 : 16);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          p.onReset();
+        }
+      }}
+    >
+      <span className="ui-lg-resize-grip" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </span>
+    </div>
+  );
+}
 
 function labelWidth(text: string): number {
   const parts = text.split(SPLIT).filter(Boolean);
@@ -273,6 +346,29 @@ export function LayerGraph(p: LayerGraphProps) {
   const fitted = fit && fit.at === avail ? fit : null;
   const NW = fitted?.nw ?? (p.nodeWidth || 200);
   const GAP = 56;
+  // HC: the dragged height, in screen px from the drawn one: above 0 spreads the layers apart, below 0 makes a
+  // shorter frame the diagram scrolls in.
+  const [dh, setDhState] = React.useState(() => {
+    if (!p.resizable || !p.heightKey) return 0;
+    try {
+      const v = Number(localStorage.getItem('ui-lg-height:' + p.heightKey));
+      return Number.isFinite(v) ? v : 0;
+    } catch {
+      return 0;
+    }
+  });
+  const setDh = React.useCallback(
+    (v: number) => {
+      setDhState(v);
+      if (!p.heightKey) return;
+      try {
+        localStorage.setItem('ui-lg-height:' + p.heightKey, String(Math.round(v)));
+      } catch {
+        // Storage blocked or full: it works the same, without remembering.
+      }
+    },
+    [p.heightKey],
+  );
   // Space added between boxes, 24 px at a time (up to 5 times), while a label still has to cover a line.
   // Kept per diagram and per width: other boxes or lines, or a resized box, start again from no added space.
   const spreadKey = avail + '#' + p.nodes.map((n) => n.id).join('|') + '#' + p.edges.map((e) => e.from + '>' + e.to + ':' + (e.label ?? '')).join('|');
@@ -322,7 +418,10 @@ export function LayerGraph(p: LayerGraphProps) {
   const cols = Math.max(1, ...layers.map((l) => byLayer.get(l)?.length ?? 0));
   let W = PAD * 2 + cols * NW + (cols - 1) * COL;
   // The gap under each layer: GAP, or more where the label of a line up needs the room (see the placement below).
-  const gaps = layers.map(() => GAP);
+  // HC: dragged down, the extra height is shared by the gaps between layers (at most 200 px more each).
+  const between = Math.max(0, layers.length - 1);
+  const extra = p.resizable && dh > 0 && between ? Math.min(MAX_EXTRA, dh / scale / between) : 0;
+  const gaps = layers.map((_, k) => GAP + (k < between ? extra : 0));
   let H = 0;
   const pos: Record<string, { x: number; y: number }> = {};
   const layerIndex: Record<string, number> = {};
@@ -1465,6 +1564,11 @@ export function LayerGraph(p: LayerGraphProps) {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- known only after the labels are placed
     if (coveredNow && spread < 5) setSpread({ key: spreadKey, n: spread + 1 });
   }, [coveredNow, spread, spreadKey]);
+  // HC: the drawn height on screen with the gaps the drag added; dragged above it, the frame is shorter and scrolls.
+  const drawnH = H * scale;
+  const naturalH = drawnH - Math.max(0, dh);
+  const frameH = p.resizable && dh < 0 ? Math.max(Math.min(MIN_FRAME, naturalH), naturalH + dh) : null;
+  const dragTo = (v: number) => Math.max(Math.min(MIN_FRAME, naturalH) - naturalH, Math.min(v, between ? MAX_EXTRA * between * scale : 0));
   return (
     <div className={cx('ui-graph ui-lg', p.className)}>
       {p.listView === false && !toggleShown && !p.toolbar ? null : (
@@ -1496,7 +1600,12 @@ export function LayerGraph(p: LayerGraphProps) {
       )}
       {showList ? list : null}
       <div className={cx('ui-lg-scroller', scrollMore && 'has-more', showList && 'is-hidden')}>
-        <div className="ui-lg-scroll" ref={scrollRef} onScroll={onScrollKeep}>
+        <div
+          className={cx('ui-lg-scroll', frameH != null && 'is-framed')}
+          ref={scrollRef}
+          onScroll={onScrollKeep}
+          style={frameH != null ? { height: frameH } : undefined}
+        >
           <div
             className="ui-lg-canvas"
             style={
@@ -1537,6 +1646,17 @@ export function LayerGraph(p: LayerGraphProps) {
           </div>
         </div>
       </div>
+      {p.resizable && !showList ? (
+        <HeightHandle
+          value={Math.round(drawnH + Math.min(0, dh))}
+          min={Math.round(Math.min(MIN_FRAME, drawnH))}
+          max={Math.round(drawnH - Math.max(0, dh) + MAX_EXTRA * between * scale)}
+          onDrag={(d) => setDh(dragTo(d))}
+          onKey={(step) => setDh(dragTo(dh + step))}
+          onReset={() => setDh(0)}
+          start={() => dh}
+        />
+      ) : null}
       {showList ? null : <ScrollHint show={overflows} done={scrolled} />}
       {showList || !numbered.length ? null : (
         // NA: the text of each numbered line, in number order, under the diagram.

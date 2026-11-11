@@ -1157,3 +1157,57 @@ test('LayerGraph toolbar: the page own switch on the same row as 「圖／清單
   expect(Math.abs(own.top + own.height / 2 - (view.top + view.height / 2))).toBeLessThan(2);
   expect(own.right).toBeLessThan(view.left);
 });
+
+// HC: the height handle under the diagram.
+const tall = [
+  { id: 'a', name: 'controller.py', layer: 0, size: 25 },
+  { id: 'b', name: 'runtime.py', layer: 1, size: 37 },
+  { id: 'c', name: 'model.py', layer: 2, size: 17 },
+];
+const tallEdges = [
+  { from: 'a', to: 'b', count: 3 },
+  { from: 'b', to: 'c', count: 2 },
+];
+
+test('LayerGraph resizable (HC): down spreads the layers, up past the drawn height scrolls in a shorter frame, Enter goes back', async () => {
+  await page.viewport(1280, 900);
+  const user = userEvent.setup();
+  const { container } = render(
+    <div style={{ width: 880 }}>
+      <LayerGraph nodes={tall} edges={tallEdges} resizable />
+    </div>,
+  );
+  const bar = screen.getByRole('separator', { name: '調整架構圖高度' });
+  expect(bar.getAttribute('aria-orientation')).toBe('horizontal');
+  const boxTop = (name: string) => screen.getByRole('button', { name: new RegExp('^' + name) }).getBoundingClientRect().top;
+  const top0 = boxTop('model.py');
+  const scroll = container.querySelector('.ui-lg-scroll') as HTMLElement;
+  const h0 = scroll.getBoundingClientRect().height;
+  bar.focus();
+  await user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}');
+  // 64 px shared by the two gaps: the last layer 64 px lower, the diagram 64 px taller, no inner scroll.
+  expect(Math.round(boxTop('model.py') - top0)).toBe(64);
+  expect(Math.round(scroll.getBoundingClientRect().height - h0)).toBe(64);
+  await user.keyboard('{Enter}');
+  expect(Math.round(boxTop('model.py') - top0)).toBe(0);
+  await user.keyboard('{ArrowUp}{ArrowUp}{ArrowUp}{ArrowUp}{ArrowUp}');
+  expect(Math.round(scroll.getBoundingClientRect().height)).toBe(Math.round(h0 - 80));
+  expect(getComputedStyle(scroll).overflowY).toBe('auto');
+  expect(scroll.scrollHeight).toBeGreaterThan(scroll.clientHeight);
+  expect(Math.round(boxTop('model.py') - top0)).toBe(0);
+  expect(Number(bar.getAttribute('aria-valuenow'))).toBe(Math.round(h0 - 80));
+});
+
+test('LayerGraph resizable: heightKey remembers the height; without resizable there is no handle', () => {
+  localStorage.setItem('ui-lg-height:arch', '-40');
+  const { container, unmount } = render(
+    <div style={{ width: 880 }}>
+      <LayerGraph nodes={tall} edges={tallEdges} resizable heightKey="arch" />
+    </div>,
+  );
+  expect((container.querySelector('.ui-lg-scroll') as HTMLElement).classList.contains('is-framed')).toBe(true);
+  unmount();
+  localStorage.removeItem('ui-lg-height:arch');
+  render(<LayerGraph nodes={tall} edges={tallEdges} />);
+  expect(screen.queryByRole('separator')).toBeNull();
+});

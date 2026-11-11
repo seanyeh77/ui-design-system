@@ -5326,6 +5326,91 @@ html.ui-theme-fade * {
   overflow-x: auto;
   overscroll-behavior-x: contain;
 }
+/* HC: dragged shorter than the diagram: it scrolls up and down inside the frame. */
+.ui-lg-scroll.is-framed {
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+/* HC: the bar under the diagram, like SplitPane's divider turned on its side: a 1 px line with a white pill of 3 dots
+   (40 x 10 px); 3 px accent while hovered, dragged or focused. The hit area is 48 px tall. */
+.ui-lg-resize {
+  position: relative;
+  height: 16px;
+  margin-top: var(--space-2);
+  cursor: row-resize;
+  touch-action: none;
+  outline: none;
+}
+.ui-lg-resize::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 48px;
+  transform: translateY(-50%);
+}
+.ui-lg-resize::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  transform: translateY(-50%);
+  border-radius: 2px;
+  background: var(--line);
+  pointer-events: none;
+  transition:
+    height 0.15s ease,
+    background 0.15s ease;
+}
+.ui-lg-resize:hover::after,
+.ui-lg-resize.is-dragging::after,
+.ui-lg-resize:focus-visible::after {
+  height: 3px;
+  background: var(--accent);
+}
+.ui-lg-resize-grip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 40px;
+  height: 10px;
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface);
+  pointer-events: none;
+  transition: border-color 0.15s ease;
+}
+.ui-lg-resize-grip i {
+  display: block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  transition: background 0.15s ease;
+}
+.ui-lg-resize:hover .ui-lg-resize-grip,
+.ui-lg-resize.is-dragging .ui-lg-resize-grip,
+.ui-lg-resize:focus-visible .ui-lg-resize-grip {
+  border-color: var(--accent);
+}
+.ui-lg-resize:hover .ui-lg-resize-grip i,
+.ui-lg-resize.is-dragging .ui-lg-resize-grip i,
+.ui-lg-resize:focus-visible .ui-lg-resize-grip i {
+  background: var(--accent);
+}
+.ui-lg-resize.is-dragging {
+  user-select: none;
+}
 /* Wider than its box: a fade on the right edge while more is to the right. */
 .ui-lg-scroller::after {
   content: '';
