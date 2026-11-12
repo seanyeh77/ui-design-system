@@ -1,9 +1,7 @@
 import * as React from 'react';
 import { Alert, type AlertTone } from '../Alert/Alert';
 import { Icon } from '../../icons/Icon';
-import { Dialog } from '../Dialog/Dialog';
-import { IconButton } from '../IconButton/IconButton';
-import { tr } from '../../i18n';
+import { ColResize, TableDialog, ZoomButton } from '../../internal/tableTools';
 import { cx } from '../../internal/util';
 import { CodeView } from '../CodeView/CodeView';
 import { languageOf } from '../CodeView/tokens';
@@ -595,11 +593,9 @@ function MdDetails({ summary, children }: { summary: React.ReactNode; children: 
   );
 }
 
-// TA: a dragged column is at least this wide (px).
-const MIN_COL = 48;
-
-/** A Markdown table: column borders in the header drag (TA); the corner button shows the whole table in a wide dialog
- *  (TB). Under 480 px every row is a card instead, without either. */
+/** A Markdown table: column borders in the header drag; the corner button shows the whole table in a wide dialog.
+ *  Under 480 px every row is a card instead, without either. The border, the dialog and the copy icon are the same as
+ *  DataTable's (internal/tableTools). */
 function MdTable(p: {
   label: string;
   heads: React.ReactNode[];
@@ -610,33 +606,24 @@ function MdTable(p: {
 }) {
   const [widths, setWidths] = React.useState<number[] | null>(null);
   const [big, setBig] = React.useState(false);
-  const [dragging, setDragging] = React.useState(-1);
-  const [measured, setMeasured] = React.useState<number[]>([]);
+  const [dragging, setDragging] = React.useState(false);
   const table = React.useRef<HTMLTableElement>(null);
-  const drag = React.useRef<{ j: number; x: number; base: number[] } | null>(null);
-  const measure = React.useCallback(
-    () =>
-      // Rounded up: a fixed column a fraction of a pixel narrower than it was drawn would wrap its longest word.
-      [...(table.current?.querySelectorAll<HTMLElement>('thead th') ?? [])].map((th) => Math.ceil(th.getBoundingClientRect().width)),
-    [],
-  );
+  // Rounded up: a fixed column a fraction of a pixel narrower than it was drawn would wrap its longest word.
+  const measure = () => [...(table.current?.querySelectorAll<HTMLElement>('thead th') ?? [])].map((th) => Math.ceil(th.getBoundingClientRect().width));
+  // The drawn widths, kept for the borders' aria-valuenow (refs are not read while rendering).
+  const [measured, setMeasured] = React.useState<number[]>([]);
   React.useLayoutEffect(() => {
     const el = table.current;
     if (!el) return;
     const update = () => {
-      const m = measure();
+      const m = [...el.querySelectorAll<HTMLElement>('thead th')].map((th) => Math.ceil(th.getBoundingClientRect().width));
       setMeasured((old) => (old.length === m.length && old.every((v, i) => v === m[i]) ? old : m));
     };
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [measure]);
-  const widen = (j: number, base: number[], to: number) => {
-    const next = base.slice();
-    next[j] = Math.max(MIN_COL, Math.round(to));
-    setWidths(next);
-  };
+  }, []);
   const body = (resize: boolean) => (
     <table
       ref={resize ? table : undefined}
@@ -656,45 +643,17 @@ function MdTable(p: {
             <th key={j} style={p.align(j)}>
               {h}
               {resize ? (
-                <span
-                  className={cx('ui-md-col-resize', dragging === j && 'is-dragging')}
-                  role="separator"
-                  aria-orientation="vertical"
-                  aria-label={tr('調整「{name}」欄寬', { name: p.headText[j] })}
-                  aria-valuenow={widths?.[j] ?? measured[j] ?? 0}
-                  aria-valuemin={MIN_COL}
-                  tabIndex={0}
-                  onPointerDown={(e) => {
-                    if (e.button !== 0) return;
-                    e.preventDefault();
-                    e.currentTarget.setPointerCapture(e.pointerId);
-                    drag.current = { j, x: e.clientX, base: widths ?? measure() };
-                    setDragging(j);
+                <ColResize
+                  name={p.headText[j]}
+                  width={widths?.[j] ?? measured[j] ?? 0}
+                  start={() => (widths ?? measure())[j]}
+                  onWidth={(w) => {
+                    const next = (widths ?? measure()).slice();
+                    next[j] = w;
+                    setWidths(next);
                   }}
-                  onPointerMove={(e) => {
-                    const d = drag.current;
-                    if (d) widen(d.j, d.base, d.base[d.j] + e.clientX - d.x);
-                  }}
-                  onPointerUp={() => {
-                    drag.current = null;
-                    setDragging(-1);
-                  }}
-                  onPointerCancel={() => {
-                    drag.current = null;
-                    setDragging(-1);
-                  }}
-                  onDoubleClick={() => setWidths(null)}
-                  onKeyDown={(e) => {
-                    if (e.altKey || e.metaKey || e.ctrlKey) return;
-                    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-                      e.preventDefault();
-                      const base = widths ?? measure();
-                      widen(j, base, base[j] + (e.key === 'ArrowRight' ? 16 : -16));
-                    } else if (e.key === 'Enter') {
-                      e.preventDefault();
-                      setWidths(null);
-                    }
-                  }}
+                  onReset={() => setWidths(null)}
+                  onDragging={setDragging}
                 />
               ) : null}
             </th>
@@ -715,20 +674,18 @@ function MdTable(p: {
     </table>
   );
   return (
-    <div className={cx('ui-md-tablebox', dragging >= 0 && 'is-resizing')}>
+    <div className={cx('ui-md-tablebox', dragging && 'is-resizing')}>
       <div className="ui-md-table-tools">
-        <IconButton className="ui-md-table-big" icon="corners-out" label={tr('放大表格')} onClick={() => setBig(true)} />
+        <ZoomButton onClick={() => setBig(true)} />
       </div>
       <div className="ui-md-table-wrap" tabIndex={0} role="region" aria-label={p.label}>
         {body(true)}
       </div>
-      {big ? (
-        <Dialog open onClose={() => setBig(false)} title={tr('表格')} className="ui-md-table-dialog">
-          <div className="ui-md ui-md-table-wrap" tabIndex={0} role="region" aria-label={p.label}>
-            {body(false)}
-          </div>
-        </Dialog>
-      ) : null}
+      <TableDialog open={big} onClose={() => setBig(false)}>
+        <div className="ui-md ui-md-table-wrap" tabIndex={0} role="region" aria-label={p.label}>
+          {body(false)}
+        </div>
+      </TableDialog>
     </div>
   );
 }

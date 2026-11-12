@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { page } from 'vitest/browser';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { Markdown } from '../../index';
 
@@ -303,4 +303,16 @@ test('Markdown tables (TA): after a drag the other columns keep their words whol
   screen.getByRole('separator', { name: '調整「指令」欄寬' }).focus();
   await userEvent.setup().keyboard('{ArrowRight}');
   expect(link.getClientRects().length).toBe(1);
+});
+
+test('Markdown tables: a link clicked in the 「放大表格」 dialog closes it, as in DataTable', async () => {
+  await page.viewport(1280, 900);
+  const user = userEvent.setup();
+  const seen: string[] = [];
+  render(<Markdown onRef={(r) => seen.push(r)}>{'| 位置 |\n|---|\n| `harness/controller.py:540` |'}</Markdown>);
+  await user.click(screen.getByRole('button', { name: '放大表格' }));
+  const dialog = await screen.findByRole('dialog', { name: '表格' });
+  await user.click(dialog.querySelector('.ui-code') as HTMLElement);
+  expect(seen).toEqual(['harness/controller.py:540']);
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
 });

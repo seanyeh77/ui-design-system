@@ -10,6 +10,7 @@ import { devWarn } from '../../internal/dev';
 import { CheckMark } from '../../internal/Field';
 import { announce } from '../../announce';
 import { ScrollHint, useScrollHint } from '../../internal/scrollHint';
+import { ColResize, CopyMarkdownButton, MIN_COL, TableDialog, ZoomButton, markdownTable } from '../../internal/tableTools';
 import { cellText, isActive, matches, readUrl, resolveFilters, searchHit, writeUrl } from './filters';
 import { ColumnMenu, FilterButton, FullText, LongText, markMatch } from './parts';
 import type { DataTableColumn, DataTableFilter, DataTableView, FilterOption, FilterValue, ResolvedFilter, Row, RowKey, Total } from './types';
@@ -57,6 +58,20 @@ export interface DataTableProps<R extends Row = Record<string, unknown>> {
   stickyFirst?: boolean;
   /** 「欄位」 menu to hide columns. Default true. */
   columnMenu?: boolean;
+  /** Remembers the column widths readers drag (the borders in the header) in localStorage under this name
+   *  (ui-dt-width:<widthKey>). Without it the widths go back to width and grow when the page reloads. resetKey does not
+   *  clear them: they are the reader's own. */
+  widthKey?: string;
+  /** The 「放大表格」 icon above the table's top right: the whole table, with its search, filters, sort and pages, in a
+   *  dialog up to 1200 px wide. A click on a link inside closes the dialog. Not on phones. Default true. */
+  zoom?: boolean;
+  /** The 「複製成 Markdown」 icon in the toolbar: every row the search and filters keep (all pages), in the shown
+   *  columns and order; each cell is the column's fullText, else its searchText, else its value. Default true. */
+  copy?: boolean;
+  /** Your own text for 「複製成 Markdown」, from the same rows (all pages, sorted). */
+  copyText?: (rows: R[]) => string;
+  /** Copying failed (the browser does not allow the clipboard): say so, for example in a Toast. */
+  onCopyError?: () => void;
   /** Default 「沒有符合的資料」. */
   emptyText?: string;
   className?: string;
@@ -121,6 +136,30 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const [sumVal, setSumVal] = React.useState('all');
   // Widths (px) that columns grew to so content that cannot wrap is not cut; see the measuring effect.
   const [fit, setFit] = React.useState<Record<string, number>>({});
+  // A2: widths readers dragged (px per column key); null = width and grow decide. Remembered under widthKey.
+  const [widths, setWidthsState] = React.useState<Record<string, number> | null>(() => {
+    if (!p.widthKey) return null;
+    try {
+      const v = JSON.parse(localStorage.getItem('ui-dt-width:' + p.widthKey) || 'null');
+      return v && typeof v === 'object' ? (v as Record<string, number>) : null;
+    } catch {
+      return null;
+    }
+  });
+  const setWidths = (w: Record<string, number> | null) => {
+    setWidthsState(w);
+    if (!p.widthKey) return;
+    try {
+      if (w) localStorage.setItem('ui-dt-width:' + p.widthKey, JSON.stringify(w));
+      else localStorage.removeItem('ui-dt-width:' + p.widthKey);
+    } catch {
+      // Storage blocked or full: it works the same, without remembering.
+    }
+  };
+  // In the 「放大表格」 dialog: open, and the widths dragged there (not kept; the page's widths stay).
+  const [zoomed, setZoomed] = React.useState(false);
+  const [zoomWidths, setZoomWidths] = React.useState<Record<string, number> | null>(null);
+  const zoomRef = React.useRef<HTMLDivElement>(null);
   const [resetKey, setResetKey] = React.useState(p.resetKey);
   const resetting = resetKey !== p.resetKey;
   if (resetting) {
@@ -327,16 +366,30 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const EXP = 40;
   // A column is at least as wide as content that cannot wrap (a code chip, a link with a path): measured below.
   const minOf = (c: DataTableColumn<R>) => Math.max(c.width || (c.numeric ? 96 : 120), fit[c.key] || 0);
-  const template = [
-    expander ? EXP + 'px' : null,
-    selectable ? '46px' : null,
-    ...shownCols.map((c) => `minmax(${minOf(c)}px, ${c.grow || (c.width ? 1 : c.numeric ? 0.8 : 1)}fr)`),
-    hasAct ? actW + 'px' : null,
-  ]
-    .filter(Boolean)
-    .join(' ');
-  const minW = (expander ? EXP : 0) + (selectable ? 46 : 0) + shownCols.reduce((a, c) => a + minOf(c), 0) + (hasAct ? actW : 0);
-  const gridStyle = { gridTemplateColumns: template, minWidth: minW };
+  // Dragged widths (A2) fix every shown column in px; a column shown later starts at its least width.
+  const layout = (w: Record<string, number> | null) => {
+    const colW = (c: DataTableColumn<R>) => (w ? `${w[c.key] ?? minOf(c)}px` : `minmax(${minOf(c)}px, ${c.grow || (c.width ? 1 : c.numeric ? 0.8 : 1)}fr)`);
+    const template = [expander ? EXP + 'px' : null, selectable ? '46px' : null, ...shownCols.map(colW), hasAct ? actW + 'px' : null].filter(Boolean).join(' ');
+    const minW =
+      (expander ? EXP : 0) + (selectable ? 46 : 0) + shownCols.reduce((a, c) => a + (w ? (w[c.key] ?? minOf(c)) : minOf(c)), 0) + (hasAct ? actW : 0);
+    return { gridTemplateColumns: template, minWidth: minW };
+  };
+  const pageGrid = layout(widths);
+  const zoomGrid = layout(zoomWidths);
+  // The drawn width of each shown column (px), read from its header cell: where a first drag starts.
+  const drawn = (root: HTMLElement | null) => {
+    const out: Record<string, number> = {};
+    for (const c of shownCols) {
+      const el = root?.querySelector<HTMLElement>(`.ui-dt-head [data-col="${CSS.escape(c.key)}"]`);
+      out[c.key] = el ? Math.ceil(el.getBoundingClientRect().width) : minOf(c);
+    }
+    return out;
+  };
+  // A column is never narrower than its heading and sort arrow (headings do not wrap), nor than 48 px.
+  const headMin = (root: HTMLElement | null, key: string) => {
+    const el = root?.querySelector<HTMLElement>(`.ui-dt-head [data-col="${CSS.escape(key)}"] > :first-child`);
+    return Math.max(MIN_COL, el ? Math.ceil(el.getBoundingClientRect().width) + 24 : MIN_COL);
+  };
   // Desktop rows: a cell whose content cannot wrap and is wider than the cell (InlineCode, a path) widens its column
   // instead of being cut. Long columns truncate on purpose and are left alone. Widths only grow, until resetKey.
   // Measured once, then when the table's content changes (a page, a filter, a column shown, new rows) or web fonts
@@ -375,8 +428,13 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const cellClass = (c: DataTableColumn<R>, ci: number, ...more: unknown[]) =>
     cx('ui-dt-cell', isNum(c) && 'is-num', ci === 0 && sticky && 'is-sticky', ...more);
 
-  const head =
-    selectable && selIds.length && p.bulkActions ? (
+  const headOf = (inZoom: boolean) => {
+    const gridStyle = inZoom ? zoomGrid : pageGrid;
+    const minW = gridStyle.minWidth;
+    const w = inZoom ? zoomWidths : widths;
+    const setW = inZoom ? setZoomWidths : setWidths;
+    const root = () => (inZoom ? zoomRef.current : rootRef.current);
+    return selectable && selIds.length && p.bulkActions ? (
       <div className="ui-dt-row ui-dt-head ui-dt-bulk" role="row" style={{ minWidth: minW }}>
         <div className="ui-dt-cell" role="columnheader">
           <RowCheck v={allOn ? true : 'mixed'} label={tr('全選')} onClick={() => toggle(visIds, !allOn)} />
@@ -404,6 +462,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
               aria-sort={cur ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
               className={cellClass(c, ci)}
               style={stickyStyle(ci)}
+              data-col={c.key}
             >
               {c.sortable === false ? (
                 c.label
@@ -413,12 +472,22 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                   <Icon d={ARROWS[cur ? sort.dir : 'none']} size={14} className="ui-dt-arrow" />
                 </button>
               )}
+              {narrow ? null : (
+                <ColResize
+                  name={c.label}
+                  width={w?.[c.key] ?? minOf(c)}
+                  start={() => (w ?? drawn(root()))[c.key] ?? minOf(c)}
+                  onWidth={(px) => setW({ ...(w ?? drawn(root())), [c.key]: Math.max(headMin(root(), c.key), px) })}
+                  onReset={() => setW(null)}
+                />
+              )}
             </div>
           );
         })}
         {hasAct ? <div className="ui-dt-cell" role="columnheader" aria-label={tr('操作')} /> : null}
       </div>
     );
+  };
 
   const mark = searching ? q : '';
   const cellInner = (r: R, c: DataTableColumn<R>) => {
@@ -450,6 +519,226 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     }
     return '';
   };
+
+  // C2: every row the search and filters keep (all pages, in the current order), as a Markdown table.
+  const copyMarkdown = () => {
+    const all = list.map((x) => x.r);
+    if (p.copyText) return p.copyText(all);
+    return markdownTable(
+      shownCols.map((c) => c.label),
+      all.map((r) => shownCols.map((c) => String(c.fullText?.(r) ?? c.searchText?.(r) ?? cellText(c, get(r, c.key)) ?? ''))),
+    );
+  };
+  // The toolbar, the table and the page numbers: on the page, and again in the 「放大表格」 dialog with the same state.
+  const toolsView = (inZoom: boolean) => (
+    <div className="ui-dt-tools">
+      {search !== false ? (
+        <SearchField
+          value={q}
+          onChange={(v) => {
+            setQ(v);
+            setPage(0);
+          }}
+          placeholder={search.placeholder || tr('搜尋')}
+          label={search.placeholder || tr('搜尋')}
+          className="ui-dt-search"
+        />
+      ) : null}
+      {filters.length ? (
+        <FilterButton
+          boundary={inZoom ? zoomRef : rootRef}
+          filters={filters}
+          values={values}
+          activeCount={activeN}
+          count={(f, v) => all.filter((x) => passes(x.r, f.key) && matches(f, x.r, f.type === 'list' ? [v] : undefined)).length}
+          onChange={(key, v) => {
+            setValues({ ...values, [key]: v });
+            setPage(0);
+          }}
+          onClear={() => {
+            setValues({});
+            setPage(0);
+          }}
+        />
+      ) : null}
+      <span className="ui-dt-result">
+        {/* Shown 「6 / 6 筆」; read 「6 筆中的 6 筆」, not 「6 斜線 6 筆」. The shown one is drawn by CSS, so the page's text
+              has only the readable one (no 「6 / 6 筆6 筆中的 6 筆」 when copied or read by a tool). */}
+        <span aria-hidden="true">
+          {seenOnly(tr('{n} / {total} 筆', { n: '\u0001', total: '\u0002' }), [format.number(list.length), format.number(baseCount)])}
+        </span>
+        <span className="ui-visually-hidden">{format.fractionLabel(list.length, baseCount, tr('筆'))}</span>
+      </span>
+      {p.copy !== false ? <CopyMarkdownButton text={copyMarkdown} onCopyError={p.onCopyError} /> : null}
+      {p.columnMenu !== false && cols.length > 2 ? (
+        <ColumnMenu cols={cols} hidden={hidden} onToggle={(k) => setToggled({ ...toggled, [k]: !hidden[k] })} />
+      ) : null}
+    </div>
+  );
+  const tableView = (inZoom: boolean) => {
+    const grid = inZoom ? zoomGrid : pageGrid;
+    const pfx = inZoom ? uid + 'z' : uid;
+    return (
+      <div className={cx('ui-dt-scroller', scrollMore && !inZoom && 'has-more')}>
+        <div className="ui-dt-scroll" ref={inZoom ? undefined : scrollRef} onScroll={inZoom ? undefined : onScroll}>
+          <div className="ui-dt-table" role="table" aria-label={p.label || p.caption}>
+            {headOf(inZoom)}
+            <div ref={inZoom ? undefined : bodyRef} className="ui-dt-body" role="rowgroup">
+              {vis.length ? (
+                vis.map((x, i) => {
+                  const id = visIds[i];
+                  const on = !!sel[id];
+                  const open = expander && !!opened[id];
+                  const detailId = `${pfx}-d-${idPart(id)}`;
+                  const rowName = shownCols[0] ? String(cellText(shownCols[0], get(x.r, shownCols[0].key)) ?? '') : '';
+                  return (
+                    <React.Fragment key={id}>
+                      <div
+                        data-rid={id}
+                        ref={
+                          inZoom
+                            ? undefined
+                            : (el) => {
+                                rowEls.current[id] = el;
+                              }
+                        }
+                        role="row"
+                        // Named by its first cell (the function name, say), not by every cell and the caret's 「展開 …」.
+                        aria-labelledby={shownCols.length ? `${pfx}-n-${start + i}` : undefined}
+                        className={cx('ui-dt-row', i % 2 && 'is-even', on && 'is-selected', selectable && 'has-sel', expander && 'has-exp')}
+                        style={grid}
+                        // EC: a click anywhere on the row opens or closes its details, except on its own controls
+                        // and when the click ends a text selection. Keyboard users have the caret button.
+                        onClick={
+                          expander
+                            ? (e) => {
+                                const t = e.target as Element;
+                                if (t.closest(ROW_CONTROLS) && t.closest(ROW_CONTROLS) !== e.currentTarget) return;
+                                if (String(window.getSelection() ?? '')) return;
+                                setOpened({ ...opened, [id]: !open });
+                              }
+                            : undefined
+                        }
+                      >
+                        {expander ? (
+                          <div className="ui-dt-cell ui-dt-exp" role="cell">
+                            <button
+                              type="button"
+                              className={cx('ui-dt-exp-btn', open && 'is-open')}
+                              aria-expanded={open}
+                              aria-controls={open ? detailId : undefined}
+                              aria-label={tr(open ? '收合 {name}' : '展開 {name}', { name: rowName })}
+                              onClick={() => setOpened({ ...opened, [id]: !open })}
+                            >
+                              <Icon name="caret-right" size={16} />
+                            </button>
+                          </div>
+                        ) : null}
+                        {selectable ? (
+                          <div className="ui-dt-cell ui-dt-sel" role="cell">
+                            <RowCheck v={on} label={tr('選取第 {n} 筆', { n: start + i + 1 })} onClick={() => toggle([id], !on)} />
+                          </div>
+                        ) : null}
+                        {shownCols.map((c, ci) => (
+                          <div
+                            key={c.key}
+                            role="cell"
+                            id={ci === 0 ? `${pfx}-n-${start + i}` : undefined}
+                            // fullText: the whole text as the cell's description, not hidden text beside the short one
+                            // (that put 「ucp.c:62，src/…/ucp.c:62」 in the page's text and the phone card).
+                            aria-description={c.fullText ? c.fullText(x.r) || undefined : undefined}
+                            data-label={c.label}
+                            data-col={c.key}
+                            className={cellClass(c, ci, c.long && 'is-long', mobileClass(c, ci))}
+                            style={stickyStyle(ci)}
+                          >
+                            {cell(x.r, c)}
+                          </div>
+                        ))}
+                        {hasAct ? (
+                          <div className="ui-dt-cell ui-dt-acts" role="cell">
+                            {p.rowActions?.(x.r)}
+                          </div>
+                        ) : null}
+                      </div>
+                      {open ? (
+                        <div id={detailId} role="row" className={cx('ui-dt-detail', i % 2 && 'is-even')} style={{ minWidth: grid.minWidth }}>
+                          <div role="cell" className="ui-dt-detail-cell" style={{ paddingLeft: EXP + (selectable ? 46 : 0) + 12 }}>
+                            {longCols.map((c) => (
+                              <div key={c.key} className="ui-dt-detail-item">
+                                <div className="ui-dt-detail-label">{c.label}</div>
+                                <div className="ui-dt-detail-text">{c.fullText ? c.fullText(x.r) : cellInner(x.r, c)}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+                    </React.Fragment>
+                  );
+                })
+              ) : (
+                <div className="ui-dt-empty">
+                  {p.emptyText || tr('沒有符合的資料')}
+                  {q || activeN ? (
+                    <div>
+                      <Button onClick={clearFilters}>{tr('清除篩選')}</Button>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+            </div>
+            {p.totals && list.length ? (
+              <div className="ui-dt-row ui-dt-total" role="row" style={grid}>
+                {expander ? <div className="ui-dt-cell" role="cell" /> : null}
+                {selectable ? <div className="ui-dt-cell" role="cell" /> : null}
+                {shownCols.map((c, ci) => (
+                  <div key={c.key} role="cell" className={cellClass(c, ci)} style={stickyStyle(ci)}>
+                    {total(c, ci)}
+                  </div>
+                ))}
+                {hasAct ? <div className="ui-dt-cell" role="cell" /> : null}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    );
+  };
+  const footView = (
+    <>
+      {/* One page: the count above the table already says how many rows there are, so no range and no page numbers. */}
+      {pages > 1 ? (
+        <div className="ui-dt-foot">
+          <span className="ui-dt-range">
+            {monoNums(tr('第 {a}–{b} 筆，共 {n} 筆', { a: '\u0001', b: '\u0002', n: '\u0003' }), [
+              start + 1,
+              Math.min(list.length, start + pageSize),
+              format.number(list.length),
+            ])}
+          </span>
+          <nav className="ui-dt-pages" aria-label={tr('分頁')}>
+            <button type="button" className="ui-dt-page" aria-label={tr('上一頁')} disabled={pageNow === 0} onClick={() => goPage(pageNow - 1)}>
+              ‹
+            </button>
+            {Array.from({ length: pages }, (_, i) => (
+              <button
+                key={i}
+                type="button"
+                className={cx('ui-dt-page', i === pageNow && 'is-on')}
+                aria-current={i === pageNow ? 'page' : undefined}
+                onClick={() => goPage(i)}
+              >
+                {String(i + 1)}
+              </button>
+            ))}
+            <button type="button" className="ui-dt-page" aria-label={tr('下一頁')} disabled={pageNow >= pages - 1} onClick={() => goPage(pageNow + 1)}>
+              ›
+            </button>
+          </nav>
+        </div>
+      ) : null}
+    </>
+  );
 
   return (
     <div ref={rootRef} className={cx('ui-dt', selIds.length && 'has-sel', p.className)}>
@@ -501,199 +790,22 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
           ]}
         />
       ) : null}
-      <div className="ui-dt-tools">
-        {search !== false ? (
-          <SearchField
-            value={q}
-            onChange={(v) => {
-              setQ(v);
-              setPage(0);
-            }}
-            placeholder={search.placeholder || tr('搜尋')}
-            label={search.placeholder || tr('搜尋')}
-            className="ui-dt-search"
-          />
-        ) : null}
-        {filters.length ? (
-          <FilterButton
-            boundary={rootRef}
-            filters={filters}
-            values={values}
-            activeCount={activeN}
-            count={(f, v) => all.filter((x) => passes(x.r, f.key) && matches(f, x.r, f.type === 'list' ? [v] : undefined)).length}
-            onChange={(key, v) => {
-              setValues({ ...values, [key]: v });
-              setPage(0);
-            }}
-            onClear={() => {
-              setValues({});
-              setPage(0);
-            }}
-          />
-        ) : null}
-        <span className="ui-dt-result">
-          {/* Shown 「6 / 6 筆」; read 「6 筆中的 6 筆」, not 「6 斜線 6 筆」. The shown one is drawn by CSS, so the page's text
-              has only the readable one (no 「6 / 6 筆6 筆中的 6 筆」 when copied or read by a tool). */}
-          <span aria-hidden="true">
-            {seenOnly(tr('{n} / {total} 筆', { n: '\u0001', total: '\u0002' }), [format.number(list.length), format.number(baseCount)])}
-          </span>
-          <span className="ui-visually-hidden">{format.fractionLabel(list.length, baseCount, tr('筆'))}</span>
-        </span>
-        {p.columnMenu !== false && cols.length > 2 ? (
-          <ColumnMenu cols={cols} hidden={hidden} onToggle={(k) => setToggled({ ...toggled, [k]: !hidden[k] })} />
-        ) : null}
-      </div>
-      <div className={cx('ui-dt-scroller', scrollMore && 'has-more')}>
-        <div className="ui-dt-scroll" ref={scrollRef} onScroll={onScroll}>
-          <div className="ui-dt-table" role="table" aria-label={p.label || p.caption}>
-            {head}
-            <div ref={bodyRef} className="ui-dt-body" role="rowgroup">
-              {vis.length ? (
-                vis.map((x, i) => {
-                  const id = visIds[i];
-                  const on = !!sel[id];
-                  const open = expander && !!opened[id];
-                  const detailId = `${uid}-d-${idPart(id)}`;
-                  const rowName = shownCols[0] ? String(cellText(shownCols[0], get(x.r, shownCols[0].key)) ?? '') : '';
-                  return (
-                    <React.Fragment key={id}>
-                      <div
-                        data-rid={id}
-                        ref={(el) => {
-                          rowEls.current[id] = el;
-                        }}
-                        role="row"
-                        // Named by its first cell (the function name, say), not by every cell and the caret's 「展開 …」.
-                        aria-labelledby={shownCols.length ? `${uid}-n-${start + i}` : undefined}
-                        className={cx('ui-dt-row', i % 2 && 'is-even', on && 'is-selected', selectable && 'has-sel', expander && 'has-exp')}
-                        style={gridStyle}
-                        // EC: a click anywhere on the row opens or closes its details, except on its own controls
-                        // and when the click ends a text selection. Keyboard users have the caret button.
-                        onClick={
-                          expander
-                            ? (e) => {
-                                const t = e.target as Element;
-                                if (t.closest(ROW_CONTROLS) && t.closest(ROW_CONTROLS) !== e.currentTarget) return;
-                                if (String(window.getSelection() ?? '')) return;
-                                setOpened({ ...opened, [id]: !open });
-                              }
-                            : undefined
-                        }
-                      >
-                        {expander ? (
-                          <div className="ui-dt-cell ui-dt-exp" role="cell">
-                            <button
-                              type="button"
-                              className={cx('ui-dt-exp-btn', open && 'is-open')}
-                              aria-expanded={open}
-                              aria-controls={open ? detailId : undefined}
-                              aria-label={tr(open ? '收合 {name}' : '展開 {name}', { name: rowName })}
-                              onClick={() => setOpened({ ...opened, [id]: !open })}
-                            >
-                              <Icon name="caret-right" size={16} />
-                            </button>
-                          </div>
-                        ) : null}
-                        {selectable ? (
-                          <div className="ui-dt-cell ui-dt-sel" role="cell">
-                            <RowCheck v={on} label={tr('選取第 {n} 筆', { n: start + i + 1 })} onClick={() => toggle([id], !on)} />
-                          </div>
-                        ) : null}
-                        {shownCols.map((c, ci) => (
-                          <div
-                            key={c.key}
-                            role="cell"
-                            id={ci === 0 ? `${uid}-n-${start + i}` : undefined}
-                            // fullText: the whole text as the cell's description, not hidden text beside the short one
-                            // (that put 「ucp.c:62，src/…/ucp.c:62」 in the page's text and the phone card).
-                            aria-description={c.fullText ? c.fullText(x.r) || undefined : undefined}
-                            data-label={c.label}
-                            data-col={c.key}
-                            className={cellClass(c, ci, c.long && 'is-long', mobileClass(c, ci))}
-                            style={stickyStyle(ci)}
-                          >
-                            {cell(x.r, c)}
-                          </div>
-                        ))}
-                        {hasAct ? (
-                          <div className="ui-dt-cell ui-dt-acts" role="cell">
-                            {p.rowActions?.(x.r)}
-                          </div>
-                        ) : null}
-                      </div>
-                      {open ? (
-                        <div id={detailId} role="row" className={cx('ui-dt-detail', i % 2 && 'is-even')} style={{ minWidth: minW }}>
-                          <div role="cell" className="ui-dt-detail-cell" style={{ paddingLeft: EXP + (selectable ? 46 : 0) + 12 }}>
-                            {longCols.map((c) => (
-                              <div key={c.key} className="ui-dt-detail-item">
-                                <div className="ui-dt-detail-label">{c.label}</div>
-                                <div className="ui-dt-detail-text">{c.fullText ? c.fullText(x.r) : cellInner(x.r, c)}</div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ) : null}
-                    </React.Fragment>
-                  );
-                })
-              ) : (
-                <div className="ui-dt-empty">
-                  {p.emptyText || tr('沒有符合的資料')}
-                  {q || activeN ? (
-                    <div>
-                      <Button onClick={clearFilters}>{tr('清除篩選')}</Button>
-                    </div>
-                  ) : null}
-                </div>
-              )}
-            </div>
-            {p.totals && list.length ? (
-              <div className="ui-dt-row ui-dt-total" role="row" style={gridStyle}>
-                {expander ? <div className="ui-dt-cell" role="cell" /> : null}
-                {selectable ? <div className="ui-dt-cell" role="cell" /> : null}
-                {shownCols.map((c, ci) => (
-                  <div key={c.key} role="cell" className={cellClass(c, ci)} style={stickyStyle(ci)}>
-                    {total(c, ci)}
-                  </div>
-                ))}
-                {hasAct ? <div className="ui-dt-cell" role="cell" /> : null}
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </div>
-      <ScrollHint show={overflows} done={scrolled} />
-      {/* One page: the count above the table already says how many rows there are, so no range and no page numbers. */}
-      {pages > 1 ? (
-        <div className="ui-dt-foot">
-          <span className="ui-dt-range">
-            {monoNums(tr('第 {a}–{b} 筆，共 {n} 筆', { a: '\u0001', b: '\u0002', n: '\u0003' }), [
-              start + 1,
-              Math.min(list.length, start + pageSize),
-              format.number(list.length),
-            ])}
-          </span>
-          <nav className="ui-dt-pages" aria-label={tr('分頁')}>
-            <button type="button" className="ui-dt-page" aria-label={tr('上一頁')} disabled={pageNow === 0} onClick={() => goPage(pageNow - 1)}>
-              ‹
-            </button>
-            {Array.from({ length: pages }, (_, i) => (
-              <button
-                key={i}
-                type="button"
-                className={cx('ui-dt-page', i === pageNow && 'is-on')}
-                aria-current={i === pageNow ? 'page' : undefined}
-                onClick={() => goPage(i)}
-              >
-                {String(i + 1)}
-              </button>
-            ))}
-            <button type="button" className="ui-dt-page" aria-label={tr('下一頁')} disabled={pageNow >= pages - 1} onClick={() => goPage(pageNow + 1)}>
-              ›
-            </button>
-          </nav>
+      {toolsView(false)}
+      {p.zoom !== false && !narrow ? (
+        <div className="ui-dt-zoom">
+          <ZoomButton onClick={() => setZoomed(true)} />
         </div>
       ) : null}
+      {tableView(false)}
+      <ScrollHint show={overflows} done={scrolled} />
+      {footView}
+      <TableDialog open={zoomed} onClose={() => setZoomed(false)} title={p.caption || p.label}>
+        <div ref={zoomRef} className="ui-dt ui-dt-zoomed">
+          {toolsView(true)}
+          {tableView(true)}
+          {footView}
+        </div>
+      </TableDialog>
     </div>
   );
 }
