@@ -1,6 +1,6 @@
 {
   "name": "@seanyeh77/eslint-plugin-ui",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "description": "ESLint rules for SeanYeh's design system: token colors only, design-system components instead of native controls, no card in a card, one primary button, verb labels.",
   "license": "MIT",
   "author": "Hsiu-An Yeh",
