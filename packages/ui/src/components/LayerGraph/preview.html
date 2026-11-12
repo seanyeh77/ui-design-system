@@ -100,7 +100,16 @@
           h(
             'div',
             { style: Object.assign({}, card, { flex: '1 1 340px', minWidth: 0, marginBottom: 0 }) },
-            h(U.LayerGraph, { nodes: nodes4, edges: edges4, selected: b[0], onSelect: b[1], selectedEdge: e[0], onSelectEdge: e[1], legend: false, resizable: true }),
+            h(U.LayerGraph, {
+              nodes: nodes4,
+              edges: edges4,
+              selected: b[0],
+              onSelect: b[1],
+              selectedEdge: e[0],
+              onSelectEdge: e[1],
+              legend: false,
+              resizable: true,
+            }),
           ),
           h(
             'div',

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { afterEach, expect, test } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { Section, SectionGroup } from '../../index';
+import { Section, SectionGroup, SectionGroupToggle } from '../../index';
 
 afterEach(() => {
   localStorage.clear();
@@ -106,7 +106,7 @@ test('Section: the address hash opens it; storageKey remembers; blocked storage 
   }
 });
 
-test('SectionGroup: 「全部展開」「全部收合」 with icons; the one that changes nothing is disabled', async () => {
+test('SectionGroup (GB): one icon button, 「全部展開」 while any section is closed, then 「全部收合」', async () => {
   const user = userEvent.setup();
   render(
     <SectionGroup>
@@ -117,16 +117,33 @@ test('SectionGroup: 「全部展開」「全部收合」 with icons; the one tha
       <Section title="設定">三</Section>
     </SectionGroup>,
   );
+  const names = ['元件', '外部指令', '設定'];
   const expand = screen.getByRole('button', { name: '全部展開' });
-  const collapse = screen.getByRole('button', { name: '全部收合' });
+  expect(expand.textContent).toBe('');
   expect(expand.querySelector('svg')).not.toBeNull();
-  expect(collapse.querySelector('svg')).not.toBeNull();
+  expect(screen.queryByRole('button', { name: '全部收合' })).toBeNull();
   await user.click(expand);
-  for (const n of ['元件', '外部指令', '設定']) expect(screen.getByRole('button', { name: n }).getAttribute('aria-expanded')).toBe('true');
-  await waitFor(() => expect((expand as HTMLButtonElement).disabled).toBe(true));
+  for (const n of names) expect(screen.getByRole('button', { name: n }).getAttribute('aria-expanded')).toBe('true');
+  const collapse = await screen.findByRole('button', { name: '全部收合' });
   await user.click(collapse);
-  for (const n of ['元件', '外部指令', '設定']) expect(screen.getByRole('button', { name: n }).getAttribute('aria-expanded')).toBe('false');
-  await waitFor(() => expect((collapse as HTMLButtonElement).disabled).toBe(true));
+  for (const n of names) expect(screen.getByRole('button', { name: n }).getAttribute('aria-expanded')).toBe('false');
+  await screen.findByRole('button', { name: '全部展開' });
+});
+
+test('SectionGroup bar={false}: no row of its own; SectionGroupToggle goes where the page puts it', async () => {
+  const { container } = render(
+    <SectionGroup bar={false}>
+      <div className="card-head">
+        概觀 <SectionGroupToggle />
+      </div>
+      <Section title="元件">一</Section>
+    </SectionGroup>,
+  );
+  expect(container.querySelector('.ui-sec-bar')).toBeNull();
+  const toggle = screen.getByRole('button', { name: '全部展開' });
+  expect(toggle.closest('.card-head')).not.toBeNull();
+  await userEvent.setup().click(toggle);
+  expect(screen.getByRole('button', { name: '元件' }).getAttribute('aria-expanded')).toBe('true');
 });
 
 test('Section actions: beside the summary, outside the title button; clicking them does not toggle; under 480 px the summary goes under the title', async () => {

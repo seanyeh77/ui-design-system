@@ -2,13 +2,16 @@ import * as React from 'react';
 import { Icon } from '../../icons/Icon';
 import { tr } from '../../i18n';
 import { cx } from '../../internal/util';
-import { Button } from '../Button/Button';
+import { IconButton } from '../IconButton/IconButton';
 
 /** What a SectionGroup shares with its sections: the last 「全部展開／全部收合」 and who is open. */
 interface GroupCtx {
   /** Bumped on every 「全部展開／全部收合」, with the state it asked for. */
   all: { n: number; open: boolean };
   report: (key: string, open: boolean | null) => void;
+  /** Some section is closed (or none reported yet): the toggle opens all; otherwise it closes all. */
+  anyClosed: boolean;
+  setAll: (open: boolean) => void;
 }
 const Group = React.createContext<GroupCtx | null>(null);
 
@@ -169,17 +172,20 @@ export function Section(p: SectionProps) {
 }
 
 export interface SectionGroupProps {
-  /** Sections. 「全部展開」「全部收合」 sit above them on the right, each with an icon; the one that would change nothing
-   *  is disabled. */
+  /** Sections. One icon button above them on the right opens them all, or closes them all once all are open
+   *  (「全部展開」「全部收合」 as its tooltip and name). */
   children?: React.ReactNode;
-  /** More controls on the same row, left of the two buttons. */
+  /** More controls on the same row, left of the button. */
   actions?: React.ReactNode;
+  /** false: no row above the sections; put <SectionGroupToggle /> where you want it, such as the card's title row next
+   *  to its other icon buttons. It must be inside the SectionGroup. Default true. */
+  bar?: boolean;
   className?: string;
 }
 
-/** A run of Sections with 「全部展開」 and 「全部收合」 above them. */
-export function SectionGroup({ children, actions, className }: SectionGroupProps) {
-  const [all, setAll] = React.useState({ n: 0, open: false });
+/** A run of Sections with one 「全部展開／全部收合」 icon button. */
+export function SectionGroup({ children, actions, bar = true, className }: SectionGroupProps) {
+  const [all, setAllState] = React.useState({ n: 0, open: false });
   const [states, setStates] = React.useState<Record<string, boolean>>({});
   const report = React.useCallback((key: string, open: boolean | null) => {
     setStates((s) => {
@@ -187,20 +193,41 @@ export function SectionGroup({ children, actions, className }: SectionGroupProps
       return s[key] === open ? s : { ...s, [key]: open };
     });
   }, []);
-  const ctx = React.useMemo(() => ({ all, report }), [all, report]);
+  const setAll = React.useCallback((open: boolean) => setAllState((a) => ({ n: a.n + 1, open })), []);
   const vals = Object.values(states);
+  const anyClosed = vals.length === 0 || vals.some((v) => !v);
+  const ctx = React.useMemo(() => ({ all, report, anyClosed, setAll }), [all, report, anyClosed, setAll]);
   return (
-    <div className={cx('ui-sec-group', className)}>
-      <div className="ui-sec-bar">
-        {actions ?? null}
-        <Button icon="arrows-out-line-vertical" disabled={vals.length > 0 && vals.every(Boolean)} onClick={() => setAll((a) => ({ n: a.n + 1, open: true }))}>
-          {tr('全部展開')}
-        </Button>
-        <Button icon="arrows-in-line-vertical" disabled={!vals.some(Boolean)} onClick={() => setAll((a) => ({ n: a.n + 1, open: false }))}>
-          {tr('全部收合')}
-        </Button>
+    <Group.Provider value={ctx}>
+      <div className={cx('ui-sec-group', className)}>
+        {bar ? (
+          <div className="ui-sec-bar">
+            {actions ?? null}
+            <SectionGroupToggle />
+          </div>
+        ) : null}
+        {children}
       </div>
-      <Group.Provider value={ctx}>{children}</Group.Provider>
-    </div>
+    </Group.Provider>
+  );
+}
+
+export interface SectionGroupToggleProps {
+  className?: string;
+}
+
+/** GB: the 「全部展開／全部收合」 icon button of the SectionGroup around it, for a place of your own (with bar={false}).
+ *  Opens every section while any is closed, else closes them all; its tooltip and name say which. */
+export function SectionGroupToggle({ className }: SectionGroupToggleProps) {
+  const g = React.useContext(Group);
+  if (!g) return null;
+  const open = g.anyClosed;
+  return (
+    <IconButton
+      className={cx('ui-sec-toggle', className)}
+      icon={open ? 'arrows-out-line-vertical' : 'arrows-in-line-vertical'}
+      label={open ? tr('全部展開') : tr('全部收合')}
+      onClick={() => g.setAll(open)}
+    />
   );
 }
