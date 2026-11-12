@@ -5046,6 +5046,54 @@ html.ui-theme-fade * {
 .ui-cv-ref:is(button) {
   cursor: pointer;
 }
+/* A name in the code that is a link (links): keeps its syntax colour, with a faint dotted underline (accent-text at
+   55 %, opaque on the target line's soft background), 3 px below the text so it never merges with an underscore.
+   It only acts while Ctrl or ⌘ is held (is-armed): then hover turns it into a solid 2 px link-coloured underline and a
+   hand cursor. A plain click selects text. Touch screens have no Ctrl: a tap opens it, so the cursor is a hand there. */
+.ui-cv-name {
+  color: inherit;
+  text-decoration: underline dotted color-mix(in srgb, var(--accent-text) 55%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  border-radius: 2px;
+  cursor: text;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  -webkit-user-drag: none;
+}
+.ui-cv-line.is-target .ui-cv-name {
+  text-decoration-color: var(--accent-text);
+}
+.ui-cv-body.is-armed .ui-cv-name:hover,
+.ui-cv-name:focus-visible {
+  color: var(--accent-text);
+  text-decoration-style: solid;
+  text-decoration-color: var(--accent-text);
+  text-decoration-thickness: 2px;
+}
+.ui-cv-body.is-armed .ui-cv-name:hover :is(.is-keyword, .is-constant, .is-string),
+.ui-cv-name:focus-visible :is(.is-keyword, .is-constant, .is-string) {
+  color: inherit;
+}
+.ui-cv-body.is-armed .ui-cv-name:hover {
+  cursor: pointer;
+}
+.ui-cv-name:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+@media (pointer: coarse) {
+  .ui-cv-name {
+    cursor: pointer;
+  }
+}
+/* The preview card under a name (preview). */
+.ui-cv-preview {
+  max-width: 320px;
+  padding: var(--space-3);
+  font-size: 13px;
+  line-height: 20px;
+}
 .ui-cv-sr {
   user-select: none;
   -webkit-user-select: none;

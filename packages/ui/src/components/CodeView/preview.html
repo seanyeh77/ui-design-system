@@ -21,8 +21,29 @@
         '    return ret;',
         '}',
       ].join('\n');
+      // Names that are links: hold Ctrl or ⌘ and click, or Tab into the code and use ← → and Enter.
+      var links = [
+        { line: 72, text: 'ibt_hook_context_get', label: 'ibt_hook_context_get，定義在 src/libibtrace/hook.c:88', def: 'src/libibtrace/hook.c:88' },
+        { line: 74, text: 'ibt_span_begin', label: 'ibt_span_begin，定義在 src/libibtrace/span.c:31', def: 'src/libibtrace/span.c:31' },
+        { line: 76, text: 'ibt_span_end_args', label: 'ibt_span_end_args，定義在 src/libibtrace/span.c:57', def: 'src/libibtrace/span.c:57' },
+      ];
       ReactDOM.createRoot(document.getElementById('root')).render(
-        h('div', { style: { maxWidth: 620 } }, h(U.CodeView, { file: 'src/libibtrace/hooks/ops.c', fileHref: '#', code: code, start: 70, target: 75 })),
+        h(
+          'div',
+          { style: { maxWidth: 620 } },
+          h(U.CodeView, {
+            file: 'src/libibtrace/hooks/ops.c',
+            fileHref: '#',
+            code: code,
+            start: 70,
+            target: 75,
+            links: links,
+            onLink: function () {},
+            preview: function (l) {
+              return h('div', null, h('div', { style: { fontFamily: 'var(--font-mono)', fontWeight: 600 } }, l.text), h('div', null, '定義在 ', h(U.InlineCode, { href: '#' }, l.def)));
+            },
+          }),
+        ),
       );
     </script>
   </body>
