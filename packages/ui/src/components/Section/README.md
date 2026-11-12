@@ -29,7 +29,9 @@ h(UI.Section, { id: 'external', title: '外部指令', summary: '29 個指令、
 一組 Section，上方右側有一個「全部展開／全部收合」圖示按鈕：只要有一段收合著，按了全部展開（滑過顯示「全部展開」）；全部都展開後，按了全部收合。
 
 ```js
-h(UI.SectionGroup, null,
+h(
+  UI.SectionGroup,
+  null,
   h(UI.Section, { title: '元件', summary: '6 個元件、138 個函式', defaultOpen: true }, '…'),
   h(UI.Section, { title: '外部指令', summary: '29 個指令', lazy: true }, '…'),
 );
@@ -39,8 +41,12 @@ h(UI.SectionGroup, null,
 - `bar={false}`：不另外佔一列，把 `UI.SectionGroupToggle` 放在你要的位置，例如卡片標題列、和其他圖示按鈕並排。`SectionGroupToggle` 要在 `SectionGroup` 裡面：
 
 ```js
-h(UI.SectionGroup, { bar: false },
-  h('div', { className: 'card-head' },
+h(
+  UI.SectionGroup,
+  { bar: false },
+  h(
+    'div',
+    { className: 'card-head' },
     h('h2', null, '概觀'),
     h(UI.SectionGroupToggle),
     h(UI.IconButton, { icon: 'copy', label: '複製成 Markdown', onClick: copyAll }),

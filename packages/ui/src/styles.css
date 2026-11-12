@@ -1747,6 +1747,32 @@ body {
 .ui-dt-head .ui-dt-cell {
   font-family: var(--font-sans);
 }
+/* A2: the right border of each heading drags (internal/tableTools ColResize, shared with Markdown tables). */
+.ui-dt-head .ui-dt-cell:not(.is-sticky) {
+  position: relative;
+}
+.ui-dt-head .ui-col-resize {
+  right: 0;
+  width: 8px;
+}
+.ui-dt-head .ui-col-resize::after {
+  left: auto;
+  right: -1px;
+  transform: none;
+}
+/* B2: 「放大表格」 above the table's top right, as on Markdown tables. */
+.ui-dt-zoom {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-1);
+}
+.ui-dt-zoomed .ui-dt-scroll {
+  max-height: calc(100vh - 280px);
+  overflow: auto;
+}
+.ui-table-copy.is-copied {
+  color: var(--success-text);
+}
 .ui-dt-sort {
   display: inline-flex;
   align-items: center;
@@ -6476,18 +6502,18 @@ html.ui-theme-fade * {
   justify-content: flex-end;
   margin-bottom: var(--space-1);
 }
-.ui-md-table-big {
+.ui-table-zoom {
   width: 32px;
   height: 32px;
   border-color: transparent;
 }
-.ui-md-table-big:hover {
+.ui-table-zoom:hover {
   background: var(--surface-sub);
 }
-.ui-dialog.ui-md-table-dialog {
+.ui-dialog.ui-table-dialog {
   width: min(1200px, calc(100vw - 48px));
 }
-.ui-md-table-dialog .ui-md-table-wrap {
+.ui-table-dialog .ui-md-table-wrap {
   max-height: calc(100vh - 200px);
   overflow: auto;
 }
@@ -6495,7 +6521,7 @@ html.ui-theme-fade * {
 .ui-md-table th {
   position: relative;
 }
-.ui-md-col-resize {
+.ui-col-resize {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -6506,11 +6532,11 @@ html.ui-theme-fade * {
   touch-action: none;
   outline: none;
 }
-.ui-md-table th:last-child .ui-md-col-resize {
+.ui-md-table th:last-child .ui-col-resize {
   right: 0;
   width: 6px;
 }
-.ui-md-col-resize::after {
+.ui-col-resize::after {
   content: '';
   position: absolute;
   top: 0;
@@ -6522,19 +6548,19 @@ html.ui-theme-fade * {
   background: var(--accent);
   transition: width 0.15s ease;
 }
-.ui-md-table th:last-child .ui-md-col-resize::after {
+.ui-md-table th:last-child .ui-col-resize::after {
   left: auto;
   right: 0;
   transform: none;
 }
-.ui-md-col-resize:hover::after,
-.ui-md-col-resize.is-dragging::after,
-.ui-md-col-resize:focus-visible::after {
+.ui-col-resize:hover::after,
+.ui-col-resize.is-dragging::after,
+.ui-col-resize:focus-visible::after {
   width: 3px;
 }
 /* A finger cannot hit an 11 px border: on touch screens the corner button shows the whole table instead. */
 @media (pointer: coarse) {
-  .ui-md-col-resize {
+  .ui-col-resize {
     display: none;
   }
 }
@@ -6567,7 +6593,7 @@ html.ui-theme-fade * {
   .ui-md-table-tools {
     display: none;
   }
-  .ui-md-col-resize {
+  .ui-col-resize {
     display: none;
   }
   .ui-md-table {

@@ -83,7 +83,8 @@ test('a long cell cut off on desktop shows the whole text on focus', async () =>
   expect(cell.tabIndex).toBe(0);
   // Keyboard focus, as a person tabbing through the table.
   const user = userEvent.setup();
-  for (let i = 0; i < 6 && document.activeElement !== cell; i++) await user.tab();
+  // The heading borders, 「複製成 Markdown」 and 「放大表格」 come first now.
+  for (let i = 0; i < 16 && document.activeElement !== cell; i++) await user.tab();
   expect(document.activeElement).toBe(cell);
   await waitFor(() => expect(document.querySelector('.ui-tooltip')?.textContent).toBe(LONG));
 });
@@ -387,4 +388,100 @@ test('summary on a phone: equal tabs while they fit; longer ones keep their text
   for (let i = 1; i < tabs.length; i++) expect(tabs[i].getBoundingClientRect().left).toBeGreaterThanOrEqual(tabs[i - 1].getBoundingClientRect().right - 0.5);
   for (const t of tabs) expect(t.scrollWidth).toBeLessThanOrEqual(t.clientWidth + 1);
   await page.viewport(1280, 800);
+});
+
+// DataTable lines up with Markdown tables: dragged column widths (remembered under widthKey), 「放大表格」 and
+// 「複製成 Markdown」.
+type Fn = { id: string; fn: string; rel: string; loc: string };
+const fnRows: Fn[] = [
+  { id: '1', fn: 'VirtualRouter._sync_as', rel: '呼叫 VirtualRouter._monitor_loop', loc: 'controller.py:540' },
+  { id: '2', fn: '_run', rel: '呼叫 subprocess.run', loc: 'controller.py:91' },
+  { id: '3', fn: 'Oracle.flow_priority', rel: '被 controller.py 呼叫', loc: 'oracle.py:126' },
+];
+const fnCols = [
+  { key: 'fn' as const, label: '函式', grow: 2 },
+  { key: 'rel' as const, label: '關係', searchText: (r: Fn) => r.rel + '（直接）' },
+  { key: 'loc' as const, label: '位置', fullText: (r: Fn) => 'harness/' + r.loc, render: (r: Fn) => <InlineCode onClick={() => {}}>{r.loc}</InlineCode> },
+];
+
+test('DataTable widths: a heading border drags with ← →; Enter back to width and grow; widthKey remembers', async () => {
+  await page.viewport(1280, 900);
+  localStorage.removeItem('ui-dt-width:impact');
+  const user = userEvent.setup();
+  const { unmount } = render(<DataTable columns={fnCols} rows={fnRows} label="受影響的函式" widthKey="impact" urlSync={false} />);
+  const head = () => screen.getByRole('columnheader', { name: /關係/ });
+  const w0 = head().getBoundingClientRect().width;
+  const bar = screen.getByRole('separator', { name: '調整「關係」欄寬' });
+  bar.focus();
+  await user.keyboard('{ArrowRight}{ArrowRight}');
+  expect(Math.abs(head().getBoundingClientRect().width - (w0 + 32))).toBeLessThanOrEqual(1);
+  expect(JSON.parse(localStorage.getItem('ui-dt-width:impact') || '{}').rel).toBe(Math.ceil(w0) + 32);
+  unmount();
+  render(<DataTable columns={fnCols} rows={fnRows} label="受影響的函式" widthKey="impact" urlSync={false} />);
+  expect(Math.abs(head().getBoundingClientRect().width - (w0 + 32))).toBeLessThanOrEqual(1);
+  // Never narrower than the heading and its sort arrow, nor 48 px.
+  screen.getByRole('separator', { name: '調整「關係」欄寬' }).focus();
+  for (let i = 0; i < 30; i++) await user.keyboard('{ArrowLeft}');
+  const sortBtn = head().querySelector('.ui-dt-sort') as HTMLElement;
+  expect(head().getBoundingClientRect().width).toBeGreaterThanOrEqual(Math.max(48, sortBtn.getBoundingClientRect().width + 24 - 1));
+  await user.keyboard('{Enter}');
+  expect(localStorage.getItem('ui-dt-width:impact')).toBeNull();
+  expect(Math.abs(head().getBoundingClientRect().width - w0)).toBeLessThanOrEqual(1);
+});
+
+test('DataTable widths: no borders on phone cards', async () => {
+  await page.viewport(390, 800);
+  render(<DataTable columns={fnCols} rows={fnRows} label="受影響的函式" urlSync={false} />);
+  expect(screen.queryByRole('separator')).toBeNull();
+  expect(screen.queryByRole('button', { name: '放大表格' })).toBeNull();
+  expect(screen.getByRole('button', { name: '複製成 Markdown' })).toBeTruthy();
+});
+
+test('DataTable zoom: the same table, search and sort in a dialog; a link click closes it', async () => {
+  await page.viewport(1280, 900);
+  const user = userEvent.setup();
+  let opened = '';
+  const cols = fnCols.map((c) => (c.key === 'loc' ? { ...c, render: (r: Fn) => <InlineCode onClick={() => (opened = r.loc)}>{r.loc}</InlineCode> } : c));
+  render(<DataTable columns={cols} rows={fnRows} label="受影響的函式" urlSync={false} />);
+  await user.click(screen.getByRole('button', { name: '放大表格' }));
+  const dialog = await screen.findByRole('dialog', { name: '受影響的函式' });
+  expect(dialog.getBoundingClientRect().width).toBeGreaterThan(1000);
+  const box = dialog.querySelector('input[type="search"]') as HTMLInputElement;
+  await user.type(box, 'oracle');
+  expect(dialog.querySelectorAll('.ui-dt-body [role="row"]').length).toBe(1);
+  await user.click(dialog.querySelector('.ui-code') as HTMLElement);
+  expect(opened).toBe('oracle.py:126');
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  // The page's table kept the search typed in the dialog.
+  expect((document.querySelector('.ui-dt input[type="search"]') as HTMLInputElement).value).toBe('oracle');
+});
+
+test('DataTable copy: every kept row (all pages) in the shown columns; fullText, then searchText, then the value; copyText overrides', async () => {
+  await page.viewport(1280, 900);
+  const user = userEvent.setup();
+  const writes: string[] = [];
+  const clip = navigator.clipboard;
+  Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: (t: string) => (writes.push(t), Promise.resolve()) } });
+  try {
+    const { unmount } = render(<DataTable columns={fnCols} rows={fnRows} label="受影響的函式" pageSize={2} urlSync={false} />);
+    await user.click(screen.getByRole('button', { name: '複製成 Markdown' }));
+    expect(writes[0]).toBe(
+      [
+        '| 函式 | 關係 | 位置 |',
+        '|---|---|---|',
+        '| VirtualRouter._sync_as | 呼叫 VirtualRouter._monitor_loop（直接） | harness/controller.py:540 |',
+        '| _run | 呼叫 subprocess.run（直接） | harness/controller.py:91 |',
+        '| Oracle.flow_priority | 被 controller.py 呼叫（直接） | harness/oracle.py:126 |',
+      ].join('\n'),
+    );
+    await screen.findByRole('button', { name: '已複製' });
+    unmount();
+    render(
+      <DataTable columns={fnCols} rows={fnRows} label="受影響的函式" urlSync={false} copyText={(rs) => rs.map((r) => `[${r.fn}](fn:${r.fn})`).join('\n')} />,
+    );
+    await user.click(screen.getByRole('button', { name: '複製成 Markdown' }));
+    expect(writes[1]).toBe('[VirtualRouter._sync_as](fn:VirtualRouter._sync_as)\n[_run](fn:_run)\n[Oracle.flow_priority](fn:Oracle.flow_priority)');
+  } finally {
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: clip });
+  }
 });
