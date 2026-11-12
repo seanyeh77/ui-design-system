@@ -1,5 +1,19 @@
 # @seanyeh77/ui
 
+## 0.21.0
+
+### Minor Changes
+
+- a52da0f: 表格調整與全部展開：
+  
+  - Markdown 表格：表頭的欄位邊框可以拖拉調整欄寬（鍵盤 ← →，Enter 或雙擊回到依內容的寬度）；右上方的「放大表格」圖示在全寬對話框裡看整張表。
+  - SectionGroup：「全部展開」「全部收合」合成一個圖示按鈕。新的 `bar={false}` 與新元件 `SectionGroupToggle`，把按鈕放到卡片標題列。
+  - 圖示：新增 `corners-out`。
+
+### Patch Changes
+
+- 09c2354: Markdown 表格：名稱與路徑不再被拆成一字一行。Markdown 改用 `overflow-wrap: break-word`（原本 `anywhere` 讓表格以為每欄都能縮到一個字寬，把 `VirtualRouter._probe_neighbor` 這類名稱壓成一字一行）；格子裡的路徑不換行，指令在空白處換行並至少 16 em 寬；放不下時表格左右捲動。
+
 ## 0.20.0
 
 ### Minor Changes
