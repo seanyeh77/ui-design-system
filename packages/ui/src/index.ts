@@ -25,7 +25,7 @@ export type { CardProps } from './components/Card/Card';
 export { Checkbox } from './components/Checkbox/Checkbox';
 export type { CheckboxProps } from './components/Checkbox/Checkbox';
 export { CodeView } from './components/CodeView/CodeView';
-export type { CodeViewHandle, CodeViewProps } from './components/CodeView/CodeView';
+export type { CodeLink, CodeViewHandle, CodeViewProps } from './components/CodeView/CodeView';
 export { CommandPalette } from './components/CommandPalette/CommandPalette';
 export type { CommandPaletteProps, PaletteItem } from './components/CommandPalette/CommandPalette';
 export { DangerZone } from './components/DangerZone/DangerZone';

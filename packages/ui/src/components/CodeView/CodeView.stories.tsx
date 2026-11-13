@@ -36,3 +36,53 @@ export const NarrowWrap = {
     </div>
   ),
 };
+
+// Names in the code that are links: hold Ctrl or ⌘ and click, or Tab into the code and use ← → and Enter.
+const lab3 = [
+  'def main(argv=None):',
+  '    args = parse_args(argv)',
+  '    topo = Topology.build(args.topology)',
+  '    # Deployment steps: harness/runtime.py:591',
+  '    emit(runtime.deploy(args.plane))',
+  '    return topo.wait()',
+].join('\n');
+const defs: Record<string, [string, string]> = {
+  parse_args: ['harness/cli.py:12', 'Parse the lab3 command-line arguments.'],
+  'Topology.build': ['harness/lab3_topo.py:58', 'Build the Mininet topology for one plane.'],
+  emit: ['harness/report.py:15', 'Write one result record to stdout as JSON.'],
+  'runtime.deploy': ['harness/runtime.py:591', 'Deploy the routers of a plane and return their handles.'],
+};
+const calls = [
+  { line: 51, col: 12, text: 'parse_args' },
+  { line: 52, text: 'Topology.build' },
+  { line: 54, col: 5, text: 'emit' },
+  { line: 54, text: 'runtime.deploy' },
+].map((c) => ({ ...c, href: '#/fn/' + c.text, label: `${c.text}，定義在 ${defs[c.text][0]}`, def: defs[c.text][0], doc: defs[c.text][1] }));
+export const NameLinks = {
+  render: function Render() {
+    const [opened, setOpened] = React.useState('');
+    return (
+      <div style={{ maxWidth: 620, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <UI.CodeView
+          file="harness/lab3.py"
+          code={lab3}
+          start={50}
+          target={54}
+          links={calls}
+          refHref={(p) => '#/file/' + p}
+          onLink={(l) => setOpened(l.def)}
+          preview={(l) => (
+            <div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{l.text}</div>
+              <div>
+                定義在 <UI.InlineCode href={'#/file/' + l.def}>{l.def}</UI.InlineCode>
+              </div>
+              <div style={{ color: 'var(--ink-muted)' }}>{l.doc}</div>
+            </div>
+          )}
+        />
+        {opened ? <span>開啟：{opened}</span> : null}
+      </div>
+    );
+  },
+};

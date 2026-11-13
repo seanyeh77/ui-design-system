@@ -143,3 +143,153 @@ test('CodeView line numbers (VA): 12 px from the left edge, 16 px before the cod
   const text = cv.querySelector('.ui-cv-text') as HTMLElement;
   expect(Math.round(text.getBoundingClientRect().left - digits.right)).toBe(16);
 });
+
+const LAB3 = [
+  'def main(argv=None):',
+  '    args = parse_args(argv)',
+  '    # Deployment steps: harness/runtime.py:591',
+  '    emit(runtime.deploy(args.plane))',
+  '    rt = runtime',
+  '    rt.deploy(args.plane)',
+  '    return emit(args)',
+].join('\n');
+
+test('links: whole names by col or by the first match; a name that does not match is left out with a warning', () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  try {
+    const links = [
+      { line: 51, text: 'parse_args', col: 12 },
+      { line: 53, text: 'emit', col: 5 },
+      { line: 53, text: 'runtime.deploy', label: 'runtime.deploy，定義在 harness/runtime.py:591' },
+      // not in the code as a whole name: rt.deploy is not runtime.deploy
+      { line: 55, text: 'runtime.deploy' },
+      // wrong column
+      { line: 56, text: 'emit', col: 3 },
+      { line: 99, text: 'emit' },
+    ];
+    const { container } = render(<CodeView file="harness/lab3.py" code={LAB3} start={50} target={53} links={links} refHref={(p) => '#' + p} />);
+    const names = [...container.querySelectorAll<HTMLElement>('.ui-cv-name')];
+    expect(names.map((a) => a.textContent)).toEqual(['parse_args', 'emit', 'runtime.deploy']);
+    expect(names[2].getAttribute('aria-label')).toBe('runtime.deploy，定義在 harness/runtime.py:591');
+    // the whole dotted name is one link, even when the tokenizer splits it
+    expect(names[2].closest('[role="listitem"]')?.getAttribute('data-n')).toBe('53');
+    // one Tab stop: names and paths are reached with the arrow keys
+    for (const a of container.querySelectorAll<HTMLElement>('.ui-cv-name, .ui-cv-ref')) expect(a.tabIndex).toBe(-1);
+    const said = warn.mock.calls.map((c) => String(c[0])).join('\n');
+    expect(said).toContain('第 55 行找不到完整的「runtime.deploy」');
+    expect(said).toContain('第 56 行第 3 欄不是「emit」');
+    expect(said).toContain('第 99 行不在程式碼裡');
+  } finally {
+    warn.mockRestore();
+  }
+});
+
+test('links: a plain click selects text, Ctrl or ⌘ + click and Enter open the link', async () => {
+  const user = userEvent.setup();
+  const onLink = vi.fn();
+  const links = [{ line: 53, text: 'runtime.deploy', href: '#deploy', id: 'f591' }];
+  const { container } = render(<CodeView code={LAB3} start={50} links={links} onLink={onLink} />);
+  const a = container.querySelector('.ui-cv-name') as HTMLElement;
+  await user.click(a);
+  expect(onLink).not.toHaveBeenCalled();
+  expect(location.hash).not.toBe('#deploy');
+  await user.keyboard('{Control>}');
+  await user.click(a);
+  await user.keyboard('{/Control}');
+  expect(onLink).toHaveBeenCalledTimes(1);
+  // the same object that was passed in, with the page's own fields
+  expect(onLink.mock.calls[0][0]).toBe(links[0]);
+  expect(location.hash).not.toBe('#deploy');
+  a.focus();
+  await user.keyboard('{Enter}');
+  expect(onLink).toHaveBeenCalledTimes(2);
+});
+
+test('links: Ctrl or ⌘ held over the code arms the names', async () => {
+  const user = userEvent.setup();
+  const { container } = render(<CodeView code={LAB3} start={50} links={[{ line: 53, text: 'emit' }]} />);
+  const pre = container.querySelector('pre') as HTMLElement;
+  await user.hover(pre);
+  await user.keyboard('{Control>}');
+  expect(pre.classList.contains('is-armed')).toBe(true);
+  await user.keyboard('{/Control}');
+  expect(pre.classList.contains('is-armed')).toBe(false);
+});
+
+test('links: ↑ ↓ move by line, ← → between links, Esc back to the line and then to the code', async () => {
+  const user = userEvent.setup();
+  const links = [
+    { line: 51, text: 'parse_args' },
+    { line: 53, text: 'emit' },
+    { line: 53, text: 'runtime.deploy' },
+  ];
+  const { container } = render(<CodeView file="harness/lab3.py" code={LAB3} start={50} target={53} links={links} refHref={(p) => '#' + p} />);
+  const pre = container.querySelector('pre') as HTMLElement;
+  const line = (n: number) => container.querySelector(`[data-n="${n}"]`);
+  pre.focus();
+  await user.keyboard('{ArrowDown}');
+  expect(document.activeElement).toBe(line(53));
+  await user.keyboard('{ArrowUp}');
+  expect(document.activeElement).toBe(line(52));
+  // the path in the comment is a stop too
+  await user.keyboard('{ArrowRight}');
+  expect(document.activeElement?.textContent).toBe('harness/runtime.py:591');
+  await user.keyboard('{ArrowRight}');
+  expect(document.activeElement?.textContent).toBe('emit');
+  await user.keyboard('{ArrowRight}');
+  expect(document.activeElement?.textContent).toBe('runtime.deploy');
+  // the last link stays put
+  await user.keyboard('{ArrowRight}');
+  expect(document.activeElement?.textContent).toBe('runtime.deploy');
+  await user.keyboard('{ArrowLeft}{ArrowLeft}{ArrowLeft}{ArrowLeft}');
+  expect(document.activeElement?.textContent).toBe('parse_args');
+  await user.keyboard('{Escape}');
+  expect(document.activeElement).toBe(line(51));
+  await user.keyboard('{Escape}');
+  expect(document.activeElement).toBe(pre);
+  // one Tab stop: the next Tab leaves the code
+  await user.keyboard('{ArrowRight}');
+  expect(document.activeElement?.textContent).toBe('emit');
+  expect(pre.getAttribute('aria-keyshortcuts')).toContain('ArrowLeft');
+});
+
+test('links: without links the arrow keys still scroll, as before', async () => {
+  const user = userEvent.setup();
+  const { container } = render(<CodeView code={LAB3} start={50} target={53} />);
+  const pre = container.querySelector('pre') as HTMLElement;
+  pre.focus();
+  await user.keyboard('{ArrowDown}');
+  expect(document.activeElement).toBe(pre);
+  expect(pre.getAttribute('aria-keyshortcuts')).not.toContain('ArrowLeft');
+});
+
+test('links: the preview shows after 500 ms of keyboard focus, and Esc closes it', async () => {
+  const user = userEvent.setup();
+  const links = [{ line: 53, text: 'runtime.deploy' }];
+  const { container } = render(<CodeView code={LAB3} start={50} target={53} links={links} preview={(l) => <span>預覽 {l.text}</span>} />);
+  (container.querySelector('pre') as HTMLElement).focus();
+  await user.keyboard('{ArrowRight}');
+  expect(document.activeElement?.textContent).toBe('runtime.deploy');
+  expect(screen.queryByText('預覽 runtime.deploy')).toBeNull();
+  await waitFor(() => expect(screen.getByText('預覽 runtime.deploy')).toBeTruthy(), { timeout: 1500 });
+  const card = screen.getByText('預覽 runtime.deploy').closest('.ui-cv-preview') as HTMLElement;
+  expect(document.activeElement?.getAttribute('aria-describedby')).toBe(card.id);
+  // no native tooltip next to the card
+  expect(document.activeElement?.hasAttribute('title')).toBe(false);
+  await user.keyboard('{Escape}');
+  await waitFor(() => expect(screen.queryByText('預覽 runtime.deploy')).toBeNull());
+  expect(document.activeElement?.textContent).toBe('runtime.deploy');
+});
+
+test('links: a name split by wrapping stays one link', () => {
+  const code = '        ctl.attach(router, priority=Oracle.flow_priority_for_the_router(router, args.plane, default=DEFAULT_PRIORITY))';
+  const { container } = render(
+    <div style={{ width: 300 }}>
+      <CodeView code={code} links={[{ line: 1, text: 'Oracle.flow_priority_for_the_router' }]} />
+    </div>,
+  );
+  const a = container.querySelectorAll('.ui-cv-name');
+  expect(a.length).toBe(1);
+  expect(a[0].textContent).toBe('Oracle.flow_priority_for_the_router');
+  expect(getComputedStyle(a[0]).textDecorationStyle).toBe('dotted');
+});
