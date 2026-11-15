@@ -458,6 +458,19 @@ Claude 定的細節（待確認）：
 - CodeView：`refHref`、`onRef` 只用在註解和字串裡的路徑；有資料夾和副檔名、或檔名加行號才算。
 - LayerGraph `countLabel`、`sizeLabel` 可以是函式；預設英文單數「1 call」「1 item」。
 
+## 跳過連結、無內距卡片、表格單位的錯誤
+
+使用者轉來的回報（節錄）：ibtrace 報告頁在深色模式左上角（側欄品牌名稱上方）有一塊較黑的區域；`Card` 設 `padding: false` 放 DataTable 時標題貼齊卡片左緣、計數單獨一列貼齊右緣；DataTable 欄位設 `unit: 'ms'` 顯示成「212.4ms」，規範是數字、空格、單位。
+
+- 跳過連結：在畫面外時沒有陰影，聚焦時才有陰影與焦點框。
+- `padding: false` 的卡片：標題列與 DataTable 的工具列、分段控制、頁碼、捲動提示保留 16 px 內距，和一般卡片相同。
+- 單位：數字和單位包在同一個行內元素裡，空格不再被 flex 丟掉。
+
+Claude 定的細節（待確認）：
+
+- 無內距卡片裡的表格拿掉左右框線與圓角，貼齊卡片邊緣，保留上下框線；DataTable 底下留 16 px。
+- 卡片裡放表格時，標題寫在 Card 的 `title`，DataTable 給同樣文字的 `label`、不給 `caption`；`caption` 留給沒有包在 Card 裡的表格（寫在 Card README，dashboard 範本照做）。表格標題的字級另外做選項。
+
 ## CodeView 程式碼裡的名稱可以點實驗室
 
 使用者轉來的要求（節錄）：codemap 用 CodeView 顯示原始碼，只有註解和字串裡的路徑能點，程式碼本身的名稱不能點；在 `harness/lab3.py` 第 58 行看到 `emit(runtime.deploy(args.plane))`，想直接點 `runtime.deploy` 跳到那個函式。codemap 知道每個呼叫的檔案、行（Python 和 TypeScript 還有欄）和呼叫的函式。請做選項：A 外觀、B 鍵盤與螢幕閱讀器、C 預覽、D 和既有連結一致，並比較沒有欄時只比對整個帶點名稱或也接受最後一段。

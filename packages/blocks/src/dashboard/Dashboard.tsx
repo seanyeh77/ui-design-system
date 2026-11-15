@@ -70,6 +70,7 @@ export function Dashboard({ kpis, trend, rows, notifications }: DashboardProps) 
         </Card>
         <Card title="專案" padding={false}>
           <DataTable
+            label="專案"
             columns={COLUMNS}
             rows={rows}
             summary={{

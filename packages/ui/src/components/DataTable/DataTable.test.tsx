@@ -485,3 +485,16 @@ test('DataTable copy: every kept row (all pages) in the shown columns; fullText,
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: clip });
   }
 });
+
+test('unit: a space between the number and the unit, also in the rendered and copied text', () => {
+  const { container } = render(
+    <DataTable label="耗時" rows={[{ id: 1, dt: 212.4 }]} columns={[{ key: 'dt', label: 'ΔT', numeric: true, unit: 'ms', decimals: 1 }]} />,
+  );
+  const cell = container.querySelector('.ui-dt-body .ui-dt-cell.is-num') as HTMLElement;
+  expect(cell.innerText).toBe('212.4 ms');
+  const num = cell.querySelector('.ui-dt-qty')?.firstChild as Node;
+  const range = document.createRange();
+  range.selectNodeContents(num);
+  const unit = cell.querySelector('.ui-unit') as HTMLElement;
+  expect(unit.getBoundingClientRect().left - range.getBoundingClientRect().right).toBeGreaterThan(2);
+});

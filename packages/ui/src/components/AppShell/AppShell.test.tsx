@@ -83,3 +83,19 @@ test('AppShell from 600 to 1024 px: no sidebar; the top bar menu opens the navig
   expect(onNavigate).toHaveBeenCalledWith('home');
   await page.viewport(1280, 900);
 });
+
+test('the skip link has no shadow off screen, so nothing darkens the corner; Tab shows it with its shadow', async () => {
+  await page.viewport(1440, 900);
+  const { container } = render(
+    <AppShell nav={nav} value="home" onNavigate={() => {}} brand="ibtrace" title="追蹤報告">
+      <p>內容</p>
+    </AppShell>,
+  );
+  const skip = container.querySelector('.ui-skip') as HTMLElement;
+  expect(getComputedStyle(skip).boxShadow).toBe('none');
+  expect(skip.getBoundingClientRect().bottom).toBeLessThanOrEqual(0);
+  await user.tab();
+  expect(document.activeElement).toBe(skip);
+  await waitFor(() => expect(skip.getBoundingClientRect().top).toBeGreaterThanOrEqual(0));
+  expect(getComputedStyle(skip).boxShadow).not.toBe('none');
+});
