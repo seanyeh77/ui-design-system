@@ -54,7 +54,8 @@ export interface DataTableProps<R extends Row = Record<string, unknown>> {
   /** The sort before anyone changes it, first level first, e.g. [{ key: 'prog' }, { key: 'dt', dir: 'desc' }]. A level
    *  without dir starts like a click on its heading: numbers from the largest, text from A. Default: the rows' order. */
   defaultSort?: readonly { key: RowKey<R>; dir?: 'asc' | 'desc' }[];
-  /** How many columns can sort at once (the 「排序」 panel, Shift + click on a heading). Default 3. */
+  /** How many columns can sort at once (the 「排序」 panel, Shift + click on a heading). Default: no limit, every sortable
+   *  column. */
   maxSort?: number;
   /** Saved views shown as tabs above the table. */
   views?: DataTableView<R>[];
@@ -126,7 +127,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     return resolveFilters(list, rows);
   }, [p.filters, p.filter, cols, rows]);
   const fromUrl = () => (urlSync && typeof location !== 'undefined' ? readUrl(urlKey, filters) : { q: '', values: {} });
-  const maxSort = Math.max(1, p.maxSort ?? 3);
+  const maxSort = Math.max(1, p.maxSort ?? Infinity);
   const sortCols = cols.filter((c) => c.sortable !== false).map((c) => ({ key: c.key, label: c.label, numeric: c.numeric }));
   const firstDir = (key: string): SortLevel['dir'] => (sortCols.find((c) => c.key === key)?.numeric ? 'desc' : 'asc');
   // Only sortable columns, each once, at most maxSort.

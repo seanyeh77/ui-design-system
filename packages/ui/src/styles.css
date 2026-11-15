@@ -3577,6 +3577,15 @@ html.ui-theme-fade * {
   padding-top: 8px;
   border-top: 1px solid var(--line);
 }
+.ui-dt-sortaddhead {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+.ui-dt-sortadd .ui-dt-opt {
+  color: var(--accent-text);
+}
 /* The heading's place in a multi-column sort, after its arrow. */
 .ui-dt-sortpri {
   font-family: var(--font-mono);

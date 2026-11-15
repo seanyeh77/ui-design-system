@@ -584,7 +584,9 @@ test('multi-column sort: the 「排序」 panel flips, removes, adds and reorder
   expect(within(dialog).getByText('照資料原本的順序。')).toBeTruthy();
   expect(location.search).toBe('?sort=');
   await user.click(within(dialog).getByRole('button', { name: '排序依據…' }));
-  await user.click(within(dialog).getByRole('button', { name: '函式' }));
+  const pick = within(dialog).getByRole('group', { name: '依哪一欄排序' });
+  await waitFor(() => expect(document.activeElement?.textContent).toBe('程式'));
+  await user.click(within(pick).getByRole('button', { name: '函式' }));
   expect(location.search).toBe('?sort=fn');
   history.replaceState(null, '', location.pathname);
 });

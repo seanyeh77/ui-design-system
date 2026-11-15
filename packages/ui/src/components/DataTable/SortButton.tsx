@@ -40,6 +40,11 @@ export function SortButton({ cols, levels, max, onChange, boundary, short }: Sor
   const [adding, setAdding] = React.useState(false);
   const [drag, setDrag] = React.useState<{ from: number; over: number } | null>(null);
   const listRef = React.useRef<HTMLOListElement>(null);
+  const firstAdd = React.useRef<HTMLButtonElement>(null);
+  const addId = React.useId();
+  React.useEffect(() => {
+    if (adding) firstAdd.current?.focus();
+  }, [adding]);
   const name = (k: string) => cols.find((c) => c.key === k)?.label ?? k;
   const first = (k: string): SortLevel['dir'] => (cols.find((c) => c.key === k)?.numeric ? 'desc' : 'asc');
   const rest = cols.filter((c) => !levels.some((l) => l.key === c.key));
@@ -150,10 +155,15 @@ export function SortButton({ cols, levels, max, onChange, boundary, short }: Sor
       )}
       {rest.length && levels.length < max ? (
         adding ? (
-          <div className="ui-dt-sortadd" role="group" aria-label={levels.length ? tr('再依') : tr('排序依據')}>
-            {rest.map((c) => (
+          // The columns not sorted yet, under a heading that says what picking one does.
+          <div className="ui-dt-sortadd" role="group" aria-labelledby={addId}>
+            <span id={addId} className="ui-dt-sortaddhead">
+              {levels.length ? tr('再依哪一欄') : tr('依哪一欄排序')}
+            </span>
+            {rest.map((c, i) => (
               <button
                 key={c.key}
+                ref={i === 0 ? firstAdd : undefined}
                 type="button"
                 className="ui-dt-opt"
                 onClick={() => {
@@ -161,6 +171,7 @@ export function SortButton({ cols, levels, max, onChange, boundary, short }: Sor
                   setAdding(false);
                 }}
               >
+                <Icon name="plus" size={16} />
                 {c.label}
               </button>
             ))}
