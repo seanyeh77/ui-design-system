@@ -86,9 +86,10 @@ export function ColResize(p: {
   );
 }
 
-/** The 「放大表格」 icon: 32 px, no border, at the table's top right. */
-export function ZoomButton({ onClick }: { onClick: () => void }) {
-  return <IconButton className="ui-table-zoom" icon="corners-out" label={tr('放大表格')} onClick={onClick} />;
+/** The 「放大表格」 icon: 32 px, no border, at a Markdown table's top right; in a DataTable's toolbar (inToolbar) it is a
+ *  toolbar button like 「複製成 Markdown」. */
+export function ZoomButton({ onClick, inToolbar }: { onClick: () => void; inToolbar?: boolean }) {
+  return <IconButton className={inToolbar ? 'ui-dt-zoombtn' : 'ui-table-zoom'} icon="corners-out" label={tr('放大表格')} onClick={onClick} />;
 }
 
 /** The whole table in a wide dialog (at most 1200 px). A plain click on a link inside (a function, a path) closes the

@@ -41,9 +41,10 @@ export function ColumnMenu<R extends Row>({
       className="ui-menu ui-dt-colmenu"
       aria-label={tr('顯示的欄位')}
       trigger={
-        <button type="button" className={cx('ui-btn', 'ui-btn-secondary', 'ui-dt-colbtn', open && 'is-open')}>
+        <button type="button" className={cx('ui-btn', 'ui-btn-secondary', 'ui-dt-colbtn', open && 'is-open')} aria-label={tr('欄位')}>
           <Icon name="columns" size={18} />
-          {tr('欄位')}
+          {/* Hidden on a narrow table (container query), the icon stays. */}
+          <span className="ui-dt-btntext">{tr('欄位')}</span>
         </button>
       }
     >
@@ -88,7 +89,7 @@ export function FilterButton<R extends Row>({ filters, values, activeCount, coun
       trigger={
         <button type="button" className={cx('ui-btn', 'ui-btn-secondary', 'ui-dt-filterbtn', open && 'is-open')}>
           <Icon name="funnel" size={18} />
-          {tr('篩選')}
+          <span className="ui-dt-btntext">{tr('篩選')}</span>
           {activeCount ? <span className="ui-pop-count">{activeCount}</span> : null}
         </button>
       }
