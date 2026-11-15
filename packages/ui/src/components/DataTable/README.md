@@ -4,11 +4,13 @@
 
 ## 外觀
 
+- 標題（`caption`）：17 px 粗體，和 Card 標題同一個大小；放在 Card 裡時不給 `caption`，改用 Card 的 `title` 加 DataTable 的 `label`。
 - 表頭：灰底（`surface-sub`）粗體 14 px，往下捲動時固定在上方。
 - 列高 48 px。
 - 分隔：斑馬紋加格線。偶數列用 `surface-sub`，每列之間有橫線，欄之間有直線，外圍有框，全部用 `line`。
 - 滑過列：整列變成強調淺底 `accent-soft`；勾選中的列也用 `accent-soft`。
 - 數字欄 `numeric: true`：Geist Mono、等寬數字、靠右對齊。
+- 格子裡的 InlineCode：白底加 1 px 框線，奇數列、偶數列和滑過的列上都看得出範圍。
 - 單位寫在每格數字後面：欄位設定 `unit`，例如 `unit: 'GB'` 會顯示「3,480.3 GB」。表格裡的數字不縮寫。
 - 欄位格式 `format`：`money`（NT$ 1,280,000）、`date`（2026/11/04（三））、`datetime`、`relative`（一週內寫「2 小時前」）、`percent`（一位小數，% 用 `unit: '%'` 加上，和 KpiCard 一樣）。
 - 狀態欄使用 Badge。

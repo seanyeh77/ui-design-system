@@ -3,6 +3,7 @@
 句子裡的程式碼、檔案路徑和 ID。
 
 - 外觀：淺灰底（`surface-sub`）、Geist Mono、字級是周圍文字的 0.875 倍，圓角 4 px，左右 5 px 內距。
+- 在表格裡（DataTable 的格子與展開詳細、Markdown 表格）改成白底（`surface`）加 1 px 框線（`line`）：表格的偶數列也是 `surface-sub`，灰底在那裡看不出範圍。
 - 指向某個地方的（例如檔案和行號 `child.c:86`）是連結：強調文字色（`accent-text`）加底線，給 `href` 或 `onClick`。
 - 24 個字元以內的不會從中間斷行（例如 `h->post_send` 不會斷成 `h-` 和 `>post_send`）；更長的路徑才會換行。
 - Geist Mono 只用在程式碼本身，周圍的中文句子維持一般字體。
