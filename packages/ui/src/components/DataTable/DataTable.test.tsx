@@ -498,3 +498,22 @@ test('unit: a space between the number and the unit, also in the rendered and co
   const unit = cell.querySelector('.ui-unit') as HTMLElement;
   expect(unit.getBoundingClientRect().left - range.getBoundingClientRect().right).toBeGreaterThan(2);
 });
+
+test('code in a cell has a border and a background that differs from the even rows; the caption is the card title size', () => {
+  const { container } = render(
+    <DataTable
+      caption="指令"
+      rows={[
+        { id: 1, cmd: 'ib_write_bw -a' },
+        { id: 2, cmd: 'ib_send_lat -n 1000' },
+      ]}
+      columns={[{ key: 'cmd', label: '指令', render: (r) => <InlineCode>{r.cmd}</InlineCode> }]}
+    />,
+  );
+  const rows = container.querySelectorAll('.ui-dt-body .ui-dt-row');
+  const even = [...rows].find((r) => r.classList.contains('is-even')) as HTMLElement;
+  const code = even.querySelector('.ui-code') as HTMLElement;
+  expect(getComputedStyle(code).backgroundColor).not.toBe(getComputedStyle(even).backgroundColor);
+  expect(getComputedStyle(code).boxShadow).toContain('inset');
+  expect(getComputedStyle(container.querySelector('.ui-dt-caption') as HTMLElement).fontSize).toBe('17px');
+});

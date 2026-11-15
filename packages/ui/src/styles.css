@@ -1631,7 +1631,8 @@ body {
   min-width: 0;
 }
 .ui-dt-caption {
-  font-size: 20px;
+  /* The same size as a Card title: a table's heading is a block heading whether or not it sits in a card. */
+  font-size: 17px;
   font-weight: 700;
 }
 .ui-dt-tools {
@@ -3918,6 +3919,13 @@ html.ui-theme-fade * {
   background: var(--surface-sub);
   color: var(--ink);
   overflow-wrap: anywhere;
+}
+/* In a table (DataTable rows and their details, Markdown tables) every other row is surface-sub, the same as the code
+   background, so code there is surface with a 1 px line border: it reads the same on both row colours and on the
+   hovered row. Inset shadow, not a border, so the size and line height do not change. */
+:is(.ui-dt-body, .ui-dt-detail, .ui-md-table td) .ui-code {
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 .ui-code.is-short {
   white-space: nowrap;
