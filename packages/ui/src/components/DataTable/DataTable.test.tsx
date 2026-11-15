@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { DataTable, InlineCode } from '../../index';
+import { Card, DataTable, InlineCode } from '../../index';
 
 const cols = [{ key: 'name' as const, label: '名稱' }];
 
@@ -429,12 +429,12 @@ test('DataTable widths: a heading border drags with ← →; Enter back to width
   expect(Math.abs(head().getBoundingClientRect().width - w0)).toBeLessThanOrEqual(1);
 });
 
-test('DataTable widths: no borders on phone cards', async () => {
+test('DataTable widths: no borders, zoom or copy on phone cards', async () => {
   await page.viewport(390, 800);
   render(<DataTable columns={fnCols} rows={fnRows} label="受影響的函式" urlSync={false} />);
   expect(screen.queryByRole('separator')).toBeNull();
   expect(screen.queryByRole('button', { name: '放大表格' })).toBeNull();
-  expect(screen.getByRole('button', { name: '複製成 Markdown' })).toBeTruthy();
+  expect(screen.queryByRole('button', { name: '複製成 Markdown' })).toBeNull();
 });
 
 test('DataTable zoom: the same table, search and sort in a dialog; a link click closes it', async () => {
@@ -615,6 +615,104 @@ test('multi-column sort on phones: the button says 「排序」 and the number o
   await page.viewport(390, 800);
   render(<DataTable label="耗時" rows={PROCS} columns={PROC_COLS} defaultSort={[{ key: 'prog' }, { key: 'dt' }]} />);
   const btn = screen.getByRole('button', { name: '排序：程式 由小到大、ΔT 由大到小' });
-  expect(btn.textContent).toBe('排序2');
+  expect(btn.innerText.replace(/\s/g, '')).toBe('排序2');
   await page.viewport(1280, 900);
+});
+
+// The toolbar by the table's own width: one row from 760 px with zoom at its end; narrower, search on a row of its own
+// and every button on the next; without a search field the tools share the title row.
+const toolbarTable = (extra: Record<string, unknown> = {}) => (
+  <DataTable label="耗時" rows={PROCS} columns={PROC_COLS} urlSync={false} defaultSort={[{ key: 'prog' }, { key: 'dt' }]} {...extra} />
+);
+const leaves = (t: Element) =>
+  [...t.querySelectorAll(':scope > .ui-dt-search, :scope > .ui-dt-caption, .ui-dt-actions > *')].filter((e) => e.getBoundingClientRect().width > 0);
+const rowsOf = (els: Element[]) => new Set(els.map((e) => Math.round(e.getBoundingClientRect().top + e.getBoundingClientRect().height / 2))).size;
+
+test('toolbar: one row with the zoom icon at its end when the table is 760 px or wider', async () => {
+  await page.viewport(1280, 900);
+  const { container } = render(<div style={{ width: 900 }}>{toolbarTable()}</div>);
+  const tools = container.querySelector('.ui-dt-tools') as HTMLElement;
+  const items = leaves(tools);
+  expect(rowsOf(items)).toBe(1);
+  expect(items[items.length - 1].getAttribute('aria-label')).toBe('放大表格');
+  // nothing overflows the row
+  expect(tools.scrollWidth).toBeLessThanOrEqual(tools.clientWidth);
+});
+
+test('toolbar: under 760 px wide the search field has a row of its own and the buttons share the next', async () => {
+  await page.viewport(1280, 900);
+  for (const w of [700, 520]) {
+    const { container, unmount } = render(<div style={{ width: w }}>{toolbarTable()}</div>);
+    const tools = container.querySelector('.ui-dt-tools') as HTMLElement;
+    const search = tools.querySelector('.ui-dt-search') as HTMLElement;
+    expect(search.getBoundingClientRect().width).toBe(tools.getBoundingClientRect().width);
+    const rest = leaves(tools).filter((e) => e !== search);
+    expect(rowsOf(rest)).toBe(1);
+    expect(rest.every((e) => e.getBoundingClientRect().top > search.getBoundingClientRect().bottom)).toBe(true);
+    unmount();
+  }
+});
+
+test('toolbar on phones: the search field keeps its width and nothing overlaps', async () => {
+  await page.viewport(390, 800);
+  const { container } = render(toolbarTable());
+  const tools = container.querySelector('.ui-dt-tools') as HTMLElement;
+  const search = tools.querySelector('.ui-dt-search') as HTMLElement;
+  expect(search.getBoundingClientRect().width).toBeGreaterThan(300);
+  const rest = leaves(tools)
+    .filter((e) => e !== search)
+    .map((e) => e.getBoundingClientRect());
+  expect(rest.length).toBeGreaterThan(1);
+  rest.forEach((r, i) => i && expect(r.left).toBeGreaterThanOrEqual(rest[i - 1].right));
+  await page.viewport(1280, 900);
+});
+
+test('toolbar without a search field: the caption and the tools share a row; under a Card title the tools join it', async () => {
+  await page.viewport(1280, 900);
+  const a = render(<div style={{ width: 900 }}>{toolbarTable({ search: false, caption: '每個程式的耗時' })}</div>);
+  const tools = a.container.querySelector('.ui-dt-tools') as HTMLElement;
+  expect(tools.firstElementChild?.textContent).toBe('每個程式的耗時');
+  expect(rowsOf(leaves(tools))).toBe(1);
+  a.unmount();
+  const b = render(
+    <div style={{ width: 900 }}>
+      <Card title="每個程式的耗時" padding={false}>
+        {toolbarTable({ search: false })}
+      </Card>
+    </div>,
+  );
+  const head = b.container.querySelector('.ui-card-head') as HTMLElement;
+  const inHead = head.querySelector('.ui-dt-tools') as HTMLElement;
+  expect(inHead).toBeTruthy();
+  expect(rowsOf([head.querySelector('.ui-card-title') as Element, ...leaves(inHead)])).toBe(1);
+  // the table has no tools row of its own
+  expect(b.container.querySelector('.ui-dt > .ui-dt-tools')).toBeNull();
+});
+
+test('toolbar beside a panel (about 350 px): search on one row, every button on the next; the sort shows its level count', async () => {
+  await page.viewport(1280, 900);
+  const { container } = render(<div style={{ width: 350 }}>{toolbarTable({ filters: [{ key: 'prog', label: '程式' }] })}</div>);
+  const tools = container.querySelector('.ui-dt-tools') as HTMLElement;
+  const search = tools.querySelector('.ui-dt-search') as HTMLElement;
+  const rest = leaves(tools).filter((e) => e !== search);
+  expect(rowsOf(rest)).toBe(1);
+  // icon and count only; the name still says the whole sort
+  expect((tools.querySelector('.ui-dt-sortbtn') as HTMLElement).getBoundingClientRect().width).toBeLessThan(80);
+  expect(screen.getByRole('button', { name: '排序：程式 由小到大、ΔT 由大到小' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: /^篩選/ })).toBeTruthy();
+  expect(tools.scrollWidth).toBeLessThanOrEqual(tools.clientWidth);
+});
+
+test('height: a paged table has no box of its own to scroll in; the wheel always passes on to the page', async () => {
+  await page.viewport(1280, 900);
+  const many = Array.from({ length: 40 }, (_, i) => ({ id: i + 1, prog: 'p' + i, fn: 'f' + i, dt: i }));
+  const a = render(<DataTable label="分頁" rows={many} columns={PROC_COLS} urlSync={false} />);
+  const paged = a.container.querySelector('.ui-dt-scroll') as HTMLElement;
+  expect(getComputedStyle(paged).maxHeight).toBe('none');
+  expect(getComputedStyle(paged).overscrollBehaviorY).toBe('auto');
+  a.unmount();
+  const b = render(<DataTable label="不分頁" rows={many} columns={PROC_COLS} pageSize={100} urlSync={false} />);
+  const box = b.container.querySelector('.ui-dt-scroll') as HTMLElement;
+  expect(getComputedStyle(box).maxHeight).toBe('560px');
+  expect(getComputedStyle(box).overscrollBehaviorY).toBe('auto');
 });

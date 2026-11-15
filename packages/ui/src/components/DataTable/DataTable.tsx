@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '../Button/Button';
 import { SearchField } from '../SearchField/SearchField';
 import { Tabs } from '../Tabs/Tabs';
@@ -177,6 +178,14 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const [zoomed, setZoomed] = React.useState(false);
   const [zoomWidths, setZoomWidths] = React.useState<Record<string, number> | null>(null);
   const zoomRef = React.useRef<HTMLDivElement>(null);
+  // Without a search field, a table right under a Card's title puts its tools in that title row instead of a row of
+  // their own: the Card's head element, found after the first render.
+  const [headSlot, setHeadSlot] = React.useState<HTMLElement | null>(null);
+  const noSearch = search === false && !p.caption;
+  React.useLayoutEffect(() => {
+    const prev = noSearch ? rootRef.current?.previousElementSibling : null;
+    setHeadSlot(prev instanceof HTMLElement && prev.classList.contains('ui-card-head') && prev.parentElement?.classList.contains('ui-card') ? prev : null);
+  }, [noSearch]);
   const [resetKey, setResetKey] = React.useState(p.resetKey);
   const resetting = resetKey !== p.resetKey;
   if (resetting) {
@@ -593,8 +602,12 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     );
   };
   // The toolbar, the table and the page numbers: on the page, and again in the 「放大表格」 dialog with the same state.
-  const toolsView = (inZoom: boolean) => (
-    <div className="ui-dt-tools">
+  // One row of tools: search, filter, count, copy, sort, columns, zoom. Without a search field the title goes on the
+  // same row: the caption in front of the tools, or, when the table sits under a Card's title, the tools move into
+  // that title row (inHead). How it wraps depends on the table's own width (container query in styles.css).
+  const toolsView = (inZoom: boolean, inHead = false) => (
+    <div className={cx('ui-dt-tools', inHead && 'is-inhead')}>
+      {search === false && p.caption && !inZoom && !inHead ? <div className="ui-dt-caption">{p.caption}</div> : null}
       {search !== false ? (
         <SearchField
           value={q}
@@ -607,38 +620,39 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
           className="ui-dt-search"
         />
       ) : null}
-      {filters.length ? (
-        <FilterButton
-          boundary={inZoom ? zoomRef : rootRef}
-          filters={filters}
-          values={values}
-          activeCount={activeN}
-          count={(f, v) => all.filter((x) => passes(x.r, f.key) && matches(f, x.r, f.type === 'list' ? [v] : undefined)).length}
-          onChange={(key, v) => {
-            setValues({ ...values, [key]: v });
-            setPage(0);
-          }}
-          onClear={() => {
-            setValues({});
-            setPage(0);
-          }}
-        />
-      ) : null}
-      <span className="ui-dt-result">
-        {/* Shown 「6 / 6 筆」; read 「6 筆中的 6 筆」, not 「6 斜線 6 筆」. The shown one is drawn by CSS, so the page's text
+      <div className="ui-dt-actions">
+        {filters.length ? (
+          <FilterButton
+            boundary={inZoom ? zoomRef : rootRef}
+            filters={filters}
+            values={values}
+            activeCount={activeN}
+            count={(f, v) => all.filter((x) => passes(x.r, f.key) && matches(f, x.r, f.type === 'list' ? [v] : undefined)).length}
+            onChange={(key, v) => {
+              setValues({ ...values, [key]: v });
+              setPage(0);
+            }}
+            onClear={() => {
+              setValues({});
+              setPage(0);
+            }}
+          />
+        ) : null}
+        <span className="ui-dt-result">
+          {/* Shown 「6 / 6 筆」; read 「6 筆中的 6 筆」, not 「6 斜線 6 筆」. The shown one is drawn by CSS, so the page's text
               has only the readable one (no 「6 / 6 筆6 筆中的 6 筆」 when copied or read by a tool). */}
-        <span aria-hidden="true">
-          {seenOnly(tr('{n} / {total} 筆', { n: '\u0001', total: '\u0002' }), [format.number(list.length), format.number(baseCount)])}
+          <span aria-hidden="true">
+            {seenOnly(tr('{n} / {total} 筆', { n: '\u0001', total: '\u0002' }), [format.number(list.length), format.number(baseCount)])}
+          </span>
+          <span className="ui-visually-hidden">{format.fractionLabel(list.length, baseCount, tr('筆'))}</span>
         </span>
-        <span className="ui-visually-hidden">{format.fractionLabel(list.length, baseCount, tr('筆'))}</span>
-      </span>
-      {p.copy !== false ? <CopyMarkdownButton text={copyMarkdown} onCopyError={p.onCopyError} /> : null}
-      {sortCols.length ? (
-        <SortButton cols={sortCols} levels={sort} max={maxSort} onChange={changeSort} boundary={inZoom ? zoomRef : rootRef} short={narrow} />
-      ) : null}
-      {p.columnMenu !== false && cols.length > 2 ? (
-        <ColumnMenu cols={cols} hidden={hidden} onToggle={(k) => setToggled({ ...toggled, [k]: !hidden[k] })} />
-      ) : null}
+        {p.copy !== false && !narrow ? <CopyMarkdownButton text={copyMarkdown} onCopyError={p.onCopyError} /> : null}
+        {sortCols.length ? <SortButton cols={sortCols} levels={sort} max={maxSort} onChange={changeSort} boundary={inZoom ? zoomRef : rootRef} /> : null}
+        {p.columnMenu !== false && cols.length > 2 ? (
+          <ColumnMenu cols={cols} hidden={hidden} onToggle={(k) => setToggled({ ...toggled, [k]: !hidden[k] })} />
+        ) : null}
+        {p.zoom !== false && !narrow && !inZoom ? <ZoomButton inToolbar onClick={() => setZoomed(true)} /> : null}
+      </div>
     </div>
   );
   const tableView = (inZoom: boolean) => {
@@ -646,7 +660,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     const pfx = inZoom ? uid + 'z' : uid;
     return (
       <div className={cx('ui-dt-scroller', scrollMore && !inZoom && 'has-more')}>
-        <div className="ui-dt-scroll" ref={inZoom ? undefined : scrollRef} onScroll={inZoom ? undefined : onScroll}>
+        <div className={cx('ui-dt-scroll', pages > 1 && 'is-paged')} ref={inZoom ? undefined : scrollRef} onScroll={inZoom ? undefined : onScroll}>
           <div className="ui-dt-table" role="table" aria-label={p.label || p.caption}>
             {headOf(inZoom)}
             <div ref={inZoom ? undefined : bodyRef} className="ui-dt-body" role="rowgroup">
@@ -807,8 +821,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   );
 
   return (
-    <div ref={rootRef} className={cx('ui-dt', selIds.length && 'has-sel', p.className)}>
-      {p.caption ? <div className="ui-dt-caption">{p.caption}</div> : null}
+    <div ref={rootRef} className={cx('ui-dt', search === false && 'is-nosearch', selIds.length && 'has-sel', p.className)}>
+      {p.caption && search !== false ? <div className="ui-dt-caption">{p.caption}</div> : null}
       {p.views ? (
         <div className="ui-dt-views" role="tablist" aria-label={tr('檢視')}>
           {p.views.map((v) => {
@@ -856,12 +870,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
           ]}
         />
       ) : null}
-      {toolsView(false)}
-      {p.zoom !== false && !narrow ? (
-        <div className="ui-dt-zoom">
-          <ZoomButton onClick={() => setZoomed(true)} />
-        </div>
-      ) : null}
+      {headSlot ? createPortal(toolsView(false, true), headSlot) : toolsView(false)}
       {tableView(false)}
       <ScrollHint show={overflows} done={scrolled} />
       {footView}

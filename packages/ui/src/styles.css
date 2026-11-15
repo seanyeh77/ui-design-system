@@ -1629,6 +1629,10 @@ body {
   flex-direction: column;
   gap: var(--space-3);
   min-width: 0;
+  /* The toolbar wraps by the table's own width (a table beside a panel is narrow on a wide screen). As a size
+     container it cannot take its width from its content, so it fills its parent. */
+  container: ui-dt / inline-size;
+  width: 100%;
 }
 .ui-dt-caption {
   /* The same size as a Card title: a table's heading is a block heading whether or not it sits in a card. */
@@ -1637,13 +1641,109 @@ body {
 }
 .ui-dt-tools {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
 }
-.ui-dt-search {
+/* Search on the left; the count and every button in one group on the right that keeps to one line: when it runs out of
+   room the sort button's text is cut with … first. */
+.ui-dt-tools > .ui-dt-search {
   flex: 0 1 260px;
-  min-width: 180px;
+  min-width: 160px;
+}
+.ui-dt-actions {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.ui-dt-actions > * {
+  flex: none;
+}
+.ui-dt-actions > .ui-dt-sortbtn {
+  flex: 0 1 auto;
+  min-width: 96px;
+  max-width: 280px;
+}
+/* No search field: the caption on the left of the buttons; they move under it, right-aligned, when the caption would
+   get narrower than about 12 characters. */
+.ui-dt-tools > .ui-dt-caption {
+  flex: 1 1 12em;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ui-dt-tools > .ui-dt-caption + .ui-dt-actions {
+  flex: none;
+  margin-left: auto;
+}
+.ui-dt-sortbtn-short {
+  display: none;
+  align-items: center;
+  gap: 6px;
+}
+/* By the table's own width (a table beside a panel is narrow on a wide screen). Under 760 px: the search field on a row
+   of its own, the buttons on the next. */
+@container ui-dt (max-width: 759px) {
+  .ui-dt-tools {
+    flex-wrap: wrap;
+  }
+  .ui-dt-tools > .ui-dt-search,
+  .ui-dt-tools > .ui-dt-search + .ui-dt-actions {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+}
+/* Under 480 px: 「排序」 and the number of levels instead of the whole sort. With copy, columns and zoom as well (not
+   on phones, which hide them), 「篩選」「排序」「欄位」 keep only their icons and counts; the words stay in the
+   accessible names. The buttons wrap only when even that does not fit. */
+@container ui-dt (max-width: 479px) {
+  .ui-dt-sortbtn-text {
+    display: none;
+  }
+  .ui-dt-sortbtn-short {
+    display: inline-flex;
+  }
+  .ui-dt-actions > .ui-dt-sortbtn {
+    min-width: 0;
+  }
+  .ui-dt-actions:has(> .ui-dt-zoombtn) .ui-dt-btntext {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .ui-dt-actions:has(> .ui-dt-zoombtn) :is(.ui-dt-filterbtn, .ui-dt-sortbtn, .ui-dt-colbtn) {
+    padding-inline: 10px;
+  }
+  .ui-dt-actions {
+    flex-wrap: wrap;
+  }
+}
+/* Phones, also for tools that moved into a Card title row (outside the table, so not reached by the container). */
+@media (max-width: 599px) {
+  .ui-dt-sortbtn-text {
+    display: none;
+  }
+  .ui-dt-sortbtn-short {
+    display: inline-flex;
+  }
+}
+.ui-card-head:has(> .ui-dt-tools.is-inhead) {
+  flex-wrap: wrap;
+  row-gap: var(--space-2);
+}
+/* The title keeps about 12 characters before the tools move to a row of their own under it, right-aligned. */
+.ui-card-head:has(> .ui-dt-tools.is-inhead) > .ui-card-title {
+  flex: 1 1 12em;
+}
+.ui-card-head > .ui-dt-tools.is-inhead {
+  flex: none;
+  margin-left: auto;
 }
 /* Wider than its box (a narrow container beside a panel): a fade on the right while columns are to the right. */
 .ui-dt-scroller {
@@ -1665,10 +1765,12 @@ body {
 .ui-dt-scroller.has-more::after {
   opacity: 1;
 }
+/* A table without page numbers can hold many rows: it scrolls in a box up to 560 px tall, its header staying on top.
+   With page numbers (is-paged) a page is short, so it has no height limit and no box of its own to scroll in. Either
+   way the wheel passes on to the page at the box's end (no overscroll-behavior: contain). */
 .ui-dt-scroll {
   max-height: var(--dt-max-height, 560px);
   overflow: auto;
-  overscroll-behavior: contain;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   background: var(--surface);
@@ -1762,10 +1864,8 @@ body {
   transform: none;
 }
 /* B2: 「放大表格」 above the table's top right, as on Markdown tables. */
-.ui-dt-zoom {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: var(--space-1);
+.ui-dt-scroll.is-paged {
+  max-height: none;
 }
 .ui-dt-zoomed .ui-dt-scroll {
   max-height: calc(100vh - 280px);
@@ -2032,13 +2132,6 @@ body {
     position: static;
     border: 0;
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  }
-  .ui-dt-tools {
-    flex-wrap: nowrap;
-  }
-  .ui-dt-search {
-    flex: 1 1 auto;
-    min-width: 0;
   }
   .ui-dt-colbtn {
     display: none !important;
@@ -3450,10 +3543,7 @@ html.ui-theme-fade * {
 /* S2C: the 「排序」 button writes the current sort (「排序：程式 ↑、ΔT ↓」, cut with … when long); on phones 「排序」 and
    the number of levels. Its panel looks like the filter panel. */
 .ui-dt-sortbtn {
-  /* As wide as its text, up to 280 px (then …); the search field gives way first. */
-  flex: none;
   height: 36px;
-  max-width: 280px;
 }
 .ui-dt-sortbtn-text {
   min-width: 0;

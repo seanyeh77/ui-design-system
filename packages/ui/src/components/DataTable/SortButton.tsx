@@ -30,12 +30,10 @@ interface SortButtonProps {
   max: number;
   onChange: (levels: SortLevel[]) => void;
   boundary?: React.RefObject<Element | null>;
-  /** Phones: the button says 「排序 2」 instead of the whole sort. */
-  short?: boolean;
 }
 
 /** The toolbar's 「排序」 button: it shows the current sort and opens a panel to add, order, flip and remove levels. */
-export function SortButton({ cols, levels, max, onChange, boundary, short }: SortButtonProps) {
+export function SortButton({ cols, levels, max, onChange, boundary }: SortButtonProps) {
   const [open, setOpen] = React.useState(false);
   const [adding, setAdding] = React.useState(false);
   const [drag, setDrag] = React.useState<{ from: number; over: number } | null>(null);
@@ -74,8 +72,14 @@ export function SortButton({ cols, levels, max, onChange, boundary, short }: Sor
           aria-label={levels.length ? tr('排序：{list}', { list: read }) : tr('排序')}
         >
           <Icon name="sort-ascending" size={18} />
-          <span className="ui-dt-sortbtn-text">{!levels.length ? tr('排序') : short ? tr('排序') : tr('排序：{list}', { list: shown })}</span>
-          {short && levels.length ? <span className="ui-pop-count">{levels.length}</span> : null}
+          {/* The whole sort, or on a narrow table (container query) 「排序」 and the number of levels. */}
+          <span className="ui-dt-sortbtn-text">{levels.length ? tr('排序：{list}', { list: shown }) : tr('排序')}</span>
+          {levels.length ? (
+            <span className="ui-dt-sortbtn-short">
+              <span className="ui-dt-btntext">{tr('排序')}</span>
+              <span className="ui-pop-count">{levels.length}</span>
+            </span>
+          ) : null}
         </button>
       }
     >
