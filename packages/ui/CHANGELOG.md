@@ -1,5 +1,28 @@
 # @seanyeh77/ui
 
+## 0.23.0
+
+### Minor Changes
+
+- aa3bdf7: DataTable 多欄排序：
+  
+  - Shift＋點欄位標題（鍵盤 Shift＋Enter）把那一欄加成下一層排序；有兩層以上時標題寫出它是第幾層，螢幕閱讀器也會念。
+  - 工具列新的「排序」按鈕直接寫出目前的排序（「排序：程式 ↑、ΔT ↓」，手機上寫層數），點開可以加一層、拖曳或 Alt＋↑ ↓ 調順序、切換方向、移除。
+  - 排序寫進網址（`?sort=prog,-dt`，有 `urlKey` 時加前綴）；新的 `defaultSort`；`maxSort` 限制層數（預設不限）。
+  - 新圖示 `sort-ascending`、`dots-six-vertical`。
+- a14edc4: 表格的兩處外觀：
+  
+  - 表格裡（DataTable 的列與展開詳細、Markdown 表格）的 InlineCode 改成白底（`surface`）加 1 px 框線（`line`）。原本和斑馬紋偶數列同色，偶數列上看不出程式碼的範圍。段落、清單裡的 InlineCode 不變。
+  - DataTable 的 `caption` 從 20 px 改成 17 px，和 Card 標題同一個大小。
+
+### Patch Changes
+
+- 6e419ac: 修正三個樣式錯誤：
+  
+  - AppShell 的「跳到主要內容」連結在畫面外時不再帶陰影；原本陰影滲進畫面，讓側欄品牌名稱上方（深色模式最明顯）有一塊較黑的區域。按 Tab 時照樣出現，並帶陰影與焦點框。
+  - `Card` 設 `padding: false` 時，標題列、DataTable 的工具列、分段控制、頁碼和捲動提示保留 16 px 內距；原本標題和搜尋欄貼齊卡片邊緣。表格本身貼齊卡片左右兩邊，拿掉自己的左右框線與圓角。
+  - DataTable 欄位設 `unit` 時，數字和單位之間有空格（「212.4 ms」）；原本格子是 flex，空格被丟掉，顯示成「212.4ms」。
+
 ## 0.22.0
 
 ### Minor Changes
