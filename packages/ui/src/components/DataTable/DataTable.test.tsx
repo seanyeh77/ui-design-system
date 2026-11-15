@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { page } from 'vitest/browser';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { DataTable, InlineCode } from '../../index';
 
@@ -516,4 +516,103 @@ test('code in a cell has a border and a background that differs from the even ro
   expect(getComputedStyle(code).backgroundColor).not.toBe(getComputedStyle(even).backgroundColor);
   expect(getComputedStyle(code).boxShadow).toContain('inset');
   expect(getComputedStyle(container.querySelector('.ui-dt-caption') as HTMLElement).fontSize).toBe('17px');
+});
+
+const PROCS = [
+  { id: 1, prog: 'ib_write_bw', fn: 'ibv_post_send', dt: 18.1 },
+  { id: 2, prog: 'ibv_rc_pingpong', fn: 'ibv_poll_cq', dt: 212.4 },
+  { id: 3, prog: 'ib_write_bw', fn: 'ibv_poll_cq', dt: 41.7 },
+  { id: 4, prog: 'perftest', fn: 'ibv_reg_mr', dt: 96.5 },
+  { id: 5, prog: 'ibv_rc_pingpong', fn: 'ibv_post_recv', dt: 7.9 },
+];
+const PROC_COLS = [
+  { key: 'prog' as const, label: '程式' },
+  { key: 'fn' as const, label: '函式' },
+  { key: 'dt' as const, label: 'ΔT', numeric: true, unit: 'ms', decimals: 1 },
+];
+const firstCol = (c: HTMLElement) => [...c.querySelectorAll('.ui-dt-body .ui-dt-row')].map((r) => r.querySelector('.ui-dt-cell')?.textContent);
+const dtCol = (c: HTMLElement) => [...c.querySelectorAll('.ui-dt-body .ui-dt-row .ui-dt-cell.is-num')].map((x) => x.textContent);
+
+test('multi-column sort: a click sorts by one column, Shift + click adds the next level; aria-sort stays on the first', async () => {
+  history.replaceState(null, '', location.pathname);
+  const user = userEvent.setup();
+  const { container } = render(<DataTable label="耗時" rows={PROCS} columns={PROC_COLS} />);
+  await user.click(screen.getByRole('button', { name: '程式' }));
+  expect(firstCol(container)).toEqual(['ib_write_bw', 'ib_write_bw', 'ibv_rc_pingpong', 'ibv_rc_pingpong', 'perftest']);
+  await user.keyboard('{Shift>}');
+  await user.click(screen.getByRole('button', { name: 'ΔT' }));
+  await user.keyboard('{/Shift}');
+  // 程式 first, then ΔT from the largest within each program
+  expect(dtCol(container)).toEqual(['41.7 ms', '18.1 ms', '212.4 ms', '7.9 ms', '96.5 ms']);
+  const heads = [...container.querySelectorAll('.ui-dt-head [role="columnheader"]')];
+  expect(heads.map((h) => h.getAttribute('aria-sort'))).toEqual(['ascending', 'none', 'none']);
+  expect(screen.getByRole('button', { name: 'ΔT，第 2 排序，由大到小' })).toBeTruthy();
+  expect(location.search).toBe('?sort=prog%2C-dt');
+  expect(screen.getByRole('button', { name: '排序：程式 由小到大、ΔT 由大到小' }).textContent).toContain('排序：程式 ↑、ΔT ↓');
+  // Shift + Enter on a focused heading adds a level from the keyboard too
+  screen.getByRole('button', { name: '函式' }).focus();
+  await user.keyboard('{Shift>}{Enter}{/Shift}');
+  expect(location.search).toBe('?sort=prog%2C-dt%2Cfn');
+  // a plain click goes back to one column
+  await user.click(screen.getByRole('button', { name: '函式，第 3 排序，由小到大' }));
+  expect(location.search).toBe('?sort=fn');
+  history.replaceState(null, '', location.pathname);
+});
+
+test('multi-column sort: the 「排序」 panel flips, removes, adds and reorders levels', async () => {
+  history.replaceState(null, '', location.pathname);
+  const user = userEvent.setup();
+  const { container } = render(<DataTable label="耗時" rows={PROCS} columns={PROC_COLS} defaultSort={[{ key: 'prog' }, { key: 'dt' }]} />);
+  expect(dtCol(container)).toEqual(['41.7 ms', '18.1 ms', '212.4 ms', '7.9 ms', '96.5 ms']);
+  // the default sort is not written into the URL
+  expect(location.search).toBe('');
+  await user.click(screen.getByRole('button', { name: '排序：程式 由小到大、ΔT 由大到小' }));
+  const dialog = await screen.findByRole('dialog', { name: '排序' });
+  // flip ΔT
+  const dtDir = within(dialog).getByRole('radiogroup', { name: '「ΔT」的方向' });
+  await user.click(within(dtDir).getByRole('radio', { name: '↑ 由小到大' }));
+  expect(dtCol(container)).toEqual(['18.1 ms', '41.7 ms', '7.9 ms', '212.4 ms', '96.5 ms']);
+  // ΔT up to the first level with Alt + ↑ on its handle
+  within(dialog).getByRole('button', { name: '「ΔT」第 2 排序；按 Alt＋↑ ↓ 調整順序' }).focus();
+  await user.keyboard('{Alt>}{ArrowUp}{/Alt}');
+  expect(dtCol(container)).toEqual(['7.9 ms', '18.1 ms', '41.7 ms', '96.5 ms', '212.4 ms']);
+  expect(location.search).toBe('?sort=dt%2Cprog');
+  await waitFor(() => expect(document.activeElement?.getAttribute('aria-label')).toBe('「ΔT」第 1 排序；按 Alt＋↑ ↓ 調整順序'));
+  // remove both, then add 函式
+  await user.click(within(dialog).getByRole('button', { name: '移除「ΔT」排序' }));
+  await user.click(within(dialog).getByRole('button', { name: '移除「程式」排序' }));
+  expect(within(dialog).getByText('照資料原本的順序。')).toBeTruthy();
+  expect(location.search).toBe('?sort=');
+  await user.click(within(dialog).getByRole('button', { name: '排序依據…' }));
+  await user.click(within(dialog).getByRole('button', { name: '函式' }));
+  expect(location.search).toBe('?sort=fn');
+  history.replaceState(null, '', location.pathname);
+});
+
+test('multi-column sort: read from the URL with urlKey; maxSort limits the levels; resetKey goes back to defaultSort', async () => {
+  history.replaceState(null, '', location.pathname + '?procs.sort=-dt,nope,prog');
+  const user = userEvent.setup();
+  const { container, rerender } = render(
+    <DataTable label="耗時" urlKey="procs" rows={PROCS} columns={PROC_COLS} maxSort={2} defaultSort={[{ key: 'prog' }]} resetKey="a" />,
+  );
+  // an unknown key is dropped
+  expect(dtCol(container)).toEqual(['212.4 ms', '96.5 ms', '41.7 ms', '18.1 ms', '7.9 ms']);
+  expect(screen.getByRole('button', { name: '排序：ΔT 由大到小、程式 由小到大' })).toBeTruthy();
+  await user.keyboard('{Shift>}');
+  await user.click(screen.getByRole('button', { name: '函式' }));
+  await user.keyboard('{/Shift}');
+  expect(location.search).toBe('?procs.sort=-dt%2Cprog');
+  rerender(<DataTable label="耗時" urlKey="procs" rows={PROCS} columns={PROC_COLS} maxSort={2} defaultSort={[{ key: 'prog' }]} resetKey="b" />);
+  expect(screen.getByRole('button', { name: '排序：程式 由小到大' })).toBeTruthy();
+  await waitFor(() => expect(location.search).toBe(''));
+  history.replaceState(null, '', location.pathname);
+});
+
+test('multi-column sort on phones: the button says 「排序」 and the number of levels', async () => {
+  history.replaceState(null, '', location.pathname);
+  await page.viewport(390, 800);
+  render(<DataTable label="耗時" rows={PROCS} columns={PROC_COLS} defaultSort={[{ key: 'prog' }, { key: 'dt' }]} />);
+  const btn = screen.getByRole('button', { name: '排序：程式 由小到大、ΔT 由大到小' });
+  expect(btn.textContent).toBe('排序2');
+  await page.viewport(1280, 900);
 });
