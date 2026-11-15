@@ -111,3 +111,29 @@ export function writeUrl<R extends Row>(prefix: string | undefined, filters: Res
   const s = sp.toString();
   history.replaceState(history.state, '', location.pathname + (s ? '?' + s : '') + location.hash);
 }
+
+/** One level of a multi-column sort; the first one decides, the next only between rows the first finds equal. */
+export interface SortLevel {
+  key: string;
+  dir: 'asc' | 'desc';
+}
+
+/** The sort from the URL (?sort=prog,-dt: in order, a leading - is descending); null when the URL has none. */
+export function readSort(prefix: string | undefined): SortLevel[] | null {
+  const v = new URLSearchParams(location.search).get(param(prefix, 'sort'));
+  if (v == null) return null;
+  return v
+    .split(',')
+    .filter(Boolean)
+    .map((t) => (t.startsWith('-') ? { key: t.slice(1), dir: 'desc' as const } : { key: t, dir: 'asc' as const }));
+}
+
+/** Writes the sort into the URL without a history entry; nothing when it is the table's default. */
+export function writeSort(prefix: string | undefined, levels: SortLevel[], initial: SortLevel[]): void {
+  const sp = new URLSearchParams(location.search);
+  const text = (l: SortLevel[]) => l.map((s) => (s.dir === 'desc' ? '-' : '') + s.key).join(',');
+  if (text(levels) === text(initial)) sp.delete(param(prefix, 'sort'));
+  else sp.set(param(prefix, 'sort'), text(levels));
+  const s = sp.toString();
+  history.replaceState(history.state, '', location.pathname + (s ? '?' + s : '') + location.hash);
+}

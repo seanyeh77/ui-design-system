@@ -3447,6 +3447,153 @@ html.ui-theme-fade * {
   box-shadow: var(--shadow-overlay);
   animation: ui-pop-fade 150ms ease both;
 }
+/* S2C: the 「排序」 button writes the current sort (「排序：程式 ↑、ΔT ↓」, cut with … when long); on phones 「排序」 and
+   the number of levels. Its panel looks like the filter panel. */
+.ui-dt-sortbtn {
+  /* As wide as its text, up to 280 px (then …); the search field gives way first. */
+  flex: none;
+  height: 36px;
+  max-width: 280px;
+}
+.ui-dt-sortbtn-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ui-dt-sortpop {
+  width: 400px;
+  max-width: min(calc(100vw - 16px), var(--available-width, 100vw));
+  padding: 16px;
+  box-sizing: border-box;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-overlay);
+}
+.ui-dt-sortlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ui-dt-sortlvl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  border-radius: var(--radius-sm);
+}
+.ui-dt-sortlvl.is-dragging {
+  opacity: 0.4;
+}
+.ui-dt-sortlvl.is-over {
+  box-shadow: 0 -2px 0 var(--accent);
+}
+.ui-dt-sortgrip,
+.ui-dt-sortrm {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+.ui-dt-sortgrip {
+  cursor: grab;
+}
+.ui-dt-sortgrip:hover,
+.ui-dt-sortrm:hover {
+  background: var(--surface-sub);
+  color: var(--ink);
+}
+.ui-dt-sortn {
+  flex: none;
+  width: 1ch;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+.ui-dt-sortname {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ui-dt-sortdir {
+  flex: none;
+  display: inline-flex;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.ui-dt-sortdir button {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ui-dt-sortdir button + button {
+  border-left: 1px solid var(--line-strong);
+}
+.ui-dt-sortdir button.is-on {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+:is(.ui-dt-sortgrip, .ui-dt-sortrm, .ui-dt-sortdir button):focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--focus-ring);
+}
+.ui-dt-sortnone {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+.ui-dt-sortmore {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  margin-top: 4px;
+  font-size: 14px;
+}
+.ui-dt-sortadd {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+.ui-dt-sortaddhead {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+.ui-dt-sortadd .ui-dt-opt {
+  color: var(--accent-text);
+}
+/* The heading's place in a multi-column sort, after its arrow. */
+.ui-dt-sortpri {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1;
+  color: var(--accent-text);
+  margin-left: -2px;
+}
 .ui-dt-filterhead {
   display: flex;
   justify-content: space-between;

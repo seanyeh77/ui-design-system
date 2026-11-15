@@ -11,8 +11,9 @@ import { CheckMark } from '../../internal/Field';
 import { announce } from '../../announce';
 import { ScrollHint, useScrollHint } from '../../internal/scrollHint';
 import { ColResize, CopyMarkdownButton, MIN_COL, TableDialog, ZoomButton, markdownTable } from '../../internal/tableTools';
-import { cellText, isActive, matches, readUrl, resolveFilters, searchHit, writeUrl } from './filters';
+import { cellText, isActive, matches, readSort, readUrl, resolveFilters, searchHit, writeSort, writeUrl, type SortLevel } from './filters';
 import { ColumnMenu, FilterButton, FullText, LongText, markMatch } from './parts';
+import { SortButton, dirWord, sortSentence } from './SortButton';
 import type { DataTableColumn, DataTableFilter, DataTableView, FilterOption, FilterValue, ResolvedFilter, Row, RowKey, Total } from './types';
 
 export type { DataTableColumn, DataTableFilter, DataTableView, FilterOption, FilterValue, RangeValue, Row, RowKey, Total } from './types';
@@ -50,6 +51,12 @@ export interface DataTableProps<R extends Row = Record<string, unknown>> {
   urlSync?: boolean;
   /** Prefix of the URL parameters when a page has several tables. */
   urlKey?: string;
+  /** The sort before anyone changes it, first level first, e.g. [{ key: 'prog' }, { key: 'dt', dir: 'desc' }]. A level
+   *  without dir starts like a click on its heading: numbers from the largest, text from A. Default: the rows' order. */
+  defaultSort?: readonly { key: RowKey<R>; dir?: 'asc' | 'desc' }[];
+  /** How many columns can sort at once (the 「排序」 panel, Shift + click on a heading). Default: no limit, every sortable
+   *  column. */
+  maxSort?: number;
   /** Saved views shown as tabs above the table. */
   views?: DataTableView<R>[];
   /** Totals row: 'sum', 'avg' or a function per column key. */
@@ -120,7 +127,17 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     return resolveFilters(list, rows);
   }, [p.filters, p.filter, cols, rows]);
   const fromUrl = () => (urlSync && typeof location !== 'undefined' ? readUrl(urlKey, filters) : { q: '', values: {} });
-  const [sort, setSort] = React.useState<{ key: string | null; dir: 'asc' | 'desc' }>({ key: null, dir: 'desc' });
+  const maxSort = Math.max(1, p.maxSort ?? Infinity);
+  const sortCols = cols.filter((c) => c.sortable !== false).map((c) => ({ key: c.key, label: c.label, numeric: c.numeric }));
+  const firstDir = (key: string): SortLevel['dir'] => (sortCols.find((c) => c.key === key)?.numeric ? 'desc' : 'asc');
+  // Only sortable columns, each once, at most maxSort.
+  const validSort = (l: readonly { key: string; dir?: SortLevel['dir'] }[]): SortLevel[] =>
+    l
+      .filter((x, i) => sortCols.some((c) => c.key === x.key) && l.findIndex((y) => y.key === x.key) === i)
+      .slice(0, maxSort)
+      .map((x) => ({ key: x.key, dir: x.dir ?? firstDir(x.key) }));
+  const initialSort = validSort(p.defaultSort ?? []);
+  const [sort, setSort] = React.useState<SortLevel[]>(() => validSort((urlSync && typeof location !== 'undefined' ? readSort(urlKey) : null) ?? initialSort));
   const [page, setPage] = React.useState(0);
   const [q, setQ] = React.useState(() => fromUrl().q);
   const [values, setValues] = React.useState<Record<string, FilterValue>>(() => fromUrl().values);
@@ -169,12 +186,17 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     setPage(0);
     setSel({});
     setSumVal('all');
-    setSort({ key: null, dir: 'desc' });
+    setSort(initialSort);
     setToggled({});
     setOpened({});
     setFit({});
   }
   const valuesKey = JSON.stringify(values);
+  const sortKey = JSON.stringify(sort);
+  React.useEffect(() => {
+    if (urlSync && typeof location !== 'undefined') writeSort(urlKey, sort, initialSort);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- written when the sort changes
+  }, [sortKey]);
   React.useEffect(() => {
     if (urlSync && filters.length) writeUrl(urlKey, filters, values, q);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- written when the conditions change, not when the filter list is rebuilt
@@ -216,16 +238,20 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     (!searching || searchHit(r, cols, filters, q, search ? search.keys : undefined)) && filters.every((f) => f.key === skip || matches(f, r, values[f.key]));
   let list = all.filter((x) => passes(x.r));
   const activeN = filters.filter((f) => isActive(values[f.key])).length;
-  if (sort.key) {
-    const key = sort.key;
-    const col = cols.find((c) => c.key === key);
-    const val = (r: R) => (col?.sortValue ? col.sortValue(r) : get(r, key));
-    const d = sort.dir === 'asc' ? 1 : -1;
+  if (sort.length) {
+    // The first level decides; the next only between rows the first finds equal; then the rows' own order.
+    const by = sort.map((l) => {
+      const col = cols.find((c) => c.key === l.key);
+      return { val: (r: R) => (col?.sortValue ? col.sortValue(r) : get(r, l.key)), d: l.dir === 'asc' ? 1 : -1 };
+    });
     list = [...list].sort((a, b) => {
-      const x = val(a.r);
-      const y = val(b.r);
-      const c = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'zh-Hant');
-      return c * d || a.i - b.i;
+      for (const { val, d } of by) {
+        const x = val(a.r);
+        const y = val(b.r);
+        const c = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'zh-Hant');
+        if (c) return c * d;
+      }
+      return a.i - b.i;
     });
   }
   // After the search, a filter, the summary or the view changes (not on first render): 「顯示 6 筆」.
@@ -331,13 +357,29 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     });
   });
 
-  const sortBy = (c: DataTableColumn<R>) => {
-    if (c.sortable === false) return;
-    const first = c.numeric ? 'desc' : 'asc';
+  const changeSort = (next: SortLevel[]) => {
     capture('sort');
-    if (sort.key !== c.key) setSort({ key: c.key, dir: first });
-    else if (sort.dir === first) setSort({ key: c.key, dir: first === 'asc' ? 'desc' : 'asc' });
-    else setSort({ key: null, dir: 'desc' });
+    setSort(next);
+    announce(sortSentence(next, sortCols));
+  };
+  // A click sorts by this column alone: first click from A (numbers from the largest), second reversed, third back
+  // to the rows' order. Shift + click (add) makes it the next level instead: added, reversed, removed.
+  const sortBy = (c: DataTableColumn<R>, add = false) => {
+    if (c.sortable === false) return;
+    const first = firstDir(c.key);
+    const flip = first === 'asc' ? 'desc' : 'asc';
+    const i = sort.findIndex((l) => l.key === c.key);
+    if (add) {
+      if (i < 0) {
+        if (sort.length < maxSort) changeSort([...sort, { key: c.key, dir: first }]);
+        else announce(tr('最多 {n} 層排序。', { n: maxSort }));
+      } else if (sort[i].dir === first) changeSort(sort.map((l, j) => (j === i ? { key: l.key, dir: flip } : l)));
+      else changeSort(sort.filter((_, j) => j !== i));
+      return;
+    }
+    if (sort.length !== 1 || i !== 0) changeSort([{ key: c.key, dir: first }]);
+    else if (sort[0].dir === first) changeSort([{ key: c.key, dir: flip }]);
+    else changeSort([]);
   };
   const goPage = (n: number) => {
     if (n === pageNow || n < 0 || n >= pages) return;
@@ -454,12 +496,15 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
           </div>
         ) : null}
         {shownCols.map((c, ci) => {
-          const cur = sort.key === c.key;
+          const at = sort.findIndex((l) => l.key === c.key);
+          const cur = at >= 0;
+          const many = sort.length > 1;
           return (
             <div
               key={c.key}
               role="columnheader"
-              aria-sort={cur ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
+              // ARIA allows aria-sort on one column: the first level. The others say their place in the button's name.
+              aria-sort={at === 0 ? (sort[0].dir === 'asc' ? 'ascending' : 'descending') : 'none'}
               className={cellClass(c, ci)}
               style={stickyStyle(ci)}
               data-col={c.key}
@@ -467,9 +512,26 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
               {c.sortable === false ? (
                 c.label
               ) : (
-                <button type="button" className={cx('ui-dt-sort', cur && 'is-on')} onClick={() => sortBy(c)}>
+                <button
+                  type="button"
+                  className={cx('ui-dt-sort', cur && 'is-on')}
+                  aria-label={cur && many ? tr('{name}，第 {n} 排序，{dir}', { name: c.label, n: at + 1, dir: dirWord(sort[at].dir) }) : undefined}
+                  aria-keyshortcuts="Shift+Enter"
+                  onClick={(e) => sortBy(c, e.shiftKey)}
+                  onKeyDown={(e) => {
+                    if (e.shiftKey && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault();
+                      sortBy(c, true);
+                    }
+                  }}
+                >
                   <span>{c.label}</span>
-                  <Icon d={ARROWS[cur ? sort.dir : 'none']} size={14} className="ui-dt-arrow" />
+                  <Icon d={ARROWS[cur ? sort[at].dir : 'none']} size={14} className="ui-dt-arrow" />
+                  {cur && many ? (
+                    <span className="ui-dt-sortpri" aria-hidden="true">
+                      {at + 1}
+                    </span>
+                  ) : null}
                 </button>
               )}
               {narrow ? null : (
@@ -571,6 +633,9 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         <span className="ui-visually-hidden">{format.fractionLabel(list.length, baseCount, tr('筆'))}</span>
       </span>
       {p.copy !== false ? <CopyMarkdownButton text={copyMarkdown} onCopyError={p.onCopyError} /> : null}
+      {sortCols.length ? (
+        <SortButton cols={sortCols} levels={sort} max={maxSort} onChange={changeSort} boundary={inZoom ? zoomRef : rootRef} short={narrow} />
+      ) : null}
       {p.columnMenu !== false && cols.length > 2 ? (
         <ColumnMenu cols={cols} hidden={hidden} onToggle={(k) => setToggled({ ...toggled, [k]: !hidden[k] })} />
       ) : null}
