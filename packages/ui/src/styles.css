@@ -5899,6 +5899,28 @@ html.ui-theme-fade * {
 .ui-card-head:only-child {
   margin-bottom: 0;
 }
+/* padding: false: the card has no padding so a table or tree list can reach its edges, but the title row, a
+   DataTable's tools, caption, tabs and footer keep the same 16 px as a padded card. The table keeps its top and bottom
+   lines and loses the side borders and rounded corners that would double the card's edge. */
+.ui-card.is-flush > .ui-card-head {
+  padding: var(--space-4) var(--space-4) 0;
+}
+.ui-card.is-flush > .ui-card-head:only-child {
+  padding-bottom: var(--space-4);
+}
+.ui-card.is-flush > .ui-dt {
+  padding-bottom: var(--space-4);
+}
+.ui-card.is-flush > .ui-dt:first-child {
+  padding-top: var(--space-4);
+}
+.ui-card.is-flush > .ui-dt > :not(.ui-dt-scroller) {
+  padding-inline: var(--space-4);
+}
+.ui-card.is-flush > .ui-dt .ui-dt-scroll {
+  border-inline: 0;
+  border-radius: 0;
+}
 .ui-card-title {
   flex: 1 1 auto;
   min-width: 0;
@@ -6051,8 +6073,9 @@ html.ui-theme-fade * {
   border-radius: var(--radius-md);
   background: var(--surface);
   color: var(--accent-text);
-  box-shadow: var(--shadow-overlay);
   font-weight: 600;
+  /* Off screen until focused. No shadow there: the overlay shadow (0 20px 48px) reached below the top edge and
+     darkened the corner above the sidebar brand. */
   transform: translateY(calc(-100% - var(--space-6)));
 }
 .ui-skip:focus {

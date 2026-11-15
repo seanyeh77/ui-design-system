@@ -495,10 +495,11 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     let v: React.ReactNode;
     if (c.render) v = c.render(r);
     else if (c.unit && raw !== null && raw !== undefined && raw !== '')
+      // One inline element: the cell is a flex box, which drops a bare space between the number and the unit.
       v = (
-        <>
+        <span className="ui-dt-qty">
           {markMatch(cellText({ ...c, unit: undefined }, raw), mark)} <span className="ui-unit">{c.unit}</span>
-        </>
+        </span>
       );
     else v = markMatch(cellText(c, raw), mark);
     return v;
