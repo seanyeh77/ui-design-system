@@ -5899,6 +5899,13 @@ html.ui-theme-fade * {
 .ui-card-head:only-child {
   margin-bottom: 0;
 }
+/* padding={false}: the content fills the card, the heading keeps the padding of a normal card. */
+.ui-card.is-flush > .ui-card-head {
+  padding: var(--space-4) var(--space-4) 0;
+}
+.ui-card.is-flush > .ui-card-head:only-child {
+  padding-bottom: var(--space-4);
+}
 .ui-card-title {
   flex: 1 1 auto;
   min-width: 0;
@@ -5930,6 +5937,25 @@ html.ui-theme-fade * {
 .ui-card.is-flush .ui-tree > .ui-tree-head {
   padding-left: 20px;
   padding-right: 20px;
+}
+/* A DataTable that fills a padding={false} card: the caption, toolbar, scroll hint and page numbers keep the card's
+   padding; the table runs to the card's edges, which frame it instead of its own border. */
+.ui-card.is-flush > .ui-dt > :not(.ui-dt-scroller),
+.ui-card.is-flush > .ui-dt .ui-dt-foot {
+  padding-inline: var(--space-4);
+}
+.ui-card.is-flush > .ui-dt:first-child {
+  padding-top: var(--space-4);
+}
+.ui-card.is-flush > .ui-dt > :last-child:not(.ui-dt-scroller) {
+  padding-bottom: var(--space-4);
+}
+.ui-card.is-flush > .ui-dt > .ui-dt-scroller > .ui-dt-scroll {
+  border-inline: 0;
+  border-radius: 0;
+}
+.ui-card.is-flush > .ui-dt > .ui-dt-scroller:last-child > .ui-dt-scroll {
+  border-bottom: 0;
 }
 :is(.ui-card, .ui-settings-section) :is(.ui-kpi, .ui-alert) {
   background: var(--surface-sub);
@@ -6051,7 +6077,9 @@ html.ui-theme-fade * {
   border-radius: var(--radius-md);
   background: var(--surface);
   color: var(--accent-text);
-  box-shadow: var(--shadow-overlay);
+  /* No shadow while it waits above the page: the overlay shadow (0 20px 48px) reached down into the top-left
+     corner and darkened it. The shadow comes with focus. */
+  box-shadow: none;
   font-weight: 600;
   transform: translateY(calc(-100% - var(--space-6)));
 }

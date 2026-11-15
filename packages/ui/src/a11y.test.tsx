@@ -695,3 +695,25 @@ test("TreeList: the whole tree is one Tab stop; → goes into a row's link or bu
   await user.keyboard('{ArrowDown}');
   await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('treeitem', { name: 'report' })));
 });
+
+test('AppShell skip link: no shadow while hidden above the page, visible with its shadow after Tab', async () => {
+  render(
+    <UI.AppShell nav={[{ items: [{ id: 'home', label: '總覽', icon: 'house' }] }]} value="home" onNavigate={() => {}} title="總覽">
+      <p>內容</p>
+    </UI.AppShell>,
+  );
+  const skip = el('.ui-skip');
+  // Hidden: above the viewport, and no shadow reaching down into the top-left corner (it darkened the sidebar).
+  expect(skip.getBoundingClientRect().bottom).toBeLessThanOrEqual(0);
+  expect(getComputedStyle(skip).boxShadow).toBe('none');
+  await keys.tab();
+  expect(document.activeElement).toBe(skip);
+  await waitFor(() => expect(skip.getBoundingClientRect().top).toBeGreaterThanOrEqual(0));
+  expect(getComputedStyle(skip).boxShadow).not.toBe('none');
+});
+
+function el(selector: string): HTMLElement {
+  const found = document.querySelector<HTMLElement>(selector);
+  if (!found) throw new Error(`no ${selector}`);
+  return found;
+}

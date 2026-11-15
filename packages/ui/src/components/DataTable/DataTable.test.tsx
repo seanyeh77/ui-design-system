@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { DataTable, InlineCode } from '../../index';
+import { Card, DataTable, InlineCode } from '../../index';
 
 const cols = [{ key: 'name' as const, label: '名稱' }];
 
@@ -485,3 +485,33 @@ test('DataTable copy: every kept row (all pages) in the shown columns; fullText,
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: clip });
   }
 });
+
+test('a number and its unit are shown and copied with a space between them', () => {
+  render(<DataTable rows={[{ id: 1, dt: 212.4 }]} columns={[{ key: 'dt', label: 'ΔT', numeric: true, decimals: 1, unit: 'ms' }]} />);
+  const cell = el('.ui-dt-body .ui-dt-cell.is-num');
+  // innerText follows the layout: the cell is a flex box, which used to drop the space (「212.4ms」).
+  expect(cell.innerText).toBe('212.4 ms');
+});
+
+test('in a card without padding the heading and the toolbar keep the card padding, the table reaches the edges', () => {
+  render(
+    <Card title="執行紀錄" padding={false}>
+      <DataTable rows={[{ id: 1, name: 'alpha' }]} columns={cols} />
+    </Card>,
+  );
+  const card = el('.ui-card').getBoundingClientRect();
+  const head = el('.ui-card-title').getBoundingClientRect();
+  const tools = el('.ui-dt-search').getBoundingClientRect();
+  const table = el('.ui-dt-scroll').getBoundingClientRect();
+  expect(head.left - card.left).toBe(16);
+  expect(head.top - card.top).toBeGreaterThanOrEqual(16);
+  expect(tools.left - card.left).toBe(16);
+  expect(table.left).toBe(card.left);
+  expect(table.right).toBe(card.right);
+});
+
+function el(selector: string): HTMLElement {
+  const found = document.querySelector<HTMLElement>(selector);
+  if (!found) throw new Error(`no ${selector}`);
+  return found;
+}
