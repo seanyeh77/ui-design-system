@@ -279,13 +279,13 @@ Slidev 教材投影片使用 `data-theme="teaching"`。投影片的 CSS 只讀 t
 已確認的選擇：
 
 - 混合方案：中性色與字型沿用設計系統，強調色、直角與細線邊框沿用投影片風格。
-- 強調色：青綠 `#0f766e`。
+- 強調色：預設為青 `#0f8a85`，即 8 個推薦色之一；觀眾可以用簡報的選色器改成其他顏色。
 - 圓角：全部 0 px（`radius-sm`、`radius-chip`、`radius-md`、`radius-lg`）。
 - 陰影：不用（`shadow-*` 為 none），外框用 1.5 px 的 `line`。
 - 字型：標題與內文 Inter 加思源黑體，程式碼 Geist Mono。
 - 只有淺色。
 
-`accent-hover`、`accent-press`、`accent-soft` 依「自訂強調色的換算」由 `#0f766e` 算出。版面、字級與投影片規則見 `teaching-materials-style`。
+`accent-hover`、`accent-press`、`accent-soft`、`accent-text`、`on-accent` 依「自訂強調色的換算」由 `#0f8a85` 算出：`#0f8a85` 在白底只有 4.07:1，所以強調色文字加深為 `#0e7f7a`；強調色底上的文字用 ink（4.33:1，比白色的 4.20:1 高）。版面、字級與投影片規則見 `teaching-materials-style`。
 
 ## 無障礙
 
