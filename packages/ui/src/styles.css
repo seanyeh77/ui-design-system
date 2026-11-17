@@ -690,6 +690,20 @@ body {
 .ui-nav-collapse:hover {
   background: var(--surface-sub);
 }
+/* Pin and collapse at the bottom left: side by side at 240 px, one above the other at 72 px. */
+.ui-nav-foot {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+.ui-nav-foot > .ui-nav-collapse {
+  margin-top: 0;
+}
+.ui-nav-pin.is-on {
+  color: var(--accent-text);
+}
 .ui-nav-collapse .ui-icon {
   transition: transform 0.3s ease;
 }
@@ -6282,6 +6296,35 @@ html.ui-theme-fade * {
 }
 .ui-shell > .ui-sidenav {
   flex: 0 0 auto;
+}
+/* Not pinned: the strip keeps 72 px in the layout; the sidebar in it opens to 240 px over the content (above the top
+   bar, below popovers and dialogs) with the overlay shadow, and back to the strip when it closes. The collapsed
+   name tooltips are not needed there: resting on the strip opens the names. */
+.ui-shell-rail {
+  position: relative;
+  z-index: 20;
+  flex: 0 0 var(--sidebar-collapsed);
+  height: 100%;
+}
+.ui-shell-rail > .ui-sidenav {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  transition:
+    width 0.3s cubic-bezier(0.3, 0.7, 0.3, 1),
+    box-shadow 0.3s ease;
+}
+.ui-shell-rail.is-open > .ui-sidenav {
+  box-shadow: var(--shadow-overlay);
+}
+.ui-shell-rail .ui-nav-tip {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-shell-rail > .ui-sidenav {
+    transition: none;
+  }
 }
 .ui-shell-body {
   position: relative;
