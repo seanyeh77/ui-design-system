@@ -118,7 +118,7 @@
 
 - 主題與強調色放在設定頁的「外觀」，不放在頂部列。
 - 主題：自動、淺色、深色三張預覽卡片（`ThemePicker`）。
-- 強調色：8 個推薦色票，加上可以輸入任何色碼的欄位（`AccentPicker`）。
+- 強調色：8 個推薦色票，加上可以輸入任何色碼的欄位（`AccentPicker`）。每個推薦色在淺色主題都至少 4.5:1：當文字放在 `bg` 上，以及白字放在它上面；預設色一定是其中之一。
 - 切換主題時，所有顏色用 300 ms 漸變。
 
 ## 通知
@@ -279,13 +279,13 @@ Slidev 教材投影片使用 `data-theme="teaching"`。投影片的 CSS 只讀 t
 已確認的選擇：
 
 - 混合方案：中性色與字型沿用設計系統，強調色、直角與細線邊框沿用投影片風格。
-- 強調色：青綠 `#0f766e`。
+- 強調色：預設為青 `#0e827d`，即 8 個推薦色之一；觀眾可以用簡報的選色器改成其他顏色。
 - 圓角：全部 0 px（`radius-sm`、`radius-chip`、`radius-md`、`radius-lg`）。
 - 陰影：不用（`shadow-*` 為 none），外框用 1.5 px 的 `line`。
 - 字型：標題與內文 Inter 加思源黑體，程式碼 Geist Mono。
 - 只有淺色。
 
-`accent-hover`、`accent-press`、`accent-soft` 依「自訂強調色的換算」由 `#0f766e` 算出。版面、字級與投影片規則見 `teaching-materials-style`。
+`accent-hover`、`accent-press`、`accent-soft`、`accent-text`、`on-accent` 依「自訂強調色的換算」由 `#0e827d` 算出：它在 `bg` 上為 4.51:1、白字在它上面為 4.66:1，所以 `accent-text` 就是強調色本身，強調色底上的文字用白色。版面、字級與投影片規則見 `teaching-materials-style`。
 
 ## 無障礙
 
