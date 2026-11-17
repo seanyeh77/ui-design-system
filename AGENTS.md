@@ -100,7 +100,7 @@ Run `npx @seanyeh77/ui-cli check <file or URL>`. It opens the page at 390 px and
 - Long lists of results: items that need attention (errors, to confirm) come first or can be filtered from the summary.
 - Phones: long text is left-aligned.
 
-Scope: this system covers web UI and the tokens of SeanYeh's Slidev decks. Slidev decks use the `teaching` preset (`data-theme="teaching"` in `tokens.css`, defined under `presets` in `packages/tokens/tokens.json`): warm-gray neutrals and Inter / Geist Mono from this system, plus teal `#0f8a85` (the 青 preset swatch) as the default accent, 0 px radius, no shadows and 1.5 px borders, light only. Deck CSS reads token names only. Slide layout and rules, Notion documents and teaching diagrams follow SeanYeh's separate `teaching-materials-style` skill.
+Scope: this system covers web UI and the tokens of SeanYeh's Slidev decks. Slidev decks use the `teaching` preset (`data-theme="teaching"` in `tokens.css`, defined under `presets` in `packages/tokens/tokens.json`): warm-gray neutrals and Inter / Geist Mono from this system, plus teal `#0e827d` (the 青 preset swatch) as the default accent, 0 px radius, no shadows and 1.5 px borders, light only. Deck CSS reads token names only. Slide layout and rules, Notion documents and teaching diagrams follow SeanYeh's separate `teaching-materials-style` skill.
 
 ## Changing the design system
 
