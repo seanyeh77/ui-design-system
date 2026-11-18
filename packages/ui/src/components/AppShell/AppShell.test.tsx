@@ -99,3 +99,93 @@ test('the skip link has no shadow off screen, so nothing darkens the corner; Tab
   await waitFor(() => expect(skip.getBoundingClientRect().top).toBeGreaterThanOrEqual(0));
   expect(getComputedStyle(skip).boxShadow).not.toBe('none');
 });
+
+// Desktop sidebar: not pinned by default, a 72 px strip of icons that opens over the content.
+const shell = (extra: Record<string, unknown> = {}, onNavigate = vi.fn()) => (
+  <AppShell nav={nav} value="home" onNavigate={onNavigate} brand="專案中心" title="總覽" {...extra}>
+    <p>內容</p>
+  </AppShell>
+);
+const resetStore = () => {
+  localStorage.removeItem('ui-nav-pinned');
+  localStorage.removeItem('ui-nav-collapsed');
+};
+const sideWidth = (c: HTMLElement) => (c.querySelector('.ui-sidenav') as HTMLElement).getBoundingClientRect().width;
+const mainLeft = (c: HTMLElement) => (c.querySelector('.ui-shell-body') as HTMLElement).getBoundingClientRect().left;
+
+test('sidebar not pinned by default: a 72 px strip that opens over the content when the pointer rests on it', async () => {
+  resetStore();
+  await page.viewport(1280, 900);
+  const { container } = render(shell());
+  const rail = container.querySelector('.ui-shell-rail') as HTMLElement;
+  expect(rail).toBeTruthy();
+  await waitFor(() => expect(sideWidth(container)).toBe(72));
+  expect(mainLeft(container)).toBe(72);
+  expect(screen.getByRole('button', { name: '釘選側邊欄' }).getAttribute('aria-pressed')).toBe('false');
+  expect(screen.queryByRole('button', { name: '收合側邊欄' })).toBeNull();
+  await user.hover(rail);
+  await waitFor(() => expect(sideWidth(container)).toBe(240));
+  expect(rail.classList.contains('is-open')).toBe(true);
+  // over the content: the content does not move
+  expect(mainLeft(container)).toBe(72);
+  await user.unhover(rail);
+  await waitFor(() => expect(sideWidth(container)).toBe(72));
+});
+
+test('sidebar not pinned: the keyboard opens it, Esc closes it, and choosing a page closes it', async () => {
+  resetStore();
+  await page.viewport(1280, 900);
+  const onNavigate = vi.fn();
+  const { container } = render(shell({}, onNavigate));
+  const rail = container.querySelector('.ui-shell-rail') as HTMLElement;
+  await user.tab(); // skip link
+  await user.tab(); // first nav item
+  expect(rail.contains(document.activeElement)).toBe(true);
+  await waitFor(() => expect(rail.classList.contains('is-open')).toBe(true));
+  const focused = document.activeElement;
+  await user.keyboard('{Escape}');
+  expect(rail.classList.contains('is-open')).toBe(false);
+  expect(document.activeElement).toBe(focused);
+  await user.hover(rail);
+  await waitFor(() => expect(rail.classList.contains('is-open')).toBe(true));
+  await user.click(screen.getByRole('button', { name: '帳務' }));
+  expect(onNavigate).toHaveBeenCalledWith('billing');
+  expect(rail.classList.contains('is-open')).toBe(false);
+});
+
+test('pinning: the sidebar sits beside the content as before, collapses to 72 px, and the choice is kept', async () => {
+  resetStore();
+  await page.viewport(1280, 900);
+  const first = render(shell());
+  await user.click(screen.getByRole('button', { name: '釘選側邊欄' }));
+  expect(first.container.querySelector('.ui-shell-rail')).toBeNull();
+  await waitFor(() => expect(sideWidth(first.container)).toBe(240));
+  expect(mainLeft(first.container)).toBe(240);
+  expect(screen.getByRole('button', { name: '取消釘選' }).getAttribute('aria-pressed')).toBe('true');
+  await user.click(screen.getByRole('button', { name: '收合側邊欄' }));
+  await waitFor(() => expect(sideWidth(first.container)).toBe(72));
+  first.unmount();
+  const again = render(shell());
+  expect(again.container.querySelector('.ui-shell-rail')).toBeNull();
+  await waitFor(() => expect(sideWidth(again.container)).toBe(72));
+  await user.click(screen.getByRole('button', { name: '取消釘選' }));
+  expect(again.container.querySelector('.ui-shell-rail')).toBeTruthy();
+  expect(localStorage.getItem('ui-nav-pinned')).toBe('0');
+  resetStore();
+});
+
+test('pinning: someone who chose collapsed before keeps a pinned, collapsed sidebar; defaultPinned starts pinned', async () => {
+  resetStore();
+  await page.viewport(1280, 900);
+  localStorage.setItem('ui-nav-collapsed', '1');
+  const a = render(shell());
+  expect(a.container.querySelector('.ui-shell-rail')).toBeNull();
+  await waitFor(() => expect(sideWidth(a.container)).toBe(72));
+  a.unmount();
+  resetStore();
+  const b = render(shell({ defaultPinned: true }));
+  expect(b.container.querySelector('.ui-shell-rail')).toBeNull();
+  await waitFor(() => expect(sideWidth(b.container)).toBe(240));
+  b.unmount();
+  resetStore();
+});

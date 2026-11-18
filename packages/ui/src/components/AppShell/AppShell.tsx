@@ -29,10 +29,19 @@ export interface AppShellProps {
   children: React.ReactNode;
   /** Labels under the phone tab bar's icons (MobileTabBar labels). Default true. */
   tabLabels?: boolean;
+  /** Desktop: whether the sidebar starts pinned (240 px, or 72 px collapsed, beside the content) until the reader
+   *  pins or unpins it; their choice is kept in the browser. Default false: a 72 px strip of icons that opens to
+   *  240 px over the content while the pointer or the keyboard focus is on it. */
+  defaultPinned?: boolean;
   className?: string;
 }
 
 const COLLAPSE_KEY = 'ui-nav-collapsed';
+const PIN_KEY = 'ui-nav-pinned';
+/** Pointer on the strip this long before it opens (passing over it on the way to the browser's edge does not). */
+const OPEN_DELAY = 100;
+/** Pointer away this long before it hides again (a slip off the edge does not). */
+const CLOSE_DELAY = 300;
 
 export { focusMain };
 const MORE = '\u0000more';
@@ -40,12 +49,53 @@ const MORE = '\u0000more';
 /** The dashboard frame: sidebar (240 px, 72 px collapsed) above 1024 px, a drawer from the top bar's menu button from
  *  600 to 1024 px, and bottom tabs on phones.
  *  The top bar hides while scrolling down and returns when scrolling up. */
-export function AppShell({ nav, value, onNavigate, brand, title, breadcrumb, onSearch, actions, children, tabLabels, className }: AppShellProps) {
+export function AppShell({
+  nav,
+  value,
+  onNavigate,
+  brand,
+  title,
+  breadcrumb,
+  onSearch,
+  actions,
+  children,
+  tabLabels,
+  defaultPinned = false,
+  className,
+}: AppShellProps) {
   const phone = useNarrow();
   // 600 to 1024 px (tablets, narrow windows): no sidebar; the top bar's menu button opens the whole nav in a drawer.
   const tablet = useMedia('(min-width: 600px) and (max-width: 1024px)');
   const [userCollapsed, setUserCollapsed] = React.useState(() => store(COLLAPSE_KEY) === '1');
-  const collapsed = userCollapsed;
+  // Pinned: the sidebar sits beside the content as before (240 px, or 72 px collapsed). Not pinned: a 72 px strip of
+  // icons that opens over the content. Someone who already chose collapsed or expanded keeps a pinned sidebar.
+  const [pinned, setPinned] = React.useState(() => {
+    const v = store(PIN_KEY);
+    if (v != null) return v === '1';
+    return store(COLLAPSE_KEY) != null || defaultPinned;
+  });
+  const [open, setOpen] = React.useState(false);
+  const openTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
+  const closeTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
+  const later = (show: boolean) => {
+    clearTimeout(openTimer.current);
+    clearTimeout(closeTimer.current);
+    if (show) openTimer.current = setTimeout(() => setOpen(true), OPEN_DELAY);
+    else closeTimer.current = setTimeout(() => setOpen(false), CLOSE_DELAY);
+  };
+  React.useEffect(
+    () => () => {
+      clearTimeout(openTimer.current);
+      clearTimeout(closeTimer.current);
+    },
+    [],
+  );
+  const collapsed = pinned ? userCollapsed : !open;
+  const togglePin = () => {
+    store(PIN_KEY, pinned ? '0' : '1');
+    setPinned(!pinned);
+    setOpen(false);
+  };
   const top = nav.flatMap((s) => s.items);
   const parentOf = (id: string) => top.find((it) => it.children?.some((c) => c.id === id));
   // Phones: top-level items with an icon become tabs (a group opens its first page).
@@ -101,18 +151,55 @@ export function AppShell({ nav, value, onNavigate, brand, title, breadcrumb, onS
       >
         {tr('跳到主要內容')}
       </a>
-      {phone || tablet ? null : (
+      {phone || tablet ? null : pinned ? (
         <SideNav
           sections={nav}
           value={value}
           onChange={onNavigate}
           brand={brand}
           collapsed={collapsed}
+          pinned
+          onPin={togglePin}
           onToggle={() => {
             store(COLLAPSE_KEY, userCollapsed ? '0' : '1');
             setUserCollapsed(!userCollapsed);
           }}
         />
+      ) : (
+        // Not pinned: the strip keeps its 72 px in the layout; the sidebar inside opens over the content and closes
+        // again when the pointer and the focus have left it, after a page is chosen, or on Esc.
+        <div
+          className={cx('ui-shell-rail', open && 'is-open')}
+          onPointerEnter={(e) => e.pointerType === 'mouse' && later(true)}
+          onPointerLeave={(e) => e.pointerType === 'mouse' && later(false)}
+          onFocus={(e) => {
+            if (!(e.target as Element).matches(':focus-visible')) return;
+            clearTimeout(closeTimer.current);
+            setOpen(true);
+          }}
+          onBlur={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape' && open) {
+              e.stopPropagation();
+              setOpen(false);
+            }
+          }}
+        >
+          <SideNav
+            sections={nav}
+            value={value}
+            onChange={(id) => {
+              clearTimeout(openTimer.current);
+              setOpen(false);
+              onNavigate(id);
+            }}
+            brand={brand}
+            collapsed={collapsed}
+            onPin={togglePin}
+          />
+        </div>
       )}
       <div className="ui-shell-body">
         <TopBar

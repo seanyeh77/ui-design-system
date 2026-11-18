@@ -28,6 +28,10 @@ export interface SideNavProps {
   collapsed?: boolean;
   /** Adds the collapse button at the bottom left. */
   onToggle?: () => void;
+  /** Adds the pin button at the bottom left (AppShell): pinned, the sidebar stays; not pinned, it hides to icons. */
+  onPin?: () => void;
+  /** Whether the sidebar is pinned: the pin button is filled and says 「取消釘選」. */
+  pinned?: boolean;
   brand?: React.ReactNode;
   /** Default 「主要導覽」. */
   label?: string;
@@ -35,7 +39,7 @@ export interface SideNavProps {
 }
 
 /** The 240 px dashboard sidebar (72 px collapsed). The selection bar moves like a droplet. */
-export function SideNav({ sections, value, onChange, collapsed = false, onToggle, brand, label, className }: SideNavProps) {
+export function SideNav({ sections, value, onChange, collapsed = false, onToggle, onPin, pinned = false, brand, label, className }: SideNavProps) {
   const refs = React.useRef<Record<string, HTMLButtonElement | null>>({});
   const wrap = React.useRef<HTMLDivElement>(null);
   const [bar, setBar] = React.useState({ top: 0, bottom: 0, show: false, down: true });
@@ -128,10 +132,26 @@ export function SideNav({ sections, value, onChange, collapsed = false, onToggle
           ))}
         </div>
       </nav>
-      {onToggle ? (
-        <button type="button" className="ui-nav-collapse" aria-label={toggleLabel} title={toggleLabel} onClick={onToggle}>
-          <Icon name="sidebar-simple" size={20} />
-        </button>
+      {onToggle || onPin ? (
+        <div className="ui-nav-foot">
+          {onPin ? (
+            <button
+              type="button"
+              className={cx('ui-nav-collapse', 'ui-nav-pin', pinned && 'is-on')}
+              aria-pressed={pinned}
+              aria-label={pinned ? tr('取消釘選') : tr('釘選側邊欄')}
+              title={pinned ? tr('取消釘選') : tr('釘選側邊欄')}
+              onClick={onPin}
+            >
+              <Icon name="push-pin" size={20} filled={pinned} />
+            </button>
+          ) : null}
+          {onToggle ? (
+            <button type="button" className="ui-nav-collapse" aria-label={toggleLabel} title={toggleLabel} onClick={onToggle}>
+              <Icon name="sidebar-simple" size={20} />
+            </button>
+          ) : null}
+        </div>
       ) : null}
     </aside>
   );

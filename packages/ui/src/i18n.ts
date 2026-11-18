@@ -47,6 +47,8 @@ export const I18N: I18nState = {
       搜尋: 'Search',
       操作: 'Actions',
       收合側邊欄: 'Collapse sidebar',
+      釘選側邊欄: 'Pin sidebar',
+      取消釘選: 'Unpin sidebar',
       放棄: 'Discard',
       '放棄未儲存的變更？': 'Discard unsaved changes?',
       '{label}？': '{label}?',
