@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from 'vitest';
 import { render } from '@testing-library/react';
-import { InlineCode } from '../../index';
+import { CodeText, InlineCode } from '../../index';
 
 // The browser resolves any CSS color (color-mix included) to sRGB through a canvas.
 function rgb(css: string): [number, number, number] {
@@ -71,4 +71,10 @@ test('look needs a target: text that points nowhere keeps the chip', () => {
   const bad = <InlineCode look="name">x</InlineCode>;
   const { container } = render(bad);
   expect(container.querySelector('code.ui-code:not(.is-name)')).not.toBeNull();
+});
+
+test('CodeText: a reference that points somewhere is a location; other spans keep the chip', () => {
+  const { container } = render(<CodeText text="`ibmon_spawn` 在 `child.c:86` 設定 `IBTRACE_SHM`" onRef={() => {}} />);
+  const codes = Array.from(container.querySelectorAll('.ui-code'));
+  expect(codes.map((c) => c.classList.contains('is-location'))).toEqual([false, true, false]);
 });

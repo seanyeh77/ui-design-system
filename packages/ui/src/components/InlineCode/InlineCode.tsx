@@ -92,24 +92,28 @@ export function CodeText({ text, refHref, onRef, isRef = isCodeRef, as: Tag = 's
         const href = refHref && isRef(v) ? refHref(v) || undefined : undefined;
         const link = isRef(v) && (refHref ? !!href : !!onRef);
         if (!link) return <InlineCode key={i}>{v}</InlineCode>;
-        return (
-          <InlineCode
-            key={i}
-            href={href}
-            onClick={
-              onRef
-                ? (e) => {
-                    // A plain click goes to onRef; Ctrl, ⌘, Shift or the middle button still opens href in a new tab.
-                    if (href && (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1)) return;
-                    e.preventDefault();
-                    onRef(v, e);
-                  }
-                : undefined
+        // A reference that points somewhere is a location: gray, one step smaller.
+        const click = onRef
+          ? (e: React.MouseEvent<HTMLElement>) => {
+              // A plain click goes to onRef; Ctrl, ⌘, Shift or the middle button still opens href in a new tab.
+              if (href && (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1)) return;
+              e.preventDefault();
+              onRef(v, e);
             }
-          >
-            {v}
-          </InlineCode>
-        );
+          : undefined;
+        if (href)
+          return (
+            <InlineCode key={i} look="location" href={href} onClick={click}>
+              {v}
+            </InlineCode>
+          );
+        if (click)
+          return (
+            <InlineCode key={i} look="location" onClick={click}>
+              {v}
+            </InlineCode>
+          );
+        return <InlineCode key={i}>{v}</InlineCode>;
       })}
     </Tag>
   );

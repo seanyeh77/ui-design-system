@@ -513,10 +513,10 @@ Claude 定的細節（待確認）：
 - S1：Markdown 寫 `[AI](ai:)`，換成標記，不是連結。（其他選項：S2 `:ai:`；S3 `> [!AI]` 區塊。）
 - H1：圓點和泡泡一直顯示，直到按「開始」、× 或看完導覽。（其他選項：H2 只有圓點，滑過或焦點才出泡泡；H3 泡泡 8 秒後收起。）
 
-Claude 定的細節（待確認）：
+Claude 提出的細節，使用者確認：「照你的建議」（包括 `CodeText` 也改成位置外觀）。
 
 - 名稱和位置的連結：底線離文字 3 px，焦點框和其他連結一樣（3 px `focus-ring`）。API 是 InlineCode 的 `look="name" | "location"`，沒有 `href` 或 `onClick` 時 TypeScript 不會編譯。位置不斷行。深色模式下在表格的灰色列上，文字色混入 25% 的 `ink`（和灰底連結相同的做法），對比維持 4.5:1。
-- Markdown：路徑（有資料夾的檔名，例如 `docs/a.md`）沒有行號也用位置樣式；外部網址在新分頁開啟的連結（沒有 `onLink`）即使文字是一段程式碼也照舊。`CodeText`（不是 Markdown 的反引號文字）的引用連結維持灰底連結，沒有改。
+- Markdown：路徑（有資料夾的檔名，例如 `docs/a.md`）沒有行號也用位置樣式；外部網址在新分頁開啟的連結（沒有 `onLink`）即使文字是一段程式碼也照舊。`CodeText` 的引用連結也用位置外觀，和 Markdown 一致。
 - AI 標記：新元件 `AiMark`；`ink-muted` 字、`line` 框線、左右 4 px、圓角 4 px、和後面的文字隔 6 px；畫面上的「AI」對螢幕閱讀器隱藏，改念「AI 說明：」，`label` 可以換。`[AI](ai:)` 後面的一個空格省略；寫在句子中間時照樣換成標記，開發模式在 console 提醒。英文介面念「AI note」。
 - 提示：IconButton 的 `hint`（`{ text, action, onAction, onDismiss }`，`action` 預設「開始」）；泡泡在按鈕下方 12 px、右緣對齊，最寬 320 px（手機上螢幕寬度 − 32 px），出現時和 Tooltip 一樣的 220 ms 彈出動畫；圓點外圈在 TopBar 裡是 `surface-chrome`，其他地方是 `bg`。泡泡是 `role="status"`，按鈕用 `aria-describedby` 指向它。
 - `tour.hint(text)`：頁面用了它，導覽就不會自己打開；導覽開著時提示收起；× 和看完導覽寫進同一個「看過」記錄。沒有用的頁面照舊自動打開。
