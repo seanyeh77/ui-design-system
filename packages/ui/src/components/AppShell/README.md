@@ -24,7 +24,7 @@ Dashboard 類頁面的外框：側邊欄、頂部列和內容區。頁面都從�
   ]}
   value={page}
   onNavigate={setPage}
-  brand="專案中心"
+  brand={{ name: '專案中心', href: '/' }}
   title="總覽"
   onSearch={() => setSearchOpen(true)}
   actions={<NotificationBell items={notifications} />}
@@ -32,6 +32,22 @@ Dashboard 類頁面的外框：側邊欄、頂部列和內容區。頁面都從�
   <Page>…</Page>
 </AppShell>
 ```
+
+## 品牌（brand）
+
+側邊欄最上方的產品名稱。傳 `{ mark, name, href }`：
+
+```tsx
+<AppShell brand={{ mark: <img src="/logo.svg" alt="" width={24} height={24} />, name: 'codemap', href: '/' }} …>
+```
+
+- 收合（72 px，包括沒釘選時平常的圖示列和釘選後收合）：只顯示 `mark`，名稱藏起來。仍是回首頁的連結，Tab 可以停，`aria-label` 是完整的 `name`。
+- 展開或釘選（240 px）：`mark` 加 `name`。名稱跟著側邊欄展開淡入（300 ms，和變寬同一條曲線，晚 80 ms 開始），收回時 100 ms 淡出。
+- `mark` 的位置在每個狀態都一樣：中心對齊下面項目的圖示（離左邊 31 px），展開時不移動。`mark` 最大 24 × 24 px。
+- 只傳文字（`brand="專案中心"`）或沒給 `mark`：用名稱的第一個字放在 24 px 的強調色方塊裡當 `mark`（「專」）。沒有 `href` 時不是連結，螢幕閱讀器念完整名稱。
+- `onClick` 可以代替 `href`（例如 app 自己切換頁面）。
+- 舊寫法（傳一個元素，例如 `brand={<a href="/">…</a>}`）仍然可以用，但元件分不出哪部分是 logo：收合時整塊藏起來，開發模式在 console 提醒改用 `{ mark, name, href }`。
+- 平板抽屜和手機的「更多」導覽不受影響。
 
 ## 無障礙
 

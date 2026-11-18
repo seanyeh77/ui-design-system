@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { SideNav, type NavItem, type NavSection } from '../SideNav/SideNav';
+import { SideNav, type NavBrand, type NavItem, type NavSection } from '../SideNav/SideNav';
 import { TopBar } from '../TopBar/TopBar';
 import { MobileTabBar, type MobileTab } from '../MobileTabBar/MobileTabBar';
 import { Drawer } from '../Drawer/Drawer';
@@ -16,8 +16,10 @@ export interface AppShellProps {
   /** Id of the current page. */
   value: string;
   onNavigate: (id: string) => void;
-  /** Logo or product name at the top of the sidebar. */
-  brand?: React.ReactNode;
+  /** The product at the top of the sidebar: { mark, name, href } (see SideNav's NavBrand). Collapsed it shows the mark
+   *  alone, a link named by `name`; open or pinned, the name fades in beside it. Plain text gets its first character as
+   *  the mark. */
+  brand?: React.ReactNode | NavBrand;
   /** The page title, shown once in the top bar. Do not repeat it as a heading in the page. */
   title?: string;
   breadcrumb?: BreadcrumbItem[];

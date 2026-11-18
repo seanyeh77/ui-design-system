@@ -4,6 +4,7 @@ import { Icon, IconOf, type IconSource } from '../../icons/Icon';
 import { dropTransition, useMoving } from '../../motion';
 import { announce } from '../../announce';
 import { cx } from '../../internal/util';
+import { devWarn } from '../../internal/dev';
 
 export interface NavItem {
   id: string;
@@ -16,6 +17,58 @@ export interface NavItem {
 
 export interface NavSection {
   items: NavItem[];
+}
+
+/** The product at the top of the sidebar. */
+export interface NavBrand {
+  /** Logo or colour block, at most 24 px: stays where it is, collapsed and open. Default: the first character of
+   *  `name` in an accent square. */
+  mark?: React.ReactNode;
+  /** The product name: shown beside the mark when the sidebar is open, the link's name when collapsed. */
+  name: string;
+  /** Usually the home page. */
+  href?: string;
+  onClick?: (e: React.MouseEvent<HTMLElement>) => void;
+}
+
+const isBrand = (b: unknown): b is NavBrand =>
+  !!b && typeof b === 'object' && !React.isValidElement(b) && !Array.isArray(b) && typeof (b as NavBrand).name === 'string';
+
+function NavBrandRow({ brand, collapsed }: { brand: React.ReactNode | NavBrand; collapsed: boolean }) {
+  const spec: NavBrand | null = isBrand(brand) ? brand : typeof brand === 'string' ? { name: brand } : null;
+  devWarn(
+    !spec && collapsed,
+    'SideNav',
+    'brand 是一個元素，收合時讀不出哪部分是 logo，只能整塊藏起來。改傳 brand={{ mark, name, href }}：收合時顯示 mark，展開時加上名稱。',
+  );
+  if (!spec) return <div className="ui-nav-brand">{collapsed ? null : (brand as React.ReactNode)}</div>;
+  const inner = (
+    <>
+      <span className="ui-nav-mark" aria-hidden="true">
+        {spec.mark ?? <span className="ui-nav-monogram">{Array.from(spec.name)[0]}</span>}
+      </span>
+      <span className="ui-nav-brand-name">{spec.name}</span>
+    </>
+  );
+  // Collapsed, the name is invisible but the link keeps it as its label.
+  const label = collapsed ? spec.name : undefined;
+  return (
+    <div className="ui-nav-brand has-mark">
+      {spec.href ? (
+        <a className="ui-nav-brand-link" href={spec.href} onClick={spec.onClick} aria-label={label}>
+          {inner}
+        </a>
+      ) : spec.onClick ? (
+        <button type="button" className="ui-nav-brand-link" onClick={spec.onClick} aria-label={label}>
+          {inner}
+        </button>
+      ) : (
+        <span className="ui-nav-brand-link" aria-label={label} role={label ? 'img' : undefined}>
+          {inner}
+        </span>
+      )}
+    </div>
+  );
 }
 
 export interface SideNavProps {
@@ -32,7 +85,10 @@ export interface SideNavProps {
   onPin?: () => void;
   /** Whether the sidebar is pinned: the pin button is filled and says 「取消釘選」. */
   pinned?: boolean;
-  brand?: React.ReactNode;
+  /** The product at the top. Prefer { mark, name, href }: collapsed (72 px) it shows only the mark, still a link
+   *  named by `name`; open, the mark with the name fading in beside it. Text alone gets its first character in an
+   *  accent square as the mark. Any other element is hidden while collapsed. */
+  brand?: React.ReactNode | NavBrand;
   /** Default 「主要導覽」. */
   label?: string;
   className?: string;
@@ -114,7 +170,7 @@ export function SideNav({ sections, value, onChange, collapsed = false, onToggle
   const toggleLabel = collapsed ? tr('展開側邊欄') : tr('收合側邊欄');
   return (
     <aside className={cx('ui-sidenav', collapsed && 'is-collapsed', className)}>
-      {brand ? <div className="ui-nav-brand">{brand}</div> : null}
+      {brand ? <NavBrandRow brand={brand} collapsed={collapsed} /> : null}
       <nav className="ui-nav-list" aria-label={label || tr('主要導覽')}>
         <div ref={wrap} className="ui-nav-inner">
           {bar.show ? (

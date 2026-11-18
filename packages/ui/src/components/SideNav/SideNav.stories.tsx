@@ -23,12 +23,11 @@ function Demo() {
         onToggle={() => {
           setCol(!col);
         }}
-        brand={React.createElement(
-          React.Fragment,
-          null,
-          <span style={{ flex: '0 0 24px', width: 24, height: 24, borderRadius: 6, background: 'var(--accent)' }} />,
-          col ? null : <span>[專案名稱]</span>,
-        )}
+        brand={{
+          mark: <span style={{ display: 'block', width: 24, height: 24, borderRadius: 6, background: 'var(--accent)' }} />,
+          name: '[專案名稱]',
+          href: '#',
+        }}
         sections={[
           {
             items: [

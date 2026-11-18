@@ -660,6 +660,74 @@ body {
   white-space: nowrap;
   overflow: hidden;
 }
+/* Brand { mark, name }: the mark keeps one place in every state, centred on the item icons below (10 px padding +
+   10 px item padding + half the 22 px icon = 31 px); the name fades in beside it as the sidebar opens, in step with
+   the 300 ms widening, and out in 100 ms as it closes. */
+.ui-nav-brand.has-mark {
+  padding: 0;
+  overflow: visible;
+}
+.ui-nav-brand-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 40px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+}
+:is(a, button).ui-nav-brand-link {
+  cursor: pointer;
+}
+:is(a, button).ui-nav-brand-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.ui-nav-mark {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+.ui-nav-monogram {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 13px;
+  line-height: 1;
+}
+.ui-nav-brand-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 0.3s cubic-bezier(0.3, 0.7, 0.3, 1) 80ms;
+}
+.ui-sidenav.is-collapsed .ui-nav-brand-name {
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-nav-brand-name,
+  .ui-sidenav.is-collapsed .ui-nav-brand-name {
+    transition: none;
+  }
+}
 .ui-nav-list {
   flex: 1 1 auto;
   min-height: 0;
@@ -5266,6 +5334,7 @@ html.ui-theme-fade * {
     [role='menuitem'],
     .ui-crumb a,
     a.ui-crumb,
+    a.ui-nav-brand-link,
     .ui-code.is-link:not(.is-inline),
     .ui-term:not(.is-inline)
   ) {
@@ -5280,6 +5349,7 @@ html.ui-theme-fade * {
     [role='menuitem'],
     .ui-crumb a,
     a.ui-crumb,
+    a.ui-nav-brand-link,
     .ui-code.is-link:not(.is-inline),
     .ui-term:not(.is-inline)
   )::after {

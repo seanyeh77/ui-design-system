@@ -108,7 +108,7 @@ export type { SelectOption, SelectProps } from './components/Select/Select';
 export { SettingsLayout, SettingsSection } from './components/SettingsLayout/SettingsLayout';
 export type { SettingsCategory, SettingsLayoutProps, SettingsSectionProps } from './components/SettingsLayout/SettingsLayout';
 export { SideNav } from './components/SideNav/SideNav';
-export type { NavItem, NavSection, SideNavProps } from './components/SideNav/SideNav';
+export type { NavBrand, NavItem, NavSection, SideNavProps } from './components/SideNav/SideNav';
 export { Skeleton } from './components/Skeleton/Skeleton';
 export type { SkeletonProps } from './components/Skeleton/Skeleton';
 export { Suggestion } from './components/Suggestion/Suggestion';

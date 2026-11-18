@@ -20,7 +20,7 @@ function Demo() {
         ]}
         value={page}
         onNavigate={setPage}
-        brand="專案中心"
+        brand={{ name: '專案中心', href: '#' }}
         title="總覽"
         onSearch={() => {}}
       >

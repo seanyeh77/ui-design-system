@@ -189,3 +189,39 @@ test('pinning: someone who chose collapsed before keeps a pinned, collapsed side
   b.unmount();
   resetStore();
 });
+
+test('brand { mark, name, href }: collapsed the mark alone, a link named by the name, in line with the icons; open the name fades in', async () => {
+  resetStore();
+  await page.viewport(1280, 900);
+  const mark = <span className="test-mark" style={{ display: 'block', width: 16, height: 16, background: 'var(--accent)' }} />;
+  const { container } = render(shell({ brand: { mark, name: 'codemap', href: '#home' } }));
+  const rail = container.querySelector('.ui-shell-rail') as HTMLElement;
+  await waitFor(() => expect(sideWidth(container)).toBe(72));
+  const link = screen.getByRole('link', { name: 'codemap' });
+  const name = container.querySelector('.ui-nav-brand-name') as HTMLElement;
+  expect(getComputedStyle(name).opacity).toBe('0');
+  const centre = (el: Element) => {
+    const r = el.getBoundingClientRect();
+    return r.left + r.width / 2;
+  };
+  const icon = container.querySelector('.ui-nav-item .ui-nav-icon') as Element;
+  const markBox = container.querySelector('.test-mark') as Element;
+  expect(Math.abs(centre(markBox) - centre(icon))).toBeLessThan(0.5);
+  const before = centre(markBox);
+  await user.hover(rail);
+  await waitFor(() => expect(sideWidth(container)).toBe(240));
+  await waitFor(() => expect(getComputedStyle(name).opacity).toBe('1'));
+  expect(link.getAttribute('aria-label')).toBeNull();
+  expect(link.textContent).toBe('codemap');
+  // The mark does not move.
+  expect(Math.abs(centre(markBox) - before)).toBeLessThan(0.5);
+});
+
+test('brand as text: collapsed its first character in an accent square, named by the whole text', async () => {
+  resetStore();
+  await page.viewport(1280, 900);
+  const { container } = render(shell());
+  await waitFor(() => expect(sideWidth(container)).toBe(72));
+  expect(container.querySelector('.ui-nav-monogram')?.textContent).toBe('專');
+  expect(screen.getByRole('img', { name: '專案中心' })).toBeTruthy();
+});
