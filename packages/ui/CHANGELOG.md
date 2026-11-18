@@ -1,5 +1,15 @@
 # @seanyeh77/ui
 
+## 0.27.0
+
+### Minor Changes
+
+- 3e31067: InlineCode 新增 `look="name"`（名稱：強調色等寬字，沒有底色）與 `look="location"`（檔案:行號：灰色 13 px）；Markdown 自動套用，`[AI](ai:)` 變成新的 `AiMark`。IconButton 新增 `hint`（圓點加泡泡的第一次使用提示），`useTour` 新增 `tour.hint(text)`：用了提示的頁面不再自動打開導覽。
+
+### Patch Changes
+
+- 2853e62: 修正強調文字色（`--accent-text`）在預設強調色下變成黑色：打包工具（Vite、esbuild、lightningcss）會把 `tokens.css` 的 `#ffffff` 縮寫成 `#fff`，`setAccent()` 讀不懂 3 位數色碼，對比算不出來，一路混入黑色，所有連結和行內程式碼連結都變黑。現在讀 `--bg`、`--surface` 時接受 `#rgb`、`#rrggbb`、帶透明度的寫法與 `rgb()`；仍然讀不出來時，`--accent-text` 就用強調色本身，不往黑或白混。
+
 ## 0.26.0
 
 ### Minor Changes
