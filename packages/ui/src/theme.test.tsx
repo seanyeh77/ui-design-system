@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from 'vitest';
-import { DEFAULT_ACCENT, accentText, setAccent, setTheme } from './theme';
+import { DEFAULT_ACCENT, accentText, setAccent, setTheme, toHex } from './theme';
 
 // Contrast as WCAG 2 counts it, to check the results independently of theme.ts.
 const lum = (hex: string) =>
@@ -60,4 +60,39 @@ test('setAccent: only accent-text changes; the accent itself (fills, bars, rings
   setAccent('#1a1a6e', true);
   expect(varOf('--accent')).toBe('#1a1a6e');
   expect(varOf('--accent-text')).toBe('#a3a3c5');
+});
+
+test('bundlers shorten #ffffff to #fff: with --surface #fff the default accent-text is still #2457d6, not black', () => {
+  setTheme('light');
+  const root = document.documentElement;
+  root.style.setProperty('--surface', '#fff');
+  root.style.setProperty('--bg', '#fcfbfb');
+  try {
+    setAccent(DEFAULT_ACCENT, true);
+    expect(varOf('--accent-text')).toBe('#2457d6');
+    // rgb() reads the same
+    root.style.setProperty('--surface', 'rgb(255, 255, 255)');
+    setAccent(DEFAULT_ACCENT, true);
+    expect(varOf('--accent-text')).toBe('#2457d6');
+  } finally {
+    root.style.removeProperty('--surface');
+    root.style.removeProperty('--bg');
+  }
+});
+
+test('toHex reads #rgb, #rrggbb, alpha forms and rgb(); accentText keeps the accent when a background cannot be read', () => {
+  expect(toHex('#fff')).toBe('#ffffff');
+  expect(toHex(' #FFF ')).toBe('#ffffff');
+  expect(toHex('#2457D6')).toBe('#2457d6');
+  expect(toHex('#2457d6cc')).toBe('#2457d6');
+  expect(toHex('#fffa')).toBe('#ffffff');
+  expect(toHex('rgb(255, 255, 255)')).toBe('#ffffff');
+  expect(toHex('rgba(57,53,48,0.5)')).toBe('#393530');
+  expect(toHex('rgb(57 53 48 / 50%)')).toBe('#393530');
+  expect(toHex('white')).toBeNull();
+  expect(toHex('')).toBeNull();
+  // a light accent that does not read would normally darken; with an unreadable background it stays as it is
+  expect(accentText('#f0b400', false, 'var(--x)', '#fff')).toBe('#f0b400');
+  // short forms give the same result as the long ones
+  expect(accentText('#f0b400', false, '#fcfbfb', '#fff')).toBe(accentText('#f0b400', false, '#fcfbfb', '#ffffff'));
 });

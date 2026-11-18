@@ -42,6 +42,23 @@ export function setTheme(t: ThemeSetting): void {
 
 const hexRgb = (x: string): number[] => [1, 3, 5].map((i) => parseInt(x.slice(i, i + 2), 16));
 
+/** A CSS color as #rrggbb: #rgb, #rgba, #rrggbb, #rrggbbaa (alpha dropped), rgb() and rgba() with commas or spaces.
+ *  null for anything else (a name, a var(), an empty value). Bundlers shorten #ffffff to #fff in tokens.css, so the
+ *  short form must read the same. */
+export function toHex(c: string): string | null {
+  const v = c.trim().toLowerCase();
+  const short = /^#([0-9a-f])([0-9a-f])([0-9a-f])[0-9a-f]?$/.exec(v);
+  if (short) return '#' + short[1] + short[1] + short[2] + short[2] + short[3] + short[3];
+  const long = /^#([0-9a-f]{6})(?:[0-9a-f]{2})?$/.exec(v);
+  if (long) return '#' + long[1];
+  const fn = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)(?:\s*[,/]\s*[\d.]+%?)?\s*\)$/.exec(v);
+  if (fn) {
+    const n = fn.slice(1, 4).map(Number);
+    if (n.every((x) => x >= 0 && x <= 255)) return '#' + n.map((x) => Math.round(x).toString(16).padStart(2, '0')).join('');
+  }
+  return null;
+}
+
 function mixHex(a: string, b: string, t: number): string {
   const p = hexRgb(a);
   const q = hexRgb(b);
@@ -77,7 +94,11 @@ function contrast(a: string, b: string): number {
  *  light, the accent mixed with black 4 % at a time, in dark with white 5 % at a time, until it reads on both. Only
  *  text changes: fills, bars, rings and dots keep the accent. */
 export function accentText(hex: string, dark: boolean, bg: string, surface: string): string {
-  const reads = (c: string) => contrast(c, bg) >= 4.5 && contrast(c, surface) >= 4.5;
+  const b = toHex(bg);
+  const s = toHex(surface);
+  // A background that cannot be read: keep the accent itself rather than mixing it toward black or white blindly.
+  if (!b || !s) return hex;
+  const reads = (c: string) => contrast(c, b) >= 4.5 && contrast(c, s) >= 4.5;
   const toward = dark ? '#ffffff' : '#000000';
   const step = dark ? 0.05 : 0.04;
   let text = hex;
@@ -93,15 +114,16 @@ export function setAccent(hex: string, quiet = false): boolean {
   const root = document.documentElement;
   const dark = root.getAttribute('data-theme') === 'dark';
   const cs = getComputedStyle(root);
-  const surface = (cs.getPropertyValue('--surface') || (dark ? '#393530' : '#ffffff')).trim();
-  const bg = (cs.getPropertyValue('--bg') || (dark ? '#2f2a25' : '#fcfbfb')).trim();
-  const text = accentText(hex, dark, bg.startsWith('#') ? bg : dark ? '#2f2a25' : '#fcfbfb', surface.startsWith('#') ? surface : dark ? '#393530' : '#ffffff');
+  // Read the theme's colors as #rrggbb (bundlers may have shortened #ffffff to #fff); the theme's defaults when unset.
+  const surface = toHex(cs.getPropertyValue('--surface')) ?? (dark ? '#393530' : '#ffffff');
+  const bg = toHex(cs.getPropertyValue('--bg')) ?? (dark ? '#2f2a25' : '#fcfbfb');
+  const text = accentText(hex, dark, bg, surface);
   const ink = '#171512';
   const vars: Record<string, string> = {
     '--accent': hex,
     '--accent-hover': mixHex(hex, '#000000', 0.12),
     '--accent-press': mixHex(hex, '#000000', 0.22),
-    '--accent-soft': dark ? mixHex(bg.startsWith('#') ? bg : '#2f2a25', hex, 0.22) : mixHex('#ffffff', hex, 0.12),
+    '--accent-soft': dark ? mixHex(bg, hex, 0.22) : mixHex('#ffffff', hex, 0.12),
     '--accent-text': text,
     '--on-accent': contrast('#ffffff', hex) >= contrast(ink, hex) ? '#ffffff' : ink,
     '--focus-ring': `rgba(${hexRgb(hex).join(', ')}, 0.3)`,
