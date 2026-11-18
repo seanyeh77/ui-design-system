@@ -174,6 +174,8 @@ export const I18N: I18nState = {
       關閉: 'Close',
       '關閉後，剛才的修改不會保留。': 'If you close now, your changes will be lost.',
       關閉提示: 'Dismiss',
+      開始: 'Start',
+      'AI 說明': 'AI note',
       隱藏密碼: 'Hide password',
       顯示密碼: 'Show password',
       '（今天）': ' (today)',

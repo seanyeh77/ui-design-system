@@ -7,6 +7,7 @@ import { tr } from '../../i18n';
 import { announce } from '../../announce';
 import { cx, seenOnly, store } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
+import type { IconButtonHint } from '../IconButton/IconButton';
 
 export interface TourStep {
   /** A data-tour name ('search' matches [data-tour="search"]), a CSS selector (first visible match), a ref or an element.
@@ -40,17 +41,37 @@ export interface TourProps {
 
 const TOUR_KEY = 'ui-tour:';
 
-/** Opens the tour once per browser: { open, start, close, seen }. Pass close to Tour's onClose; start() shows it again. */
+/** Opens the tour once per browser: { open, start, close, seen, hint }. Pass close to Tour's onClose; start() shows
+ *  it again. hint(text) gives IconButton's `hint` for the button that starts the tour: a page that uses it shows the dot
+ *  and the bubble instead of opening the tour by itself. 「開始」 starts the tour; × and finishing it hide the hint for
+ *  good (the same record as seen). */
 export function useTour(key: string) {
-  const [open, setOpen] = React.useState(() => !store(TOUR_KEY + key));
+  const [seen, setSeen] = React.useState(() => !!store(TOUR_KEY + key));
+  const [open, setOpen] = React.useState(false);
+  // hint() is called while the page renders; the tour opens by itself after that render only when it was not.
+  const hinted = React.useRef(false);
+  React.useLayoutEffect(() => {
+    // Known only after the page rendered: whether it uses hint().
+    if (!store(TOUR_KEY + key) && !hinted.current) setOpen(true);
+  }, [key]);
+  const remember = () => {
+    store(TOUR_KEY + key, '1');
+    setSeen(true);
+  };
   return {
     open,
     start: () => setOpen(true),
     close: () => {
-      store(TOUR_KEY + key, '1');
+      remember();
       setOpen(false);
     },
-    seen: !!store(TOUR_KEY + key),
+    seen,
+    /** IconButton's `hint` for the button that starts this tour, or undefined once seen or while the tour is open. */
+    hint: (text: string, action?: string): IconButtonHint | undefined => {
+      hinted.current = true;
+      if (seen || open) return undefined;
+      return { text, action, onAction: () => setOpen(true), onDismiss: remember };
+    },
   };
 }
 

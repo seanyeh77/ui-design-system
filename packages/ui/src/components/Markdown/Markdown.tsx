@@ -3,9 +3,11 @@ import { Alert, type AlertTone } from '../Alert/Alert';
 import { Icon } from '../../icons/Icon';
 import { ColResize, TableDialog, ZoomButton } from '../../internal/tableTools';
 import { cx } from '../../internal/util';
+import { devWarn } from '../../internal/dev';
 import { CodeView } from '../CodeView/CodeView';
 import { languageOf } from '../CodeView/tokens';
 import { InlineCode, type OnRef, type RefHref } from '../InlineCode/InlineCode';
+import { AiMark } from '../AiMark/AiMark';
 
 /* A small Markdown reader for project documents and code comments. It builds React elements only: no HTML from the
    source is ever run. HTML tags are dropped and their text kept (MX). */
@@ -296,8 +298,19 @@ function inline(src: string, c: Ctx): React.ReactNode[] {
     if (ch === '[') {
       const m = matchLink(src, i);
       if (m) {
+        // [AI](ai:) marks a paragraph, list item or cell written by AI: an AiMark, not a link.
+        if (m.href.trim().toLowerCase() === 'ai:') {
+          devWarn(out.length || text.trim(), 'Markdown', '[AI](ai:) 在句子中間。把它移到段落、清單項目或表格格子的開頭。');
+          flush();
+          out.push(<AiMark key={c.k()} />);
+          i = m.end;
+          if (src[i] === ' ') i++;
+          continue;
+        }
         flush();
-        out.push(link(m.href, inline(m.text, c), c));
+        // A link whose text is one code span ([`_sync_as`](fn:…)) is a name: accent monospace, no chip.
+        const name = /^\s*`([^`]+)`\s*$/.exec(m.text)?.[1];
+        out.push(link(m.href, inline(m.text, c), c, name));
         i = m.end;
         continue;
       }
@@ -328,22 +341,24 @@ function inline(src: string, c: Ctx): React.ReactNode[] {
   function code(v: string, ctx: Ctx): React.ReactNode {
     const onRef = ctx.onRef;
     if (isPath(v)) {
+      // A file and line that points somewhere is a location: gray, one step smaller.
       const href = ctx.refHref?.(v) || undefined;
-      if (href || onRef)
+      const click = onRef
+        ? (e: React.MouseEvent<HTMLElement>) => {
+            if (href && (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1)) return;
+            e.preventDefault();
+            onRef(v, e);
+          }
+        : undefined;
+      if (href)
         return (
-          <InlineCode
-            key={ctx.k()}
-            href={href}
-            onClick={
-              onRef
-                ? (e) => {
-                    if (href && (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1)) return;
-                    e.preventDefault();
-                    onRef(v, e);
-                  }
-                : undefined
-            }
-          >
+          <InlineCode key={ctx.k()} look="location" href={href} onClick={click}>
+            {v}
+          </InlineCode>
+        );
+      if (click)
+        return (
+          <InlineCode key={ctx.k()} look="location" onClick={click}>
             {v}
           </InlineCode>
         );
@@ -395,7 +410,7 @@ function findClose(src: string, from: number, run: string): number {
   return -1;
 }
 
-function link(raw: string, children: React.ReactNode, c: Ctx): React.ReactNode {
+function link(raw: string, children: React.ReactNode, c: Ctx, name?: string): React.ReactNode {
   // A scheme listed in schemes (fn:, file:) is up to linkHref and onLink: no address of its own.
   const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(raw.trim())?.[1].toLowerCase();
   const own = !!scheme && !BLOCKED.includes(scheme) && !!c.schemes?.some((x) => x.toLowerCase() === scheme);
@@ -412,6 +427,20 @@ function link(raw: string, children: React.ReactNode, c: Ctx): React.ReactNode {
         onLink(safe, e);
       }
     : undefined;
+  if (name !== undefined && !(outside && !c.onLink)) {
+    if (href)
+      return (
+        <InlineCode key={c.k()} look="name" href={href} onClick={click}>
+          {name}
+        </InlineCode>
+      );
+    if (click)
+      return (
+        <InlineCode key={c.k()} look="name" onClick={click}>
+          {name}
+        </InlineCode>
+      );
+  }
   if (!href)
     return (
       <button key={c.k()} type="button" className="ui-md-link" onClick={click}>

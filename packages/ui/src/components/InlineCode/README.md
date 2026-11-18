@@ -13,6 +13,28 @@ h(UI.InlineCode, null, 'IBTRACE_SHM');
 h(UI.InlineCode, { href: '/code/child.c#L86' }, 'child.c:86');
 ```
 
+## 名稱與位置
+
+一段說明裡常常同時出現程式的名稱和它所在的檔案，例如「`VirtualRouter._sync_as` `harness/controller.py:540` 呼叫 …」。這兩種連結用 `look` 換成不同外觀，不再是兩個一樣的灰底底線塊：
+
+- `look="name"`：函式、類別、變數，點了跳到定義。強調文字色（`accent-text`）的 Geist Mono，周圍文字的 0.875 倍，沒有底色也沒有底線；滑過或鍵盤焦點時出現 1 px 底線（離文字 3 px），焦點另有和其他連結一樣的 3 px 焦點框。
+- `look="location"`：檔案和行號。灰色（`ink-muted`）、13 px（次要文字的大小，比內文小一號），不斷行；滑過或焦點時變強調文字色加底線。
+- 兩種都一定要給 `href` 或 `onClick`，沒有的話 TypeScript 不會編譯：不指向任何地方的文字維持灰底（預設的 `look="chip"`）。
+- 深色模式下在表格的灰色列（`surface-sub`）上，文字色混入 25% 的 `ink`，對比維持 4.5:1 以上。
+
+```js
+h(
+  'p',
+  null,
+  h(UI.InlineCode, { look: 'name', href: '#fn/_sync_as' }, 'VirtualRouter._sync_as'),
+  ' ',
+  h(UI.InlineCode, { look: 'location', onClick: openLine }, 'harness/controller.py:540'),
+  ' 每 5 秒同步一次路由。',
+);
+```
+
+`UI.Markdown` 會自動用這兩種外觀，見 Markdown 的說明。`CodeText` 的引用連結維持灰底連結。
+
 ## CodeText
 
 把含有反引號的文字（例如來自 Markdown 的筆記）轉成一般文字加 InlineCode，畫面上不會出現反引號。

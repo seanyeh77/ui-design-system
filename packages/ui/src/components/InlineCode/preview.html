@@ -1,4 +1,4 @@
-<!-- @dsCard group="Data" height=640 -->
+<!-- @dsCard group="Data" height=700 -->
 <!doctype html>
 <html lang="zh-Hant">
   <head>
@@ -40,6 +40,34 @@
         return h(
           'div',
           { style: { display: 'flex', flexDirection: 'column', gap: 16 } },
+          h(
+            'p',
+            { style: { margin: 0 } },
+            h(
+              U.InlineCode,
+              {
+                look: 'name',
+                onClick: function () {
+                  open('VirtualRouter._sync_as');
+                },
+              },
+              'VirtualRouter._sync_as',
+            ),
+            ' ',
+            h(
+              U.InlineCode,
+              {
+                look: 'location',
+                onClick: function () {
+                  open('harness/controller.py:540');
+                },
+              },
+              'harness/controller.py:540',
+            ),
+            ' 每 5 秒同步一次路由；環境變數 ',
+            h(U.InlineCode, null, 'IBTRACE_SHM'),
+            ' 決定共用記憶體的名稱。',
+          ),
           h('p', { style: { margin: 0 } }, h(U.CodeText, { text: '`ibmon_spawn` 在 `child.c:86` 設定 `IBTRACE_SHM`，由 `env.c:22` 讀取。', onRef: open })),
           h(U.DataTable, {
             label: '檢查結果',

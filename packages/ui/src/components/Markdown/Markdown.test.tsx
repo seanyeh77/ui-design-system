@@ -316,3 +316,35 @@ test('Markdown tables: a link clicked in the 「放大表格」 dialog closes it
   expect(seen).toEqual(['harness/controller.py:540']);
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
 });
+
+test('Markdown: a link of one code span is a name, a file:line reference is a location, other links stay', () => {
+  const md = '[`VirtualRouter._sync_as`](fn:harness/controller.py:VirtualRouter._sync_as) `harness/controller.py:540`，見 [說明](fn:docs) 與 `IBTRACE_SHM`。';
+  const opened: string[] = [];
+  const { container } = render(
+    <Markdown schemes={['fn']} onLink={(h) => opened.push(h)} refHref={(r) => '#' + r}>
+      {md}
+    </Markdown>,
+  );
+  const name = container.querySelector<HTMLElement>('.ui-code.is-name');
+  expect(name?.textContent).toBe('VirtualRouter._sync_as');
+  expect(name?.closest('.ui-md-link')).toBeNull();
+  expect(container.querySelector('.ui-code.is-location')?.textContent).toBe('harness/controller.py:540');
+  expect(container.querySelector('.ui-md-link')?.textContent).toBe('說明');
+  // A code span that points nowhere keeps the chip.
+  const env = Array.from(container.querySelectorAll('code.ui-code')).find((e) => e.textContent === 'IBTRACE_SHM');
+  expect(env?.className).not.toMatch(/is-(name|location)/);
+  name?.click();
+  expect(opened).toEqual(['fn:harness/controller.py:VirtualRouter._sync_as']);
+});
+
+test('Markdown: [AI](ai:) is an AI mark, not a link and not a Tab stop', async () => {
+  const { container } = render(<Markdown>{'[AI](ai:) 這個函式在路由表變動時重新建立連線。\n\n- [AI](ai:) 清單項目也可以。'}</Markdown>);
+  const marks = container.querySelectorAll('.ui-aimark');
+  expect(marks.length).toBe(2);
+  expect(container.querySelector('a, button')).toBeNull();
+  expect(marks[0].getAttribute('aria-hidden')).toBe('true');
+  const p = container.querySelector('p');
+  expect(p?.textContent).toBe('AIAI 說明：這個函式在路由表變動時重新建立連線。');
+  await userEvent.tab();
+  expect(document.activeElement).toBe(document.body);
+});

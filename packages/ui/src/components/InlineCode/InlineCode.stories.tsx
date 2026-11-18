@@ -101,3 +101,17 @@ function Demo() {
   );
 }
 export const Default = { render: () => <Demo /> };
+
+export const NameAndLocation = {
+  render: () => (
+    <p style={{ margin: 0, maxWidth: 640 }}>
+      <UI.InlineCode look="name" href="#fn/_sync_as">
+        VirtualRouter._sync_as
+      </UI.InlineCode>{' '}
+      <UI.InlineCode look="location" href="#harness/controller.py:540">
+        harness/controller.py:540
+      </UI.InlineCode>{' '}
+      每 5 秒同步一次路由；環境變數 <UI.InlineCode>IBTRACE_SHM</UI.InlineCode> 決定共用記憶體的名稱。
+    </p>
+  ),
+};

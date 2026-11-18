@@ -33,3 +33,42 @@ test.each(['light', 'dark'])('a code link reaches 4.5:1 on its chip (%s)', (them
   const cs = getComputedStyle(el);
   expect(contrast(cs.color, cs.backgroundColor)).toBeGreaterThanOrEqual(4.5);
 });
+
+test.each(['light', 'dark'])('a name and a location reach 4.5:1 on the page and on a table row (%s)', (theme) => {
+  document.documentElement.setAttribute('data-theme', theme);
+  const root = getComputedStyle(document.documentElement);
+  const { container } = render(
+    <div>
+      <p>
+        <InlineCode look="name" href="#x">
+          _sync_as
+        </InlineCode>{' '}
+        <InlineCode look="location" href="#x">
+          harness/controller.py:540
+        </InlineCode>
+      </p>
+      <div className="ui-dt-body" style={{ background: 'var(--surface-sub)' }}>
+        <InlineCode look="name" onClick={() => {}}>
+          _sync_as
+        </InlineCode>
+      </div>
+    </div>,
+  );
+  const [name, loc, cell] = Array.from(container.querySelectorAll<HTMLElement>('.ui-code'));
+  expect(name.className).toContain('is-name');
+  expect(loc.className).toContain('is-location');
+  const bg = root.getPropertyValue('--bg');
+  expect(contrast(getComputedStyle(name).color, bg)).toBeGreaterThanOrEqual(4.5);
+  expect(contrast(getComputedStyle(loc).color, bg)).toBeGreaterThanOrEqual(4.5);
+  expect(contrast(getComputedStyle(cell).color, root.getPropertyValue('--surface-sub'))).toBeGreaterThanOrEqual(4.5);
+  // No chip: the name sits on the text's own background.
+  expect(getComputedStyle(name).backgroundColor).toBe('rgba(0, 0, 0, 0)');
+  expect(getComputedStyle(loc).fontSize).toBe('13px');
+});
+
+test('look needs a target: text that points nowhere keeps the chip', () => {
+  // @ts-expect-error look="name" without href or onClick does not compile
+  const bad = <InlineCode look="name">x</InlineCode>;
+  const { container } = render(bad);
+  expect(container.querySelector('code.ui-code:not(.is-name)')).not.toBeNull();
+});

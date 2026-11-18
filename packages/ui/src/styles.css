@@ -116,6 +116,105 @@ body {
 .ui-iconbtn:hover {
   background: var(--surface-sub);
 }
+/* First-use hint: an accent dot on the button (ringed in the background it sits on) and a dark bubble below it,
+   right-aligned, its arrow pointing at the button. Stays until 開始 or ×. */
+.ui-iconbtn-hintbox {
+  position: relative;
+  display: inline-flex;
+}
+.ui-iconbtn.has-hint {
+  position: relative;
+}
+.ui-iconbtn-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--hint-ring, var(--bg));
+  pointer-events: none;
+}
+.ui-topbar {
+  --hint-ring: var(--surface-chrome);
+}
+.ui-hint {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 12px);
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: max-content;
+  max-width: min(320px, calc(100vw - 32px));
+  padding: 6px 6px 6px var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--ink);
+  color: var(--bg);
+  box-shadow: var(--shadow-overlay);
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 400;
+  white-space: normal;
+  animation: ui-pop-scale 220ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  transform-origin: calc(100% - 20px) 0;
+}
+.ui-hint::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  /* Centered under a 40 px button. */
+  right: calc(var(--control-height) / 2 - 6px);
+  width: 12px;
+  height: 12px;
+  background: inherit;
+  border-radius: 2px;
+  transform: rotate(45deg);
+}
+.ui-hint-text {
+  min-width: 0;
+}
+.ui-hint-go,
+.ui-hint-x {
+  flex: none;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.ui-hint-go {
+  padding: 4px 2px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+.ui-hint-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  opacity: 0.8;
+}
+.ui-hint-x:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--bg) 18%, transparent);
+}
+.ui-hint-go:focus-visible,
+.ui-hint-x:focus-visible {
+  outline: 2px solid var(--bg);
+  outline-offset: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-hint {
+    animation: none;
+  }
+}
 
 .ui-field {
   display: flex;
@@ -4200,6 +4299,62 @@ html.ui-theme-fade * {
 .ui-code.is-link:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px var(--focus-ring);
+}
+/* A name (function, class, variable) and a location (file:line) that point somewhere: no chip, no underline until
+   hover or keyboard focus. Three classes so they win over the dark link colour and the table chip above. */
+.ui-code.is-link.is-name,
+.ui-code.is-link.is-location {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  text-decoration: none;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.ui-code.is-link.is-name {
+  color: var(--code-link-ink, var(--accent-text));
+}
+/* Dark: accent-text on a surface-sub table row is 3.9:1; a quarter of ink brings it above 4.5:1, as for the chip. */
+[data-theme='dark'] :is(.ui-dt-body, .ui-dt-detail, .ui-md-table td) .ui-code.is-link:is(.is-name, .is-location) {
+  --code-link-ink: color-mix(in srgb, var(--accent-text), var(--ink) 25%);
+}
+/* One step smaller: the 13 px of secondary text. Never breaks inside. */
+.ui-code.is-link.is-location {
+  color: var(--ink-muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.ui-code.is-link.is-name:is(:hover, :focus-visible),
+.ui-code.is-link.is-location:is(:hover, :focus-visible) {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+}
+.ui-code.is-link.is-location:is(:hover, :focus-visible) {
+  color: var(--code-link-ink, var(--accent-text));
+}
+.ui-code.is-link.is-name:focus-visible,
+.ui-code.is-link.is-location:focus-visible {
+  border-radius: 4px;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+/* AiMark: a small "AI" at the start of a paragraph written by AI. */
+.ui-aimark {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: 0.12em;
+  margin-right: 6px;
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  user-select: none;
 }
 .ui-tab-count {
   /* With the space before it: about 6 px from the name. */

@@ -45,6 +45,29 @@ h(
 - 沒有給 `linkHref` 時連結照原網址；外部網址在新分頁開啟。
 - 自訂 scheme：`schemes={['fn']}` 之後，`[_sync_as](fn:harness/controller.py:VirtualRouter._sync_as)` 原樣交給 `linkHref` 與 `onLink`；`linkHref` 沒有回傳網址、也沒有 `onLink` 時只顯示文字。
 
+### 名稱與位置的外觀
+
+原文不用改，Markdown 自動判斷：
+
+- 連結的文字只有一段行內程式碼（``[`VirtualRouter._sync_as`](fn:…)``）時是「名稱」：強調文字色的等寬字，沒有底色，滑過或焦點時才有底線（`InlineCode look="name"`）。
+- 行內程式碼被 `refHref` 或 `onRef` 認成路徑、而且有目標時是「位置」：灰色、13 px，滑過或焦點時變強調文字色加底線（`InlineCode look="location"`）。
+- 其他連結（`[說明](fn:docs)`、一般網址）照舊；沒有目標的行內程式碼維持灰底。外部網址在新分頁開啟的連結（沒有 `onLink`）也照舊。
+
+## AI 標記
+
+AI 寫的段落在開頭寫 `[AI](ai:)`，畫成一個小的「AI」標記（`UI.AiMark`）：10 px 粗體灰字、1 px 框線、4 px 圓角，和後面的文字隔 6 px。
+
+```md
+[AI](ai:) 這個函式在每次路由表變動時重新建立連線，所以第 540 行的呼叫次數會隨鄰居數增加。
+
+- [AI](ai:) 清單項目和表格格子的開頭也可以。
+```
+
+- 不是連結，Tab 不會停在上面；螢幕閱讀器念「AI 說明：」，不念「A I」。
+- 不用加進 `schemes`，`ai:` 是 Markdown 元件自己認得的。
+- 只放在段落、清單項目或表格格子的開頭。寫在句子中間時照樣畫出標記，但開發模式會在 console 提醒。
+- 取代句尾的「（AI 說明）」。其他 Markdown 檢視器（例如 GitHub）會把它顯示成一個叫「AI」的連結。
+
 ## inline
 
 只渲染行內語法、不產生段落，給一行摘要用，例如 README 的第一句：

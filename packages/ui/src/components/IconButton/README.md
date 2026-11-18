@@ -11,3 +11,21 @@
 ```tsx
 <IconButton icon="pencil-simple" label="編輯 api-gateway" onClick={edit} />
 ```
+
+## 第一次使用的提示（hint）
+
+給「說明」或「導覽」按鈕一個第一次使用的提示：按鈕右上角一個強調色圓點，按鈕下方一個深色泡泡寫一句話，加上「開始」和 ×。
+
+- 圓點 10 px，`accent` 色，外圈 2 px 是按鈕所在的背景色（TopBar 裡是 `surface-chrome`，其他地方是 `bg`），在任何底色上都看得出邊界。
+- 泡泡在按鈕正下方、和按鈕右緣對齊，箭頭指向按鈕。深色底（`ink`）淺色字（`bg`），13 px，寬度最多 320 px，手機上最多「螢幕寬度 − 32 px」。
+- 泡泡是 `role="status"`，按鈕用 `aria-describedby` 指向它：螢幕閱讀器到按鈕時會念出提示。
+- 圓點和泡泡一直留著，直到使用者按「開始」或 ×；之後傳 `undefined`，提示就消失。記住「已處理」是呼叫端的事：導覽用 `useTour` 的 `tour.hint()` 就會記住。
+- 取代頁面上「第一次使用」的橫幅。
+
+```tsx
+const tour = useTour('codemap-flow');
+<IconButton icon="question" label="導覽" onClick={tour.start} hint={tour.hint('導覽：五個步驟介紹各頁。')} />
+<Tour open={tour.open} onClose={tour.close} steps={steps} />
+```
+
+`hint` 也可以自己給：`{ text, action, onAction, onDismiss }`，`action` 預設「開始」。
