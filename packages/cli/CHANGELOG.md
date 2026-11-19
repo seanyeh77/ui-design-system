@@ -1,5 +1,12 @@
 # @seanyeh77/ui-cli
 
+## 0.32.0
+
+### Patch Changes
+
+- Updated dependencies [28072b2]
+  - @seanyeh77/ui@0.32.0
+
 ## 0.31.0
 
 ### Patch Changes
