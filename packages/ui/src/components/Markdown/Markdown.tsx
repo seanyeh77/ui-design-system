@@ -8,6 +8,7 @@ import { CodeView } from '../CodeView/CodeView';
 import { languageOf } from '../CodeView/tokens';
 import { InlineCode, type OnRef, type RefHref } from '../InlineCode/InlineCode';
 import { AiMark } from '../AiMark/AiMark';
+import { findTerms, termNode, termPattern, withTerms, type TermDef, type TermsMark } from '../../internal/terms';
 
 /* A small Markdown reader for project documents and code comments. It builds React elements only: no HTML from the
    source is ever run. HTML tags are dropped and their text kept (MX). */
@@ -216,7 +217,19 @@ interface Ctx {
   onLink?: (href: string, e: React.MouseEvent<HTMLElement>) => void;
   refHref?: RefHref;
   onRef?: OnRef;
+  terms?: readonly TermDef[];
+  termsMark: TermsMark;
+  /** All the words in one pattern; null without terms. */
+  termRe: RegExp | null;
+  /** Words already marked in this block (paragraph, list item, table cell). Absent: no words here (headings, link
+   *  text, a details summary). */
+  seen?: Set<string>;
 }
+
+/** A new block: its own count of marked words. */
+const block = (c: Ctx): Ctx => ({ ...c, seen: new Set() });
+/** No words marked inside (headings, link text, a summary button). */
+const noTerms = (c: Ctx): Ctx => ({ ...c, seen: undefined });
 
 const CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\u3000-\u303f\uff00-\uffef]/u;
 
@@ -225,7 +238,8 @@ function inline(src: string, c: Ctx): React.ReactNode[] {
   const out: React.ReactNode[] = [];
   let text = '';
   const flush = () => {
-    if (text) out.push(text);
+    if (text && c.termRe && c.terms && c.seen) out.push(...withTerms(text, findTerms(text, c.terms, c.termRe, c.termsMark, c.seen), c.terms, c.k));
+    else if (text) out.push(text);
     text = '';
   };
   let i = 0;
@@ -308,9 +322,25 @@ function inline(src: string, c: Ctx): React.ReactNode[] {
           continue;
         }
         flush();
+        // [cookie](term:cookie) marks a word explicitly with its entry in terms.
+        const termId = /^term:(.*)$/i.exec(m.href.trim())?.[1];
+        if (termId !== undefined) {
+          let id = termId;
+          try {
+            id = decodeURIComponent(termId);
+          } catch {
+            /* kept as written */
+          }
+          const t = c.terms?.find((x) => x.term === id);
+          devWarn(!t, 'Markdown', `[${m.text}](term:${termId}) 找不到 terms 裡 term 為「${id}」的項目，只顯示文字。把它加進 terms，或改 term: 後面的字。`);
+          c.seen?.add(id);
+          out.push(t ? termNode(t, c.k(), inline(m.text, noTerms(c))) : <React.Fragment key={c.k()}>{inline(m.text, noTerms(c))}</React.Fragment>);
+          i = m.end;
+          continue;
+        }
         // A link whose text is one code span ([`_sync_as`](fn:…)) is a name: accent monospace, no chip.
         const name = /^\s*`([^`]+)`\s*$/.exec(m.text)?.[1];
-        out.push(link(m.href, inline(m.text, c), c, name));
+        out.push(link(m.href, inline(m.text, noTerms(c)), c, name));
         i = m.end;
         continue;
       }
@@ -493,6 +523,12 @@ export interface MarkdownProps {
   refHref?: RefHref;
   /** A plain click on such a path. Same as CodeView's onRef. */
   onRef?: OnRef;
+  /** Words that get an explanation (Term variant="inline"): matched whole and case-sensitive in plain text, not in
+   *  inline code, link text or headings; fenced code blocks match them in comments and strings. `[cookie](term:cookie)`
+   *  marks one explicitly, wherever it is. */
+  terms?: readonly TermDef[];
+  /** 'first' (default): each word only where it first appears in a paragraph, list item or table cell. 'all': everywhere. */
+  termsMark?: TermsMark;
   className?: string;
 }
 
@@ -501,10 +537,22 @@ export interface MarkdownProps {
 export function Markdown(p: MarkdownProps) {
   // Keys count from 0 on every render, so the same source gives the same keys and nothing remounts.
   let n = 0;
-  const c: Ctx = { k: () => 'm' + n++, schemes: p.schemes, linkHref: p.linkHref, onLink: p.onLink, refHref: p.refHref, onRef: p.onRef };
+  const termsMark = p.termsMark ?? 'first';
+  const termRe = React.useMemo(() => termPattern(p.terms), [p.terms]);
+  const c: Ctx = {
+    k: () => 'm' + n++,
+    schemes: p.schemes,
+    linkHref: p.linkHref,
+    onLink: p.onLink,
+    refHref: p.refHref,
+    onRef: p.onRef,
+    terms: p.terms,
+    termsMark,
+    termRe,
+  };
   const src = String(p.children ?? '').replace(/\r\n?/g, '\n');
   const cls = cx('ui-md', p.size === 'small' && 'is-small', p.className);
-  if (p.inline) return <span className={cx(cls, 'is-inline')}>{inline(src.trim().replace(/\n\s*\n/g, '\n'), c)}</span>;
+  if (p.inline) return <span className={cx(cls, 'is-inline')}>{inline(src.trim().replace(/\n\s*\n/g, '\n'), block(c))}</span>;
   const top = p.topLevel ?? 4;
   const render = (blocks: Block[]): React.ReactNode[] =>
     blocks.map((b) => {
@@ -513,17 +561,17 @@ export function Markdown(p: MarkdownProps) {
           const H = `h${Math.min(6, top + b.level - 1)}` as 'h4';
           return (
             <H key={c.k()} className="ui-md-h">
-              {inline(b.text, c)}
+              {inline(b.text, noTerms(c))}
             </H>
           );
         }
         case 'p':
-          return <p key={c.k()}>{inline(b.text, c)}</p>;
+          return <p key={c.k()}>{inline(b.text, block(c))}</p>;
         case 'hr':
           return <hr key={c.k()} />;
         case 'details':
           return (
-            <MdDetails key={c.k()} summary={inline(b.summary, c)}>
+            <MdDetails key={c.k()} summary={inline(b.summary, noTerms(c))}>
               {render(b.blocks)}
             </MdDetails>
           );
@@ -536,7 +584,7 @@ export function Markdown(p: MarkdownProps) {
         case 'quote':
           return <blockquote key={c.k()}>{render(b.blocks)}</blockquote>;
         case 'list': {
-          const items = b.items.map((it) => <li key={c.k()}>{it.length === 1 && it[0].t === 'p' ? inline(it[0].text, c) : render(it)}</li>);
+          const items = b.items.map((it) => <li key={c.k()}>{it.length === 1 && it[0].t === 'p' ? inline(it[0].text, block(c)) : render(it)}</li>);
           return b.ordered ? (
             <ol key={c.k()} start={b.start === 1 ? undefined : b.start}>
               {items}
@@ -557,6 +605,8 @@ export function Markdown(p: MarkdownProps) {
               lineNumbers={false}
               refHref={p.refHref}
               onRef={p.onRef}
+              terms={p.terms}
+              termsMark={termsMark}
             />
           );
         case 'table': {
@@ -571,9 +621,9 @@ export function Markdown(p: MarkdownProps) {
             <MdTable
               key={c.k()}
               label={b.head.map(plain).join('、')}
-              heads={b.head.map((h) => inline(h, c))}
+              heads={b.head.map((h) => inline(h, noTerms(c)))}
               headText={b.head.map(plain)}
-              rows={b.rows.map((r) => Array.from({ length: n }, (_, j) => inline(r[j] ?? '', c)))}
+              rows={b.rows.map((r) => Array.from({ length: n }, (_, j) => inline(r[j] ?? '', block(c))))}
               numeric={numeric}
               align={align}
             />

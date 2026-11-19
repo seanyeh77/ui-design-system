@@ -8,6 +8,7 @@ import { devWarn } from '../../internal/dev';
 import { CHECK } from '../../icons/Icon';
 import { IconButton } from '../IconButton/IconButton';
 import { FloatingPanel } from '../../internal/FloatingPanel';
+import { findTerms, termPattern, withTerms, type TermDef, type TermHit, type TermsMark } from '../../internal/terms';
 import { LANGUAGE_NAMES, languageOf, tokenize as builtIn, type Tokenizer } from './tokens';
 
 /** A line's indentation, said after its number: a screen reader drops leading spaces, and in Python or YAML
@@ -80,6 +81,12 @@ export interface CodeViewProps<L extends CodeLink = CodeLink> {
   /** A small card under a link after the pointer or the keyboard focus rests on it for 500 ms, e.g. the name, where it
    *  is defined and the first line of its doc comment. */
   preview?: (link: L) => React.ReactNode;
+  /** Words in comments and strings that get an explanation: a dashed underline, and the card after the pointer rests
+   *  on the word for 500 ms, or on Enter. Whole words, case-sensitive; names in the code are never marked, and a name
+   *  link or a path wins at the same spot. ← → stop on them as on links. */
+  terms?: readonly TermDef[];
+  /** 'first' (default): each word only where it first appears in the file. 'all': everywhere. */
+  termsMark?: TermsMark;
   /** Scrolls inside the box and keeps the target in view, e.g. '420px'. */
   maxHeight?: string;
   /** Where sections start, e.g. each function: [ and ] jump to the previous and next one (CB), and the section's
@@ -238,6 +245,46 @@ function matchLinks(lines: string[], start: number, links: readonly CodeLink[] |
   return out;
 }
 
+/** Each line's words from `terms`: only in comments and strings, never where a name link or a path is. With 'first',
+ *  each word once per file, at its first place. */
+function matchTerms(
+  toks: readonly (readonly (readonly [string, string])[])[],
+  start: number,
+  links: Map<number, Hit[]>,
+  terms: readonly TermDef[] | undefined,
+  mark: TermsMark,
+): Map<number, TermHit[]> {
+  const out = new Map<number, TermHit[]>();
+  const re = termPattern(terms);
+  if (!re || !terms) return out;
+  const seen = new Set<string>();
+  toks.forEach((line, i) => {
+    const n = start + i;
+    const taken = links.get(n) ?? [];
+    let at = 0;
+    for (const [cls, text] of line) {
+      if (cls === 'is-comment' || cls === 'is-string') {
+        const paths = [...text.matchAll(PATH_IN_CODE)].map((m) => ({ from: at + m.index, to: at + m.index + m[0].length }));
+        const free = (from: number, to: number) => ![...taken, ...paths].some((h) => h.from < to && from < h.to);
+        // Words that overlap a link or a path are skipped before they count as seen.
+        const found = findTerms(text, terms, re, 'all', new Set())
+          .map((w) => ({ ...w, from: w.from + at, to: w.to + at }))
+          .filter((w) => free(w.from, w.to))
+          .filter((w) => {
+            if (mark === 'all') return true;
+            const t = terms[w.i].term;
+            if (seen.has(t)) return false;
+            seen.add(t);
+            return true;
+          });
+        if (found.length) out.set(n, [...(out.get(n) ?? []), ...found]);
+      }
+      at += text.length;
+    }
+  });
+  return out;
+}
+
 /** What the keys do: a small panel opened from the keyboard button or with ?; nothing on screen until asked. */
 function KeysPanel(p: {
   open: boolean;
@@ -294,6 +341,8 @@ export function CodeView<L extends CodeLink = CodeLink>({
   links,
   onLink,
   preview,
+  terms,
+  termsMark = 'first',
   maxHeight,
   sections,
   copy,
@@ -314,7 +363,8 @@ export function CodeView<L extends CodeLink = CodeLink>({
   const lang = language || languageOf(file);
   const toks = React.useMemo(() => (highlight ? tokenizer(lines, lang) : lines.map((l) => [['', l] as const])), [lines, lang, highlight, tokenizer]);
   const hits = React.useMemo(() => matchLinks(lines, start, links), [lines, start, links]);
-  const nav = hits.size > 0;
+  const termHits = React.useMemo(() => matchTerms(toks, start, hits, terms, termsMark), [toks, start, hits, terms, termsMark]);
+  const nav = hits.size > 0 || termHits.size > 0;
   const [armed, setArmed] = React.useState(false);
   const inside = React.useRef(false);
   // Ctrl or ⌘ held while the pointer is over the code: the names turn into clickable links (A2).
@@ -399,16 +449,31 @@ export function CodeView<L extends CodeLink = CodeLink>({
       b.scrollTop += el.getBoundingClientRect().top - b.getBoundingClientRect().top - b.clientHeight / 2 + el.offsetHeight / 2;
   }, [ta, code]);
   const digits = String(start + lines.length - 1).length;
-  const piece = (cls: string, text: string, key: string, inLink: boolean) =>
-    cls ? (
+  const prose = (cls: string, text: string, inLink: boolean) =>
+    !inLink && (refHref || onRef) && (cls === 'is-comment' || cls === 'is-string') ? withPaths(text, refHref, onRef, nav ? -1 : undefined) : breakable(text);
+  // at: where the piece starts in its line; the words of `terms` inside it become inline Terms.
+  const piece = (cls: string, text: string, key: string, inLink: boolean, at = 0, words?: TermHit[]) => {
+    const mine = !inLink && terms && words ? words.filter((w) => w.from >= at && w.to <= at + text.length) : [];
+    let k = 0;
+    const kids =
+      mine.length && terms
+        ? withTerms(
+            text,
+            mine.map((w) => ({ ...w, from: w.from - at, to: w.to - at })),
+            terms,
+            () => key + 't' + k++,
+            (t) => prose(cls, t, false),
+            { className: 'ui-cv-term', tabIndex: -1, openOnFocus: false },
+          )
+        : prose(cls, text, inLink);
+    return cls ? (
       <span key={key} className={cls}>
-        {!inLink && (refHref || onRef) && (cls === 'is-comment' || cls === 'is-string')
-          ? withPaths(text, refHref, onRef, nav ? -1 : undefined)
-          : breakable(text)}
+        {kids}
       </span>
     ) : (
-      <React.Fragment key={key}>{breakable(text)}</React.Fragment>
+      <React.Fragment key={key}>{kids}</React.Fragment>
     );
+  };
   const nameLink = (hit: Hit, kids: React.ReactNode[]) => {
     const link = links?.[hit.i];
     if (!link) return null;
@@ -430,8 +495,15 @@ export function CodeView<L extends CodeLink = CodeLink>({
     );
   };
   // A line's tokens, cut where links start and end; the pieces inside a link go into its <a>.
-  const lineContent = (line: readonly (readonly [string, string])[], lineHits: Hit[] | undefined) => {
-    if (!lineHits) return line.map(([cls, text], j) => piece(cls, text, String(j), false));
+  const lineContent = (line: readonly (readonly [string, string])[], lineHits: Hit[] | undefined, words: TermHit[] | undefined) => {
+    if (!lineHits) {
+      let at = 0;
+      return line.map(([cls, text], j) => {
+        const el = piece(cls, text, String(j), false, at, words);
+        at += text.length;
+        return el;
+      });
+    }
     const out: React.ReactNode[] = [];
     let group: React.ReactNode[] = [];
     let open: Hit | null = null;
@@ -459,7 +531,7 @@ export function CodeView<L extends CodeLink = CodeLink>({
           group.push(piece(cls, text.slice(k, end - pos), key, true));
         } else {
           flush();
-          out.push(piece(cls, text.slice(k, end - pos), key, false));
+          out.push(piece(cls, text.slice(k, end - pos), key, false, at, words));
         }
         k = end - pos;
       }
@@ -490,7 +562,7 @@ export function CodeView<L extends CodeLink = CodeLink>({
         ) : null}
         <span className="ui-cv-text">
           <span className="ui-visually-hidden ui-cv-sr">{tr('第 {n} 行', { n }) + indentText(lines[i]) + tr('：')}</span>
-          {lineContent(toks[i], hits.get(n))}
+          {lineContent(toks[i], hits.get(n), termHits.get(n))}
         </span>
       </div>,
     );
@@ -501,7 +573,11 @@ export function CodeView<L extends CodeLink = CodeLink>({
     ...(nav
       ? [
           { k: 'ArrowUp ArrowDown', label: '↑↓', what: tr('上一行／下一行') },
-          { k: 'ArrowLeft ArrowRight', label: '←→', what: tr('上一個／下一個連結') },
+          {
+            k: 'ArrowLeft ArrowRight',
+            label: '←→',
+            what: tr(!termHits.size ? '上一個／下一個連結' : hits.size ? '上一個／下一個連結或名詞' : '上一個／下一個名詞'),
+          },
           { k: 'Enter', label: 'Enter', what: tr('開啟') },
           { k: 'Escape', label: 'Esc', what: tr('回到這一行') },
         ]
@@ -540,9 +616,11 @@ export function CodeView<L extends CodeLink = CodeLink>({
       el.focus();
     };
     if (nav) {
-      const stops = [...pre.querySelectorAll<HTMLElement>('.ui-cv-name, .ui-cv-ref')];
+      const stops = [...pre.querySelectorAll<HTMLElement>('.ui-cv-name, .ui-cv-ref, .ui-cv-term')];
       const onStop = act ? stops.indexOf(act) : -1;
       if (e.key === 'Escape') {
+        // An open explanation closes by itself; focus stays on the word.
+        if (act?.classList.contains('ui-cv-term') && act.getAttribute('aria-expanded') === 'true') return;
         if (pv) setPv(null);
         else if (onStop >= 0) focusLine(curLine ?? undefined);
         else if (curLine) pre.focus();

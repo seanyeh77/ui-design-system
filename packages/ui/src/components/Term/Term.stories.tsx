@@ -29,3 +29,16 @@ export const Default = {
     </div>
   ),
 };
+
+/** variant="inline": a dashed underline inside a sentence; the card opens after resting 500 ms, or at once on keyboard focus. */
+export const Inline = {
+  render: () => (
+    <p style={{ maxWidth: 560, fontSize: 15, margin: 0 }}>
+      {'登入後伺服器會寫入一個 '}
+      <UI.Term variant="inline" text="瀏覽器替網站保存的一小段文字，之後每次請求都會帶上。" action={{ label: '看它出現的地方', onClick: () => {} }}>
+        cookie
+      </UI.Term>
+      {'，之後的每次請求都會帶上它。'}
+    </p>
+  ),
+};

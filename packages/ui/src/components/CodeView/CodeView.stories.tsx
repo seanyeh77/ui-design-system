@@ -86,3 +86,21 @@ export const NameLinks = {
     );
   },
 };
+
+/** terms: words in comments and strings get an explanation; ← → stop on them, Enter opens the card. */
+export const Terms = {
+  render: () => (
+    <div style={{ maxWidth: 620 }}>
+      <UI.CodeView
+        file="server/session.py"
+        code={['# Read the cookie that keeps the session.', 'cookie = req.cookies.get("sid")', 'if not cookie:', '    raise Login("no session cookie")'].join(
+          '\n',
+        )}
+        terms={[
+          { term: 'cookie', text: '瀏覽器替網站保存的一小段文字，之後每次請求都會帶上。' },
+          { term: 'session', title: '工作階段', text: '伺服器記住同一位使用者的一段期間。' },
+        ]}
+      />
+    </div>
+  ),
+};

@@ -5340,6 +5340,19 @@ html.ui-theme-fade * {
   outline: none;
   box-shadow: 0 0 0 3px var(--focus-ring);
 }
+/* Term variant="inline": a dashed underline inside a sentence, no icon; the card opens after resting on the word. */
+.ui-term.is-word {
+  cursor: help;
+  text-decoration: underline dashed var(--line-strong);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color 0.15s ease;
+}
+.ui-term.is-word:hover,
+.ui-term.is-word.is-open,
+.ui-term.is-word:focus-visible {
+  text-decoration-color: var(--accent-text);
+}
 .ui-term-pop {
   width: 340px;
   /* No wider than the block it explains (see Term), nor the window. */
@@ -5466,7 +5479,7 @@ html.ui-theme-fade * {
     a.ui-nav-brand-link,
     a.ui-wb-brand,
     .ui-code.is-link:not(.is-inline),
-    .ui-term:not(.is-inline)
+    .ui-term:not(.is-inline):not(.is-word)
   ) {
     position: relative;
   }
@@ -5482,7 +5495,7 @@ html.ui-theme-fade * {
     a.ui-nav-brand-link,
     a.ui-wb-brand,
     .ui-code.is-link:not(.is-inline),
-    .ui-term:not(.is-inline)
+    .ui-term:not(.is-inline):not(.is-word)
   )::after {
     content: '';
     position: absolute;

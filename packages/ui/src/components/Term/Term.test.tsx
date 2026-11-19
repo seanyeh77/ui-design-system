@@ -31,3 +31,54 @@ test('Term: the explanation stays inside its card, not over the panel beside it'
     expect(r.left).toBeGreaterThanOrEqual((card?.left ?? 0) - 0.5);
   });
 });
+
+test('Term inline: read as the word then 「有說明」, opens on keyboard focus, Esc keeps focus on the word', async () => {
+  await page.viewport(1280, 800);
+  render(
+    <p>
+      登入後寫入{' '}
+      <Term variant="inline" text="瀏覽器替網站保存的一小段文字。" action={{ label: '看它出現的地方', onClick: () => {} }}>
+        cookie
+      </Term>
+      。
+    </p>,
+  );
+  const word = screen.getByRole('button', { name: /^cookie\s?，有說明$/ });
+  expect(word.querySelector('.ui-term-q')).toBeNull();
+  const user = userEvent.setup();
+  await user.tab();
+  expect(document.activeElement).toBe(word);
+  const pop = await waitFor(() => {
+    const el = document.querySelector<HTMLElement>('.ui-term-pop');
+    if (!el) throw new Error('not open');
+    return el;
+  });
+  expect(word.getAttribute('aria-describedby')).toBe(pop.id);
+  // Focus stays on the word when the card opens.
+  expect(document.activeElement).toBe(word);
+  await user.keyboard('{Escape}');
+  await waitFor(() => expect(document.querySelector('.ui-term-pop')).toBeNull());
+  expect(document.activeElement).toBe(word);
+});
+
+test('Term inline: the pointer resting 500 ms opens it, passing over does not', async () => {
+  await page.viewport(1280, 800);
+  render(
+    <p>
+      <Term variant="inline" text="說明。">
+        cookie
+      </Term>{' '}
+      <span>其他</span>
+    </p>,
+  );
+  const user = userEvent.setup();
+  const word = screen.getByRole('button', { name: /^cookie\s?，有說明$/ });
+  await user.hover(word);
+  await new Promise((r) => setTimeout(r, 200));
+  expect(document.querySelector('.ui-term-pop')).toBeNull();
+  await user.unhover(word);
+  await new Promise((r) => setTimeout(r, 500));
+  expect(document.querySelector('.ui-term-pop')).toBeNull();
+  await user.hover(word);
+  await waitFor(() => expect(document.querySelector('.ui-term-pop')).not.toBeNull(), { timeout: 1500 });
+});

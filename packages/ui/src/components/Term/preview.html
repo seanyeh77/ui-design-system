@@ -24,6 +24,13 @@
             ' 來的。',
           ),
           h(
+            'p',
+            null,
+            '登入後伺服器會寫入一個 ',
+            h(U.Term, { variant: 'inline', text: '瀏覽器替網站保存的一小段文字，之後每次請求都會帶上。', action: { label: '看它出現的地方' } }, 'cookie'),
+            '，之後的每次請求都會帶上它。',
+          ),
+          h(
             'div',
             { style: { display: 'flex', alignItems: 'center', gap: 8 } },
             h('span', { style: { fontWeight: 500 } }, '原本的 post_send'),

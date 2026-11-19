@@ -48,3 +48,19 @@ export const NamesAndAiMark = {
     </div>
   ),
 };
+
+/** terms: words in plain text get an explanation (Term variant="inline"); [詞](term:詞) marks one explicitly. */
+export const Terms = {
+  render: () => (
+    <div style={{ maxWidth: 720 }}>
+      <UI.Markdown
+        terms={[
+          { term: 'cookie', text: '瀏覽器替網站保存的一小段文字，之後每次請求都會帶上。' },
+          { term: 'session', title: '工作階段', text: '伺服器記住同一位使用者的一段期間，靠 cookie 認出是誰。' },
+        ]}
+      >
+        {'登入後伺服器寫入 cookie，之後每次請求都帶上這個 cookie。\n\n[工作階段](term:session) 過期時要重新登入。'}
+      </UI.Markdown>
+    </div>
+  ),
+};

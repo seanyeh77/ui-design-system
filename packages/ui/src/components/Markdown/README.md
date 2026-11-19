@@ -53,6 +53,24 @@ h(
 - 行內程式碼被 `refHref` 或 `onRef` 認成路徑、而且有目標時是「位置」：灰色、13 px，滑過或焦點時變強調文字色加底線（`InlineCode look="location"`）。
 - 其他連結（`[說明](fn:docs)`、一般網址）照舊；沒有目標的行內程式碼維持灰底。外部網址在新分頁開啟的連結（沒有 `onLink`）也照舊。
 
+## 名詞說明（terms）
+
+文件裡讀者可能看不懂的詞，用 `terms` 加上說明（`Term variant="inline"`：灰色虛線，滑過 500 ms 打開小卡）。兩種寫法可以一起用：
+
+- 自動：給 `terms`（`{ term, title?, text, action? }`，和 CodeView 相同），一般文字裡出現的詞自動標記。整個字、分大小寫（`cookie` 不算 `cookies`）。標題、連結文字、行內程式碼和 `<summary>` 裡不標；程式碼區塊只標註解和字串。
+- 指定：`[cookie](term:cookie)` 明確標記這一處，`term:` 後面是 `terms` 裡的 `term`（有空白時寫成 `%20`）。找不到時只顯示文字，開發模式在 console 提醒。其他 Markdown 檢視器會把它顯示成一般連結。
+- 預設每個詞在每個段落、清單項目或表格格子只標第一次；程式碼區塊每一段只標第一次。`termsMark: 'all'` 每次都標。
+
+```js
+h(UI.Markdown, {
+  terms: [
+    { term: 'cookie', text: '瀏覽器替網站保存的一小段文字，之後每次請求都會帶上。' },
+    { term: 'session', title: '工作階段', text: '伺服器記住同一位使用者的一段期間，靠 cookie 認出是誰。' },
+  ],
+  children: '登入後伺服器寫入 cookie，之後每次請求都帶上這個 cookie。\n\n[工作階段](term:session) 過期時要重新登入。',
+});
+```
+
 ## AI 標記
 
 AI 寫的段落在開頭寫 `[AI](ai:)`，畫成一個小的「AI」標記（`UI.AiMark`）：10 px 粗體灰字、1 px 框線、4 px 圓角，和後面的文字隔 6 px。

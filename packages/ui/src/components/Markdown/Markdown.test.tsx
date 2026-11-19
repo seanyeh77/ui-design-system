@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
@@ -347,4 +347,39 @@ test('Markdown: [AI](ai:) is an AI mark, not a link and not a Tab stop', async (
   expect(p?.textContent).toBe('AIAI 說明：這個函式在路由表變動時重新建立連線。');
   await userEvent.tab();
   expect(document.activeElement).toBe(document.body);
+});
+
+test('terms: first per block in plain text; not in headings, links or inline code; term: marks explicitly', () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  const terms = [
+    { term: 'cookie', text: '瀏覽器保存的一小段文字。' },
+    { term: 'session', title: '工作階段', text: '伺服器記住同一位使用者的一段期間。' },
+  ];
+  const src = [
+    '# cookie',
+    '',
+    '登入後寫入cookie，之後每次都帶上 cookie；cookies 不算，`cookie` 也不算，[cookie](https://example.com) 也不算。',
+    '',
+    '- 第二個 cookie',
+    '- [工作階段](term:session) 過期要重新登入',
+    '- [沒有](term:nope)',
+  ].join('\n');
+  const { container } = render(<Markdown terms={terms}>{src}</Markdown>);
+  const marks = [...container.querySelectorAll('.ui-term.is-word')];
+  expect(marks.map((m) => m.firstChild?.textContent)).toEqual(['cookie', 'cookie', '工作階段']);
+  expect(container.querySelector('h4 .ui-term')).toBeNull();
+  // The Chinese characters beside it do not stop the match.
+  expect(marks[0].closest('p')).not.toBeNull();
+  expect(container.textContent).toContain('沒有');
+  expect(warn.mock.calls.some((c) => String(c.join(' ')).includes('term:nope'))).toBe(true);
+  warn.mockRestore();
+});
+
+test('terms: termsMark="all" marks every time', () => {
+  const { container } = render(
+    <Markdown terms={[{ term: 'cookie', text: '說明。' }]} termsMark="all">
+      {'cookie 和 cookie'}
+    </Markdown>,
+  );
+  expect(container.querySelectorAll('.ui-term.is-word').length).toBe(2);
 });

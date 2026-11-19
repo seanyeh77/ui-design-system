@@ -1,4 +1,5 @@
 import { expect, test, vi } from 'vitest';
+import { page } from 'vitest/browser';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import * as React from 'react';
@@ -322,4 +323,54 @@ test('header={false}: nothing above the code, the region is still named by the f
   render(<CodeView code={'int a;'} file="x.c" header={false} copy />);
   const cv = screen.getByRole('region', { name: 'x.c' });
   expect(cv.querySelector('.ui-cv-head, .ui-cv-tools')).toBeNull();
+});
+
+const SESSION = [
+  '# The cookie keeps the session; cookies expire after a day.',
+  'cookie = read_cookie(req)  # cookie again, and see docs/cookie.md',
+  'log("no cookie set")',
+  '',
+].join('\n');
+
+test('terms: comments and strings only, whole words, first in the file; paths and code are never marked', () => {
+  const terms = [{ term: 'cookie', text: '瀏覽器保存的一小段文字。' }];
+  const { container, rerender } = render(<CodeView file="s.py" code={SESSION} terms={terms} refHref={(p) => '#' + p} />);
+  const marks = () => [...container.querySelectorAll('.ui-cv-term')];
+  expect(marks().length).toBe(1);
+  expect(marks()[0].closest('[data-n]')?.getAttribute('data-n')).toBe('1');
+  expect(marks()[0].closest('.is-comment')).not.toBeNull();
+  rerender(<CodeView file="s.py" code={SESSION} terms={terms} termsMark="all" refHref={(p) => '#' + p} />);
+  // line 1 comment, line 2 comment (not the identifier, not inside the path), line 3 string; never 「cookies」
+  expect(marks().map((m) => m.closest('[data-n]')?.getAttribute('data-n'))).toEqual(['1', '2', '3']);
+  expect(marks().every((m) => m.closest('.is-comment, .is-string'))).toBe(true);
+  expect(container.querySelector('.ui-cv-ref')?.textContent).toBe('docs/cookie.md');
+});
+
+test('terms: a name link at the same spot wins; ← → stop on terms with links, Enter opens, Esc closes and stays', async () => {
+  await page.viewport(1280, 800);
+  const user = userEvent.setup();
+  const code = ['x = emit(1)  # emit sends the cookie', ''].join('\n');
+  const terms = [
+    { term: 'emit', text: '送出事件。' },
+    { term: 'cookie', text: '瀏覽器保存的一小段文字。' },
+  ];
+  const { container } = render(<CodeView file="s.py" code={code} terms={terms} links={[{ line: 1, text: 'emit' }]} />);
+  expect(container.querySelector('.ui-cv-name')?.textContent).toBe('emit');
+  // the identifier is the link; the comment's 「emit」 is a term
+  expect([...container.querySelectorAll('.ui-cv-term')].map((t) => t.firstChild?.textContent)).toEqual(['emit', 'cookie']);
+  const pre = container.querySelector('pre') as HTMLElement;
+  pre.focus();
+  await user.keyboard('{ArrowRight}');
+  expect(document.activeElement?.className).toContain('ui-cv-name');
+  await user.keyboard('{ArrowRight}{ArrowRight}');
+  const word = document.activeElement as HTMLElement;
+  expect(word.classList.contains('ui-cv-term')).toBe(true);
+  expect(word.tabIndex).toBe(-1);
+  // focus alone does not open it in the code
+  expect(document.querySelector('.ui-term-pop')).toBeNull();
+  await user.keyboard('{Enter}');
+  await waitFor(() => expect(document.querySelector('.ui-term-pop')).not.toBeNull());
+  await user.keyboard('{Escape}');
+  await waitFor(() => expect(document.querySelector('.ui-term-pop')).toBeNull());
+  expect(document.activeElement).toBe(word);
 });

@@ -20,6 +20,12 @@ export interface FloatingPanelProps {
   /** Keeps the panel inside this element (shifting it sideways, then flipping), not just inside the window: a menu of
    *  a table stays over the table instead of covering the panel beside it. */
   boundary?: React.RefObject<Element | null>;
+  /** Hover delay before opening, in ms (with openOnHover). Default 0. */
+  delay?: number;
+  /** Id of the panel, for aria-describedby on the trigger. */
+  id?: string;
+  /** Move focus into the panel when it opens. Default true. */
+  focusOnOpen?: boolean;
   children: React.ReactNode;
 }
 
@@ -35,13 +41,16 @@ export function FloatingPanel({
   openOnHover,
   anchor,
   boundary,
+  delay = 0,
+  id,
+  focusOnOpen = true,
   children,
   ...aria
 }: FloatingPanelProps) {
   const within = boundary?.current ?? undefined;
   return (
     <Popover.Root open={open} onOpenChange={onOpenChange}>
-      <Popover.Trigger render={trigger} openOnHover={openOnHover} delay={0} closeDelay={150} />
+      <Popover.Trigger render={trigger} openOnHover={openOnHover} delay={delay} closeDelay={150} />
       <Popover.Portal>
         <Popover.Positioner
           className="ui-float"
@@ -54,7 +63,7 @@ export function FloatingPanel({
           // Inside a boundary: slid sideways until it fits, rather than swapping its alignment.
           collisionAvoidance={within ? { side: 'flip', align: 'shift' } : undefined}
         >
-          <Popover.Popup className={className} aria-label={aria['aria-label']}>
+          <Popover.Popup id={id} className={className} aria-label={aria['aria-label']} initialFocus={focusOnOpen ? undefined : false}>
             {children}
           </Popover.Popup>
         </Popover.Positioner>

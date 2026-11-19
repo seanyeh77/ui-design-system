@@ -38,9 +38,18 @@
             start: 70,
             target: 75,
             links: links,
+            // Words in comments and strings with an explanation: dashed underline, card after 500 ms.
+            terms: [
+              { term: 'original', text: '原本函式庫裡的 `post_send`；ibtrace 攔截後再呼叫它。', action: { label: '看它出現的地方', onClick: function () {} } },
+            ],
             onLink: function () {},
             preview: function (l) {
-              return h('div', null, h('div', { style: { fontFamily: 'var(--font-mono)', fontWeight: 600 } }, l.text), h('div', null, '定義在 ', h(U.InlineCode, { href: '#' }, l.def)));
+              return h(
+                'div',
+                null,
+                h('div', { style: { fontFamily: 'var(--font-mono)', fontWeight: 600 } }, l.text),
+                h('div', null, '定義在 ', h(U.InlineCode, { href: '#' }, l.def)),
+              );
             },
           }),
         ),

@@ -121,6 +121,7 @@ export { Tag } from './components/Tag/Tag';
 export type { TagProps } from './components/Tag/Tag';
 export { Term } from './components/Term/Term';
 export type { TermProps } from './components/Term/Term';
+export type { TermDef, TermsMark } from './internal/terms';
 export { TextArea } from './components/TextArea/TextArea';
 export type { TextAreaProps } from './components/TextArea/TextArea';
 export { TextField } from './components/TextField/TextField';
