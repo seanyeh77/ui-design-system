@@ -1,5 +1,9 @@
 # @seanyeh77/eslint-plugin-ui
 
+## 0.31.0
+
+No changes in this release.
+
 ## 0.30.1
 
 No changes in this release.
