@@ -56,13 +56,21 @@ h(UI.CodeView, { file, code, target: line, onLine: function (n) { setLine(n); } 
 
 ## 暫時標示一行（peek）
 
-`peek` 標出一行，和 `target` 分開，兩者可以同時存在；例如滑鼠停在說明欄的一筆上時，標出它對應的那一行。那一行不在畫面裡時捲到看得見的位置（`block: 'nearest'`），不移動焦點、不影響選取。`null` 清除。
+`peek` 標出一行或一段，和 `target` 分開，兩者可以同時存在；例如滑鼠停在說明欄的一筆上時，標出它對應的那一行，或停在「定義」的一項上時，標出整個 `struct { … }`。不移動焦點、不影響選取；`null` 清除。
+
+- 一行：`peek: 42`。
+- 一段：`peek: { from: 42, to: 57 }`，頭尾兩行都包含在內（`from` 比 `to` 大時自動對調）。範圍內每一行都用同樣的外觀標示。
 
 ```js
-h(UI.CodeView, { file, code, target: line, peek: hover ? hover.line : null });
+h(UI.CodeView, { file, code, target: line, peek: hover ? { from: hover.start, to: hover.end } : null });
 ```
 
-外觀：白底（`surface`）加左側 3 px `line-strong` 線，比目標行（`accent-soft` 底、強調色線）安靜。
+捲動規則（捲的是程式碼本身，或包住它、可以捲動的最近一層，例如 Workbench 的面板；都沒有時捲整頁）：
+
+- 整段放得進畫面時，以最小的捲動量讓整段都看得見；已經都看得見時不捲動。
+- 整段比畫面高時，把第一行捲到頂端，讓這段填滿畫面。
+
+外觀：白底（`surface`）加左側 3 px `line-strong` 線，比目標行（`accent-soft` 底、強調色線）安靜；和目標行重疊的那一行以目標行的樣子為準。手機上只顯示目標附近幾行時，範圍外沒有畫出的行不標示，也不為它們捲動。
 
 ## 名詞說明（terms）
 

@@ -109,7 +109,7 @@ export const Terms = {
 export const LineAndPeek = {
   render: function Render() {
     const [line, setLine] = React.useState(2);
-    const [peek, setPeek] = React.useState<number | null>(null);
+    const [peek, setPeek] = React.useState<number | { from: number; to: number } | null>(null);
     const code = ['int fd = open(path, O_RDONLY);', 'if (fd < 0)', '    return -1;', 'read(fd, buf, n);', 'close(fd);'].join('\n');
     return (
       <div style={{ maxWidth: 620, display: 'grid', gap: 12 }}>
@@ -119,6 +119,9 @@ export const LineAndPeek = {
               {`看第 ${n} 行`}
             </UI.Button>
           ))}
+          <UI.Button onMouseEnter={() => setPeek({ from: 2, to: 3 })} onMouseLeave={() => setPeek(null)}>
+            看錯誤處理
+          </UI.Button>
         </div>
         <UI.CodeView file="io.c" code={code} target={line} peek={peek} onLine={(n) => setLine(n)} />
       </div>

@@ -469,3 +469,63 @@ test('peek marks a line apart from the target, without moving focus or the selec
   (window.getSelection() as Selection).removeAllRanges();
   outside.remove();
 });
+
+const LONG = Array.from({ length: 40 }, (_, i) => `int v${i + 1} = ${i + 1};`).join('\n') + '\n';
+const rect = (c: HTMLElement, n: number) => (c.querySelector(`[data-n="${n}"]`) as HTMLElement).getBoundingClientRect();
+const viewOf = (box: HTMLElement) => {
+  const r = box.getBoundingClientRect();
+  return { top: r.top + box.clientTop, bottom: r.top + box.clientTop + box.clientHeight };
+};
+
+test('peek range: every line in it is marked; null clears', () => {
+  const { container, rerender } = render(<CodeView code={LONG} target={3} peek={{ from: 5, to: 8 }} />);
+  expect([...container.querySelectorAll('.is-peek')].map((e) => e.getAttribute('data-n'))).toEqual(['5', '6', '7', '8']);
+  rerender(<CodeView code={LONG} target={3} peek={{ from: 8, to: 6 }} />);
+  expect([...container.querySelectorAll('.is-peek')].map((e) => e.getAttribute('data-n'))).toEqual(['6', '7', '8']);
+  rerender(<CodeView code={LONG} target={3} peek={null} />);
+  expect(container.querySelector('.is-peek')).toBeNull();
+});
+
+test('peek range that fits: the least scrolling brings all of it into view; none when already in view', () => {
+  const { container, rerender } = render(<CodeView code={LONG} maxHeight="200px" />);
+  const pre = container.querySelector('pre') as HTMLElement;
+  rerender(<CodeView code={LONG} maxHeight="200px" peek={{ from: 14, to: 17 }} />);
+  const v = viewOf(pre);
+  // Below the view before: its last line now sits at the bottom edge, its first line is in view.
+  expect(Math.abs(rect(container, 17).bottom - v.bottom)).toBeLessThan(1.5);
+  expect(rect(container, 14).top).toBeGreaterThanOrEqual(v.top);
+  const at = pre.scrollTop;
+  rerender(<CodeView code={LONG} maxHeight="200px" peek={{ from: 15, to: 16 }} />);
+  expect(pre.scrollTop).toBe(at);
+  // Above the view: its first line goes to the top edge.
+  rerender(<CodeView code={LONG} maxHeight="200px" peek={{ from: 2, to: 4 }} />);
+  expect(Math.abs(rect(container, 2).top - viewOf(pre).top)).toBeLessThan(1.5);
+});
+
+test('peek range taller than the view: its first line goes to the top', () => {
+  const { container, rerender } = render(<CodeView code={LONG} maxHeight="120px" />);
+  const pre = container.querySelector('pre') as HTMLElement;
+  rerender(<CodeView code={LONG} maxHeight="120px" peek={{ from: 20, to: 32 }} />);
+  expect(Math.abs(rect(container, 20).top - viewOf(pre).top)).toBeLessThan(1.5);
+});
+
+test('peek range scrolls the box around the code when the code itself does not scroll; focus and selection stay', () => {
+  const outside = document.createElement('button');
+  document.body.append(outside);
+  outside.focus();
+  const Frame = ({ peek }: { peek: { from: number; to: number } | null }) => (
+    <div data-testid="pane" style={{ height: 160, overflow: 'auto' }}>
+      <CodeView code={LONG} peek={peek} />
+    </div>
+  );
+  const { container, rerender } = render(<Frame peek={null} />);
+  selectText(textOf(container, 1)[0], 0, textOf(container, 1)[0], 3);
+  rerender(<Frame peek={{ from: 30, to: 33 }} />);
+  const pane = screen.getByTestId('pane');
+  expect(pane.scrollTop).toBeGreaterThan(0);
+  expect(Math.abs(rect(container, 33).bottom - viewOf(pane).bottom)).toBeLessThan(1.5);
+  expect((window.getSelection() as Selection).toString()).toBe('int');
+  expect(document.activeElement).toBe(outside);
+  (window.getSelection() as Selection).removeAllRanges();
+  outside.remove();
+});

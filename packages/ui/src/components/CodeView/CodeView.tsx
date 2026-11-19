@@ -110,9 +110,11 @@ export interface CodeViewProps<L extends CodeLink = CodeLink> {
   /** The reader clicked a line, or moved to one with ↑ ↓ (also Home, End, PageUp, PageDown, [ ]): `how` says which.
    *  Dragging to select text is not a move and does not call it. Given this, ↑ ↓ move by line even without links. */
   onLine?: (line: number, how: 'click' | 'key') => void;
-  /** Marks one line for a moment, apart from `target` (both can show), e.g. while the pointer rests on an item that
-   *  points at it. Scrolled into view when needed; focus and selected text stay. null or undefined: none. */
-  peek?: number | null;
+  /** Marks a line, or a range of lines (`{ from, to }`, both included), for a moment, apart from `target` (both can
+   *  show), e.g. while the pointer rests on an item that points at it. Scrolled with the least movement so the whole
+   *  range is in view; a range taller than the view puts its first line at the top. Focus and selected text stay.
+   *  null or undefined: none. */
+  peek?: number | { from: number; to: number } | null;
   className?: string;
   /** focusTarget() moves keyboard and screen-reader focus to the target line. */
   ref?: React.Ref<CodeViewHandle>;
@@ -272,11 +274,36 @@ function selectedCode(pre: HTMLElement): string | null {
   return rows.length ? rows.map((x) => x.textContent ?? '').join('\n') : (frag.textContent ?? '');
 }
 
-/** Scrolls el into view inside box (or the page) only when it is not already fully visible. */
-function inView(el: HTMLElement, box: HTMLElement | null) {
-  const r = el.getBoundingClientRect();
-  const b = box && box.scrollHeight > box.clientHeight ? box.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
-  if (r.top < b.top || r.bottom > b.bottom) el.scrollIntoView({ block: 'nearest' });
+/** The nearest box that scrolls el's content: el itself, a parent with overflow auto or scroll, or the page (null). */
+function scroller(el: HTMLElement): HTMLElement | null {
+  for (let n: HTMLElement | null = el; n && n !== document.body && n !== document.documentElement; n = n.parentElement) {
+    const o = getComputedStyle(n).overflowY;
+    if ((o === 'auto' || o === 'scroll' || o === 'overlay') && n.scrollHeight > n.clientHeight) return n;
+  }
+  return null;
+}
+
+/** Scrolls the lines first…last into view with the least movement; when they are taller than the view, the first
+ *  line goes to the top. Nothing moves when they are already in view. */
+function showRange(first: HTMLElement, last: HTMLElement, pre: HTMLElement) {
+  const box = scroller(pre);
+  const view = box
+    ? (() => {
+        const r = box.getBoundingClientRect();
+        const top = r.top + box.clientTop;
+        return { top, bottom: top + box.clientHeight };
+      })()
+    : { top: 0, bottom: window.innerHeight };
+  const top = first.getBoundingClientRect().top;
+  const bottom = last.getBoundingClientRect().bottom;
+  let by = 0;
+  if (bottom - top > view.bottom - view.top) by = top - view.top;
+  else if (top < view.top) by = top - view.top;
+  else if (bottom > view.bottom) by = bottom - view.bottom;
+  by = Math.round(by);
+  if (!by) return;
+  if (box) box.scrollTop += by;
+  else window.scrollBy(0, by);
 }
 
 /** Each line's words from `terms`: only in comments and strings, never where a name link or a path is. With 'first',
@@ -488,11 +515,18 @@ export function CodeView<L extends CodeLink = CodeLink>({
     if (b && el && b.scrollHeight > b.clientHeight && !selectedIn(b))
       b.scrollTop += el.getBoundingClientRect().top - b.getBoundingClientRect().top - b.clientHeight / 2 + el.offsetHeight / 2;
   }, [ta, code]);
+  const [pFrom, pTo] = peek == null ? [NaN, NaN] : typeof peek === 'number' ? [peek, peek] : [Math.min(peek.from, peek.to), Math.max(peek.from, peek.to)];
   React.useEffect(() => {
-    if (peek == null) return;
-    const el = body.current?.querySelector<HTMLElement>(`[data-n="${peek}"]`);
-    if (el) inView(el, body.current);
-  }, [peek]);
+    if (Number.isNaN(pFrom)) return;
+    const pre = body.current;
+    if (!pre) return;
+    // The lines on the page in the range (on phones only the rows around the target are drawn).
+    const rows = [...pre.querySelectorAll<HTMLElement>('[data-n]')].filter((el) => {
+      const n = Number(el.dataset.n);
+      return n >= pFrom && n <= pTo;
+    });
+    if (rows.length) showRange(rows[0], rows[rows.length - 1], pre);
+  }, [pFrom, pTo]);
   const digits = String(start + lines.length - 1).length;
   const prose = (cls: string, text: string, inLink: boolean) =>
     !inLink && (refHref || onRef) && (cls === 'is-comment' || cls === 'is-string') ? withPaths(text, refHref, onRef, nav ? -1 : undefined) : breakable(text);
@@ -594,7 +628,7 @@ export function CodeView<L extends CodeLink = CodeLink>({
       <div
         key={i}
         role="listitem"
-        className={cx('ui-cv-line', on && 'is-target', peek === n && 'is-peek')}
+        className={cx('ui-cv-line', on && 'is-target', n >= pFrom && n <= pTo && 'is-peek')}
         data-n={n}
         aria-current={on && n === ta ? 'location' : undefined}
         tabIndex={on && n === ta ? -1 : undefined}
