@@ -256,3 +256,30 @@ test('show() with an unknown id does nothing and warns in development', async ()
   expect(warn.mock.calls.some((c) => String(c[0]).includes("show('nope')"))).toBe(true);
   warn.mockRestore();
 });
+
+function OpenOnMount({ width, view }: { width: number; view: string }) {
+  const ref = React.useRef<WorkbenchHandle>(null);
+  React.useEffect(() => {
+    ref.current?.show(view);
+  }, [view]);
+  return (
+    <div style={{ width, height: 720 }}>
+      <Workbench id={'mount-' + width} ref={ref} views={views} defaultLayout={{ side: ['outline', 'refs'], panel: ['problems', 'output'] }} />
+    </div>
+  );
+}
+
+test('show() while mounting on a phone: the panel stays open after the first measurement', async () => {
+  render(<OpenOnMount width={390} view="output" />);
+  const sheet = screen.getByRole('region', { name: '面板分頁', hidden: true });
+  await new Promise((r) => setTimeout(r, 300));
+  expect(sheet.classList.contains('is-open')).toBe(true);
+  expect(within(sheet).getByRole('tab', { selected: true }).textContent).toBe('輸出');
+});
+
+test('show() while mounting on a narrow screen: the side bar stays laid over the main view', async () => {
+  render(<OpenOnMount width={1000} view="refs" />);
+  await new Promise((r) => setTimeout(r, 300));
+  expect(isOpen('右側欄')).toBe(true);
+  expect(region('右側欄').classList.contains('is-drawer')).toBe(true);
+});

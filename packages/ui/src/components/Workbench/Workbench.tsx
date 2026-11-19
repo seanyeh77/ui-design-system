@@ -547,11 +547,13 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
   );
 
   const root = React.useRef<HTMLDivElement>(null);
-  const [dim, setDim] = React.useState({ w: 1280, h: 800 });
+  // Until the first measurement the size is a guess; `measured` keeps that guess from counting as a change of size.
+  const [dim, setDim] = React.useState({ w: 1280, h: 800, measured: false });
   React.useLayoutEffect(() => {
     const el = root.current;
     if (!el) return;
-    const read = () => setDim((d) => (d.w === el.clientWidth && d.h === el.clientHeight ? d : { w: el.clientWidth, h: el.clientHeight }));
+    const read = () =>
+      setDim((d) => (d.measured && d.w === el.clientWidth && d.h === el.clientHeight ? d : { w: el.clientWidth, h: el.clientHeight, measured: true }));
     read();
     const ro = new ResizeObserver(read);
     ro.observe(el);
@@ -581,9 +583,11 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
   const sideOverlay = w < 1280;
   const bodyH = Math.max(0, h - TOP);
   // Leaving the narrow sizes closes what was laid over the main view.
-  const [lastBand, setLastBand] = React.useState(0);
+  const [lastBand, setLastBand] = React.useState<number | null>(null);
   const band = phone ? 3 : exOverlay ? 2 : sideOverlay ? 1 : 0;
-  if (band !== lastBand) {
+  // The first measurement only sets the size band: what show() opened while mounting stays open.
+  if (dim.measured && lastBand === null) setLastBand(band);
+  else if (dim.measured && band !== lastBand) {
     setLastBand(band);
     setOv({ explorer: false, side: false });
     setSheet((s) => ({ ...s, open: false }));
@@ -687,6 +691,10 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
     const r: ViewRegion | null = lay.side.includes(viewId) ? 'side' : lay.panel.includes(viewId) ? 'panel' : null;
     devWarn(!r, 'Workbench', `show('${viewId}'): no view has this id. Pass the id of one of the views.`);
     if (!r) return;
+    // Called while mounting, before the size was measured: read the real width now.
+    const cw = root.current?.clientWidth || w;
+    const phone = cw < 600;
+    const sideOverlay = cw < 1280;
     // Wide screens remember it open; narrow screens lay it over the main view; phones open the merged panel.
     const remember = !phone && !(r === 'side' && sideOverlay);
     update((l) => ({ ...l, active: { ...l.active, [r]: viewId }, open: remember ? { ...l.open, [r]: true } : l.open }));

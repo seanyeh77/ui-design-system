@@ -82,6 +82,7 @@ function Actions() {
 - 窄螢幕（右側欄疊在主畫面上時）：把右側欄疊上來。
 - 手機：打開合併的面板並切到這個分頁。
 - 沒有這個 id 時不做任何事，開發模式在 console 提醒。
+- 掛載時就可以呼叫（例如網址帶著分頁）：不用等版面量完寬度。
 
 在 Workbench 裡面（view、`actions`、`explorer` 的內容）用 `useWorkbench()`：
 
