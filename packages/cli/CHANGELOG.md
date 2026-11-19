@@ -1,5 +1,12 @@
 # @seanyeh77/ui-cli
 
+## 0.30.1
+
+### Patch Changes
+
+- Updated dependencies [cd20daf]
+  - @seanyeh77/ui@0.30.1
+
 ## 0.30.0
 
 ### Patch Changes
