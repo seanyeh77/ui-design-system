@@ -1,0 +1,115 @@
+<!-- @dsCard group="Pages" height=640 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>Workbench — preview</title>
+  </head>
+  <body style="padding: 0">
+    <div id="root" style="height: 640px"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      var CODE = [
+        'class VirtualRouter:',
+        '    def _sync_as(self):',
+        '        for peer in self.peers:',
+        '            try:',
+        '                self.routes.update(peer.fetch())',
+        '            except Exception:',
+        '                pass',
+        '',
+        '    def _monitor_loop(self):',
+        '        while True:',
+        '            self._sync_as()',
+        '            time.sleep(5)',
+      ].join('\n');
+      var TREE = [
+        {
+          id: 'harness',
+          name: 'harness',
+          icon: 'folder',
+          children: [
+            {
+              id: 'ctl',
+              name: 'controller.py',
+              icon: 'file',
+              mark: { label: '有值得注意的地方' },
+              children: [
+                { id: 'sync', name: '_sync_as', icon: 'function', mark: { label: '有值得注意的地方' } },
+                { id: 'mon', name: '_monitor_loop', icon: 'function' },
+              ],
+            },
+            { id: 'topo', name: 'topology.py', icon: 'file' },
+          ],
+        },
+        { id: 'src', name: 'src', icon: 'folder', children: [{ id: 'child', name: 'child.c', icon: 'file' }, { id: 'trace', name: 'trace.c', icon: 'file' }] },
+      ];
+      function list(rows) {
+        return h(
+          'ul',
+          { style: { margin: 0, padding: '8px 12px 8px 28px', fontSize: 13 } },
+          rows.map(function (r, i) {
+            return h('li', { key: i, style: { padding: '2px 0' } }, r);
+          }),
+        );
+      }
+      var VIEWS = [
+        { id: 'outline', title: '大綱', render: function () { return list(['VirtualRouter', '_sync_as', '_monitor_loop']); } },
+        { id: 'refs', title: '參考', render: function () { return list(['topology.py:31 建立 VirtualRouter', 'child.c:86 寫入 IBTRACE_SHM']); } },
+        { id: 'problems', title: '問題', attention: true, render: function () { return list(['controller.py:44 例外被吞掉，沒有記錄。', 'child.c:86 共用記憶體名稱寫死。']); } },
+        { id: 'output', title: '輸出', render: function () { return list(['已讀入 42 個檔案、318 個函式']); } },
+      ];
+      function Explorer(props) {
+        var wb = U.useWorkbench();
+        return h(U.TreeList, {
+          kind: 'plain',
+          density: 'compact',
+          bare: true,
+          label: '檔案',
+          items: props.items,
+          defaultOpen: ['harness', 'ctl'],
+          selectedId: props.sel,
+          onSelect: function (n) {
+            props.onSel(n.id);
+            if (!n.children) wb.explorerPicked();
+          },
+        });
+      }
+      function Actions() {
+        var wb = U.useWorkbench();
+        return h(
+          React.Fragment,
+          null,
+          h(U.IconButton, { variant: 'quiet', icon: 'magnifying-glass', label: '搜尋' }),
+          h(U.IconButton, { variant: 'quiet', icon: 'question', label: '說明' }),
+          h(U.IconButton, { variant: 'quiet', icon: 'arrow-u-up-left', label: '還原預設版面', onClick: wb.resetLayout }),
+        );
+      }
+      function Demo() {
+        var s = React.useState('sync'),
+          sel = s[0],
+          setSel = s[1];
+        var f = React.useState(''),
+          filter = f[0],
+          setFilter = f[1];
+        return h(
+          U.Workbench,
+          {
+            id: 'preview',
+            brand: { mark: h('span', { style: { display: 'block', width: 20, height: 20, borderRadius: 5, background: 'var(--accent)' } }), name: 'codemap', href: '#' },
+            crumbs: [{ label: 'harness' }, { label: 'controller.py' }, { label: 'VirtualRouter._sync_as' }],
+            actions: h(Actions),
+            explorerHead: h(U.SearchField, { value: filter, onChange: setFilter, label: '篩選檔案與函式' }),
+            explorer: h(Explorer, { items: TREE, sel: sel, onSel: setSel }),
+            explorerFoot: h(U.Button, { icon: 'gear' }, '設定'),
+            views: VIEWS,
+            defaultLayout: { side: ['outline', 'refs'], panel: ['problems', 'output'] },
+          },
+          h('div', { style: { padding: 16 } }, h(U.CodeView, { code: CODE, file: 'harness/controller.py', start: 40, target: 41 })),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+    </script>
+  </body>
+</html>

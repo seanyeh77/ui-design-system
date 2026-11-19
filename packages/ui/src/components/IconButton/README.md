@@ -29,3 +29,14 @@ const tour = useTour('codemap-flow');
 ```
 
 `hint` 也可以自己給：`{ text, action, onAction, onDismiss }`，`action` 預設「開始」。
+
+## 安靜樣式（variant="quiet"）
+
+頂列、分頁列這類一排好幾個按鈕的地方用 `variant="quiet"`：32 px、沒有外框，滑過、按下或鍵盤焦點時才有底色，圖示是次要文字色。觸控螢幕上點擊範圍仍是 48 px。
+
+```tsx
+<IconButton variant="quiet" icon="magnifying-glass" label="搜尋" />
+```
+
+切換類的按鈕（例如收合面板）加 `aria-pressed`，按下時圖示變成主要文字色。
+

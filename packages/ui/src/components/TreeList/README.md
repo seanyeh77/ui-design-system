@@ -99,3 +99,21 @@ h(UI.TreeList, {
 - 展開時 live region 念「已展開，3 個子項目」，收合時念「已收合」。
 - 第 5 層以後名稱前的「L5」標記滑過時顯示「第 5 層」（`title`）；螢幕閱讀器從 `aria-level` 念層數，標記本身不念。
 - 有 `loadChildren` 時，能展開的節點要標 `hasChildren`：還沒展開過也是 `aria-expanded="false"`，螢幕閱讀器分得出它和葉節點。沒標 `hasChildren` 的節點當作葉節點。
+
+## 緊密模式（density="compact"）
+
+給檔案總管或側欄裡的大綱用：`kind="plain"` 加 `density="compact"`，每列 28 px、13 px 字、圖示 16 px，`meta` 放在名稱右邊同一行。觸控螢幕上每列仍是 48 px。通常再加 `bare`，放進沒有卡片的面板。
+
+```tsx
+<TreeList kind="plain" density="compact" bare label="檔案" items={tree} selectedId={sel} onSelect={pick} />
+```
+
+## 標記（mark）
+
+節點後面表示「有值得注意的地方」的小圓點：`mark: { label: '有值得注意的地方', tone: 'warning' }`。
+
+- 6 px 圓點，靠列的右邊對齊，上下排成一直線，一眼掃得到。
+- `tone`：`warning`（預設，橘）、`danger`（紅）、`accent`（強調色）。
+- 畫面上不放文字；螢幕閱讀器在名稱後面念 `label`，滑鼠停上去也看得到。
+- 不要把元素塞進 `tags` 做標記，`tags` 是分類用的文字。
+

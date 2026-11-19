@@ -39,6 +39,15 @@ export interface TreeNode {
   muted?: boolean;
   /** kind="plain": icon before the name. */
   icon?: IconSource;
+  /** kind="plain": a small dot at the row's right end for something worth a look. Screen readers hear `label` after
+   *  the name; the dot itself has no text. tone: 'warning' (default), 'danger' or 'accent'. */
+  mark?: TreeMark;
+}
+
+/** The dot after a tree item: `label` says what it means, 「有值得注意的地方」. */
+export interface TreeMark {
+  label: string;
+  tone?: 'warning' | 'danger' | 'accent';
 }
 
 export interface TreeListProps {
@@ -59,6 +68,9 @@ export interface TreeListProps {
   actions?: React.ReactNode;
   /** Default 'newest' for files, false (as given) for plain. */
   sort?: TreeSort;
+  /** kind="plain": 'compact' gives 28 px rows on one line (meta beside the name), for a file explorer or an outline
+   *  in a side panel. On touch screens rows stay 48 px. Default 'comfortable'. */
+  density?: 'comfortable' | 'compact';
   /** 'single' keeps one folder open per level; choose it when folders are many and messy. Default 'multi'. */
   expand?: 'multi' | 'single';
   defaultOpen?: string[];
@@ -125,6 +137,8 @@ export function TreeList(p: TreeListProps) {
   const { items } = p;
   const single = p.expand === 'single';
   const plain = p.kind === 'plain';
+  const compact = plain && p.density === 'compact';
+  devWarn(p.density === 'compact' && !plain, 'TreeList', 'density="compact" works with kind="plain" only: the files kind needs room for date and size.');
   const sort: TreeSort = p.sort === undefined ? (plain ? false : 'newest') : p.sort;
   const selectable = !!p.selectable && !plain;
   devWarn(plain && p.selectable, 'TreeList', 'selectable works with kind="files" only; for plain trees use selectedId and onSelect.');
@@ -341,7 +355,7 @@ export function TreeList(p: TreeListProps) {
         key={n.id}
         {...itemProps(r, idx)}
         // Only the item's own words: name, tags, meta, then the full path (the shortened one would read 「…」 aloud).
-        aria-label={n.ariaLabel ?? [n.name, ...(n.tags ?? []).map(nodeText), n.meta, n.path].filter(Boolean).join(tr('，'))}
+        aria-label={n.ariaLabel ?? [n.name, ...(n.tags ?? []).map(nodeText), n.meta, n.path, n.mark?.label].filter(Boolean).join(tr('，'))}
         aria-selected={p.onSelect ? on : undefined}
         className={cx('ui-tree-row', 'is-plain', on && 'is-current', n.muted && 'is-muted', r.fresh && 'ui-tree-in')}
         // A click anywhere on the row selects it and, when it has children, opens or closes it too.
@@ -363,11 +377,11 @@ export function TreeList(p: TreeListProps) {
             if (isF) toggle(n);
           }}
         >
-          <Icon name="caret-right" size={16} />
+          <Icon name="caret-right" size={compact ? 14 : 16} />
         </button>
         {n.icon ? (
           <span className="ui-tree-picon" aria-hidden="true">
-            <IconOf icon={n.icon} size={20} />
+            <IconOf icon={n.icon} size={compact ? 16 : 20} />
           </span>
         ) : null}
         <div className="ui-tree-main">
@@ -385,6 +399,7 @@ export function TreeList(p: TreeListProps) {
           </div>
           {meta ? <div className={cx('ui-tree-pmeta', n.meta == null && 'is-path')}>{n.meta != null ? digits(meta, /(\d[\d,.]*)/) : meta}</div> : null}
         </div>
+        {n.mark ? <span className={cx('ui-tree-mark', 'is-' + (n.mark.tone ?? 'warning'))} aria-hidden="true" title={n.mark.label} /> : null}
         {p.rowActions ? (
           <span className="ui-tree-act" onClick={(e) => e.stopPropagation()}>
             {p.rowActions(n)}
@@ -620,6 +635,7 @@ export function TreeList(p: TreeListProps) {
       className={cx(
         'ui-tree',
         plain && 'is-plain',
+        compact && 'is-compact',
         selectable && 'is-selectable',
         selFiles.length && 'has-sel',
         p.bare && 'is-bare',

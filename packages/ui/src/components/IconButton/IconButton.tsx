@@ -25,6 +25,9 @@ export interface IconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLBut
   tooltip?: boolean;
   /** The Fill version of a built-in icon, for a pressed or selected button. */
   filled?: boolean;
+  /** 'outline' (default): 40 px with a border. 'quiet': 32 px, no border, a background only on hover; for top bars and
+   *  tab bars where several sit in a row. On touch screens both keep a 48 px touch area. */
+  variant?: 'outline' | 'quiet';
   /** A first-use hint: a dot on the button and a bubble below it until the user acts on it or closes it. Pass
    *  undefined once it was handled (useTour's tour.hint() does this). */
   hint?: IconButtonHint;
@@ -32,13 +35,13 @@ export interface IconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLBut
 }
 
 /** A square icon-only button with a tooltip. */
-export function IconButton({ label, icon, className, tooltip = true, filled, hint, ...native }: IconButtonProps) {
+export function IconButton({ label, icon, className, tooltip = true, filled, hint, variant, ...native }: IconButtonProps) {
   const id = React.useId();
   const btn = (
     <button
       type="button"
       {...native}
-      className={cx('ui-iconbtn', hint && 'has-hint', className)}
+      className={cx('ui-iconbtn', variant === 'quiet' && 'is-quiet', hint && 'has-hint', className)}
       aria-label={label}
       aria-describedby={hint ? id : native['aria-describedby']}
     >
