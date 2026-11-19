@@ -1,0 +1,58 @@
+<!-- @dsCard group="Navigation" height=220 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>SegmentedControl — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      var ITEMS = [
+        { id: 'preview', label: '預覽', icon: 'eye' },
+        { id: 'source', label: '原始碼', icon: 'file-code' },
+      ];
+      function Demo() {
+        var a = React.useState('preview'),
+          b = React.useState('preview');
+        return h(
+          'div',
+          { style: { display: 'grid', gap: 16, maxWidth: 560 } },
+          // In a 36 px bar, like Workbench's mainBar: icons only, the words in a tooltip.
+          h(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                height: 36,
+                padding: '0 8px 0 16px',
+                borderRadius: 10,
+                background: 'var(--surface)',
+                boxShadow: 'var(--shadow-card)',
+                fontSize: 13,
+              },
+            },
+            h('span', { style: { flex: 1, color: 'var(--ink-muted)' } }, 'docs / README.md'),
+            h(U.SegmentedControl, { label: '顯示方式', iconOnly: true, value: a[0], onChange: a[1], items: ITEMS }),
+          ),
+          h(
+            'div',
+            null,
+            h(U.SegmentedControl, { label: '顯示方式', value: b[0], onChange: b[1], items: ITEMS }),
+          ),
+          h('p', { style: { margin: 0, color: 'var(--ink-muted)', fontSize: 13 } }, a[0] === 'preview' ? '目前顯示預覽。' : '目前顯示原始碼。'),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+    </script>
+  </body>
+</html>

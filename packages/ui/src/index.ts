@@ -117,6 +117,8 @@ export { Switch } from './components/Switch/Switch';
 export type { SwitchProps } from './components/Switch/Switch';
 export { Tabs } from './components/Tabs/Tabs';
 export type { TabItem, TabsProps } from './components/Tabs/Tabs';
+export { SegmentedControl } from './components/SegmentedControl/SegmentedControl';
+export type { SegmentedControlProps, SegmentedItem } from './components/SegmentedControl/SegmentedControl';
 export { Tag } from './components/Tag/Tag';
 export type { TagProps } from './components/Tag/Tag';
 export { Term } from './components/Term/Term';

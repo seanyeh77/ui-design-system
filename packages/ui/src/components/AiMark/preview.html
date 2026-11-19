@@ -14,8 +14,8 @@
         h(
           'div',
           { style: { maxWidth: 640, display: 'flex', flexDirection: 'column', gap: 12 } },
-          h('p', { style: { margin: 0 } }, h(U.AiMark), '這個函式在每次路由表變動時重新建立連線，所以第 540 行的呼叫次數會隨鄰居數增加。'),
-          h(U.Markdown, null, '[AI](ai:) 在 Markdown 裡寫 `[AI](ai:)`。\n\n- [AI](ai:) 清單項目的開頭也可以。\n- 沒有標記的項目是人寫的。'),
+          h('p', { style: { margin: 0 } }, '這個函式在每次路由表變動時重新建立連線，所以第 540 行的呼叫次數會隨鄰居數增加。', h(U.AiMark)),
+          h(U.Markdown, null, '在 Markdown 裡寫 `[AI](ai:)`，標示畫在這一段的最後。[AI](ai:)\n\n- 清單項目也可以。[AI](ai:)\n- 由文字推得的寫 `[推測](ai:)`。[推測](ai:)\n- 沒有標示的項目來自程式碼。'),
         ),
       );
     </script>

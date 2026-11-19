@@ -60,15 +60,56 @@ export function IconButton({ label, icon, className, tooltip = true, filled, hin
   return (
     <span className="ui-iconbtn-hintbox">
       {button}
-      <span className="ui-hint" id={id} role="status">
-        <span className="ui-hint-text">{hint.text}</span>
-        <button type="button" className="ui-hint-go" onClick={hint.onAction}>
-          {hint.action ?? tr('開始')}
-        </button>
-        <button type="button" className="ui-hint-x" aria-label={tr('關閉提示')} onClick={hint.onDismiss}>
-          <Icon name="x" size={16} />
-        </button>
-      </span>
+      <HintBubble id={id} hint={hint} />
+    </span>
+  );
+}
+
+/** The bubble sits left of the button, in its row (H3), narrowing (the text wraps) to the room there. With less than
+ *  180 px on the left it goes below the button, right-aligned with it but kept 16 px inside the screen, its arrow
+ *  still on the button. */
+function HintBubble({ id, hint }: { id: string; hint: IconButtonHint }) {
+  const ref = React.useRef<HTMLSpanElement>(null);
+  const [place, setPlace] = React.useState<{ room: number; left?: number; arrow?: number } | null>(null);
+  React.useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const check = () => {
+      const box = el.parentElement?.getBoundingClientRect();
+      if (!box) return;
+      const room = Math.floor(box.left - 12 - 8);
+      if (room >= 180) return setPlace({ room });
+      const w = Math.min(320, window.innerWidth - 32);
+      const want = box.left + box.width - w;
+      const at = Math.max(16, Math.min(want, window.innerWidth - 16 - w));
+      setPlace({ room, left: Math.round(at - box.left), arrow: Math.round(box.left + box.width / 2 - at - 6) });
+    };
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+  const below = place != null && place.room < 180;
+  return (
+    <span
+      ref={ref}
+      className={cx('ui-hint', below && 'is-below')}
+      id={id}
+      role="status"
+      style={
+        place == null
+          ? undefined
+          : below
+            ? ({ left: place.left, right: 'auto', '--hint-arrow': place.arrow + 'px' } as React.CSSProperties)
+            : { maxWidth: Math.min(320, place.room) }
+      }
+    >
+      <span className="ui-hint-text">{hint.text}</span>
+      <button type="button" className="ui-hint-go" onClick={hint.onAction}>
+        {hint.action ?? tr('開始')}
+      </button>
+      <button type="button" className="ui-hint-x" aria-label={tr('關閉提示')} onClick={hint.onDismiss}>
+        <Icon name="x" size={16} />
+      </button>
     </span>
   );
 }

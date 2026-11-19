@@ -35,7 +35,7 @@ export const Inline = {
   render: () => <UI.Markdown inline>{'先跑 `make`，再用 **harness/run.sh** 啟動。'}</UI.Markdown>,
 };
 
-const notes = `[AI](ai:) [\`VirtualRouter._sync_as\`](fn:harness/controller.py:VirtualRouter._sync_as) \`harness/controller.py:540\` 呼叫 [\`_monitor_loop\`](fn:harness/controller.py:_monitor_loop)，每 5 秒同步一次路由。
+const notes = `[\`VirtualRouter._sync_as\`](fn:harness/controller.py:VirtualRouter._sync_as) \`harness/controller.py:540\` 呼叫 [\`_monitor_loop\`](fn:harness/controller.py:_monitor_loop)，每 5 秒同步一次路由。 [AI](ai:)
 
 環境變數 \`IBTRACE_SHM\` 決定共用記憶體的名稱，見 [設定說明](fn:docs/config.md)。`;
 

@@ -133,8 +133,9 @@ body {
 .ui-iconbtn.is-quiet:focus-visible {
   box-shadow: 0 0 0 3px var(--focus-ring);
 }
-/* First-use hint: an accent dot on the button (ringed in the background it sits on) and a dark bubble below it,
-   right-aligned, its arrow pointing at the button. Stays until 開始 or ×. */
+/* First-use hint: an accent dot on the button (ringed in the background it sits on) and a dark bubble to its left,
+   in the same row, its arrow pointing right at the button: it never covers what is under the bar (H3). Stays until
+   開始 or ×. */
 .ui-iconbtn-hintbox {
   position: relative;
   display: inline-flex;
@@ -159,13 +160,15 @@ body {
 .ui-hint {
   position: absolute;
   z-index: 30;
-  top: calc(100% + 12px);
-  right: 0;
+  top: 50%;
+  right: calc(100% + 12px);
+  translate: 0 -50%;
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  box-sizing: border-box;
   width: max-content;
-  max-width: min(320px, calc(100vw - 32px));
+  max-width: 320px;
   padding: 6px 6px 6px var(--space-3);
   border-radius: var(--radius-md);
   background: var(--ink);
@@ -176,19 +179,30 @@ body {
   font-weight: 400;
   white-space: normal;
   animation: ui-pop-scale 220ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
-  transform-origin: calc(100% - 20px) 0;
+  transform-origin: 100% 50%;
 }
 .ui-hint::before {
   content: '';
   position: absolute;
-  top: -5px;
-  /* Centered under a 40 px button. */
-  right: calc(var(--control-height) / 2 - 6px);
+  top: calc(50% - 6px);
+  right: -5px;
   width: 12px;
   height: 12px;
   background: inherit;
   border-radius: 2px;
   transform: rotate(45deg);
+}
+.ui-hint.is-below {
+  top: calc(100% + 12px);
+  right: 0;
+  translate: none;
+  width: min(320px, calc(100vw - 32px));
+  transform-origin: var(--hint-arrow, 20px) 0;
+}
+.ui-hint.is-below::before {
+  top: -5px;
+  right: auto;
+  left: var(--hint-arrow, 14px);
 }
 .ui-hint-text {
   min-width: 0;
@@ -4423,20 +4437,12 @@ html.ui-theme-fade * {
   box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
-/* AiMark: a small "AI" at the start of a paragraph written by AI. */
+/* AiMark: a small gray 「AI 撰寫」 at the end of a sentence written by AI (A2), the same style as other source marks. */
 .ui-aimark {
-  display: inline-flex;
-  align-items: center;
-  vertical-align: 0.12em;
-  margin-right: 6px;
-  padding: 0 4px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
+  margin-left: 8px;
   font-family: var(--font-sans);
-  font-size: 10px;
-  line-height: 14px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: 13px;
+  font-weight: 400;
   color: var(--ink-muted);
   white-space: nowrap;
   user-select: none;
@@ -8096,5 +8102,69 @@ a.ui-wb-brand:focus-visible {
   .ui-wb-sheet.is-shut {
     transform: none;
     opacity: 0;
+  }
+}
+
+/* SegmentedControl: a 28 px switch between ways of showing the same thing; the selected part is a raised pill. */
+.ui-seg {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  gap: 2px;
+  height: 28px;
+  padding: 2px;
+  box-sizing: border-box;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sub);
+  vertical-align: middle;
+}
+.ui-seg-ind {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  border-radius: 4px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+.ui-seg-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: 13px;
+  line-height: 20px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.ui-seg-item:hover,
+.ui-seg-item.is-selected {
+  color: var(--ink);
+}
+.ui-seg-item.is-selected {
+  font-weight: 600;
+}
+.ui-seg.is-icons .ui-seg-item {
+  width: 28px;
+  padding: 0;
+}
+.ui-seg.is-icons .ui-seg-item.is-selected {
+  color: var(--accent-text);
+}
+.ui-seg-item:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-seg-ind {
+    transition: none !important;
   }
 }

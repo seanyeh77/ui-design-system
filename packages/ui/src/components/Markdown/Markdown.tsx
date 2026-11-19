@@ -235,6 +235,7 @@ const CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\u3000-\u303f\
 
 /** Inline Markdown: code spans, links, autolinks, bold, italic, hard breaks; HTML tags dropped, their text kept. */
 function inline(src: string, c: Ctx): React.ReactNode[] {
+  let aiMark: string | null = null;
   const out: React.ReactNode[] = [];
   let text = '';
   const flush = () => {
@@ -312,11 +313,11 @@ function inline(src: string, c: Ctx): React.ReactNode[] {
     if (ch === '[') {
       const m = matchLink(src, i);
       if (m) {
-        // [AI](ai:) marks a paragraph, list item or cell written by AI: an AiMark, not a link.
+        // [AI](ai:) marks a paragraph, list item or cell written by AI: an AiMark at its end, wherever it is written.
+        // Other words in the brackets, such as [推測](ai:), are shown in the same style.
         if (m.href.trim().toLowerCase() === 'ai:') {
-          devWarn(out.length || text.trim(), 'Markdown', '[AI](ai:) 在句子中間。把它移到段落、清單項目或表格格子的開頭。');
-          flush();
-          out.push(<AiMark key={c.k()} />);
+          const words = m.text.trim();
+          aiMark = words && words !== 'AI' ? words : '';
           i = m.end;
           if (src[i] === ' ') i++;
           continue;
@@ -366,6 +367,12 @@ function inline(src: string, c: Ctx): React.ReactNode[] {
     i++;
   }
   flush();
+  if (aiMark != null) {
+    // A trailing space before the mark is dropped; the mark keeps its own 8 px.
+    const last = out[out.length - 1];
+    if (typeof last === 'string') out[out.length - 1] = last.replace(/\s+$/, '');
+    out.push(<AiMark key={c.k()} text={aiMark || undefined} />);
+  }
   return out;
 
   function code(v: string, ctx: Ctx): React.ReactNode {

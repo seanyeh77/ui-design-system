@@ -90,6 +90,7 @@
         var s = React.useState('sync'),
           sel = s[0],
           setSel = s[1];
+        var mode = React.useState('preview');
         var f = React.useState(''),
           filter = f[0],
           setFilter = f[1];
@@ -101,7 +102,21 @@
             crumbs: [{ label: 'harness' }, { label: 'controller.py' }, { label: 'VirtualRouter._sync_as' }],
             actions: h(Actions),
             explorerFilter: { value: filter, onChange: setFilter, label: '篩選檔案與函式' },
-            mainBar: h(U.IconButton, { variant: 'quiet', icon: 'arrow-square-out', label: '用 VS Code 開啟' }),
+            mainBar: h(
+              React.Fragment,
+              null,
+              h(U.SegmentedControl, {
+                label: '顯示方式',
+                iconOnly: true,
+                value: mode[0],
+                onChange: mode[1],
+                items: [
+                  { id: 'preview', label: '預覽', icon: 'eye' },
+                  { id: 'source', label: '原始碼', icon: 'file-code' },
+                ],
+              }),
+              h(U.IconButton, { variant: 'quiet', icon: 'arrow-square-out', label: '用 VS Code 開啟' }),
+            ),
             explorer: h(Explorer, { items: TREE, sel: sel, onSel: setSel }),
             explorerFoot: h(U.Button, { icon: 'gear' }, '設定'),
             views: VIEWS,

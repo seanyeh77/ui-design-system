@@ -30,6 +30,10 @@ import { Workbench, useWorkbench, TreeList, IconButton, SearchField } from '@sea
 
 - 頂列 48 px：左邊是收合檔案總管的按鈕和 `brand`；右邊是 `actions`，再來是收合下方面板與右側欄的按鈕。
 - 主畫面上方一條 36 px 的列：左邊是麵包屑（`crumbs`），右邊是 `mainBar`（頁面自己的小按鈕，例如「用 VS Code 開啟」，用 `IconButton variant="quiet"`，在這條列裡是 28 px）。和右側欄、下方面板的分頁列、檔案總管的篩選列同高，三條橫線對齊。沒有 `crumbs` 也沒有 `mainBar` 時不畫這條列。
+- `mainBar` 裡可以放的東西（列高 36 px，上下各留 4 px）：
+  - `IconButton variant="quiet"`：在這條列裡是 28 px。
+  - `SegmentedControl iconOnly`：28 px 高，例如 Markdown 檔案的「預覽／原始碼」。
+  - 不要放 40 px 的一般按鈕、輸入框、Select 或一般 `Tabs`，會超出這條列。需要文字說明的動作用 `IconButton` 的提示（tooltip）。
 - 麵包屑放不下時，前面的層先縮成刪節號，最後一層最後才縮；手機上也顯示完整路徑。
 - 主畫面裡的 CodeView 用 `header="float"`：檔名已經在麵包屑上，不必再畫一列標頭（見 CodeView 的說明）。
 - 三個開關按鈕的圖示是外框加一塊：區塊開著時那一塊填滿，關著時只剩分隔線。按鈕有 `aria-pressed`，tooltip 寫快捷鍵。

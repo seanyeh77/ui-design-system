@@ -200,6 +200,8 @@ export const I18N: I18nState = {
       編輯器: 'Editor',
       開始: 'Start',
       'AI 說明': 'AI note',
+      'AI 撰寫': 'AI-written',
+      '（{v}）': ' ({v})',
       隱藏密碼: 'Hide password',
       顯示密碼: 'Show password',
       '（今天）': ' (today)',

@@ -337,14 +337,18 @@ test('Markdown: a link of one code span is a name, a file:line reference is a lo
   expect(opened).toEqual(['fn:harness/controller.py:VirtualRouter._sync_as']);
 });
 
-test('Markdown: [AI](ai:) is an AI mark, not a link and not a Tab stop', async () => {
-  const { container } = render(<Markdown>{'[AI](ai:) 這個函式在路由表變動時重新建立連線。\n\n- [AI](ai:) 清單項目也可以。'}</Markdown>);
+test('Markdown: [AI](ai:) is a mark at the end, not a link and not a Tab stop', async () => {
+  const { container } = render(
+    <Markdown>{'[AI](ai:) 這個函式在路由表變動時重新建立連線。\n\n- 清單項目也可以。 [AI](ai:)\n- 寫在結尾也可以 [推測](ai:)'}</Markdown>,
+  );
   const marks = container.querySelectorAll('.ui-aimark');
-  expect(marks.length).toBe(2);
+  expect(marks.length).toBe(3);
+  expect([...marks].map((m) => m.textContent)).toEqual(['AI 撰寫', 'AI 撰寫', '推測']);
   expect(container.querySelector('a, button')).toBeNull();
   expect(marks[0].getAttribute('aria-hidden')).toBe('true');
   const p = container.querySelector('p');
-  expect(p?.textContent).toBe('AIAI 說明：這個函式在路由表變動時重新建立連線。');
+  expect(p?.textContent).toBe('這個函式在路由表變動時重新建立連線。AI 撰寫（AI 撰寫）');
+  expect(p?.lastElementChild?.previousElementSibling?.className).toBe('ui-aimark');
   await userEvent.tab();
   expect(document.activeElement).toBe(document.body);
 });
