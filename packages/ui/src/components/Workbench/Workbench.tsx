@@ -60,6 +60,11 @@ export interface WorkbenchProps {
   /** Accessible name of the whole layout. Default 「編輯器」. */
   label?: string;
   className?: string;
+  /** Called with the layout on the first render and after every change (a tab picked or moved, a region opened or
+   *  closed, a size changed), for example to put the panel's current tab in the URL. */
+  onLayoutChange?: (layout: WorkbenchLayout) => void;
+  /** show, toggle, resetLayout and getLayout from outside, such as URL handling in the page around the Workbench. */
+  ref?: React.Ref<WorkbenchHandle>;
 }
 
 export interface WorkbenchApi {
@@ -72,7 +77,18 @@ export interface WorkbenchApi {
   explorerPicked: () => void;
   /** Phones (below 600 px). */
   phone: boolean;
+  /** Opens a view where it is: makes it the current tab of its region and opens the region (laid over the main view
+   *  on narrow screens; the merged panel on phones). Does not move the view. Unknown ids are ignored. */
+  show: (viewId: string) => void;
+  /** The current layout: where each view sits, the current tab of each region, what is open, sizes. */
+  layout: WorkbenchLayout;
 }
+
+/** The same calls from outside the Workbench, through `ref`. */
+export type WorkbenchHandle = Omit<WorkbenchApi, 'layout'> & {
+  /** The current layout at the time of the call. */
+  getLayout: () => WorkbenchLayout;
+};
 
 const Ctx = React.createContext<WorkbenchApi | null>(null);
 
@@ -518,7 +534,7 @@ function Pane({ view, onSwipe }: { view?: WorkbenchView; onSwipe?: (dir: 1 | -1)
 
 /** An editor layout like VS Code: top bar, file explorer, main view, side bar and bottom panel, with resizable borders,
  *  views that move between the side bar and the panel, Ctrl B / Ctrl J / Ctrl Alt B, and a remembered layout. */
-export function Workbench(p: WorkbenchProps) {
+export function Workbench({ ref, ...p }: WorkbenchProps) {
   const views = React.useMemo(() => p.views ?? [], [p.views]);
   const byId = React.useMemo(() => Object.fromEntries(views.map((v) => [v.id, v])), [views]);
   const key = 'ui-workbench:' + p.id;
@@ -545,6 +561,12 @@ export function Workbench(p: WorkbenchProps) {
   React.useEffect(() => {
     store(key, JSON.stringify(lay));
   }, [key, lay]);
+  const onLayoutChange = p.onLayoutChange;
+  React.useEffect(() => {
+    onLayoutChange?.(lay);
+    // Only when the layout changes, not when the page passes a new function.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lay]);
 
   // Overlays (narrow screens) open and close here, never in the stored layout, so a wide screen keeps its own.
   const [ov, setOv] = React.useState({ explorer: false, side: false });
@@ -661,6 +683,17 @@ export function Workbench(p: WorkbenchProps) {
     setSheetH(null);
   };
 
+  const show = (viewId: string) => {
+    const r: ViewRegion | null = lay.side.includes(viewId) ? 'side' : lay.panel.includes(viewId) ? 'panel' : null;
+    devWarn(!r, 'Workbench', `show('${viewId}'): no view has this id. Pass the id of one of the views.`);
+    if (!r) return;
+    // Wide screens remember it open; narrow screens lay it over the main view; phones open the merged panel.
+    const remember = !phone && !(r === 'side' && sideOverlay);
+    update((l) => ({ ...l, active: { ...l.active, [r]: viewId }, open: remember ? { ...l.open, [r]: true } : l.open }));
+    if (phone) setSheet({ open: true, act: viewId });
+    else if (r === 'side' && sideOverlay) setOv((o) => ({ ...o, side: true }));
+  };
+
   const api: WorkbenchApi = {
     resetLayout,
     toggle,
@@ -668,7 +701,28 @@ export function Workbench(p: WorkbenchProps) {
       if (exOverlay) setOv((o) => ({ ...o, explorer: false }));
     },
     phone,
+    show,
+    layout: lay,
   };
+  // The handle reads the latest render's functions, so a call from outside sees today's layout and screen size.
+  const latest = React.useRef(api);
+  React.useLayoutEffect(() => {
+    latest.current = api;
+  });
+  React.useImperativeHandle(
+    ref,
+    () => ({
+      show: (id) => latest.current.show(id),
+      toggle: (r) => latest.current.toggle(r),
+      resetLayout: () => latest.current.resetLayout(),
+      explorerPicked: () => latest.current.explorerPicked(),
+      get phone() {
+        return latest.current.phone;
+      },
+      getLayout: () => latest.current.layout,
+    }),
+    [],
+  );
 
   const regionName = { explorer: tr('檔案總管'), side: tr('右側欄'), panel: tr('下方面板') };
   const keys = { explorer: (IS_MAC ? '⌘' : 'Ctrl ') + 'B', side: (IS_MAC ? '⌘⌥' : 'Ctrl Alt ') + 'B', panel: (IS_MAC ? '⌘' : 'Ctrl ') + 'J' };
@@ -760,7 +814,11 @@ export function Workbench(p: WorkbenchProps) {
   // Phone: side bar and panel views in one panel docked under the main view.
   const sheetAct = sheet.act && merged.includes(sheet.act) ? sheet.act : merged[0];
   const sheetIdx = merged.indexOf(sheetAct ?? '');
-  const pickSheet = (id: string) => setSheet((s) => ({ ...s, act: id }));
+  const pickSheet = (id: string) => {
+    setSheet((s) => ({ ...s, act: id }));
+    const r: ViewRegion = lay.side.includes(id) ? 'side' : 'panel';
+    update((l) => ({ ...l, active: { ...l.active, [r]: id } }));
+  };
   const reorderMerged = (next: string[]) => {
     const nSide = lay.side.length;
     update((l) => ({ ...l, side: next.slice(0, nSide), panel: next.slice(nSide) }));

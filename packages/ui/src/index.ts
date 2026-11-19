@@ -147,4 +147,4 @@ export { initTheme, setAccent, setTheme, type ThemeSetting } from './theme';
 export { announce } from './announce';
 export { focusMain } from './components/AppShell/AppShell';
 export { Workbench, useWorkbench } from './components/Workbench/Workbench';
-export type { WorkbenchApi, WorkbenchLayout, WorkbenchProps, WorkbenchRegion, WorkbenchView } from './components/Workbench/Workbench';
+export type { WorkbenchApi, WorkbenchHandle, WorkbenchLayout, WorkbenchProps, WorkbenchRegion, WorkbenchView } from './components/Workbench/Workbench';

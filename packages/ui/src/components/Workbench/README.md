@@ -73,6 +73,73 @@ function Actions() {
 }
 ```
 
+## 打開某個分頁：show(viewId)
+
+連結、搜尋結果或網址要把使用者帶到某個分頁時，用 `show(viewId)`：
+
+- 找到這個 view 目前在哪一邊（右側欄或下方面板），設成那一邊目前的分頁，並打開那一邊。不改變分頁的位置。
+- 寬螢幕：照一般展開，並記住打開的狀態。
+- 窄螢幕（右側欄疊在主畫面上時）：把右側欄疊上來。
+- 手機：打開合併的面板並切到這個分頁。
+- 沒有這個 id 時不做任何事，開發模式在 console 提醒。
+
+在 Workbench 裡面（view、`actions`、`explorer` 的內容）用 `useWorkbench()`：
+
+```tsx
+function Notice({ item }) {
+  const wb = useWorkbench();
+  return (
+    <button type="button" className="ui-link-btn" onClick={() => wb.show('check')}>
+      到檢查看細節
+    </button>
+  );
+}
+```
+
+在 Workbench 外面（例如外層元件處理網址）用 `ref`，拿到 `WorkbenchHandle`：`show`、`toggle`、`resetLayout`、`explorerPicked`、`phone`，以及 `getLayout()`。
+
+```tsx
+const wb = React.useRef<WorkbenchHandle>(null);
+
+// 載入或按上一頁時，打開網址指定的分頁（#code?f=…&v=impact）
+React.useEffect(() => {
+  const open = () => {
+    const v = new URLSearchParams(location.hash.split('?')[1]).get('v');
+    if (v) wb.current?.show(v);
+  };
+  open();
+  window.addEventListener('popstate', open);
+  return () => window.removeEventListener('popstate', open);
+}, []);
+
+<Workbench ref={wb} id="codemap" views={views}>…</Workbench>
+```
+
+## 讀取目前的版面
+
+- `useWorkbench().layout`：目前的 `WorkbenchLayout`（`side`、`panel` 兩邊各有哪些分頁，`active.side`、`active.panel` 目前的分頁，`open` 開或關，`size` 大小）。Workbench 裡面的元件會跟著重新繪製。
+- `onLayoutChange(layout)`：第一次繪製時和之後每次改變（換分頁、移動分頁、開關區塊、改大小）都會呼叫。
+- `ref` 的 `getLayout()`：呼叫當下的版面。
+
+把下方面板目前的分頁寫進網址：
+
+```tsx
+<Workbench
+  ref={wb}
+  id="codemap"
+  views={views}
+  onLayoutChange={(l) => {
+    const url = new URL(location.href);
+    const [path, query = ''] = url.hash.slice(1).split('?');
+    const q = new URLSearchParams(query);
+    if (l.active.panel) q.set('v', l.active.panel);
+    history.replaceState(null, '', '#' + path + '?' + q.toString());
+  }}
+>
+```
+
+`open` 是寬螢幕記下的開關。窄螢幕上疊在主畫面上的區塊、手機的合併面板是否打開不在 `layout` 裡；手機上在合併面板換分頁時，`active` 會跟著更新。
+
 ## 窄螢幕
 
 寬度看的是 Workbench 本身。

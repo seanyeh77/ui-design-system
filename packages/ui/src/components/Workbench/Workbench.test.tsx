@@ -1,7 +1,8 @@
-import { afterEach, beforeEach, expect, test } from 'vitest';
+import * as React from 'react';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { render, screen, waitFor, within, fireEvent } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { IconButton, TreeList, Workbench, useWorkbench, type WorkbenchView } from '../../index';
+import { IconButton, TreeList, Workbench, useWorkbench, type WorkbenchHandle, type WorkbenchLayout, type WorkbenchView } from '../../index';
 
 const user = userEvent.setup();
 const views: WorkbenchView[] = [
@@ -40,7 +41,7 @@ const shell = (width: number, height = 640) => (
     </Workbench>
   </div>
 );
-const region = (name: string) => screen.getByRole(name === '下方面板' ? 'region' : 'complementary', { name, hidden: true });
+const region = (name: string) => document.querySelector<HTMLElement>(`.ui-wb [aria-label="${name}"]:is(aside, section)`) as HTMLElement;
 const isOpen = (name: string) => region(name).classList.contains('is-open');
 
 beforeEach(() => localStorage.clear());
@@ -175,4 +176,83 @@ test('IconButton variant="quiet": 32 px without a border', () => {
   const cs = getComputedStyle(b);
   expect(b.getBoundingClientRect().width).toBe(32);
   expect(cs.borderTopWidth).toBe('0px');
+});
+
+function ShowInside() {
+  const wb = useWorkbench();
+  return (
+    <button type="button" onClick={() => wb.show('output')}>
+      到輸出看細節（目前：{wb.layout.active.panel}）
+    </button>
+  );
+}
+
+test('show(id) from inside and through ref: the view becomes its region’s tab and the region opens, without moving', async () => {
+  const ref = React.createRef<WorkbenchHandle>();
+  const seen: WorkbenchLayout[] = [];
+  render(
+    <div style={{ width: 1440, height: 640 }}>
+      <Workbench
+        id="show"
+        ref={ref}
+        views={views}
+        defaultLayout={{ side: ['outline', 'refs'], panel: ['problems', 'output'], open: { panel: false, side: false } }}
+        actions={<ShowInside />}
+        onLayoutChange={(l) => seen.push(l)}
+      >
+        <p>主畫面</p>
+      </Workbench>
+    </div>,
+  );
+  await waitFor(() => expect(seen.length).toBeGreaterThan(0));
+  expect(seen[0].active.panel).toBe('problems');
+  expect(isOpen('下方面板')).toBe(false);
+  await user.click(screen.getByRole('button', { name: /到輸出看細節/ }));
+  expect(isOpen('下方面板')).toBe(true);
+  expect(within(region('下方面板')).getByRole('tab', { selected: true }).textContent).toBe('輸出');
+  expect(screen.getByRole('button', { name: /到輸出看細節/ }).textContent).toContain('output');
+  expect(seen[seen.length - 1].active.panel).toBe('output');
+  // From outside, through the handle.
+  React.act(() => ref.current?.show('refs'));
+  expect(isOpen('右側欄')).toBe(true);
+  expect(within(region('右側欄')).getByRole('tab', { selected: true }).textContent).toBe('參考');
+  expect(ref.current?.getLayout().active.side).toBe('refs');
+  expect(ref.current?.getLayout().side).toEqual(['outline', 'refs']);
+});
+
+test('show(id) on a narrow screen lays the side bar over the main view; on a phone it opens the merged panel', async () => {
+  const ref = React.createRef<WorkbenchHandle>();
+  const { rerender } = render(
+    <div style={{ width: 1000, height: 640 }}>
+      <Workbench id="show2" ref={ref} views={views} defaultLayout={{ side: ['outline', 'refs'], panel: ['problems', 'output'] }} />
+    </div>,
+  );
+  await waitFor(() => expect(region('右側欄').classList.contains('is-drawer')).toBe(true));
+  React.act(() => ref.current?.show('refs'));
+  expect(isOpen('右側欄')).toBe(true);
+  // The wide screen's stored choice is untouched.
+  expect(ref.current?.getLayout().open.side).toBe(true);
+  rerender(
+    <div style={{ width: 390, height: 720 }}>
+      <Workbench id="show2" ref={ref} views={views} defaultLayout={{ side: ['outline', 'refs'], panel: ['problems', 'output'] }} />
+    </div>,
+  );
+  await waitFor(() => expect(ref.current?.phone).toBe(true));
+  React.act(() => ref.current?.show('output'));
+  const sheet = screen.getByRole('region', { name: '面板分頁' });
+  await waitFor(() => expect(sheet.classList.contains('is-open')).toBe(true));
+  expect(within(sheet).getByRole('tab', { selected: true }).textContent).toBe('輸出');
+});
+
+test('show() with an unknown id does nothing and warns in development', async () => {
+  const ref = React.createRef<WorkbenchHandle>();
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  render(
+    <div style={{ width: 1440, height: 640 }}>
+      <Workbench id="show3" ref={ref} views={views} />
+    </div>,
+  );
+  React.act(() => ref.current?.show('nope'));
+  expect(warn.mock.calls.some((c) => String(c[0]).includes("show('nope')"))).toBe(true);
+  warn.mockRestore();
 });
