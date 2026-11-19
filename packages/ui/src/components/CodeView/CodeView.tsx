@@ -107,13 +107,20 @@ export interface CodeViewProps<L extends CodeLink = CodeLink> {
   onCopy?: (text: string) => void;
   /** Copying failed (the browser does not allow the clipboard): say so, for example in a Toast. */
   onCopyError?: () => void;
+  /** The reader clicked a line, or moved to one with ↑ ↓ (also Home, End, PageUp, PageDown, [ ]): `how` says which.
+   *  Dragging to select text is not a move and does not call it. Given this, ↑ ↓ move by line even without links. */
+  onLine?: (line: number, how: 'click' | 'key') => void;
+  /** Marks one line for a moment, apart from `target` (both can show), e.g. while the pointer rests on an item that
+   *  points at it. Scrolled into view when needed; focus and selected text stay. null or undefined: none. */
+  peek?: number | null;
   className?: string;
   /** focusTarget() moves keyboard and screen-reader focus to the target line. */
   ref?: React.Ref<CodeViewHandle>;
 }
 
 export interface CodeViewHandle {
-  /** Focuses the first target line (scrolled into view); nothing happens without a target. */
+  /** Focuses the first target line (scrolled into view); nothing happens without a target, or while the reader has
+   *  text selected in the code (the selection stays). */
   focusTarget: () => void;
 }
 
@@ -245,6 +252,33 @@ function matchLinks(lines: string[], start: number, links: readonly CodeLink[] |
   return out;
 }
 
+/** True when the reader has text selected inside el. */
+function selectedIn(el: Element | null): boolean {
+  const sel = typeof window === 'undefined' ? null : window.getSelection();
+  if (!el || !sel || sel.isCollapsed || !sel.rangeCount) return false;
+  const r = sel.getRangeAt(0);
+  return el.contains(r.startContainer) || el.contains(r.endContainer);
+}
+
+/** The selected code as plain text, one line per line; null when the selection is not in pre. */
+function selectedCode(pre: HTMLElement): string | null {
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed || !sel.rangeCount) return null;
+  const r = sel.getRangeAt(0);
+  if (!pre.contains(r.commonAncestorContainer)) return null;
+  const frag = r.cloneContents();
+  frag.querySelectorAll('.ui-cv-num, .ui-visually-hidden').forEach((x) => x.remove());
+  const rows = [...frag.querySelectorAll('[role="listitem"]')];
+  return rows.length ? rows.map((x) => x.textContent ?? '').join('\n') : (frag.textContent ?? '');
+}
+
+/** Scrolls el into view inside box (or the page) only when it is not already fully visible. */
+function inView(el: HTMLElement, box: HTMLElement | null) {
+  const r = el.getBoundingClientRect();
+  const b = box && box.scrollHeight > box.clientHeight ? box.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
+  if (r.top < b.top || r.bottom > b.bottom) el.scrollIntoView({ block: 'nearest' });
+}
+
 /** Each line's words from `terms`: only in comments and strings, never where a name link or a path is. With 'first',
  *  each word once per file, at its first place. */
 function matchTerms(
@@ -350,6 +384,8 @@ export function CodeView<L extends CodeLink = CodeLink>({
   lineNumbers = true,
   onCopy,
   onCopyError,
+  onLine,
+  peek,
   className,
   ref,
 }: CodeViewProps<L>) {
@@ -440,14 +476,23 @@ export function CodeView<L extends CodeLink = CodeLink>({
   const to = windowed ? Math.min(lines.length, tb - start + context + 1) : lines.length;
   const body = React.useRef<HTMLPreElement>(null);
   React.useImperativeHandle(ref, () => ({
-    focusTarget: () => body.current?.querySelector<HTMLElement>('.is-target')?.focus(),
+    focusTarget: () => {
+      if (selectedIn(body.current)) return;
+      body.current?.querySelector<HTMLElement>('.is-target')?.focus();
+    },
   }));
   React.useEffect(() => {
     const b = body.current;
     const el = b?.querySelector<HTMLElement>('.is-target');
-    if (b && el && b.scrollHeight > b.clientHeight)
+    // Text the reader selected stays where it is: no scrolling under it.
+    if (b && el && b.scrollHeight > b.clientHeight && !selectedIn(b))
       b.scrollTop += el.getBoundingClientRect().top - b.getBoundingClientRect().top - b.clientHeight / 2 + el.offsetHeight / 2;
   }, [ta, code]);
+  React.useEffect(() => {
+    if (peek == null) return;
+    const el = body.current?.querySelector<HTMLElement>(`[data-n="${peek}"]`);
+    if (el) inView(el, body.current);
+  }, [peek]);
   const digits = String(start + lines.length - 1).length;
   const prose = (cls: string, text: string, inLink: boolean) =>
     !inLink && (refHref || onRef) && (cls === 'is-comment' || cls === 'is-string') ? withPaths(text, refHref, onRef, nav ? -1 : undefined) : breakable(text);
@@ -549,7 +594,7 @@ export function CodeView<L extends CodeLink = CodeLink>({
       <div
         key={i}
         role="listitem"
-        className={cx('ui-cv-line', on && 'is-target')}
+        className={cx('ui-cv-line', on && 'is-target', peek === n && 'is-peek')}
         data-n={n}
         aria-current={on && n === ta ? 'location' : undefined}
         tabIndex={on && n === ta ? -1 : undefined}
@@ -614,7 +659,14 @@ export function CodeView<L extends CodeLink = CodeLink>({
       if (!el) return;
       el.tabIndex = -1;
       el.focus();
+      onLine?.(nOf(el), 'key');
     };
+    if (onLine && !nav && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+      e.preventDefault();
+      if (now < 0) focusLine(items.find((el) => el.classList.contains('is-target')) ?? items[0]);
+      else focusLine(items[Math.max(0, Math.min(items.length - 1, now + (e.key === 'ArrowDown' ? 1 : -1)))]);
+      return;
+    }
     if (nav) {
       const stops = [...pre.querySelectorAll<HTMLElement>('.ui-cv-name, .ui-cv-ref, .ui-cv-term')];
       const onStop = act ? stops.indexOf(act) : -1;
@@ -673,7 +725,28 @@ export function CodeView<L extends CodeLink = CodeLink>({
     if (!el) return;
     el.tabIndex = -1;
     el.focus();
+    onLine?.(nOf(el), 'key');
     if (said) announce(tr('{name}，第 {n} 行', { name: said, n: nOf(el) }));
+  };
+  // A click on a line (not a drag that selected text, not a link, a path or a word that opens something).
+  const onLineClick = (e: React.MouseEvent<HTMLPreElement>) => {
+    if (!onLine) return;
+    const t = e.target instanceof Element ? e.target : null;
+    if (!t) return;
+    const type = (e.nativeEvent as PointerEvent).pointerType;
+    // A name opened (Ctrl / ⌘ + click, a tap, Enter) or a path or word pressed is not a move; a plain click on a name is.
+    if (t.closest('.ui-cv-name') && (e.detail === 0 || type === 'touch' || type === 'pen' || e.ctrlKey || e.metaKey)) return;
+    if (t.closest('a:not(.ui-cv-name), button:not(.ui-cv-name)')) return;
+    if (selectedIn(e.currentTarget)) return;
+    const row = t.closest<HTMLElement>('[role="listitem"]');
+    if (row) onLine(Number(row.dataset.n), 'click');
+  };
+  // Copying lines gives the code only: no line numbers, no text for screen readers, wrapped lines joined.
+  const onCopyText = (e: React.ClipboardEvent<HTMLPreElement>) => {
+    const text = selectedCode(e.currentTarget);
+    if (text == null) return;
+    e.preventDefault();
+    e.clipboardData.setData('text/plain', text);
   };
   const [copied, setCopied] = React.useState(false);
   const [keysOpen, setKeysOpen] = React.useState(false);
@@ -763,9 +836,14 @@ export function CodeView<L extends CodeLink = CodeLink>({
         aria-label={tr('程式碼')}
         aria-keyshortcuts={[...keys.map((k) => k.k), '?'].join(' ')}
         onKeyDown={onMove}
+        onCopy={onCopyText}
+        onClick={nav ? undefined : onLineClick}
         {...(nav
           ? {
-              onClick: onLinkClick,
+              onClick: (e: React.MouseEvent<HTMLPreElement>) => {
+                onLinkClick(e);
+                onLineClick(e);
+              },
               onPointerEnter: () => (inside.current = true),
               onPointerLeave: () => {
                 inside.current = false;

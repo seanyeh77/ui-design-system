@@ -54,7 +54,8 @@ export interface TreeListProps {
   items: TreeNode[];
   /** 'files' (default): folders and files with date and size. 'plain': any other tree, such as a call tree. */
   kind?: 'files' | 'plain';
-  /** kind="plain": the selected row. */
+  /** kind="plain": the selected row. Clicking it again (or Enter on it) still calls onSelect, but does not open or close
+   *  it; its caret does. */
   selectedId?: string;
   onSelect?: (node: TreeNode) => void;
   /** kind="plain": IconButtons at the row's right end. */
@@ -323,8 +324,9 @@ export function TreeList(p: TreeListProps) {
           }
     } else if (k === 'Enter') {
       if (plain) {
+        const again = p.selectedId != null && p.selectedId === r.n.id;
         p.onSelect?.(r.n);
-        if (r.isF) toggle(r.n);
+        if (r.isF && !again) toggle(r.n);
       } else if (r.isF) toggle(r.n);
       else openFile(r.n);
     } else checkToggle(r.n);
@@ -358,11 +360,12 @@ export function TreeList(p: TreeListProps) {
         aria-label={n.ariaLabel ?? [n.name, ...(n.tags ?? []).map(nodeText), n.meta, n.path, n.mark?.label].filter(Boolean).join(tr('，'))}
         aria-selected={p.onSelect ? on : undefined}
         className={cx('ui-tree-row', 'is-plain', on && 'is-current', n.muted && 'is-muted', r.fresh && 'ui-tree-in')}
-        // A click anywhere on the row selects it and, when it has children, opens or closes it too.
+        // A click anywhere on the row selects it and, when it has children, opens or closes it too. Clicking the
+        // selected row again changes nothing (no opening, closing or slide-in); its caret still opens and closes it.
         onClick={() => {
-          setFocusId(n.id);
+          if (focusId !== n.id) setFocusId(n.id);
           p.onSelect?.(n);
-          if (isF) toggle(n);
+          if (isF && !on) toggle(n);
         }}
       >
         <Guides guides={r.guides} />

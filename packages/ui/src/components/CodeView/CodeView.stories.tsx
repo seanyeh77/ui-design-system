@@ -104,3 +104,24 @@ export const Terms = {
     </div>
   ),
 };
+
+/** onLine reports the line the reader clicked or moved to; peek marks a line from outside, apart from target. */
+export const LineAndPeek = {
+  render: function Render() {
+    const [line, setLine] = React.useState(2);
+    const [peek, setPeek] = React.useState<number | null>(null);
+    const code = ['int fd = open(path, O_RDONLY);', 'if (fd < 0)', '    return -1;', 'read(fd, buf, n);', 'close(fd);'].join('\n');
+    return (
+      <div style={{ maxWidth: 620, display: 'grid', gap: 12 }}>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {[1, 4, 5].map((n) => (
+            <UI.Button key={n} onMouseEnter={() => setPeek(n)} onMouseLeave={() => setPeek(null)} onClick={() => setLine(n)}>
+              {`看第 ${n} 行`}
+            </UI.Button>
+          ))}
+        </div>
+        <UI.CodeView file="io.c" code={code} target={line} peek={peek} onLine={(n) => setLine(n)} />
+      </div>
+    );
+  },
+};

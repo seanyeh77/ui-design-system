@@ -500,6 +500,20 @@ AI 定的細節（待確認）：
 - 放大按鈕和複製按鈕同樣是 40 px 的外框圖示按鈕。
 - 沒有分頁的表格維持最高 560 px、表頭固定；有頁碼時表頭跟著頁面捲走，不固定在畫面上方。
 
+## CodeView 的 onLine、peek 與選取，TreeList 重複選取
+
+使用者的要求（節錄）：CodeView 新增 `onLine?: (line: number, how: 'click' | 'key') => void`，讀者點一行或用 ↑ ↓ 移到一行時呼叫，拖曳選取文字不算；`target` 改變或呼叫 `focusTarget()` 時，若使用者在程式碼裡有選取的文字，保留選取，不搶焦點、不捲動；複製多行時不含行號和折行的縮排。新增從外部暫時標示一行的 API（例如 `peek?: number | null`）：和 `target` 分開，需要時捲到看得見的位置，不移動焦點、不影響選取，`null` 清除；外觀沿用現有 token。TreeList 選取已選取的項目時，不捲動、不重跑選取動畫，也不觸發展開或收合。
+
+這三項是程式行為與 API，使用者說可以直接做。
+
+AI 定的細節（待確認）：
+
+- `onLine` 的 `'key'` 也包含 Home、End、PageUp、PageDown 和 [ ]，它們同樣把焦點移到某一行。點名稱連結（不按 Ctrl 或 ⌘）算點那一行；點路徑連結或名詞、按 Ctrl 或 ⌘ 打開名稱連結、在觸控上點名稱連結，都不算。
+- 給了 `onLine` 而沒有 `links` 時，↑ ↓ 也一行一行移動（原本只有 `links` 或 `terms` 時才這樣）；沒有 `onLine` 時維持原狀。
+- 選了 API 形式為屬性 `peek?: number | null`，沒有另外加 `CodeViewHandle.peek()`。
+- `peek` 的外觀：白底（`surface`）加左側 3 px `line-strong` 線；`peek` 和 `target` 是同一行時以目標行的樣子為準。手機上只顯示目標附近幾行時，`peek` 在範圍外就不顯示。外觀另列在試做頁讓使用者選。
+- TreeList：再點一次已選取的列（或按 Enter）仍呼叫 `onSelect`（例如手機上收起檔案總管），但不展開、不收合；左邊的箭頭和 ← → 照常展開或收合。
+
 ## 行內名詞說明（Term 行內樣式、CodeView 與 Markdown 的 terms）
 
 使用者的要求（節錄）：Term 新增「行內」樣式：虛線底線、沒有問號，滑過等一下才顯示有標題、說明和動作連結（例如「看它出現的地方」）的卡片；Tab 停到時顯示、Esc 關閉；觸控時點一下打開現在的底部面板；螢幕閱讀器先念詞再念「有說明」，卡片以 `aria-describedby` 連上。CodeView 新增 `terms?: { term: string; title?: string; text: string; action?: { label: string; onClick: () => void } }[]`：只在註解和字串裡、以整個字比對（`cookie` 不比對到 `cookies`），識別字不標；鍵盤維持一個 Tab 停留點，← → 也停在名詞上，Enter 顯示說明；同一個位置是名稱連結時連結優先。也請提供 Markdown 的對應用法。

@@ -5622,6 +5622,12 @@ html.ui-theme-fade * {
 .ui-cv-line {
   display: flex;
 }
+.ui-cv-line.is-peek {
+  /* peek: a line marked for a moment from outside (an item pointing at it); quieter than the target. */
+  background: var(--surface);
+  box-shadow: inset 3px 0 0 var(--line-strong);
+  transition: background 0.15s ease;
+}
 .ui-cv-line.is-target {
   background: var(--accent-soft);
   box-shadow: inset 3px 0 0 var(--accent);

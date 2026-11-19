@@ -41,6 +41,29 @@ h(UI.CodeView, {
 });
 ```
 
+## 讀者在哪一行（onLine）
+
+`onLine(line, how)`：讀者點一行（`how` 是 `'click'`）或用鍵盤移到一行（`'key'`：↑ ↓、Home、End、PageUp、PageDown、[ ]）時呼叫。拖曳選取文字不算移動，放開時有選取的文字就不呼叫；點名稱連結（不按 Ctrl 或 ⌘）算點那一行，點路徑或名詞不算。給了 `onLine`，沒有 `links` 時 ↑ ↓ 也一行一行移動。
+
+```js
+h(UI.CodeView, { file, code, target: line, onLine: function (n) { setLine(n); } });
+```
+
+選取與複製：
+
+- `target` 改變或呼叫 `focusTarget()` 時，讀者若在程式碼裡選取了文字，選取保留：不搶焦點、不捲動。
+- 複製選取的多行時，只有程式碼：不含行號、螢幕閱讀器用的「第 n 行」，折行也接回原本的一行。
+
+## 暫時標示一行（peek）
+
+`peek` 標出一行，和 `target` 分開，兩者可以同時存在；例如滑鼠停在說明欄的一筆上時，標出它對應的那一行。那一行不在畫面裡時捲到看得見的位置（`block: 'nearest'`），不移動焦點、不影響選取。`null` 清除。
+
+```js
+h(UI.CodeView, { file, code, target: line, peek: hover ? hover.line : null });
+```
+
+外觀：白底（`surface`）加左側 3 px `line-strong` 線，比目標行（`accent-soft` 底、強調色線）安靜。
+
 ## 名詞說明（terms）
 
 註解和字串裡讀者可能看不懂的詞，用 `terms` 加上說明：`{ term, title?, text, action? }`，和 `Term variant="inline"` 一樣畫灰色虛線。

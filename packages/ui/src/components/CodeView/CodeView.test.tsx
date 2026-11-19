@@ -374,3 +374,98 @@ test('terms: a name link at the same spot wins; ← → stop on terms with links
   await waitFor(() => expect(document.querySelector('.ui-term-pop')).toBeNull());
   expect(document.activeElement).toBe(word);
 });
+
+const SIX = ['int a = 1;', 'int b = a + 2;', '// a long comment that keeps going', 'return b;', 'x();', 'y();', ''].join('\n');
+const selectText = (from: Node, a: number, to: Node, b: number) => {
+  const r = document.createRange();
+  r.setStart(from, a);
+  r.setEnd(to, b);
+  const sel = window.getSelection() as Selection;
+  sel.removeAllRanges();
+  sel.addRange(r);
+};
+const textOf = (c: HTMLElement, n: number) => {
+  const t = c.querySelector(`[data-n="${n}"] .ui-cv-text`) as HTMLElement;
+  const w = document.createTreeWalker(t, NodeFilter.SHOW_TEXT);
+  const nodes: Text[] = [];
+  while (w.nextNode()) if (!w.currentNode.parentElement?.closest('.ui-cv-sr')) nodes.push(w.currentNode as Text);
+  return nodes;
+};
+
+test('onLine: a click on a line reports it; a drag that selected text does not', async () => {
+  const onLine = vi.fn();
+  const { container } = render(<CodeView code={SIX} onLine={onLine} />);
+  const user = userEvent.setup();
+  await user.click(container.querySelector('[data-n="2"] .ui-cv-text') as HTMLElement);
+  expect(onLine).toHaveBeenLastCalledWith(2, 'click');
+  onLine.mockClear();
+  const t2 = textOf(container, 2)[0];
+  const t3 = textOf(container, 3)[0];
+  selectText(t2, 0, t3, 5);
+  (container.querySelector('[data-n="3"] .ui-cv-text') as HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+  expect(onLine).not.toHaveBeenCalled();
+  (window.getSelection() as Selection).removeAllRanges();
+});
+
+test('onLine: ↑ ↓ move by line and report it, even without links', async () => {
+  const onLine = vi.fn();
+  const { container } = render(<CodeView code={SIX} target={3} onLine={onLine} />);
+  const user = userEvent.setup();
+  (container.querySelector('pre') as HTMLElement).focus();
+  await user.keyboard('{ArrowDown}');
+  expect(onLine).toHaveBeenLastCalledWith(3, 'key');
+  await user.keyboard('{ArrowDown}');
+  expect(onLine).toHaveBeenLastCalledWith(4, 'key');
+  expect((document.activeElement as HTMLElement).dataset.n).toBe('4');
+  await user.keyboard('{End}');
+  expect(onLine).toHaveBeenLastCalledWith(6, 'key');
+});
+
+test('selected text stays when target changes or focusTarget() is called', () => {
+  const ref = React.createRef<CodeViewHandle>();
+  const outside = document.createElement('button');
+  document.body.append(outside);
+  outside.focus();
+  const { container, rerender } = render(<CodeView ref={ref} code={SIX} target={1} maxHeight="60px" />);
+  const pre = container.querySelector('pre') as HTMLElement;
+  selectText(textOf(container, 2)[0], 4, textOf(container, 3)[0], 6);
+  const before = pre.scrollTop;
+  rerender(<CodeView ref={ref} code={SIX} target={6} maxHeight="60px" />);
+  ref.current?.focusTarget();
+  expect((window.getSelection() as Selection).toString()).toContain('b = a + 2;');
+  expect(document.activeElement).toBe(outside);
+  expect(pre.scrollTop).toBe(before);
+  (window.getSelection() as Selection).removeAllRanges();
+  ref.current?.focusTarget();
+  expect((document.activeElement as HTMLElement).dataset.n).toBe('6');
+  outside.remove();
+});
+
+test('copying several lines gives the code only: no line numbers, no screen-reader text', () => {
+  const { container } = render(<CodeView code={SIX} />);
+  const pre = container.querySelector('pre') as HTMLElement;
+  const last = textOf(container, 4).at(-1) as Text;
+  selectText(textOf(container, 2)[0], 4, last, last.length);
+  const data = new DataTransfer();
+  pre.dispatchEvent(new ClipboardEvent('copy', { bubbles: true, cancelable: true, clipboardData: data }));
+  expect(data.getData('text/plain')).toBe(['b = a + 2;', '// a long comment that keeps going', 'return b;'].join('\n'));
+  (window.getSelection() as Selection).removeAllRanges();
+});
+
+test('peek marks a line apart from the target, without moving focus or the selection; null clears it', () => {
+  const outside = document.createElement('button');
+  document.body.append(outside);
+  outside.focus();
+  const { container, rerender } = render(<CodeView code={SIX} target={2} peek={5} />);
+  expect(container.querySelector('.is-peek')?.getAttribute('data-n')).toBe('5');
+  expect(container.querySelector('.is-target')?.getAttribute('data-n')).toBe('2');
+  selectText(textOf(container, 1)[0], 0, textOf(container, 1)[0], 3);
+  rerender(<CodeView code={SIX} target={2} peek={4} />);
+  expect(container.querySelector('.is-peek')?.getAttribute('data-n')).toBe('4');
+  expect((window.getSelection() as Selection).toString()).toBe('int');
+  expect(document.activeElement).toBe(outside);
+  rerender(<CodeView code={SIX} target={2} peek={null} />);
+  expect(container.querySelector('.is-peek')).toBeNull();
+  (window.getSelection() as Selection).removeAllRanges();
+  outside.remove();
+});
