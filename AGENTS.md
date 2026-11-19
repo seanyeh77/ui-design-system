@@ -122,5 +122,5 @@ A pnpm workspace. `pnpm install`, then `pnpm check` builds, type-checks, lints a
 - Releases: `pnpm changeset` for every change to a published package. Merging the "Version packages" pull request publishes to npm through trusted publishing (each package names this repo and `publish.yml` as its Trusted Publisher on npmjs.com; no token). Pushing to `main` rebuilds the docs site.
 - Docs are written in Traditional Chinese with technical terms in English; every number carries its unit.
 - Rules: confirmed choices go in `docs/guidelines.md`; the original wording of each lab decision goes in `docs/decisions.md`. Only record what the user confirmed.
-- New design decisions are SeanYeh's: he picks them from option labs with a live demo for every choice. Propose options; do not change tokens, rules or component behavior on your own. Any default you pick must be flagged as yours.
+- New design decisions are SeanYeh's: he picks them from option labs with a live demo for every choice. Propose options; do not change tokens, rules or component behavior on your own. Any default you pick must be flagged as yours. In `docs/decisions.md` they go under 「AI 定的細節（待確認）」, whichever agent (Claude, Codex, Cursor or another) picked them; when SeanYeh leaves the details to the agent, write that down with his words.
 - Commits never carry Claude co-author or Claude-Session trailers.
