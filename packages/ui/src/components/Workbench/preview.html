@@ -100,13 +100,14 @@
             brand: { mark: h('span', { style: { display: 'block', width: 20, height: 20, borderRadius: 5, background: 'var(--accent)' } }), name: 'codemap', href: '#' },
             crumbs: [{ label: 'harness' }, { label: 'controller.py' }, { label: 'VirtualRouter._sync_as' }],
             actions: h(Actions),
-            explorerHead: h(U.SearchField, { value: filter, onChange: setFilter, label: '篩選檔案與函式' }),
+            explorerFilter: { value: filter, onChange: setFilter, label: '篩選檔案與函式' },
+            mainBar: h(U.IconButton, { variant: 'quiet', icon: 'arrow-square-out', label: '用 VS Code 開啟' }),
             explorer: h(Explorer, { items: TREE, sel: sel, onSel: setSel }),
             explorerFoot: h(U.Button, { icon: 'gear' }, '設定'),
             views: VIEWS,
             defaultLayout: { side: ['outline', 'refs'], panel: ['problems', 'output'] },
           },
-          h('div', { style: { padding: 16 } }, h(U.CodeView, { code: CODE, file: 'harness/controller.py', start: 40, target: 41 })),
+          h('div', { style: { padding: 16 } }, h(U.CodeView, { code: CODE, file: 'harness/controller.py', start: 40, target: 41, header: 'float', copy: true })),
         );
       }
       ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));

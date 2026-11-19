@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Menu as Base } from '@base-ui/react/menu';
 import { IconButton } from '../IconButton/IconButton';
+import { SearchField } from '../SearchField/SearchField';
 import { Breadcrumb, type BreadcrumbItem } from '../Breadcrumb/Breadcrumb';
 import { Icon, type CustomIcon } from '../../icons/Icon';
 import { cx, IS_MAC, store } from '../../internal/util';
@@ -36,13 +37,20 @@ export interface WorkbenchProps {
   id: string;
   /** Product at the top left. The name is hidden on phones; the mark stays. */
   brand?: { mark?: React.ReactNode; name: string; href?: string };
-  /** Where the main view is. Phones show only the last level. */
+  /** Where the main view is: on a 36 px bar above the main view, in line with the tab rows of the side bar and the
+   *  panel. When it does not fit, the levels before the last one shrink first. */
   crumbs?: BreadcrumbItem[];
+  /** Small buttons at the right of the bar above the main view, such as 「用 VS Code 開啟」: IconButton
+   *  variant="quiet". */
+  mainBar?: React.ReactNode;
   /** The page's own buttons at the top right (search, help, project switch): IconButton variant="quiet". */
   actions?: React.ReactNode;
   /** The file explorer's content, usually a TreeList kind="plain" density="compact" bare. */
   explorer?: React.ReactNode;
-  /** Above the explorer, fixed: a filter field. */
+  /** The explorer's filter: a 36 px row at its top (magnifier and a borderless field), in line with the bars beside
+   *  it. The page filters its own tree. */
+  explorerFilter?: { value: string; onChange: (value: string) => void; label?: string };
+  /** Above the explorer, under the filter, fixed: anything else. */
   explorerHead?: React.ReactNode;
   /** Below the explorer, fixed: 「設定」 and the like. */
   explorerFoot?: React.ReactNode;
@@ -100,6 +108,7 @@ export function useWorkbench(): WorkbenchApi {
 }
 
 const TOP = 48;
+const BAR = 36;
 const LIM: Record<WorkbenchRegion, [number, number]> = { explorer: [180, 480], side: [240, 560], panel: [120, Infinity] };
 const DEF_SIZE: Record<WorkbenchRegion, number> = { explorer: 260, side: 320, panel: 220 };
 const STEP = 16;
@@ -808,6 +817,8 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
   };
 
   const brand = p.brand;
+  const hasBar = !!(p.crumbs?.length || p.mainBar);
+  const filter = p.explorerFilter;
   const brandInner = brand ? (
     <>
       {brand.mark ? (
@@ -858,7 +869,6 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
                 <span className="ui-wb-brand">{brandInner}</span>
               )
             ) : null}
-            {p.crumbs?.length ? <Breadcrumb className="ui-wb-crumbs" items={phone ? p.crumbs.slice(-1) : p.crumbs} /> : null}
           </div>
           <div className="ui-wb-top-r">
             {p.actions}
@@ -872,11 +882,17 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
           </div>
         </header>
         <div className="ui-wb-body">
-          <main className="ui-wb-main" style={{ left: mainL, right: mainR, bottom: mainB }}>
+          {hasBar ? (
+            <div className="ui-wb-mainbar" style={{ left: mainL, right: mainR }}>
+              {p.crumbs?.length ? <Breadcrumb className="ui-wb-crumbs" items={p.crumbs} /> : <span className="ui-wb-mainbar-fill" />}
+              {p.mainBar ? <div className="ui-wb-mainbar-btns">{p.mainBar}</div> : null}
+            </div>
+          ) : null}
+          <main className="ui-wb-main" style={{ left: mainL, right: mainR, bottom: mainB, top: hasBar ? BAR : 0 }}>
             {p.children}
           </main>
 
-          {p.explorer || p.explorerHead || p.explorerFoot ? (
+          {p.explorer || p.explorerHead || p.explorerFoot || filter ? (
             <>
               {exOverlay ? (
                 <button
@@ -893,6 +909,11 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
                 aria-label={regionName.explorer}
                 inert={!exOpen}
               >
+                {filter ? (
+                  <div className="ui-wb-exfilter">
+                    <SearchField value={filter.value} onChange={filter.onChange} label={filter.label ?? tr('篩選')} placeholder={filter.label ?? tr('篩選')} />
+                  </div>
+                ) : null}
                 {p.explorerHead ? <div className="ui-wb-exhead">{p.explorerHead}</div> : null}
                 <div className="ui-wb-exbody">{p.explorer}</div>
                 {p.explorerFoot ? <div className="ui-wb-exfoot">{p.explorerFoot}</div> : null}

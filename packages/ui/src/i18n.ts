@@ -174,6 +174,8 @@ export const I18N: I18nState = {
       關閉: 'Close',
       '關閉後，剛才的修改不會保留。': 'If you close now, your changes will be lost.',
       關閉提示: 'Dismiss',
+      鍵盤操作: 'Keyboard',
+      顯示或關閉這份說明: 'Show or hide this list',
       檔案總管: 'Explorer',
       右側欄: 'Side bar',
       下方面板: 'Panel',

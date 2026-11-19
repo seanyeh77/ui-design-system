@@ -7,6 +7,7 @@ import { copyText, cx, monoNums, useNarrow } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { CHECK } from '../../icons/Icon';
 import { IconButton } from '../IconButton/IconButton';
+import { FloatingPanel } from '../../internal/FloatingPanel';
 import { LANGUAGE_NAMES, languageOf, tokenize as builtIn, type Tokenizer } from './tokens';
 
 /** A line's indentation, said after its number: a screen reader drops leading spaces, and in Python or YAML
@@ -87,6 +88,11 @@ export interface CodeViewProps<L extends CodeLink = CodeLink> {
   /** false: no line numbers, for short snippets nobody refers to by line (Markdown code blocks). Screen readers still
    *  hear 「第 n 行」. Default true. */
   lineNumbers?: boolean;
+  /** true (default): the header row (file or title, language, buttons). 'float': no row; the language and the
+   *  buttons float at the top right while the pointer is over the code or focus is in it (always on touch screens),
+   *  for a page that already shows the file, such as a breadcrumb above. false: nothing. `file` still picks the
+   *  language either way. */
+  header?: boolean | 'float';
   /** A small copy icon at the right of the header: copies the whole code and turns into a check for 2 s. Shows the
    *  header even without file or title. Default false. */
   copy?: boolean;
@@ -232,6 +238,43 @@ function matchLinks(lines: string[], start: number, links: readonly CodeLink[] |
   return out;
 }
 
+/** What the keys do: a small panel opened from the keyboard button or with ?; nothing on screen until asked. */
+function KeysPanel(p: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  trigger: React.ReactElement;
+  keys: { k: string; label: string; what: string }[];
+}) {
+  return (
+    <FloatingPanel
+      open={p.open}
+      onOpenChange={p.onOpenChange}
+      trigger={p.trigger}
+      side="bottom"
+      align="end"
+      className="ui-popover ui-cv-keys"
+      aria-label={tr('鍵盤操作')}
+    >
+      <dl className="ui-cv-keylist">
+        {p.keys.map((k) => (
+          <div key={k.k}>
+            <dt>
+              <kbd>{k.label}</kbd>
+            </dt>
+            <dd>{k.what}</dd>
+          </div>
+        ))}
+        <div>
+          <dt>
+            <kbd>?</kbd>
+          </dt>
+          <dd>{tr('顯示或關閉這份說明')}</dd>
+        </div>
+      </dl>
+    </FloatingPanel>
+  );
+}
+
 /** Source with line numbers and an optional target line: soft accent background, long lines wrap, light syntax colors. */
 export function CodeView<L extends CodeLink = CodeLink>({
   code,
@@ -254,6 +297,7 @@ export function CodeView<L extends CodeLink = CodeLink>({
   maxHeight,
   sections,
   copy,
+  header = true,
   lineNumbers = true,
   onCopy,
   onCopyError,
@@ -475,6 +519,13 @@ export function CodeView<L extends CodeLink = CodeLink>({
   ];
   const onMove = (e: React.KeyboardEvent<HTMLPreElement>) => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
+    // ? shows what the keys do; nothing about them is on screen until asked.
+    if (e.key === '?') {
+      e.preventDefault();
+      byKey.current = true;
+      setKeysOpen((o) => !o);
+      return;
+    }
     const pre = e.currentTarget;
     const items = [...pre.querySelectorAll<HTMLElement>('[role="listitem"]')];
     if (!items.length) return;
@@ -547,6 +598,9 @@ export function CodeView<L extends CodeLink = CodeLink>({
     if (said) announce(tr('{name}，第 {n} 行', { name: said, n: nOf(el) }));
   };
   const [copied, setCopied] = React.useState(false);
+  const [keysOpen, setKeysOpen] = React.useState(false);
+  // Opened with ? from the code: closing puts focus back in the code.
+  const byKey = React.useRef(false);
   const copyTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
   React.useEffect(() => () => clearTimeout(copyTimer.current), []);
   const doCopy = () => {
@@ -561,8 +615,43 @@ export function CodeView<L extends CodeLink = CodeLink>({
       () => onCopyError?.(),
     );
   };
+  const langText =
+    languageLabel !== false && lang !== 'plain' ? (
+      // Plain text, not a control: the screen reader hears 「程式語言：C 語言」.
+      <span className="ui-cv-lang">
+        <span className="ui-visually-hidden">{tr('程式語言') + tr('：')}</span>
+        {tr(languageLabel || LANGUAGE_NAMES[lang] || lang)}
+      </span>
+    ) : null;
+  const copyBtn = copy ? (
+    <IconButton
+      className={cx('ui-cv-copy', copied && 'is-copied')}
+      variant={header === 'float' ? 'quiet' : undefined}
+      label={copied ? tr('已複製') : tr('複製程式碼')}
+      icon={copied ? CHECK : 'copy'}
+      onClick={doCopy}
+    />
+  ) : null;
+  const onKeysChange = (o: boolean) => {
+    setKeysOpen(o);
+    if (!o && byKey.current) {
+      byKey.current = false;
+      requestAnimationFrame(() => body.current?.focus());
+    }
+  };
+  const keysPanel = (trigger: React.ReactElement) => <KeysPanel open={keysOpen} onOpenChange={onKeysChange} trigger={trigger} keys={keys} />;
+  const keysBtn = keysPanel(<IconButton variant="quiet" icon="keyboard" label={tr('鍵盤操作')} onClick={() => (byKey.current = false)} />);
   const head =
-    file || title || copy ? (
+    header === 'float' ? (
+      <div className="ui-cv-tools">
+        {langText}
+        {copyBtn}
+        {keysBtn}
+      </div>
+    ) : header === false ? (
+      // No header: ? still opens the list, placed at the code's top right.
+      keysPanel(<span className="ui-cv-keyanchor" aria-hidden="true" />)
+    ) : file || title || copy ? (
       <div className="ui-cv-head">
         {file ? (
           fileHref || onFile ? (
@@ -575,32 +664,26 @@ export function CodeView<L extends CodeLink = CodeLink>({
         ) : title ? (
           <span className="ui-cv-title">{title}</span>
         ) : null}
-        {languageLabel !== false && lang !== 'plain' ? (
-          // Plain text, not a control: the screen reader hears 「程式語言：C 語言」.
-          <span className="ui-cv-lang">
-            <span className="ui-visually-hidden">{tr('程式語言') + tr('：')}</span>
-            {tr(languageLabel || LANGUAGE_NAMES[lang] || lang)}
-          </span>
-        ) : null}
-        {copy ? (
-          <IconButton
-            className={cx('ui-cv-copy', copied && 'is-copied')}
-            label={copied ? tr('已複製') : tr('複製程式碼')}
-            icon={copied ? CHECK : 'copy'}
-            onClick={doCopy}
-          />
-        ) : null}
+        {langText}
+        {copyBtn}
+        {keysBtn}
       </div>
-    ) : null;
+    ) : (
+      keysPanel(<span className="ui-cv-keyanchor" aria-hidden="true" />)
+    );
   return (
-    <div className={cx('ui-cv', !lineNumbers && 'no-nums', className)} role="region" aria-label={file || title || tr('原始碼')}>
+    <div
+      className={cx('ui-cv', !lineNumbers && 'no-nums', header === 'float' && 'is-float', className)}
+      role="region"
+      aria-label={file || title || tr('原始碼')}
+    >
       {head}
       <pre
         ref={body}
         style={maxHeight ? { maxHeight } : undefined}
         tabIndex={0}
         aria-label={tr('程式碼')}
-        aria-keyshortcuts={keys.map((k) => k.k).join(' ')}
+        aria-keyshortcuts={[...keys.map((k) => k.k), '?'].join(' ')}
         onKeyDown={onMove}
         {...(nav
           ? {
@@ -646,15 +729,6 @@ export function CodeView<L extends CodeLink = CodeLink>({
           </PreviewCard.Portal>
         </PreviewCard.Root>
       ) : null}
-      {/* What the keys do, while the code has focus; a screen reader gets them from aria-keyshortcuts. */}
-      <div className="ui-cv-keys" aria-hidden="true">
-        {keys.map((k) => (
-          <span key={k.k}>
-            <kbd>{k.label}</kbd>
-            {k.what}
-          </span>
-        ))}
-      </div>
       {narrow && canWindow ? (
         <button type="button" className="ui-link-btn ui-cv-more" onClick={() => setAll(!all)}>
           <span>{all ? tr('只顯示第 {n} 行前後', { n: ta }) : monoNums(tr('顯示全部 {n} 行', { n: '\u0001' }), [lines.length])}</span>

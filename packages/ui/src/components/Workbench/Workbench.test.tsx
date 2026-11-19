@@ -125,11 +125,12 @@ test('below 960 px the explorer and side bar lie over the main view, closed unti
   expect(JSON.parse(localStorage.getItem('ui-workbench:test') ?? '{}').open.explorer).toBe(true);
 });
 
-test('phone: no product name, last crumb only; side bar and panel views in one panel under the main view', async () => {
+test('phone: no product name; the whole path on the bar above the main view; side bar and panel views in one panel under the main view', async () => {
   render(shell(390, 720));
   await waitFor(() => expect(getComputedStyle(screen.getByText('codemap')).display).toBe('none'));
   const crumbs = screen.getByRole('navigation', { name: '路徑' });
-  expect(within(crumbs).queryByText('harness')).toBeNull();
+  expect(within(crumbs).getByText('harness')).toBeTruthy();
+  expect(crumbs.closest('.ui-wb-mainbar')).not.toBeNull();
   await user.click(screen.getByRole('button', { name: /^下方面板/ }));
   const sheet = screen.getByRole('region', { name: '面板分頁' });
   await waitFor(() => expect(sheet.classList.contains('is-open')).toBe(true));
@@ -282,4 +283,46 @@ test('show() while mounting on a narrow screen: the side bar stays laid over the
   await new Promise((r) => setTimeout(r, 300));
   expect(isOpen('右側欄')).toBe(true);
   expect(region('右側欄').classList.contains('is-drawer')).toBe(true);
+});
+
+test('the breadcrumb and mainBar sit on a 36 px bar above the main view, in line with the side bar’s tab row', async () => {
+  const seen: string[] = [];
+  function Filtered() {
+    const [q, setQ] = React.useState('');
+    return (
+      <div style={{ width: 1440, height: 640 }}>
+        <Workbench
+          id="bar"
+          crumbs={[{ label: 'harness' }, { label: 'controller.py' }]}
+          mainBar={<IconButton variant="quiet" icon="arrow-square-out" label="用 VS Code 開啟" />}
+          explorerFilter={{
+            value: q,
+            onChange: (v) => {
+              setQ(v);
+              seen.push(v);
+            },
+            label: '篩選檔案與函式',
+          }}
+          explorer={<p>tree</p>}
+          views={views}
+          defaultLayout={{ side: ['outline', 'refs'], panel: ['problems', 'output'] }}
+        >
+          <p>主畫面</p>
+        </Workbench>
+      </div>
+    );
+  }
+  render(<Filtered />);
+  const bar = await waitFor(() => document.querySelector('.ui-wb-mainbar') as HTMLElement);
+  const nav = within(bar).getByRole('navigation', { name: '路徑' });
+  expect(nav).toBeTruthy();
+  expect(within(bar).getByRole('button', { name: '用 VS Code 開啟' })).toBeTruthy();
+  expect(document.querySelector('.ui-wb-top .ui-crumb')).toBeNull();
+  const tabRow = region('右側欄').querySelector('.ui-wb-tabbar') as HTMLElement;
+  const filter = document.querySelector('.ui-wb-exfilter') as HTMLElement;
+  expect(bar.getBoundingClientRect().bottom).toBe(tabRow.getBoundingClientRect().bottom);
+  expect(filter.getBoundingClientRect().bottom).toBe(tabRow.getBoundingClientRect().bottom);
+  expect(screen.getByRole('main').getBoundingClientRect().top).toBe(bar.getBoundingClientRect().bottom);
+  await user.type(screen.getByRole('searchbox', { name: '篩選檔案與函式' }), 'sy');
+  expect(seen).toEqual(['s', 'sy']);
 });

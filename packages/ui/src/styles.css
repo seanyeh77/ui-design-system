@@ -5048,18 +5048,29 @@ html.ui-theme-fade * {
 }
 /* CodeView: the keys that move inside the code, shown while it has focus. */
 .ui-cv-keys {
-  display: none;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-4);
+  outline: none;
   padding: var(--space-2) var(--space-3);
+  max-width: min(320px, calc(100vw - 32px));
+}
+.ui-cv-keylist {
+  margin: 0;
+  display: grid;
+  gap: 4px;
   font-size: 13px;
+}
+.ui-cv-keylist > div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+.ui-cv-keylist dt {
+  flex: 0 0 64px;
+}
+.ui-cv-keylist dd {
+  margin: 0;
   color: var(--ink-muted);
 }
-.ui-cv:focus-within .ui-cv-keys {
-  display: flex;
-}
-.ui-cv-keys kbd {
-  margin-right: var(--space-1);
+.ui-cv-keylist kbd {
   padding: 0 var(--space-1);
   border: 1px solid var(--line);
   border-bottom-width: 2px;
@@ -5067,6 +5078,43 @@ html.ui-theme-fade * {
   background: var(--surface);
   font-family: var(--font-mono);
   font-size: 12px;
+}
+/* header="float": the language and buttons float at the top right while the pointer is over the code or focus is in
+   it; always on touch screens. */
+.ui-cv {
+  position: relative;
+}
+.ui-cv-tools {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 2px 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+.ui-cv:is(:hover, :focus-within) .ui-cv-tools,
+.ui-cv-tools:has([aria-expanded='true']) {
+  opacity: 1;
+}
+@media (pointer: coarse) {
+  .ui-cv-tools {
+    opacity: 1;
+  }
+}
+.ui-cv-keyanchor {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  width: 1px;
+  height: 1px;
 }
 .ui-pal-keys {
   flex: 0 0 auto;
@@ -7427,11 +7475,13 @@ a.ui-wb-brand:focus-visible {
   min-width: 0;
 }
 /* Too long for the bar: the levels give way, then the current one ends in an ellipsis. */
+/* The levels before the last give way first (down to about three characters), then the last one. */
 .ui-wb-crumbs li {
-  min-width: 0;
-  flex: 0 5 auto;
+  min-width: 3em;
+  flex: 0 1000 auto;
 }
 .ui-wb-crumbs li:last-child {
+  min-width: 0;
   flex-shrink: 1;
 }
 .ui-wb-crumbs li > :is(a, span):not(.ui-crumb-sep) {
@@ -7454,6 +7504,82 @@ a.ui-wb-brand:focus-visible {
     right 300ms cubic-bezier(0.3, 0.7, 0.3, 1),
     bottom 300ms cubic-bezier(0.3, 0.7, 0.3, 1);
 }
+/* The bar above the main view: breadcrumb and the page's small buttons, 36 px, in line with the tab rows beside it. */
+.ui-wb-mainbar {
+  position: absolute;
+  top: 0;
+  height: 36px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 4px 0 var(--space-3);
+  box-sizing: border-box;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  transition:
+    left 300ms cubic-bezier(0.3, 0.7, 0.3, 1),
+    right 300ms cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+.ui-wb.is-sizing .ui-wb-mainbar {
+  transition: none;
+}
+.ui-wb-mainbar .ui-wb-crumbs,
+.ui-wb-mainbar-fill {
+  flex: 1 1 auto;
+}
+.ui-wb-mainbar-btns {
+  flex: none;
+  display: flex;
+  align-items: center;
+}
+.ui-wb-mainbar-btns .ui-iconbtn.is-quiet {
+  width: 28px;
+  height: 28px;
+}
+/* The explorer's filter: a 36 px row holding a SearchField without its border, a background only on hover or typing. */
+.ui-wb-exfilter {
+  flex: none;
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--line);
+}
+.ui-wb-exfilter .ui-searchfield {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ui-wb-exfilter .ui-searchfield .ui-input {
+  height: 28px;
+  min-height: 0;
+  padding: 0 32px 0 30px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: 13px;
+  box-shadow: none;
+}
+.ui-wb-exfilter .ui-searchfield .ui-input:hover,
+.ui-wb-exfilter .ui-searchfield .ui-input:focus {
+  background: var(--surface-sub);
+}
+.ui-wb-exfilter .ui-searchfield .ui-input:focus-visible {
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.ui-wb-exfilter .ui-searchfield-icon {
+  left: 8px;
+  top: 6px;
+}
+.ui-wb-exfilter .ui-searchfield-clear {
+  top: 2px;
+  right: 2px;
+  width: 24px;
+  height: 24px;
+  background: none;
+}
+
 /* Docked regions slide out and in with the main view (300 ms, as the sidebar); overlays are drawers. */
 .ui-wb-ex,
 .ui-wb-side,
@@ -7637,6 +7763,7 @@ a.ui-wb-brand:focus-visible {
 /* Tab rows */
 .ui-wb-tabbar {
   flex: none;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   height: 36px;

@@ -91,14 +91,15 @@ function Demo() {
         brand={{ mark: <span style={{ display: 'block', width: 20, height: 20, borderRadius: 5, background: 'var(--accent)' }} />, name: 'codemap', href: '#' }}
         crumbs={[{ label: 'harness' }, { label: 'controller.py' }, { label: 'VirtualRouter._sync_as' }]}
         actions={<Actions />}
-        explorerHead={<UI.SearchField value={filter} onChange={setFilter} label="篩選檔案與函式" />}
+        explorerFilter={{ value: filter, onChange: setFilter, label: '篩選檔案與函式' }}
+        mainBar={<UI.IconButton variant="quiet" icon="arrow-square-out" label="用 VS Code 開啟" />}
         explorer={<Explorer sel={sel} onSel={setSel} />}
         explorerFoot={<UI.Button icon="gear">設定</UI.Button>}
         views={VIEWS}
         defaultLayout={{ side: ['outline', 'refs'], panel: ['problems', 'output'] }}
       >
         <div style={{ padding: 16 }}>
-          <UI.CodeView code={CODE} file="harness/controller.py" start={40} target={41} />
+          <UI.CodeView code={CODE} file="harness/controller.py" start={40} target={41} header="float" copy />
         </div>
       </UI.Workbench>
     </div>

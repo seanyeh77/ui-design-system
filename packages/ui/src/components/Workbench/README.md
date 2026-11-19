@@ -9,8 +9,9 @@ import { Workbench, useWorkbench, TreeList, IconButton, SearchField } from '@sea
   id="codemap"
   brand={{ mark: <Logo />, name: 'codemap', href: '#overview' }}
   crumbs={[{ label: 'harness' }, { label: 'controller.py' }]}
+  mainBar={<IconButton variant="quiet" icon="arrow-square-out" label="用 VS Code 開啟" onClick={openInEditor} />}
   actions={<Actions />}
-  explorerHead={<SearchField value={q} onChange={setQ} label="篩選檔案與函式" />}
+  explorerFilter={{ value: q, onChange: setQ, label: '篩選檔案與函式' }}
   explorer={<Explorer />}
   explorerFoot={<Button icon="gear">設定</Button>}
   views={[
@@ -19,7 +20,7 @@ import { Workbench, useWorkbench, TreeList, IconButton, SearchField } from '@sea
   ]}
   defaultLayout={{ side: ['outline'], panel: ['problems'] }}
 >
-  <CodeView code={code} file={file} />
+  <CodeView code={code} file={file} header="float" copy />
 </Workbench>
 ```
 
@@ -27,10 +28,13 @@ import { Workbench, useWorkbench, TreeList, IconButton, SearchField } from '@sea
 
 ## 版面
 
-- 頂列 48 px：左邊是收合檔案總管的按鈕、`brand`、麵包屑（`crumbs`）；右邊是 `actions`，再來是收合下方面板與右側欄的按鈕。
+- 頂列 48 px：左邊是收合檔案總管的按鈕和 `brand`；右邊是 `actions`，再來是收合下方面板與右側欄的按鈕。
+- 主畫面上方一條 36 px 的列：左邊是麵包屑（`crumbs`），右邊是 `mainBar`（頁面自己的小按鈕，例如「用 VS Code 開啟」，用 `IconButton variant="quiet"`，在這條列裡是 28 px）。和右側欄、下方面板的分頁列、檔案總管的篩選列同高，三條橫線對齊。沒有 `crumbs` 也沒有 `mainBar` 時不畫這條列。
+- 麵包屑放不下時，前面的層先縮成刪節號，最後一層最後才縮；手機上也顯示完整路徑。
+- 主畫面裡的 CodeView 用 `header="float"`：檔名已經在麵包屑上，不必再畫一列標頭（見 CodeView 的說明）。
 - 三個開關按鈕的圖示是外框加一塊：區塊開著時那一塊填滿，關著時只剩分隔線。按鈕有 `aria-pressed`，tooltip 寫快捷鍵。
 - `actions` 放頁面自己的按鈕，用 `IconButton variant="quiet"`。
-- 檔案總管：`explorerHead`（篩選框）固定在上，`explorer` 捲動，`explorerFoot`（例如「設定」）固定在下。樹用 `TreeList kind="plain" density="compact" bare`。
+- 檔案總管：`explorerFilter` 是最上方 36 px 的篩選列（放大鏡加無框的輸入框，滑過或輸入時才有底色），篩選由頁面自己做；`explorerHead` 放其他固定在上方的東西；`explorer` 捲動；`explorerFoot`（例如「設定」）固定在下。樹用 `TreeList kind="plain" density="compact" bare`。
 - 主畫面（`children`）：架構圖、文件或程式碼。
 - 右側欄與下方面板：由 `views` 組成，每個 view 是一個分頁。`defaultLayout` 決定一開始在哪一邊，沒列到的放下方面板。
 
@@ -152,7 +156,7 @@ React.useEffect(() => {
   - 面板固定在下半部（預設 45%），主畫面留在上半部，兩邊都能捲、都能點，沒有遮罩。拖動中間的握把調整高度（最小 120 px，最大 75%），雙擊恢復 45%。
   - 分頁列可以左右捲動；在內容上左右滑動切換分頁；按住分頁 0.3 秒後拖動排序，分頁列即時排成放開後的順序；「往左移」「往右移」按鈕做同一件事。順序是右側欄的分頁接著下方面板的分頁，移過交界時，寬螢幕上它也換到另一邊。
   - 檔案總管佔 85% 寬。
-  - 麵包屑只顯示最後一層，產品名稱隱藏，`brand.mark` 留著。
+  - 產品名稱隱藏，`brand.mark` 留著；麵包屑在主畫面上方，整列都給它。
 - 疊在主畫面上的區塊不記開關：載入、還原、換寬度時都先收起；寬螢幕記下的開關不受影響。
 
 ## 動畫

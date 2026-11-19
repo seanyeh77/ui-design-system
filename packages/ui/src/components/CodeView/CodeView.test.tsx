@@ -112,7 +112,7 @@ test('CodeView: Home, End, PageUp, PageDown move by line (CA); [ and ] by sectio
   );
   const user = userEvent.setup();
   const pre = screen.getByLabelText('程式碼');
-  expect(pre.getAttribute('aria-keyshortcuts')).toBe('Home End PageUp PageDown [ ]');
+  expect(pre.getAttribute('aria-keyshortcuts')).toBe('Home End PageUp PageDown [ ] ?');
   pre.focus();
   const at = () => (document.activeElement instanceof HTMLElement ? document.activeElement.dataset.n : undefined);
   await user.keyboard('{End}');
@@ -292,4 +292,34 @@ test('links: a name split by wrapping stays one link', () => {
   expect(a.length).toBe(1);
   expect(a[0].textContent).toBe('Oracle.flow_priority_for_the_router');
   expect(getComputedStyle(a[0]).textDecorationStyle).toBe('dotted');
+});
+
+test('keys: nothing on screen until asked; the keyboard button or ? opens the list, Esc closes it back to the code', async () => {
+  const user = userEvent.setup();
+  render(<CodeView code={'int a;\nint b;'} file="x.c" />);
+  expect(document.querySelector('.ui-cv-keylist')).toBeNull();
+  const pre = screen.getByRole('region', { name: 'x.c' }).querySelector('pre') as HTMLElement;
+  pre.focus();
+  expect(document.querySelector('.ui-cv-keylist')).toBeNull();
+  await user.keyboard('?');
+  await waitFor(() => expect(document.querySelector('.ui-cv-keylist')).not.toBeNull());
+  await user.keyboard('{Escape}');
+  await waitFor(() => expect(document.querySelector('.ui-cv-keylist')).toBeNull());
+  await waitFor(() => expect(document.activeElement).toBe(pre));
+  await user.click(screen.getByRole('button', { name: '鍵盤操作' }));
+  await waitFor(() => expect(document.querySelector('.ui-cv-keylist')).not.toBeNull());
+});
+
+test('header="float": no header row; the language and buttons float; file still picks the language', () => {
+  render(<CodeView code={'def f():\n    pass'} file="a.py" header="float" copy />);
+  const cv = screen.getByRole('region', { name: 'a.py' });
+  expect(cv.querySelector('.ui-cv-head')).toBeNull();
+  expect(cv.querySelector('.ui-cv-tools')?.textContent).toContain('Python');
+  expect(cv.querySelector('.is-keyword')).not.toBeNull();
+});
+
+test('header={false}: nothing above the code, the region is still named by the file', () => {
+  render(<CodeView code={'int a;'} file="x.c" header={false} copy />);
+  const cv = screen.getByRole('region', { name: 'x.c' });
+  expect(cv.querySelector('.ui-cv-head, .ui-cv-tools')).toBeNull();
 });
