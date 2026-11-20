@@ -1,4 +1,4 @@
-<!-- @dsCard group="Data" height=380 -->
+<!-- @dsCard group="Data" height=1500 -->
 <!doctype html>
 <html lang="zh-Hant">
   <head>
@@ -20,10 +20,20 @@
         var d = new Date(2026, 9, 22 + i);
         L.push(d.getMonth() + 1 + '/' + d.getDate());
       }
+      // Monitoring: 24 points every 10 minutes from 13:00; now is 15:30.
+      var T = [];
+      for (var k = 0; k < 24; k++) {
+        var m = 13 * 60 + k * 10;
+        T.push(String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'));
+      }
+      var ACT = [24.2, 24.4, 24.9, 25.3, 25.1, 25.6, 26.2, 26.8, 27.3, 27.1, 26.6, 26.1, 25.7, 25.4, 25.6, 25.9];
+      var FC = [24.0, 24.5, 24.7, 25.0, 25.4, 25.8, 26.0, 26.4, 26.9, 27.4, 27.0, 26.4, 25.9, 25.6, 25.3, 25.6, 25.8, 26.1, 26.5, 26.9, 27.2, 27.0, 26.6, 26.2];
+      var card = { padding: '16px 20px', borderRadius: 'var(--radius-lg)', background: 'var(--surface)', boxShadow: 'var(--shadow-card)' };
       function D() {
+        var ph = React.useState(15);
         return h(
           'div',
-          { style: { padding: 20 } },
+          { style: { padding: 20, display: 'grid', gap: 24, maxWidth: 760 } },
           h(U.LineChart, {
             label: '每日請求數',
             unit: '次',
@@ -33,6 +43,98 @@
               { name: 'API', values: [420, 460, 440, 510, 530, 500, 560, 590, 570, 620, 640, 610, 680, 700] },
               { name: '網頁', values: [300, 320, 310, 290, 330, 350, 340, 360, 380, 370, 390, 410, 400, 430] },
               { name: '行動裝置', values: [150, 170, 160, 190, 200, 230, 220, 240, 260, 250, 280, 300, 310, 330] },
+            ],
+          }),
+          // Forecast against what happened: band, now, thresholds, the next forecast point, a playhead and a status band.
+          h(
+            'div',
+            { style: card },
+            h(U.LineChart, {
+              label: '進氣溫度，預測與實際',
+              unit: '°C',
+              decimals: 1,
+              min: 22,
+              max: 30,
+              labels: T,
+              labelEvery: 4,
+              series: [
+                { name: '實際', values: ACT },
+                { name: '預測', values: FC, dashed: true, color: 3 },
+              ],
+              band: { between: [0, 1], tone: 'diverge', label: '實際偏高／偏低' },
+              now: 15,
+              thresholds: [
+                { value: 27, label: '注意 27 °C', tone: 'warning' },
+                { value: 29, label: '上限 29 °C', tone: 'danger' },
+              ],
+              marker: { at: 16, value: 25.8, label: '下一回合 25.8 °C' },
+              playhead: ph[0],
+              onPlayheadChange: ph[1],
+              status: {
+                label: '採用的策略',
+                classes: [
+                  { value: 'ai', label: 'AI 最佳化' },
+                  { value: 'mix', label: '混合' },
+                  { value: 'pid', label: 'PID' },
+                  { value: 'manual', label: '人工' },
+                ],
+                segments: [
+                  { from: 0, to: 6, value: 'ai' },
+                  { from: 6, to: 10, value: 'mix' },
+                  { from: 10, to: 14, value: 'pid' },
+                  { from: 14, to: 16, value: 'manual' },
+                  { from: 16, to: 24, value: 'ai' },
+                ],
+              },
+            }),
+          ),
+          // Savings: actual use against a baseline, the gap filled with success.
+          h(
+            'div',
+            { style: card },
+            h(U.LineChart, {
+              label: '節能：實際用電與基準',
+              unit: 'kW',
+              min: 40,
+              max: 80,
+              labels: ['00:00', '02:00', '04:00', '06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00', '24:00'],
+              labelEvery: 3,
+              headline: h(
+                'span',
+                null,
+                '省 ',
+                h('span', { style: { fontFamily: 'var(--font-mono)' } }, '186 kWh'),
+                '（約 ',
+                h('span', { style: { fontFamily: 'var(--font-mono)' } }, '12%'),
+                '）',
+              ),
+              series: [
+                { name: '實際用電', values: [50, 50, 52, 55, 58, 61, 62, 61, 59, 56, 53, 51, 50] },
+                { name: '基準（沒有 AI 時）', values: [52, 54, 58, 63, 67, 70, 71, 69, 66, 62, 58, 55, 53], dashed: true, color: 4 },
+              ],
+              band: { between: [1, 0], tone: 'success', label: '省下的電' },
+            }),
+            h(
+              'p',
+              { style: { margin: '8px 0 0', fontSize: 13, color: 'var(--ink-muted)' } },
+              '來源：電表每 10 分鐘的讀數；基準是同時段沒有 AI 控制時的模型估計（示範資料）。',
+            ),
+          ),
+          // No data yet.
+          h(U.LineChart, {
+            label: '昨天的進氣溫度',
+            unit: '°C',
+            min: 22,
+            max: 30,
+            labels: T,
+            labelEvery: 4,
+            series: [
+              {
+                name: '實際',
+                values: T.map(function () {
+                  return null;
+                }),
+              },
             ],
           }),
         );

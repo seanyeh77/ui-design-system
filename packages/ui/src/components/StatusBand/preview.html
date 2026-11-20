@@ -1,0 +1,70 @@
+<!-- @dsCard group="Data" height=300 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>StatusBand — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      var CLASSES = [
+        { value: 'ai', label: 'AI 最佳化' },
+        { value: 'mix', label: '混合' },
+        { value: 'pid', label: 'PID' },
+        { value: 'manual', label: '人工' },
+      ];
+      var T = [];
+      for (var k = 0; k <= 24; k++) {
+        var m = 13 * 60 + k * 10;
+        T.push(String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'));
+      }
+      var card = {
+        padding: '16px 20px',
+        borderRadius: 'var(--radius-lg)',
+        background: 'var(--surface)',
+        boxShadow: 'var(--shadow-card)',
+        display: 'grid',
+        gap: 8,
+      };
+      function D() {
+        return h(
+          'div',
+          { style: { padding: 20, display: 'grid', gap: 20, maxWidth: 640 } },
+          h(
+            'div',
+            { style: card },
+            h('b', null, '近 4 小時採用的策略'),
+            h(U.StatusBand, {
+              label: '採用的策略',
+              count: 24,
+              times: T,
+              classes: CLASSES,
+              segments: [
+                { from: 0, to: 6, value: 'ai' },
+                { from: 6, to: 10, value: 'mix' },
+                { from: 10, to: 14, value: 'pid' },
+                { from: 14, to: 16, value: 'manual' },
+                { from: 16, to: 24, value: 'ai' },
+              ],
+            }),
+          ),
+          h(
+            'div',
+            { style: card },
+            h('b', null, '尚未開始的時段'),
+            h(U.StatusBand, { label: '採用的策略', count: 24, times: T, classes: CLASSES, segments: [] }),
+          ),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+    </script>
+  </body>
+</html>

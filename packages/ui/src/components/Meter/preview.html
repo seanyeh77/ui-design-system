@@ -1,0 +1,49 @@
+<!-- @dsCard group="Data" height=320 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>Meter — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      var card = { padding: '16px 20px', borderRadius: 'var(--radius-lg)', background: 'var(--surface)', boxShadow: 'var(--shadow-card)', maxWidth: 420 };
+      function D() {
+        var v = React.useState(28.1);
+        return h(
+          'div',
+          { style: { padding: 20, display: 'grid', gap: 16 } },
+          h(
+            'div',
+            { style: card },
+            h(U.Meter, { label: 'A 區進氣溫度', value: 24.6, min: 20, max: 32, warn: 27, limit: 29, unit: '°C', decimals: 1 }),
+            h(U.Meter, { label: 'B 區進氣溫度', value: v[0], min: 20, max: 32, warn: 27, limit: 29, unit: '°C', decimals: 1 }),
+            h(U.Meter, { label: 'UPS 負載', value: 92, min: 0, max: 100, warn: 80, limit: 90, unit: '%' }),
+          ),
+          h(
+            'div',
+            null,
+            h(
+              U.Button,
+              {
+                onClick: function () {
+                  v[1](v[0] >= 29 ? 24.2 : +(v[0] + 0.6).toFixed(1));
+                },
+              },
+              '調整 B 區溫度',
+            ),
+          ),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+    </script>
+  </body>
+</html>

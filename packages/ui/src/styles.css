@@ -8205,3 +8205,238 @@ a.ui-wb-brand:focus-visible {
     transition: none !important;
   }
 }
+
+/* LineChart additions for monitoring: band between two series, now and the future, thresholds, marker, playhead. */
+.ui-chart-headline {
+  margin-bottom: 4px;
+  font-size: 25px;
+  line-height: 32px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.ui-chart-swatch.is-dashed {
+  height: 0;
+  width: 14px;
+  border-radius: 0;
+  border-top: 2.5px dashed currentColor;
+}
+.ui-chart-swatch.is-band.is-success {
+  background: color-mix(in srgb, var(--success) 28%, transparent);
+}
+.ui-chart-swatch.is-band.is-diverge {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--diverge-pos) 60%, transparent) 0 50%,
+    color-mix(in srgb, var(--diverge-neg) 60%, transparent) 50% 100%
+  );
+}
+.ui-chart-line.is-dashed {
+  stroke-dasharray: 7 5;
+  animation: ui-fade-in 600ms ease both;
+}
+@keyframes ui-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+.ui-chart-band {
+  stroke: none;
+}
+.ui-chart-band.is-pos {
+  fill: var(--diverge-pos);
+  opacity: 0.3;
+}
+.ui-chart-band.is-neg {
+  fill: var(--diverge-neg);
+  opacity: 0.3;
+}
+.ui-chart-band.is-success {
+  fill: var(--success);
+  opacity: 0.28;
+}
+.ui-chart-empty {
+  position: absolute;
+  inset: 0 0 12.5% 6%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+.ui-chart-stripe {
+  fill: var(--forecast-stripe);
+}
+.ui-chart-threshold line {
+  stroke-width: 1.5;
+  stroke-dasharray: 6 4;
+}
+.ui-chart-threshold text {
+  font-size: 12px;
+  font-weight: 600;
+}
+.ui-chart-threshold.is-warning line {
+  stroke: var(--warning);
+}
+.ui-chart-threshold.is-warning text {
+  fill: var(--warning-text);
+}
+.ui-chart-threshold.is-danger line {
+  stroke: var(--danger);
+}
+.ui-chart-threshold.is-danger text {
+  fill: var(--danger-text);
+}
+.ui-chart-now line {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+.ui-chart-now text,
+.ui-chart-marker text {
+  font-size: 12px;
+  font-weight: 600;
+  fill: var(--ink);
+}
+.ui-chart-marker circle {
+  fill: var(--surface);
+  stroke-width: 2.5;
+}
+.ui-chart-plot.is-replay {
+  touch-action: pan-y;
+  cursor: ew-resize;
+}
+.ui-chart-playhead line {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+.ui-chart-playhead circle {
+  fill: var(--accent);
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+
+/* StatusBand: a 12 px band of classes along time; under a LineChart it lines up with the points. */
+.ui-statusband-bar {
+  position: relative;
+  height: 12px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--surface-sub);
+}
+.ui-statusband-bar > span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+.ui-statusband.is-attached .ui-statusband-bar {
+  margin-top: 2px;
+}
+.ui-statusband-legend {
+  margin: 8px 0 0;
+}
+
+/* Meter: a value against its levels. The head is a grid so stacked meters line up: the state ends where the value
+   column starts, the value is right-aligned in a fixed column. */
+.ui-meter {
+  --meter-ok: color-mix(in srgb, var(--success) 22%, var(--surface-sub));
+  --meter-warn: color-mix(in srgb, var(--warning) 30%, var(--surface-sub));
+  --meter-over: color-mix(in srgb, var(--danger) 28%, var(--surface-sub));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.ui-meter + .ui-meter {
+  margin-top: var(--space-3);
+}
+.ui-meter-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto var(--meter-value-width, 8ch);
+  align-items: baseline;
+  column-gap: var(--space-3);
+}
+.ui-meter-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ui-meter-state {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-align: right;
+}
+.ui-meter-state.is-success {
+  color: var(--success-text);
+}
+.ui-meter-state.is-warning {
+  color: var(--warning-text);
+}
+.ui-meter-state.is-danger {
+  color: var(--danger-text);
+}
+.ui-meter-value {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+.ui-meter-track {
+  position: relative;
+  height: 8px;
+  border-radius: 4px;
+}
+.ui-meter-mark {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 16px;
+  margin-left: -1px;
+  border-radius: 1px;
+}
+.ui-meter-mark.is-warning {
+  background: var(--warning);
+}
+.ui-meter-mark.is-danger {
+  background: var(--danger);
+}
+.ui-meter-dot {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 2px var(--surface);
+  transition: left 0.3s ease;
+}
+.ui-meter-dot.is-success {
+  background: var(--success);
+}
+.ui-meter-dot.is-warning {
+  background: var(--warning);
+}
+.ui-meter-dot.is-danger {
+  background: var(--danger);
+}
+.ui-meter-marks {
+  position: relative;
+  height: 18px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--ink-muted);
+}
+.ui-meter-marks > span {
+  position: absolute;
+  top: 0;
+  padding: 0 4px;
+  white-space: nowrap;
+}
+/* Marks close together: the limit label takes a second line. */
+.ui-meter-marks.is-stacked {
+  height: 36px;
+}
+.ui-meter-marks.is-stacked > span.is-danger {
+  top: 18px;
+}
