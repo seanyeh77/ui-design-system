@@ -28,12 +28,21 @@ export interface KpiCardProps {
   spark?: number[];
   /** Default 「較上週」. */
   compareLabel?: string;
+  /** `compact`: a 22 px number for a top bar, no sparkline; with verdict and target below. Default 'default' (31 px). */
+  size?: 'default' | 'compact';
+  /** How the figure is judged, in words: 「預測準確」(success), 「偏差變大」(warning), 「需要校正」(danger). Shown only
+   *  when it is not success, in place of the target line and in its color; screen readers always hear it. */
+  verdict?: { tone: 'success' | 'warning' | 'danger'; text: string };
+  /** One gray line under the number, e.g. 「目標 ≤ 0.5 °C（示意）」. */
+  target?: string;
   className?: string;
 }
 
 /** One figure with its change and a sparkline. It is a card: put several in a grid, not inside another Card. */
 export function KpiCard(props: KpiCardProps) {
-  const { label, value, unit, decimals = 0, delta, deltaUnit, good, spark, compareLabel, className } = props;
+  const { label, value, unit, decimals = 0, delta, deltaUnit, good, spark, compareLabel, size = 'default', verdict, target, className } = props;
+  const compact = size === 'compact';
+  devWarn(compact && !!spark, 'KpiCard', 'size="compact" 不畫迷你折線，spark 會被忽略。拿掉 spark，或改用一般大小。');
   devWarn(props.format === 'percent' && !unit, 'KpiCard', 'format=\'percent\' shows the number only; pass unit="%" for the smaller % after it.');
   const t = useCountUp(value, 900);
   const valRef = React.useRef<HTMLDivElement>(null);
@@ -43,14 +52,14 @@ export function KpiCard(props: KpiCardProps) {
   const isGood = good ?? up;
   const dTxt = hasDelta ? (deltaUnit === 'pt' ? tr('{n} 個百分點', { n: format.number(Math.abs(delta), 2) }) : format.percent(Math.abs(delta))) : '';
   let sparkD: string | null = null;
-  if (spark && spark.length > 1) {
+  if (!compact && spark && spark.length > 1) {
     const mx = Math.max(...spark);
     const mn = Math.min(...spark);
     sparkD = smoothPath(spark.map((v, i): Point => [(i * 160) / (spark.length - 1), 32 - ((v - mn) / (mx - mn || 1)) * 28]));
   }
   const showUnit = unit && props.format !== 'money';
   return (
-    <section className={cx('ui-kpi', className)}>
+    <section className={cx('ui-kpi', compact && 'is-compact', className)}>
       <div className="ui-kpi-label">{label}</div>
       <div ref={valRef} className="ui-kpi-value" aria-label={kpiText(value, props, decimals) + (showUnit ? ' ' + unit : '')}>
         <span className="ui-kpi-num" aria-hidden="true">
@@ -76,6 +85,16 @@ export function KpiCard(props: KpiCardProps) {
           </span>
           <span className="ui-kpi-note">{compareLabel || tr('較上週')}</span>
         </div>
+      ) : null}
+      {verdict || target ? (
+        verdict && verdict.tone !== 'success' ? (
+          <div className={'ui-kpi-target ui-kpi-verdict is-' + verdict.tone}>{target ? tr('{v}（{t}）', { v: verdict.text, t: target }) : verdict.text}</div>
+        ) : (
+          <div className="ui-kpi-target">
+            {verdict ? <span className="ui-visually-hidden">{verdict.text + tr('，')}</span> : null}
+            {target}
+          </div>
+        )
       ) : null}
     </section>
   );

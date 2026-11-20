@@ -9,3 +9,21 @@ KPI 卡片，放在 Dashboard 最上方。
 - 卡片太窄、最終數字放不下時，字級自動從 31 px 縮小，最小 20 px。
 - 變化：▲／▼ 加百分比，後面接灰色「較上週」（`compareLabel` 可改）。顏色看好壞：`good` 預設為 `delta > 0`，像錯誤率這種上升是壞事的指標要設 `good={false}`；回應時間下降是好事，設 `good`。
 - 百分比的指標，變化用 `deltaUnit="pt"` 顯示「個百分點」。
+
+## 緊湊版（`size="compact"`）
+
+放進監控畫面頂列的小卡：標籤、22 px 數字、一行 13 px 灰字目標（`target`，例如「目標 ≤ 0.5 °C（示意）」）。不畫迷你折線。
+
+- `verdict: { tone, text }`：判定。`success`（例如「預測準確」）時畫面上只有目標那一行，螢幕閱讀器仍會念判定；`warning`（「偏差變大」）或 `danger`（「需要校正」）時，目標那一行換成那個顏色的半粗字「偏差變大（目標 ≤ 0.5 °C（示意））」。不加符號，用文字說出狀態。
+
+```js
+h(UI.KpiCard, {
+  size: 'compact',
+  label: '近 1 小時誤差',
+  value: 0.9,
+  decimals: 1,
+  unit: '°C',
+  verdict: { tone: 'warning', text: '偏差變大' },
+  target: '目標 ≤ 0.5 °C（示意）',
+});
+```

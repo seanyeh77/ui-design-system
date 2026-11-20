@@ -39,7 +39,17 @@
       }
       function row(n, kids, min) {
         // n columns while they fit; on a phone the cells wrap instead of squeezing.
-        return h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(max(' + (100 / n).toFixed(2) + '% - 4px, ' + (min || 96) + 'px), 1fr))', gap: 4 } }, kids);
+        return h(
+          'div',
+          {
+            style: {
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(max(' + (100 / n).toFixed(2) + '% - 4px, ' + (min || 96) + 'px), 1fr))',
+              gap: 4,
+            },
+          },
+          kids,
+        );
       }
       function Demo() {
         // textOn() reads the theme's values: draw again when the theme changes.

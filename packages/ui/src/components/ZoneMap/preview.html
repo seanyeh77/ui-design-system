@@ -1,0 +1,51 @@
+<!-- @dsCard group="Data" height=340 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>ZoneMap — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      var card = { padding: '16px 20px', borderRadius: 'var(--radius-lg)', background: 'var(--surface)', boxShadow: 'var(--shadow-card)' };
+      var ZONES = [
+        { id: 'a', name: 'A 區', value: 23.1, unit: '°C', detail: '進氣 21.8 °C' },
+        { id: 'b', name: 'B 區', value: 28.4, unit: '°C', tone: 'warning', state: '注意', detail: '進氣 26.1 °C' },
+        { id: 'c', name: 'C 區', value: 24.6, unit: '°C', detail: '進氣 22.9 °C' },
+        { id: 'd', name: 'D 區', value: 25.8, unit: '°C', forecast: true, detail: '下一回合' },
+        { id: 'e', name: 'E 區', value: 21.9, unit: '°C', detail: '進氣 20.7 °C' },
+        { id: 'f', name: 'F 區', value: 29.6, unit: '°C', tone: 'danger', state: '超過上限', detail: '進氣 27.9 °C' },
+        { id: 'g', name: 'G 區', value: 26.2, unit: '°C', detail: '進氣 24.4 °C' },
+        { id: 'h', name: 'H 區', value: null },
+      ];
+      function D() {
+        var sel = React.useState('b');
+        return h(
+          'div',
+          { style: { padding: 20, maxWidth: 880 } },
+          h(
+            'div',
+            { style: card },
+            h(U.ZoneMap, {
+              label: '機房分區',
+              zones: ZONES,
+              selectedId: sel[0],
+              onSelect: function (z) {
+                sel[1](z.id);
+              },
+            }),
+          ),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+    </script>
+  </body>
+</html>

@@ -51,24 +51,27 @@ test('heatToken and divergeToken map values to steps', () => {
   expect(textOn('#000000')).toBe('#ffffff');
 });
 
-test('Tag forecast and demo read on their fills in both themes', () => {
+test('Tag forecast and demo read on the page in both themes', () => {
   render(
     <p>
       <Tag variant="forecast">預測</Tag>
       <Tag variant="demo">示範資料</Tag>
     </p>,
   );
+  const hex = (c: string) =>
+    '#' +
+    (c.match(/\d+/g) ?? [])
+      .slice(0, 3)
+      .map((x) => Number(x).toString(16).padStart(2, '0'))
+      .join('');
   for (const theme of ['light', 'dark']) {
     document.documentElement.setAttribute('data-theme', theme);
+    const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
     for (const name of ['預測', '示範資料']) {
-      const s = getComputedStyle(screen.getByText(name));
-      const hex = (c: string) =>
-        '#' +
-        (c.match(/\d+/g) ?? [])
-          .slice(0, 3)
-          .map((x) => Number(x).toString(16).padStart(2, '0'))
-          .join('');
-      expect(ratio(hex(s.color), hex(s.backgroundColor)), name + ' ' + theme).toBeGreaterThanOrEqual(4.5);
+      const el = screen.getByText(name);
+      expect(el.querySelector('svg'), name).not.toBeNull();
+      expect(getComputedStyle(el).backgroundColor).toBe('rgba(0, 0, 0, 0)');
+      expect(ratio(hex(getComputedStyle(el).color), bg), name + ' ' + theme).toBeGreaterThanOrEqual(4.5);
     }
   }
 });

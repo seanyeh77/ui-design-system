@@ -1,4 +1,4 @@
-<!-- @dsCard group="Data" height=230 -->
+<!-- @dsCard group="Data" height=360 -->
 <!doctype html>
 <html lang="zh-Hant">
   <head>
@@ -18,26 +18,61 @@
       function D() {
         return h(
           'div',
-          { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))', gap: 16, padding: 20 } },
-          h(U.KpiCard, { label: '營收', value: 12840000, format: 'money', delta: 12.4, spark: [8, 9, 8, 10, 11, 10, 12, 13, 12, 14, 15, 14, 16, 17] }),
-          h(U.KpiCard, {
-            label: '平均回應時間',
-            value: 182,
-            unit: 'ms',
-            delta: -8.3,
-            good: true,
-            spark: [22, 21, 23, 20, 21, 19, 20, 19, 18, 19, 18, 17, 18, 17],
-          }),
-          h(U.KpiCard, {
-            label: '錯誤率',
-            value: 0.42,
-            decimals: 2,
-            unit: '%',
-            delta: 0.06,
-            deltaUnit: 'pt',
-            good: false,
-            spark: [3, 3, 4, 3, 3, 4, 3, 4, 4, 3, 4, 5, 4, 5],
-          }),
+          null,
+          h(
+            'div',
+            { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))', gap: 16, padding: 20 } },
+            h(U.KpiCard, { label: '營收', value: 12840000, format: 'money', delta: 12.4, spark: [8, 9, 8, 10, 11, 10, 12, 13, 12, 14, 15, 14, 16, 17] }),
+            h(U.KpiCard, {
+              label: '平均回應時間',
+              value: 182,
+              unit: 'ms',
+              delta: -8.3,
+              good: true,
+              spark: [22, 21, 23, 20, 21, 19, 20, 19, 18, 19, 18, 17, 18, 17],
+            }),
+            h(U.KpiCard, {
+              label: '錯誤率',
+              value: 0.42,
+              decimals: 2,
+              unit: '%',
+              delta: 0.06,
+              deltaUnit: 'pt',
+              good: false,
+              spark: [3, 3, 4, 3, 3, 4, 3, 4, 4, 3, 4, 5, 4, 5],
+            }),
+          ),
+          // size="compact" for a top bar: the verdict shows only when it is not success.
+          h(
+            'div',
+            { style: { display: 'flex', flexWrap: 'wrap', gap: 12, padding: '0 20px 20px' } },
+            h(U.KpiCard, {
+              size: 'compact',
+              label: '預測誤差',
+              value: 0.4,
+              decimals: 1,
+              unit: '°C',
+              verdict: { tone: 'success', text: '預測準確' },
+              target: '目標 ≤ 0.5 °C（示意）',
+            }),
+            h(U.KpiCard, {
+              size: 'compact',
+              label: '近 1 小時誤差',
+              value: 0.9,
+              decimals: 1,
+              unit: '°C',
+              verdict: { tone: 'warning', text: '偏差變大' },
+              target: '目標 ≤ 0.5 °C（示意）',
+            }),
+            h(U.KpiCard, {
+              size: 'compact',
+              label: '距上次校正',
+              value: 21,
+              unit: '天',
+              verdict: { tone: 'danger', text: '需要校正' },
+              target: '每 14 天校正一次',
+            }),
+          ),
         );
       }
       ReactDOM.createRoot(document.getElementById('root')).render(h(D));

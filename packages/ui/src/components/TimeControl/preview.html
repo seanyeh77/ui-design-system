@@ -1,0 +1,44 @@
+<!-- @dsCard group="Data" height=260 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>TimeControl — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      var card = { padding: '16px 20px', borderRadius: 'var(--radius-lg)', background: 'var(--surface)', boxShadow: 'var(--shadow-card)' };
+      function D() {
+        var rp = React.useState(false);
+        var replaying = rp[0];
+        return h(
+          'div',
+          { style: { padding: 20, maxWidth: 400 } },
+          h(
+            'div',
+            { style: card },
+            h(U.TimeControl, {
+              time: replaying ? new Date(2026, 10, 20, 14, 10) : new Date(2026, 10, 20, 16, 24),
+              replaying: replaying,
+              onReplayChange: rp[1],
+              onNow: function () {
+                rp[1](false);
+              },
+              status: replaying ? '回放中：14:10 起的紀錄，每 2 秒前進 10 分鐘。' : '即時：每 10 秒更新一次。',
+              detail: replaying ? '紀錄範圍 2026/11/20（五）12:00 到 16:24' : '最後更新 16:24:10',
+            }),
+          ),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+    </script>
+  </body>
+</html>

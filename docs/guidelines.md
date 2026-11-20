@@ -175,8 +175,12 @@
 - 數字進場：從 0 數上來（900 ms）。
 - 圖表配色：多色，依序 `chart-1` 藍、`chart-2` 青、`chart-3` 橘、`chart-4` 暖灰；只有一組資料時用 `chart-1`。`chart-4` 給「其他」「人工」這類次要的一類。類別超過 3 時，圖例一定有文字，色帶旁有標籤。
 - 熱度色階：`heat-1`…`heat-7`，冷 → 熱，藍 → 中性暖灰 → 橘紅；數值對應哪一段由頁面決定（`heatToken(value, min, max)`），例如 20 → 30 °C。差值用發散色階：`diverge-neg-strong`、`diverge-neg`、`diverge-zero`、`diverge-pos`、`diverge-pos-strong`（負藍、0 灰、正橘；`divergeToken(diff, { zero, strong })`）。色階只用在資料的填色；上面的字用 `textOn(fill)` 選深色（#171512）或白色，取對比較高的，每一段都有 4.5:1。狀態不只靠顏色：數值一定寫出來，告警加「⚠」文字與邊框。
-- 預測、非實測的數值：填色上疊 45° 斜線（`ui-forecast`：線 4 px、間距 9 px，`forecast-stripe` 是文字色 14% 不透明），旁邊加 `Tag variant="forecast"`「預測」（`accent-soft` 底、`accent-text` 字）。
-- 整頁都是示範值時，頂列品牌旁放一個 `Tag variant="demo"`「示範資料」（`warning-soft` 底、`warning-text` 粗體）。
+- 預測、非實測的數值：填色上疊 45° 斜線（`ui-forecast`：線 4 px、間距 9 px，`forecast-stripe` 是文字色 14% 不透明），旁邊加 `Tag variant="forecast"`「預測」（趨勢線圖示加 `accent-text` 字，沒有底色）。
+- 整頁都是示範值時，頂列品牌旁放一個 `Tag variant="demo"`「示範資料」（資訊圖示加 `warning-text` 字，沒有底色）。「預測」「示範資料」的字級跟著旁邊的文字，半粗。
+- 分區平面圖（ZoneMap）：名稱 16 px 和狀態同一行，主數值 31 px、單位 16 px，次要資訊 13 px；選取是分區外 4 px 的 `ink` 外框，需要注意是 4 px 的 `warning`／`danger` 內框加「⚠」。
+- 事件列表（EventTimeline）：由新到舊，一列一筆：時間、類型圖示（沒有底色）、說明。
+- 時間控制（TimeControl）：直排，時鐘 28 px、兩行說明、「回放」（回放中是「停止回放」）和「回到現在」。
+- 監控畫面頂列的 KPI 用 `KpiCard size="compact"`：數字 22 px，一行灰字目標；判定只在需要注意時取代目標那一行，用文字和狀態色，不加符號、不加底色。
 - 監控畫面（全螢幕、常駐、遠看）：最小字 13 px，SVG 軸標 12 px。大螢幕依視窗等比放大：倍數 = 視窗寬 ÷ 1440 和 視窗高 ÷ 900 的較小者，下限 1、上限 1.5；1440 × 900 以下不縮小，改用斷點。
 - 監控畫面上的危險動作照一般規則：按鈕用實心紅色，按下後先跳確認對話框（例如「切回 PID 控制？」）；不用卡片內的行內確認，也沒有紅色外框的按鈕。
 - 折線：平滑曲線，不填色。例外只有兩組資料之間的差額帶（LineChart `band`）：預測與實際依正負填 `diverge-pos`／`diverge-neg` 30%，實際與基準之間（省下的量）填 `success` 28%；不用在三組以上的圖。
