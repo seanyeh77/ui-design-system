@@ -500,6 +500,30 @@ AI 定的細節（待確認）：
 - 放大按鈕和複製按鈕同樣是 40 px 的外框圖示按鈕。
 - 沒有分頁的表格維持最高 560 px、表頭固定；有頁碼時表頭跟著頁面捲走，不固定在畫面上方。
 
+## 監控畫面的資料色、預測與示範標示、字級，與危險動作的確認（第 1 批）
+
+使用者的要求（節錄）：為「機房數位孿生 Dashboard」（給客戶看的全螢幕監控畫面）補上 token：連續 7 段的熱度色階（冷 → 熱，例如 20 → 30 °C 對應 `heat-1…7`）與差值發散色階（負藍、0 中性灰、正橘），色階上的文字自動選深或白（4.5:1），狀態不能只靠顏色；`chart-4`，類別超過 3 時圖例必須有文字、色帶旁有標籤；「預測／非實測」的斜線紋理（45°、4／9 px、不透明度 .14）與「預測」標籤（accent-soft 底）；「示範資料」標籤（warning-soft 底、warning-text 粗體）；監控畫面最小 13 px（SVG 軸標 12 px），大螢幕依視窗寬高等比放大。並決定卡片內的「行內確認」與「紅色外框、透明底」的危險按鈕。使用者選擇分四批做試做頁，這是第 1 批；和現有元件重疊的部分擴充現有元件。
+
+使用者的選擇：「H1 D2 C1 F1 M1 S2 I1 O1」。
+
+- H1：熱度色階藍 → 中性灰 → 紅。（其他選項：H2 單色暖階；H3 熱像儀配色。）
+- D2：差值發散色階五段，多兩個 `-strong`。（其他選項：D1 三個 token。）
+- C1：`chart-4` 用暖灰（和 `line-strong` 同色）。（其他選項：C2 紫；C3 桃紅。）
+- F1：預測紋理用文字色的斜線，45°、線 4 px、間距 9 px、不透明度 .14。（其他選項：F2 強調色斜線；F3 點狀。）
+- M1：「示範資料」用 warning-soft 底、warning-text 粗體。（其他選項：M2 圓點加文字；M3 橘色外框。）
+- S2：大螢幕縮放上限 1.5 倍。（其他選項：S1 上限 1.25 倍；S3 不縮放。）
+- I1：切回原本控制這類危險動作改用 Dialog，不新增 InlineConfirm。（其他選項：I2 新增 InlineConfirm。）
+- O1：危險按鈕維持實心紅色，不新增 danger-outline。（其他選項：O2 新增 danger-outline。）
+
+AI 定的細節（待確認）：
+
+- 色值：熱度淺色 `#2f6fb5 #6f9fd0 #b5cbe3 #e7e3dd #f2c08a #e8853a #c8401f`、深色 `#3d74b8 #5f8cc6 #8fa9c9 #5a534c #c9925a #d9772f #e0532d`；差值淺色 `#1f4f8f #6f9fd0 #e7e3dd #f2a462 #ad5512`、深色 `#9dbbe8 #5f8cc6 #5a534c #d9772f #f0a35e`（淺色 `diverge-pos-strong` 從試做頁的 `#c25e15` 加深成 `#ad5512`，白字才有 4.5:1）；`chart-4` 淺色 `#8c8073`、深色 `#a59a8f`。色盲模擬還沒做。
+- 名稱：`heat-1`…`heat-7`；`diverge-neg-strong`、`diverge-neg`、`diverge-zero`、`diverge-pos`、`diverge-pos-strong`；紋理的顏色是 token `forecast-stripe`（淺色 ink 14%、深色 ink 14%），紋理本身是 class `ui-forecast`（token 只能放顏色，不能放漸層）。
+- 新增函式 `textOn(fill)`（選 #171512 或白色）、`heatToken(value, min, max)`、`divergeToken(diff, { zero, strong })`；數值對應色階的範圍由頁面決定。
+- 「預測」與「示範資料」做成 `Tag` 的 `variant="forecast"` 與 `variant="demo"`：高 22 px 與 24 px，`radius-sm`；README 原本「Tag 一律灰色」改成這兩個例外。
+- 新增文件頁 `DataColors`（Foundations），放類別色、色階、紋理與監控畫面字級的說明和示範。LineChart 最多四組資料（原本三組）。
+- S2 的縮放實作放在第 4 批的監控版面；這次只把規則寫進 guidelines：倍數 = 視窗寬 ÷ 1440 和 視窗高 ÷ 900 的較小者，下限 1、上限 1.5。
+
 ## CodeView peek 標示一段範圍
 
 使用者的要求（節錄）：codemap 的「定義」分頁列出檔案裡的 struct、typedef、巨集與變數，滑鼠停在一項上時，讀者要在程式碼裡看到那個定義的全部內容，而不只是第一行。`peek` 也接受範圍，例如 `peek?: number | { from: number; to: number } | null`；範圍內每一行都用現有的 peek 外觀標示。整段放得進程式碼區時，以最小的捲動量讓整段都在畫面內，已經都在畫面內時不捲動；整段比程式碼區高時，把第一行捲到頂端，讓這段填滿畫面。和單行 peek 一樣不移動焦點、不影響選取，`null` 清除。

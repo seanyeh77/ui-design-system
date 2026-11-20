@@ -11,7 +11,7 @@ export interface LineSeries {
 }
 
 export interface LineChartProps {
-  /** Up to 3 series (chart-1 to chart-3); a legend appears for 2 or more. */
+  /** Up to 4 series (chart-1 to chart-4); a legend with each name appears for 2 or more. */
   series: LineSeries[];
   /** One label per point on the x axis. */
   labels: string[];

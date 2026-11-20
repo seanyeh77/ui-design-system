@@ -42,7 +42,7 @@ export function smoothPath(p: Point[]): string {
   return d;
 }
 
-const CHART = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)'];
+const CHART = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)'];
 /** The color of series i. */
 export const seriesColor = (i: number): string => CHART[i % CHART.length];
 /** Grid lines at these fractions of the axis maximum. */

@@ -145,3 +145,33 @@ export function initTheme(): void {
     if (storedTheme() === 'auto') setTheme('auto');
   });
 }
+
+/** The text color for something drawn on a fill (a heat-scale zone, a status band): the near-black ink of the light
+ *  theme (#171512) or white, whichever contrasts more with the fill. `fill` is a color (#hex, rgb()) or a token name
+ *  such as 'heat-6', read from el (default: the root) so it follows the theme. Every step of heat-*, diverge-* and
+ *  chart-* reaches 4.5:1 with its pick. Unreadable colors give the near-black ink. */
+export function textOn(fill: string, el?: Element): '#171512' | '#ffffff' {
+  let c = fill.trim();
+  if (/^[a-z][a-z0-9-]*$/.test(c) && typeof document !== 'undefined') c = getComputedStyle(el ?? document.documentElement).getPropertyValue('--' + c);
+  const hex = toHex(c);
+  if (!hex) return '#171512';
+  return contrast(hex, '#171512') >= contrast(hex, '#ffffff') ? '#171512' : '#ffffff';
+}
+
+/** The heat-scale token for a value: min (or below) is heat-1, max (or above) is heat-7, evenly in between. */
+export function heatToken(value: number, min: number, max: number): `heat-${1 | 2 | 3 | 4 | 5 | 6 | 7}` {
+  const t = max > min ? (value - min) / (max - min) : 0;
+  const step = Math.min(7, Math.max(1, Math.round(t * 6) + 1)) as 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  return `heat-${step}`;
+}
+
+/** The diverging-scale token for a difference: within ±zero it is diverge-zero; from ±strong on, the -strong step. */
+export function divergeToken(
+  diff: number,
+  limits: { zero: number; strong: number },
+): 'diverge-neg-strong' | 'diverge-neg' | 'diverge-zero' | 'diverge-pos' | 'diverge-pos-strong' {
+  const a = Math.abs(diff);
+  if (a <= limits.zero) return 'diverge-zero';
+  const strong = a >= limits.strong;
+  return diff < 0 ? (strong ? 'diverge-neg-strong' : 'diverge-neg') : strong ? 'diverge-pos-strong' : 'diverge-pos';
+}

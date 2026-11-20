@@ -146,7 +146,7 @@ export type { Token, TokenClass, Tokenizer, CodeLanguage } from './components/Co
 export * from './format-entry';
 export { Icon, icons, type IconProps, type IconName, type IconSource, type CustomIcon } from './icons/Icon';
 export { MOTION } from './motion';
-export { initTheme, setAccent, setTheme, type ThemeSetting } from './theme';
+export { initTheme, setAccent, setTheme, textOn, heatToken, divergeToken, type ThemeSetting } from './theme';
 export { announce } from './announce';
 export { focusMain } from './components/AppShell/AppShell';
 export { Workbench, useWorkbench } from './components/Workbench/Workbench';

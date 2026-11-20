@@ -4613,6 +4613,43 @@ html.ui-theme-fade * {
   color: var(--ink-muted);
   white-space: nowrap;
 }
+/* Tag variant="forecast": a forecast (not measured) value, beside it or on a ui-forecast area. */
+.ui-tag.is-forecast {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  line-height: 20px;
+}
+/* Tag variant="demo": the whole page shows sample values; beside the brand, one per page. */
+.ui-tag.is-demo {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--warning-soft);
+  color: var(--warning-text);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 20px;
+}
+/* A forecast (not measured) area: 45 deg stripes over its fill (4 px line, 9 px period). Put it on the element that
+   has the fill; it adds a layer on top, the fill and text stay. */
+.ui-forecast {
+  position: relative;
+}
+.ui-forecast::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: repeating-linear-gradient(45deg, var(--forecast-stripe) 0 4px, transparent 4px 9px);
+  pointer-events: none;
+}
 
 /* ProjectSwitcher */
 .ui-projsw {

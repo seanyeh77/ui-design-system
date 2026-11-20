@@ -1,0 +1,115 @@
+<!-- @dsCard group="Foundations" height=520 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>DataColors — preview</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      function cell(token, label, extra) {
+        return h(
+          'div',
+          {
+            key: token + label,
+            className: extra && extra.forecast ? 'ui-forecast' : undefined,
+            style: {
+              background: 'var(--' + token + ')',
+              color: U.textOn(token),
+              minHeight: 56,
+              borderRadius: 6,
+              padding: '6px 8px',
+              boxSizing: 'border-box',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 13,
+              fontWeight: 600,
+              boxShadow: extra && extra.warn ? 'inset 0 0 0 4px var(--warning)' : undefined,
+            },
+          },
+          h('span', { style: { whiteSpace: 'nowrap' } }, label),
+          h('span', { style: { fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap' } }, (extra && extra.note) || token),
+        );
+      }
+      function row(n, kids, min) {
+        // n columns while they fit; on a phone the cells wrap instead of squeezing.
+        return h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(max(' + (100 / n).toFixed(2) + '% - 4px, ' + (min || 96) + 'px), 1fr))', gap: 4 } }, kids);
+      }
+      function Demo() {
+        // textOn() reads the theme's values: draw again when the theme changes.
+        var t = React.useState(0);
+        React.useEffect(function () {
+          var o = new MutationObserver(function () {
+            t[1](function (x) {
+              return x + 1;
+            });
+          });
+          o.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+          return function () {
+            o.disconnect();
+          };
+        }, []);
+        var heat = [1, 2, 3, 4, 5, 6, 7].map(function (n) {
+          return cell('heat-' + n, (20 + ((n - 1) * 10) / 6).toFixed(1) + ' °C');
+        });
+        var div = [
+          ['diverge-neg-strong', '−3 °C'],
+          ['diverge-neg', '−1.5 °C'],
+          ['diverge-zero', '0 °C'],
+          ['diverge-pos', '+1.5 °C'],
+          ['diverge-pos-strong', '+3 °C'],
+        ].map(function (x) {
+          return cell(x[0], x[1]);
+        });
+        var chart = ['實際', '預測', '基準', '人工'].map(function (l, i) {
+          return cell('chart-' + (i + 1), l);
+        });
+        var zones = [
+          cell(U.heatToken(22.8, 20, 30), '22.8 °C', { note: 'A 區 正常' }),
+          cell(U.heatToken(28.9, 20, 30), '28.9 °C', { note: 'B 區 ⚠ 接近上限', warn: true }),
+          cell(U.heatToken(25.8, 20, 30), '25.8 °C', { note: 'C 區 預測', forecast: true }),
+          h(
+            'div',
+            {
+              key: 'empty',
+              style: {
+                minHeight: 56,
+                borderRadius: 6,
+                border: '1px dashed var(--line-strong)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 13,
+                color: 'var(--ink-muted)',
+              },
+            },
+            'D 區 沒有資料',
+          ),
+        ];
+        return h(
+          'div',
+          { style: { display: 'grid', gap: 12, maxWidth: 760 } },
+          h(
+            'div',
+            { style: { display: 'flex', gap: 8, alignItems: 'center' } },
+            h('b', null, '機房監控'),
+            h(U.Tag, { variant: 'demo' }, '示範資料'),
+            h('span', { style: { flex: 1 } }),
+            h(U.Tag, { variant: 'forecast' }, '預測'),
+          ),
+          row(7, heat),
+          row(5, div, 136),
+          row(4, chart),
+          row(4, zones, 136),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+    </script>
+  </body>
+</html>
