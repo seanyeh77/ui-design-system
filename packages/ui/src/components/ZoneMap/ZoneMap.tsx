@@ -35,8 +35,11 @@ export interface ZoneMapProps {
   /** Columns of the grid. Default 4. Where a zone would be narrower than 150 px (phones), fewer columns are used and
    *  `area` placements are dropped, so zones flow in order. */
   columns?: number;
-  /** Height of one grid row in px. Default 120. */
+  /** Height of one grid row in px. Default 120. With `fill`, the least height of a row. */
   rowHeight?: number;
+  /** Rows grow to fill the height the map is given (in ConsoleLayout's main view, or any flex column), never below
+   *  `rowHeight`. */
+  fill?: boolean;
   /** The heat scale's range for zones without a fill. Default 20 to 30. */
   min?: number;
   max?: number;
@@ -50,13 +53,13 @@ export interface ZoneMapProps {
  *  ink outline outside it; a zone needing attention has a 4 px warning or danger border and 「⚠」 in its state. */
 const DATA_TOKEN = /^(heat-[1-7]|diverge-(neg|pos)(-strong)?|diverge-zero|chart-[1-4])$/;
 
-export function ZoneMap({ zones, label, columns = 4, rowHeight = 120, min = 20, max = 30, selectedId, onSelect, className }: ZoneMapProps) {
+export function ZoneMap({ zones, label, columns = 4, rowHeight = 120, fill = false, min = 20, max = 30, selectedId, onSelect, className }: ZoneMapProps) {
   return (
     <div
-      className={cx('ui-zonemap', className)}
+      className={cx('ui-zonemap', fill && 'is-fill', className)}
       role="group"
       aria-label={label}
-      style={{ '--zone-cols': columns, gridAutoRows: rowHeight + 'px' } as React.CSSProperties}
+      style={{ '--zone-cols': columns, gridAutoRows: fill ? `minmax(${rowHeight}px, 1fr)` : rowHeight + 'px' } as React.CSSProperties}
     >
       {zones.map((z) => {
         const place = z.area ? { gridRow: `${z.area.row} / span ${z.area.rows ?? 1}`, gridColumn: `${z.area.col} / span ${z.area.cols ?? 1}` } : undefined;

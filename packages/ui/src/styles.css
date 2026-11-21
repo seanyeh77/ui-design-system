@@ -8571,6 +8571,11 @@ a.ui-wb-brand:focus-visible {
   padding: 6px;
   container-type: inline-size;
 }
+/* fill: the map takes the rest of a flex column (a Card in ConsoleLayout's main view) and its rows share it. */
+.ui-zonemap.is-fill {
+  flex: 1 1 auto;
+  min-height: 0;
+}
 /* Too narrow for the columns asked: zones flow in order instead of their grid places. */
 @container (max-width: 640px) {
   .ui-zonemap > .ui-zone {
@@ -8814,6 +8819,9 @@ a.ui-wb-brand:focus-visible {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
+  /* a column, so a ZoneMap with fill (or any flex: 1 child) takes the card's remaining height */
+  display: flex;
+  flex-direction: column;
 }
 .ui-console-side {
   grid-column: 2;

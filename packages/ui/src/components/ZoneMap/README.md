@@ -8,6 +8,7 @@
 - 預測：`forecast` 疊上預測斜線，狀態預設「預測」。
 - 沒有資料（`value` 是 `null`）：虛線框，名稱加「沒有資料」，不能選。
 - 位置：`area: { row, col, rows, cols }`（從 1 開始）；沒給時依序排入 `columns` 欄（預設 4）、每列 `rowHeight` px（預設 120）。目前只有矩形。
+- `fill`：列高平分地圖拿到的高度，最少 `rowHeight` px。用在 ConsoleLayout 的主視覺卡片裡，讓分區撐滿卡片、不留空白。
 - 鍵盤：每個分區是按鈕，Tab 依序經過，Enter 或空白鍵選取（`aria-pressed`）。螢幕閱讀器念「B 區，28.4 °C，注意，進氣 26.1 °C」。
 
 ```js

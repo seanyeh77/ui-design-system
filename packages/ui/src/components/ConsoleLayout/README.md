@@ -4,7 +4,7 @@
 
 - 頂列：左邊 `title`（整頁唯一的標題）和 `tags`（例如 `Tag variant="demo"`「示範資料」）；右邊依序是 `status`、`kpis`、`clock`、全螢幕按鈕。頂列的字都是 16 px、同一個顏色：`status` 傳一般文字（例如「AI 最佳化中」），不要用 Badge 或狀態色。
 - `kpis` 放 `KpiCard size="compact"`，在頂列裡去掉卡片底色和陰影，中間用 1 px 線分開。
-- `main`：主視覺，例如裝 ZoneMap 的 Card；填滿左邊的格子，放不下時在卡片裡捲動。
+- `main`：主視覺，例如裝 ZoneMap 的 Card；填滿左邊的格子，放不下時在卡片裡捲動。卡片裡是由上而下排的欄，ZoneMap 加 `fill` 就會撐滿卡片剩下的高度。
 - `side`：側欄的卡片，由上到下，例如 TimeControl、EventTimeline。側欄 400 px（版面寬度小於 1280 px 時 360 px），放不下時側欄自己捲動。
 - `bottom`：主視覺下方一列，高度跟著內容，例如裝 LineChart 的 Card；主視覺拿剩下的高度。
 - `extras: [{ id, minHeight, node }]`：螢幕夠高才出現的卡片，加在側欄最後面。`minHeight` 比的是「邏輯高度」，也就是畫面高度 ÷ 放大倍數，例如 1040。
@@ -23,7 +23,7 @@ h(UI.ConsoleLayout, {
     h(UI.KpiCard, { key: 'p', size: 'compact', label: 'PUE', value: 1.42, decimals: 2, target: '目標 ≤ 1.45' }),
   ],
   clock: '即時',
-  main: h(UI.Card, { title: '機房分區' }, h(UI.ZoneMap, { label: '機房分區', zones: zones })),
+  main: h(UI.Card, { title: '機房分區' }, h(UI.ZoneMap, { label: '機房分區', zones: zones, fill: true })),
   side: [h(UI.Card, { key: 't' }, h(UI.TimeControl, timeProps)), h(UI.Card, { key: 'e', title: '事件' }, h(UI.EventTimeline, eventProps))],
   bottom: h(UI.Card, null, h(UI.LineChart, chartProps)),
   extras: [{ id: 'meters', minHeight: 1040, node: h(UI.Card, { title: '各區進氣溫度' }, meters) }],

@@ -54,3 +54,17 @@ test('fill follows the value on the heat scale, and its text reaches 4.5:1 in bo
   }
   document.documentElement.removeAttribute('data-theme');
 });
+
+test('fill: rows share the height the map is given, never below rowHeight', async () => {
+  const zones = [
+    { id: 'a', name: 'A 區', value: 23 },
+    { id: 'b', name: 'B 區', value: 24 },
+  ];
+  const { container } = render(
+    <div style={{ display: 'flex', flexDirection: 'column', height: 600, width: 800 }}>
+      <ZoneMap label="機房分區" zones={zones} columns={1} fill />
+    </div>,
+  );
+  const zone = container.querySelector('.ui-zone') as HTMLElement;
+  await expect.poll(() => zone.getBoundingClientRect().height).toBeGreaterThan(250);
+});
