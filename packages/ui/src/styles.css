@@ -4613,8 +4613,8 @@ html.ui-theme-fade * {
   color: var(--ink-muted);
   white-space: nowrap;
 }
-/* Tag variant="forecast" and "demo": an icon and words in the state's text color, no fill; the size of the text beside
-   them (a mark beside the brand is as large as the brand). */
+/* Tag variant="forecast" and "demo": an icon and words, no fill, the size of the text beside them (a mark beside the
+   brand is as large as the brand). Forecast is in the accent text color; demo keeps the color of the text around it. */
 .ui-tag.is-forecast,
 .ui-tag.is-demo {
   display: inline-flex;
@@ -4628,7 +4628,7 @@ html.ui-theme-fade * {
   color: var(--accent-text);
 }
 .ui-tag.is-demo {
-  color: var(--warning-text);
+  color: inherit;
 }
 .ui-tag.is-forecast > svg,
 .ui-tag.is-demo > svg {
@@ -8730,4 +8730,145 @@ a.ui-wb-brand:focus-visible {
   flex-wrap: wrap;
   gap: var(--space-2);
   margin-top: var(--space-2);
+}
+
+/* ConsoleLayout: a full-screen monitoring layout. Top bar, main view with a side panel and a bottom row, no page
+   scroll; the frame zooms 1 to 1.5x from 1440 x 900 up (inline zoom, width and height from the component). */
+.ui-console {
+  container-type: inline-size;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+}
+.ui-console-frame {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 12px;
+}
+@container (max-width: 1279px) {
+  .ui-console-frame {
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
+}
+.ui-console-top {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 64px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.ui-console-start,
+.ui-console-end {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.ui-console-title {
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.ui-console-status,
+.ui-console-clock {
+  white-space: nowrap;
+}
+.ui-console-kpis {
+  display: flex;
+  align-items: stretch;
+}
+.ui-console-kpis > .ui-kpi {
+  padding: 6px var(--space-4);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  border-left: 1px solid var(--line);
+}
+.ui-console-kpis > .ui-kpi:last-child {
+  border-right: 1px solid var(--line);
+}
+.ui-console-main {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.ui-console-main > * {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+.ui-console-side {
+  grid-column: 2;
+  grid-row: 2 / 4;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  /* room for the cards' shadows inside the scrolling column */
+  margin: -12px;
+  padding: 12px;
+}
+.ui-console-side > * {
+  flex: none;
+}
+.ui-console-bottom {
+  grid-column: 1;
+  grid-row: 3;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+/* Phones: one scrolling column, top bar first, then the main view, side cards, bottom row and extra cards. */
+.ui-console.is-stacked {
+  height: auto;
+  min-height: 100dvh;
+  overflow: visible;
+}
+.ui-console.is-stacked .ui-console-frame {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+}
+.ui-console.is-stacked .ui-console-top {
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+}
+.ui-console.is-stacked .ui-console-end {
+  flex-wrap: wrap;
+  row-gap: var(--space-2);
+}
+.ui-console.is-stacked .ui-console-kpis {
+  order: 1;
+  width: 100%;
+  overflow-x: auto;
+}
+.ui-console.is-stacked .ui-console-kpis > .ui-kpi:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+.ui-console.is-stacked .ui-console-kpis > .ui-kpi:last-child {
+  border-right: 0;
+}
+.ui-console.is-stacked .ui-console-main {
+  min-height: 320px;
 }

@@ -67,16 +67,18 @@ export interface LineChartProps {
   headline?: React.ReactNode;
   /** Shown in place of the lines when no series has a value. Default 「這段時間沒有資料」. */
   empty?: string;
+  /** Height of the plot in px, axes included (x labels, the status band and the legend come on top). Default 240.
+   *  Text in the chart stays at its own size however wide the chart is. */
+  height?: number;
   /** A status band under the x axis, aligned with the points (StatusBand without its own spacing). */
   status?: Omit<StatusBandProps, 'count' | 'times' | 'legend' | 'className'>;
   className?: string;
 }
 
-const W = 640;
+/** Plot geometry in px: y labels left of L, the 現在 label above T, the playhead handle below B. */
 const L = 40;
-const R = 630;
 const T = 10;
-const B = 210;
+const BELOW = 30;
 
 /** Runs of consecutive points that have values. */
 function runs(values: (number | null)[], X: (i: number) => number, Y: (v: number) => number): Point[][] {
@@ -114,9 +116,26 @@ export function LineChart({
   headline,
   status,
   empty,
+  height = 240,
   className,
 }: LineChartProps) {
   const [hi, setHi] = React.useState(-1);
+  const plot = React.useRef<HTMLDivElement>(null);
+  const [W, setW] = React.useState(640);
+  React.useLayoutEffect(() => {
+    const el = plot.current;
+    if (!el) return;
+    const fit = () => {
+      if (el.clientWidth > 0) setW(el.clientWidth);
+    };
+    fit();
+    if (typeof ResizeObserver !== 'function') return;
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const R = W - 10;
+  const B = height - BELOW;
   const stripes = 'ui-stripes-' + React.useId().replace(/:/g, '');
   const dragging = React.useRef(false);
   const all = series.flatMap((s) => s.values.filter((v): v is number => v != null));
@@ -151,6 +170,11 @@ export function LineChart({
   };
   const edge = { left: ((L - step / 2) / W) * 100 + '%', right: ((W - R - step / 2) / W) * 100 + '%' };
   const legend = series.length > 1 || band;
+  // Fewer x labels when they would touch: Geist Mono 12 px is about 7.5 px a character, 12 px between labels.
+  const widest = Math.max(0, ...labels.map((lb) => lb.length)) * 7.5 + 12;
+  const every = Math.max(labelEvery, Math.ceil((n * widest) / Math.max(1, R - L) / labelEvery) * labelEvery);
+  // The marker's label goes left of the point when it would run past the right edge (CJK about 14 px a character).
+  const markerLeft = marker ? X(marker.at) + 10 + [...marker.label].reduce((w, c) => w + (c.charCodeAt(0) > 0x2e80 ? 14 : 8), 0) > W : false;
   // Band: one quadrilateral per step where both series have values, colored by which one is higher.
   const bandShapes: { d: string; up: boolean }[] = [];
   if (band) {
@@ -204,6 +228,7 @@ export function LineChart({
         </div>
       ) : null}
       <div
+        ref={plot}
         className={cx('ui-chart-plot', replay && 'is-replay')}
         tabIndex={n ? 0 : undefined}
         role="group"
@@ -246,7 +271,7 @@ export function LineChart({
         }}
       >
         {/* The group around it carries the name and the keys. */}
-        <svg viewBox={`0 0 ${W} 240`} width="100%" aria-hidden="true">
+        <svg viewBox={`0 0 ${W} ${height}`} width="100%" height={height} aria-hidden="true">
           {now != null && now < n - 1 ? (
             <>
               {/* After now everything is forecast: the same 45° stripes as ui-forecast (4 px line, 9 px period). */}
@@ -304,7 +329,7 @@ export function LineChart({
                 r={5.5}
                 style={{ stroke: colorOf(series[marker.series ?? series.length - 1], marker.series ?? series.length - 1) }}
               />
-              <text x={X(marker.at) + (marker.at > n * 0.7 ? -10 : 10)} y={Y(marker.value) + 20} textAnchor={marker.at > n * 0.7 ? 'end' : 'start'}>
+              <text x={X(marker.at) + (markerLeft ? -10 : 10)} y={Y(marker.value) + 20} textAnchor={markerLeft ? 'end' : 'start'}>
                 {marker.label}
               </text>
             </g>
@@ -316,7 +341,7 @@ export function LineChart({
             </g>
           ) : null}
         </svg>
-        <div className="ui-chart-hit" style={edge}>
+        <div className="ui-chart-hit" style={{ ...edge, bottom: BELOW }}>
           {labels.map((_, j) => (
             <div key={j} onMouseEnter={() => !dragging.current && setHi(j)} className="ui-chart-col">
               {shown === j ? (
@@ -349,7 +374,7 @@ export function LineChart({
       ) : null}
       <div className="ui-chart-xlabels" style={{ marginLeft: edge.left, marginRight: edge.right }}>
         {labels.map((lb, j) => (
-          <span key={j}>{labelEvery > 1 && j % labelEvery ? '' : digits(lb)}</span>
+          <span key={j}>{every > 1 && j % every ? '' : digits(lb)}</span>
         ))}
       </div>
       {status ? <StatusLegend classes={status.classes} label={status.label} /> : null}

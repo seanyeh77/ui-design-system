@@ -1,0 +1,135 @@
+<!-- @dsCard group="Pages" height=720 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>ConsoleLayout — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      // The layout fills the screen: no page padding around it.
+      document.body.style.padding = '0';
+      var ZONES = [
+        { id: 'a', name: 'A 區', value: 23.1, unit: '°C', decimals: 1, detail: '進氣 21.8 °C' },
+        { id: 'b', name: 'B 區', value: 28.4, unit: '°C', decimals: 1, tone: 'warning', state: '注意', detail: '進氣 26.1 °C' },
+        { id: 'c', name: 'C 區', value: 24.6, unit: '°C', decimals: 1, detail: '進氣 22.9 °C' },
+        { id: 'd', name: 'D 區', value: 25.8, unit: '°C', decimals: 1, forecast: true, detail: '下一回合' },
+        { id: 'e', name: 'E 區', value: 21.9, unit: '°C', decimals: 1, detail: '進氣 20.7 °C' },
+        { id: 'f', name: 'F 區', value: 29.6, unit: '°C', decimals: 1, tone: 'danger', state: '超過上限', detail: '進氣 27.9 °C' },
+        { id: 'g', name: 'G 區', value: 26.2, unit: '°C', decimals: 1, detail: '進氣 24.4 °C' },
+        { id: 'h', name: 'H 區', value: 24.0, unit: '°C', decimals: 1, detail: '進氣 22.6 °C' },
+      ];
+      var T = [];
+      for (var k = 0; k < 24; k++) {
+        var m = 13 * 60 + k * 10;
+        T.push(String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'));
+      }
+      var ACT = [24.2, 24.4, 24.9, 25.3, 25.1, 25.6, 26.2, 26.8, 27.3, 27.1, 26.6, 26.1, 25.7, 25.4, 25.6, 25.9];
+      var FC = [24.0, 24.5, 24.7, 25.0, 25.4, 25.8, 26.0, 26.4, 26.9, 27.4, 27.0, 26.4, 25.9, 25.6, 25.3, 25.6, 25.8, 26.1, 26.5, 26.9, 27.2, 27.0, 26.6, 26.2];
+      var t = function (hh, mm) {
+        return new Date(2026, 10, 20, hh, mm);
+      };
+      var EVENTS = [
+        { time: t(16, 20), kind: 'alert', text: 'F 區進氣溫度超過上限 29 °C' },
+        { time: t(16, 5), kind: 'switch', text: '控制從 PID 切回 AI 最佳化' },
+        { time: t(15, 42), kind: 'ai', text: 'AI 調高 2 號空調風量 10%' },
+        { time: t(14, 58), kind: 'manual', text: '值班人員把 B 區設定溫度改成 24 °C' },
+        { time: t(14, 10), kind: 'alert', text: 'B 區進氣溫度到達注意線 27 °C' },
+      ];
+      function D() {
+        var sel = React.useState('b');
+        var rp = React.useState(false);
+        var ph = React.useState(15);
+        return h(U.ConsoleLayout, {
+          title: '機房監控',
+          tags: h(U.Tag, { variant: 'demo' }, '示範資料'),
+          status: 'AI 最佳化中',
+          kpis: [
+            h(U.KpiCard, { key: 'e', size: 'compact', label: '預測誤差', value: 0.4, decimals: 1, unit: '°C', verdict: { tone: 'success', text: '預測準確' }, target: '目標 ≤ 0.5 °C' }),
+            h(U.KpiCard, { key: 'p', size: 'compact', label: 'PUE', value: 1.42, decimals: 2, target: '目標 ≤ 1.45' }),
+            h(U.KpiCard, { key: 's', size: 'compact', label: '今日節能', value: 186, unit: 'kWh', target: '約 12%' }),
+          ],
+          clock: rp[0] ? '回放中' : '即時',
+          main: h(
+            U.Card,
+            { title: '機房分區' },
+            h(U.ZoneMap, {
+              label: '機房分區',
+              zones: ZONES,
+              selectedId: sel[0],
+              onSelect: function (z) {
+                sel[1](z.id);
+              },
+            }),
+          ),
+          side: [
+            h(
+              U.Card,
+              { key: 't' },
+              h(U.TimeControl, {
+                time: rp[0] ? t(14, 10) : t(16, 24),
+                replaying: rp[0],
+                onReplayChange: rp[1],
+                onNow: function () {
+                  rp[1](false);
+                },
+                status: rp[0] ? '回放中：14:10 起的紀錄。' : '即時：每 10 秒更新一次。',
+                detail: '最後更新 16:24:10',
+              }),
+            ),
+            h(U.Card, { key: 'e', title: '事件' }, h(U.EventTimeline, { label: '近 4 小時的事件', events: EVENTS })),
+          ],
+          bottom: h(
+            U.Card,
+            null,
+            h(U.LineChart, {
+              label: '進氣溫度，預測與實際',
+              unit: '°C',
+              decimals: 1,
+              min: 22,
+              max: 30,
+              labels: T,
+              labelEvery: 4,
+              series: [
+                { name: '實際', values: ACT },
+                { name: '預測', values: FC, dashed: true, color: 3 },
+              ],
+              now: 15,
+              thresholds: [
+                { value: 27, label: '注意 27 °C', tone: 'warning' },
+                { value: 29, label: '上限 29 °C', tone: 'danger' },
+              ],
+              playhead: ph[0],
+              onPlayheadChange: ph[1],
+            }),
+          ),
+          extras: [
+            {
+              id: 'm',
+              minHeight: 1040,
+              node: h(
+                U.Card,
+                { title: '各區進氣溫度' },
+                h(
+                  'div',
+                  { style: { display: 'grid', gap: 16 } },
+                  h(U.Meter, { label: 'B 區', value: 28.4, min: 20, max: 32, warn: 27, limit: 29, unit: '°C', decimals: 1 }),
+                  h(U.Meter, { label: 'F 區', value: 29.6, min: 20, max: 32, warn: 27, limit: 29, unit: '°C', decimals: 1 }),
+                ),
+              ),
+            },
+          ],
+        });
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(D));
+    </script>
+  </body>
+</html>

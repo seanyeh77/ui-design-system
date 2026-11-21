@@ -88,3 +88,14 @@ test('no values: the chart says so', () => {
   render(<LineChart label="昨天" labels={T} series={[{ name: '實際', values: T.map(() => null) }]} />);
   expect(screen.getByText('這段時間沒有資料')).not.toBeNull();
 });
+
+test('the plot is drawn at its real width, so text keeps its size; height sets the plot height', async () => {
+  const { container } = render(
+    <div style={{ width: 1000 }}>
+      <LineChart label="溫度" labels={['13:00', '13:10', '13:20']} series={[{ name: '實際', values: [24, 25, 26] }]} height={300} />
+    </div>,
+  );
+  const svg = container.querySelector('svg') as SVGSVGElement;
+  await expect.poll(() => svg.getAttribute('viewBox')).toBe(`0 0 ${svg.clientWidth} 300`);
+  expect(svg.clientHeight).toBe(300);
+});
