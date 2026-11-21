@@ -1,5 +1,11 @@
 # @seanyeh77/ui
 
+## 0.40.0
+
+### Minor Changes
+
+- 1674a47: ZoneMap 新增 `fill`：列高平分地圖拿到的高度（最少 `rowHeight`），在 ConsoleLayout 的主視覺卡片裡撐滿、不留空白。
+
 ## 0.39.0
 
 ### Minor Changes
