@@ -109,10 +109,9 @@ function contrast(a: string, b: string): number {
   return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
 }
 
-/** The accent's text color (accent-text): the accent itself when it reads (4.5:1) on bg, surface and every extra
- *  ground passed (setAccent passes surface-sub, surface-chrome and accent-soft); else, in light, the accent mixed with
- *  black 4 % at a time, in dark with white 5 % at a time, until it reads on all of them. Only text changes: fills,
- *  bars, rings and dots keep the accent. */
+/** The accent's text color (accent-text, and the focus outline): the accent itself when it reads (4.5:1) on bg,
+ *  surface and every extra ground passed (setAccent passes surface-sub, surface-chrome and accent-soft); else, in
+ *  light, the accent mixed with black 4 % at a time, in dark with white 5 % at a time, until it reads on all of them. */
 export function accentText(hex: string, dark: boolean, bg: string, surface: string, ...grounds: string[]): string {
   const all = [bg, surface, ...grounds].map(toHex);
   // A background that cannot be read: keep the accent itself rather than mixing it toward black or white blindly.
@@ -123,6 +122,28 @@ export function accentText(hex: string, dark: boolean, bg: string, surface: stri
   let text = hex;
   for (let k = 1; k * step <= 1 && !reads(text); k++) text = mixHex(hex, toward, k * step);
   return text;
+}
+
+const INK = '#171512';
+
+/** The text on an accent fill (on-accent): white or the near-black ink (#171512), whichever contrasts more. */
+export function onFill(fill: string): '#ffffff' | '#171512' {
+  return contrast('#ffffff', fill) >= contrast(INK, fill) ? '#ffffff' : INK;
+}
+
+/** The accent's fill color (accent: buttons, switches, progress, selected marks): the accent itself when it reaches
+ *  3:1 on bg, surface and every extra ground passed (setAccent passes surface-sub, surface-chrome and accent-soft) and
+ *  its on-accent text reaches 4.5:1 on it; else, in light, the accent mixed with black 4 % at a time, in dark with
+ *  white 5 % at a time, until both hold. The preset swatches pass in light as they are. */
+export function accentFill(hex: string, dark: boolean, bg: string, surface: string, ...grounds: string[]): string {
+  const all = [bg, surface, ...grounds].map(toHex);
+  if (all.some((g) => !g)) return hex;
+  const ok = (c: string) => all.every((g) => contrast(c, g as string) >= 3) && contrast(onFill(c), c) >= 4.5;
+  const toward = dark ? '#ffffff' : '#000000';
+  const step = dark ? 0.05 : 0.04;
+  let fill = hex;
+  for (let k = 1; k * step <= 1 && !ok(fill); k++) fill = mixHex(hex, toward, k * step);
+  return fill;
 }
 
 /** The preset swatches of AccentPicker. In light (and the teaching preset) each one reads as text by itself (4.5:1 on
@@ -155,15 +176,21 @@ export function setAccent(hex: string, quiet = false): boolean {
   const soft = dark ? mixHex(surface, hex, 0.22) : mixHex('#ffffff', hex, 0.12);
   // Text in the accent also sits on zebra rows, code blocks, the top bar and its own soft fill (a selected row).
   const text = accentText(hex, dark, bg, surface, sub, chrome, soft);
-  const ink = '#171512';
+  // The fill reaches 3:1 on the same grounds (a checked box in a selected row); hover and press go away from the page:
+  // darker in light, lighter in dark, so they keep 3:1 and their text.
+  const fill = accentFill(hex, dark, bg, surface, sub, chrome, soft);
+  const away = dark ? '#ffffff' : '#000000';
   const vars: Record<string, string> = {
-    '--accent': hex,
-    '--accent-hover': mixHex(hex, '#000000', 0.12),
-    '--accent-press': mixHex(hex, '#000000', 0.22),
+    '--accent': fill,
+    '--accent-hover': mixHex(fill, away, 0.12),
+    '--accent-press': mixHex(fill, away, 0.22),
     '--accent-soft': soft,
     '--accent-text': text,
-    '--on-accent': contrast('#ffffff', hex) >= contrast(ink, hex) ? '#ffffff' : ink,
-    '--focus-ring': `rgba(${hexRgb(hex).join(', ')}, 0.3)`,
+    '--on-accent': onFill(fill),
+    // One focus style everywhere: a 2 px outline in the accent's text color, 3:1 or more on every ground.
+    '--focus': text,
+    // Old name of --focus, kept for pages written before it.
+    '--focus-ring': text,
   };
   for (const [k, v] of Object.entries(vars)) root.style.setProperty(k, v);
   if (!quiet) store(ACCENT_KEY, hex);

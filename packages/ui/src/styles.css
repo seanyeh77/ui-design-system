@@ -55,15 +55,6 @@ body {
 .ui-btn:active:not(:disabled) {
   transform: translateY(1px);
 }
-.ui-btn:focus-visible,
-.ui-iconbtn:focus-visible,
-.ui-toast-action:focus-visible {
-  outline: none;
-  box-shadow:
-    0 0 0 2px var(--bg),
-    0 0 0 5px var(--focus-ring);
-  border-color: var(--accent);
-}
 .ui-btn-primary {
   background: var(--accent);
   color: var(--on-accent);
@@ -93,10 +84,14 @@ body {
 }
 .ui-btn-danger {
   background: var(--danger);
-  color: var(--on-solid);
+  color: var(--on-danger);
 }
 .ui-btn-danger:hover:not(:disabled) {
   filter: brightness(0.92);
+}
+/* In dark the danger fill is light (ink text): hover goes lighter, so the fill keeps 3:1 on the page. */
+[data-theme='dark'] .ui-btn-danger:hover:not(:disabled) {
+  filter: brightness(1.08);
 }
 .ui-btn:disabled:not(.is-loading) {
   background: var(--surface-sub);
@@ -138,9 +133,6 @@ body {
 }
 .ui-iconbtn.is-quiet[aria-pressed='true'] {
   color: var(--ink);
-}
-.ui-iconbtn.is-quiet:focus-visible {
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 /* First-use hint: an accent dot on the button (ringed in the background it sits on) and a dark bubble to its left,
    in the same row, its arrow pointing right at the button: it never covers what is under the bar (H3). Stays until
@@ -288,16 +280,9 @@ body {
 .ui-input::placeholder {
   color: var(--ink-muted);
 }
-.ui-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
 .has-error .ui-input {
   border: 1.5px solid var(--danger);
   padding-right: 40px;
-}
-.has-error .ui-input:focus {
-  box-shadow: 0 0 0 3px var(--danger-ring);
 }
 .ui-field-icon {
   position: absolute;
@@ -324,9 +309,6 @@ body {
   cursor: not-allowed;
 }
 
-@media (max-width: 599px) {
-}
-
 .ui-badge {
   display: inline-flex;
   align-items: center;
@@ -346,20 +328,21 @@ body {
   flex: 0 0 15px;
 }
 .ui-badge-draft .ui-badge-mark {
-  color: var(--neutral-500);
+  color: var(--ink-muted);
 }
-/* A glyph beside text, on the same ground: the text color of the accent, which reads on any accent (4.5:1). */
+/* A mark beside text, on the same ground: the status text colors, which reach 4.5:1 on every ground (bg, surfaces,
+   accent-soft, table row hover and zebra), so the mark is 3:1 or more wherever the badge goes. */
 .ui-badge-doing .ui-badge-mark {
   color: var(--accent-text);
 }
 .ui-badge-review .ui-badge-mark {
-  color: var(--warning);
+  color: var(--warning-text);
 }
 .ui-badge-done .ui-badge-mark {
-  color: var(--success);
+  color: var(--success-text);
 }
 .ui-badge-fail .ui-badge-mark {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 /* The dot form: a mark and text, no chip and no shadow. variant="dot", and every Badge inside a Card or a DataTable
    (a raised chip on a raised card reads as a button). Only the attention states (fail, review, doing) color their
@@ -734,10 +717,6 @@ body {
 :is(a, button).ui-nav-brand-link {
   cursor: pointer;
 }
-:is(a, button).ui-nav-brand-link:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
 .ui-nav-mark {
   flex: none;
   display: inline-flex;
@@ -831,10 +810,6 @@ body {
 .ui-nav-item.is-selected .ui-nav-icon {
   color: var(--accent-text);
 }
-.ui-nav-item:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
 .ui-nav-label {
   flex: 1 1 auto;
   overflow: hidden;
@@ -902,10 +877,6 @@ body {
 }
 .ui-nav-collapse:hover {
   background: var(--surface-sub);
-}
-.ui-nav-collapse:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 /* Pin and collapse at the bottom left: side by side at 240 px, one above the other at 72 px. */
 .ui-nav-foot {
@@ -1042,10 +1013,14 @@ body {
 .ui-tabs.has-more-left.has-more-right {
   mask-image: linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent);
 }
+/* The selected tab's pill: a line-strong border, so it shows the selection at 3:1 on the gray row (surface on
+   surface-sub alone is about 1.1:1). */
 .ui-tabs-ind {
   position: absolute;
   top: 4px;
   bottom: 4px;
+  box-sizing: border-box;
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-sm);
   background: var(--surface);
   box-shadow: var(--shadow-sm);
@@ -1071,10 +1046,6 @@ body {
 .ui-tab.is-selected {
   color: var(--ink);
   font-weight: 700;
-}
-.ui-tab:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .ui-tabbar {
@@ -1174,7 +1145,7 @@ body {
 
 /* ---------- Form controls ---------- */
 .ui-req {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 .ui-check,
 .ui-radio {
@@ -1233,14 +1204,6 @@ body {
   stroke-dasharray: 24;
   animation: ui-draw var(--dur-nav) ease-out both;
 }
-.ui-check:focus-visible .ui-check-box,
-.ui-radio:focus-visible .ui-radio-ring {
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
-.ui-check:focus-visible,
-.ui-radio:focus-visible {
-  outline: none;
-}
 .ui-radios {
   display: flex;
   flex-direction: column;
@@ -1296,10 +1259,6 @@ body {
   background: var(--accent);
   border-color: var(--accent);
 }
-.ui-switch:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
 .ui-switch:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -1344,11 +1303,8 @@ body {
   text-align: left;
   cursor: pointer;
 }
-.ui-select-trigger[data-popup-open],
-.ui-select-trigger:focus-visible {
-  outline: none;
+.ui-select-trigger[data-popup-open] {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .ui-select-chev {
   color: var(--ink-muted);
@@ -1471,10 +1427,6 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-}
-.ui-searchfield-clear:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .ui-textarea {
@@ -2010,10 +1962,6 @@ body {
 .ui-dt-chipclear {
   font-size: var(--text-compact);
 }
-:is(.ui-dt-chip, .ui-dt-chipclear):focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
 .ui-dt-actions {
   flex: 1 1 auto;
   min-width: 0;
@@ -2197,10 +2145,6 @@ body {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.ui-dt-rowlink:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
 /* secondary: a second line under the cell's text, smaller and muted, one line cut with …. */
 .ui-dt-stack {
   display: flex;
@@ -2328,10 +2272,6 @@ body {
 .ui-dt-cell.is-num .ui-dt-sort {
   flex-direction: row-reverse;
 }
-.ui-dt-sort:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
 .ui-dt-arrow {
   opacity: 0;
   color: var(--ink-muted);
@@ -2353,10 +2293,6 @@ body {
 .ui-dt-check {
   padding: 0;
   cursor: pointer;
-}
-.ui-dt-check:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .ui-dt-sel > *,
 .ui-dt-acts > * {
@@ -2419,10 +2355,6 @@ body {
   justify-content: center;
   cursor: pointer;
 }
-:is(.ui-dt-bulk-close, .ui-dt-more, .ui-dt-view):focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
 .ui-dt-empty {
   padding: 28px 12px;
   text-align: center;
@@ -2464,10 +2396,6 @@ body {
 .ui-dt-page:disabled {
   opacity: 0.4;
   cursor: default;
-}
-.ui-dt-page:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .ui-dt-summary {
@@ -2517,10 +2445,6 @@ body {
 }
 .ui-dt-exp-btn:hover {
   color: var(--ink);
-}
-.ui-dt-exp-btn:focus-visible {
-  outline: none;
-  box-shadow: inset 0 0 0 2px var(--accent);
 }
 .ui-dt-exp-btn .ui-icon {
   transition: transform var(--dur-nav) ease;
@@ -2761,10 +2685,6 @@ body {
 .ui-dt-long.is-cut {
   cursor: default;
   border-radius: var(--radius-sm);
-}
-.ui-dt-long.is-cut:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .ui-tooltip-arrow {
   position: absolute;
@@ -3027,10 +2947,6 @@ html.ui-theme-fade * {
   padding: 5px;
   font-weight: 700;
 }
-.ui-themepick-opt:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
 .ui-themepick-mini {
   position: relative;
   display: block;
@@ -3102,12 +3018,6 @@ html.ui-theme-fade * {
     0 0 0 2px var(--surface),
     0 0 0 4px currentColor;
 }
-.ui-swatch:focus-visible {
-  outline: none;
-  box-shadow:
-    0 0 0 2px var(--surface),
-    0 0 0 4px var(--focus-ring);
-}
 .ui-accentpick-hex {
   display: flex;
   align-items: center;
@@ -3144,9 +3054,7 @@ html.ui-theme-fade * {
   font-weight: 400;
 }
 .ui-link-btn:focus-visible {
-  outline: none;
   border-radius: var(--radius-xs);
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .ui-link {
   color: var(--accent-text);
@@ -3175,7 +3083,7 @@ html.ui-theme-fade * {
   box-sizing: border-box;
   border-radius: var(--radius-full);
   background: var(--danger);
-  color: var(--on-solid);
+  color: var(--on-danger);
   font-family: var(--font-mono);
   font-size: var(--text-mini);
   font-weight: 700;
@@ -3297,10 +3205,8 @@ html.ui-theme-fade * {
   background: var(--surface-input);
   color: var(--ink);
 }
-.ui-datefield:focus-within,
 .ui-datefield.is-open {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .ui-datefield.is-invalid {
   border-color: var(--danger);
@@ -3460,10 +3366,6 @@ html.ui-theme-fade * {
 .ui-cal-day.is-today.is-sel::after {
   background: var(--on-accent);
 }
-.ui-cal-day:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
 .ui-quick {
   display: flex;
   flex-direction: column;
@@ -3616,10 +3518,6 @@ html.ui-theme-fade * {
   cursor: text;
   overflow: hidden;
 }
-.ui-ms:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
 .ui-chip {
   display: inline-flex;
   align-items: center;
@@ -3762,10 +3660,6 @@ html.ui-theme-fade * {
   border-radius: var(--radius-md);
   background: var(--surface-input);
 }
-.ui-pwfield:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
 .ui-pwfield.is-invalid {
   border-color: var(--danger);
 }
@@ -3825,10 +3719,6 @@ html.ui-theme-fade * {
   width: 3px;
   border-radius: 0 3px 3px 0;
   background: var(--accent);
-}
-.ui-settings-cat:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .ui-settings-content {
   flex: 1 1 auto;
@@ -4077,10 +3967,6 @@ html.ui-theme-fade * {
   color: var(--accent-text);
   font-weight: 600;
 }
-:is(.ui-dt-sortgrip, .ui-dt-sortrm, .ui-dt-sortdir button):focus-visible {
-  outline: none;
-  box-shadow: inset 0 0 0 2px var(--focus-ring);
-}
 .ui-dt-sortnone {
   margin: 0;
   font-size: var(--text-small);
@@ -4157,10 +4043,6 @@ html.ui-theme-fade * {
 }
 .ui-dt-opt:hover {
   background: var(--surface-sub);
-}
-.ui-dt-opt:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .ui-dt-opt.is-zero {
   color: var(--ink-muted);
@@ -4353,9 +4235,6 @@ html.ui-theme-fade * {
 }
 .ui-tree-row.is-selected {
   background: var(--accent-soft);
-}
-.ui-tree-row:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--accent);
 }
 .ui-tree-guide {
   position: absolute;
@@ -4626,10 +4505,6 @@ html.ui-theme-fade * {
 [data-theme='dark'] .ui-code.is-link {
   color: color-mix(in srgb, var(--accent-text), var(--ink) 25%);
 }
-.ui-code.is-link:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
 /* A name (function, class, variable) and a location (file:line) that point somewhere: no chip, no underline until
    hover or keyboard focus. Three classes so they win over the dark link colour and the table chip above. */
 .ui-code.is-link.is-name,
@@ -4665,7 +4540,6 @@ html.ui-theme-fade * {
 .ui-code.is-link.is-name:focus-visible,
 .ui-code.is-link.is-location:focus-visible {
   border-radius: var(--radius-xs);
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 /* AiMark: a small gray 「AI 撰寫」 at the end of a sentence written by AI (A2), the same style as other source marks. */
@@ -4734,20 +4608,21 @@ html.ui-theme-fade * {
     min-height: 48px;
   }
 }
-/* A mark: a 6 px dot at the row's right end, lined up down the list. */
+/* A mark: a 6 px dot at the row's right end, lined up down the list. Status text colors, 3:1 or more on every row
+   ground (hover, selected). */
 .ui-tree-mark {
   flex: none;
   width: 6px;
   height: 6px;
   margin-left: auto;
   border-radius: var(--radius-full);
-  background: var(--warning);
+  background: var(--warning-text);
 }
 .ui-tree-mark.is-danger {
-  background: var(--danger);
+  background: var(--danger-text);
 }
 .ui-tree-mark.is-accent {
-  background: var(--accent);
+  background: var(--accent-text);
 }
 .ui-tree-mark + .ui-tree-act {
   margin-left: 4px;
@@ -4905,10 +4780,6 @@ html.ui-theme-fade * {
 .ui-projsw[data-popup-open] {
   background: var(--surface-sub);
 }
-.ui-projsw:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
 .ui-projsw.is-static {
   cursor: default;
   opacity: 1;
@@ -4921,15 +4792,15 @@ html.ui-theme-fade * {
   height: 10px;
   box-sizing: border-box;
   border-radius: var(--radius-full);
-  background: var(--success);
+  background: var(--success-text);
 }
 .ui-projsw.is-stale .ui-projsw-dot {
   background: transparent;
-  border: 2px solid var(--warning);
+  border: 2px solid var(--warning-text);
 }
 .ui-projsw.is-offline .ui-projsw-dot {
-  background: linear-gradient(135deg, transparent 42%, var(--neutral-500) 42% 58%, transparent 58%);
-  border: 2px solid var(--neutral-500);
+  background: linear-gradient(135deg, transparent 42%, var(--ink-muted) 42% 58%, transparent 58%);
+  border: 2px solid var(--ink-muted);
 }
 .ui-projsw-text {
   display: flex;
@@ -5212,10 +5083,6 @@ html.ui-theme-fade * {
 }
 .ui-pal-cancel:hover {
   background: var(--surface-sub);
-}
-.ui-pal-cancel:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .ui-pal-group {
   padding: var(--space-3) var(--space-4) var(--space-1);
@@ -5609,10 +5476,6 @@ html.ui-theme-fade * {
 .ui-term.is-open .ui-term-q {
   color: var(--accent-text);
 }
-.ui-term:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
 /* Term variant="inline": a dashed underline inside a sentence, no icon; the card opens after resting on the word. */
 .ui-term.is-word {
   cursor: help;
@@ -5883,9 +5746,6 @@ html.ui-theme-fade * {
   tab-size: 4;
   outline: none;
 }
-.ui-cv-body:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--focus-ring);
-}
 .ui-cv-body code {
   display: block;
   font: inherit;
@@ -5946,10 +5806,6 @@ html.ui-theme-fade * {
 .ui-cv-ref:hover {
   text-decoration-thickness: 2px;
 }
-.ui-cv-ref:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
 .ui-cv-ref:is(button) {
   cursor: pointer;
 }
@@ -5985,10 +5841,6 @@ html.ui-theme-fade * {
 .ui-cv-body.is-armed .ui-cv-name:hover {
   cursor: pointer;
 }
-.ui-cv-name:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
 @media (pointer: coarse) {
   .ui-cv-name {
     cursor: pointer;
@@ -6004,12 +5856,6 @@ html.ui-theme-fade * {
 .ui-cv-sr {
   user-select: none;
   -webkit-user-select: none;
-}
-.ui-cv-line.is-target:focus {
-  outline: none;
-  box-shadow:
-    inset 3px 0 0 var(--accent),
-    inset 0 0 0 2px var(--focus-ring);
 }
 /* An operator never splits across lines (-> stays ->). */
 .ui-cv-op {
@@ -6292,10 +6138,6 @@ html.ui-theme-fade * {
   background: var(--accent-soft);
   font-weight: 700;
 }
-.ui-lg-libtn:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
 .ui-lg-limeta {
   color: var(--ink);
 }
@@ -6484,7 +6326,9 @@ html.ui-theme-fade * {
   outline: none;
 }
 .ui-lg-hit:focus-visible {
-  stroke: var(--focus-ring);
+  /* An SVG path takes no outline: the focused line is drawn 4 px wide in the focus color over the line. */
+  stroke: var(--focus);
+  stroke-width: 4px;
 }
 .ui-lg-node,
 .ui-lg-label {
@@ -6552,12 +6396,6 @@ html.ui-theme-fade * {
 .ui-lg-node:hover {
   background: var(--line);
 }
-.ui-lg-node:focus-visible {
-  outline: none;
-  box-shadow:
-    inset 4px 0 0 var(--graph-edge),
-    0 0 0 3px var(--focus-ring);
-}
 .ui-lg-node.is-selected {
   background: var(--accent-soft);
   box-shadow:
@@ -6573,9 +6411,6 @@ html.ui-theme-fade * {
 }
 .ui-lg-node.is-external:hover {
   background: var(--surface-sub);
-}
-.ui-lg-node.is-external:focus-visible {
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .ui-lg-node.is-external.is-selected {
   background: var(--accent-soft);
@@ -7016,10 +6851,7 @@ html.ui-theme-fade * {
 }
 .ui-skip:focus {
   transform: none;
-  outline: none;
-  box-shadow:
-    var(--shadow-overlay),
-    0 0 0 3px var(--focus-ring);
+  box-shadow: var(--shadow-overlay);
 }
 .ui-shell-main:focus {
   outline: none;
@@ -7219,9 +7051,7 @@ html.ui-theme-fade * {
 /* Charts by keyboard: the plot is a Tab stop; ← → show each value. */
 .ui-bars:focus-visible,
 .ui-chart-plot:focus-visible {
-  outline: none;
   border-radius: var(--radius-sm);
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 /* Section: a part of a page that closes to its title and a one-line summary (SLR4LANG). */
@@ -7275,10 +7105,6 @@ html.ui-theme-fade * {
   font: inherit;
   text-align: left;
   cursor: pointer;
-}
-.ui-sec-btn:focus-visible {
-  outline: 2px solid var(--focus-ring, var(--accent));
-  outline-offset: 2px;
 }
 .ui-sec-caret {
   flex: none;
@@ -7741,10 +7567,6 @@ html.ui-theme-fade * {
   text-decoration: none;
   white-space: nowrap;
 }
-a.ui-wb-brand:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
 .ui-wb-mark {
   display: inline-flex;
   align-items: center;
@@ -7856,9 +7678,6 @@ a.ui-wb-brand:focus-visible {
 .ui-wb-exfilter .ui-searchfield .ui-input:hover,
 .ui-wb-exfilter .ui-searchfield .ui-input:focus {
   background: var(--surface-sub);
-}
-.ui-wb-exfilter .ui-searchfield .ui-input:focus-visible {
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .ui-wb-exfilter .ui-searchfield-icon {
   left: 8px;
@@ -8127,8 +7946,6 @@ a.ui-wb-brand:focus-visible {
   font-weight: 700;
 }
 .ui-wb-tab:focus-visible {
-  outline: none;
-  box-shadow: inset 0 0 0 2px var(--focus-ring);
   border-radius: var(--radius-sm);
 }
 .ui-wb-tab.is-ghost {
@@ -8167,7 +7984,7 @@ a.ui-wb-brand:focus-visible {
   width: 6px;
   height: 6px;
   border-radius: var(--radius-full);
-  background: var(--warning);
+  background: var(--warning-text);
 }
 .ui-wb-dot.is-on-button {
   position: absolute;
@@ -8199,10 +8016,6 @@ a.ui-wb-brand:focus-visible {
 .ui-wb-more[data-popup-open] {
   background: var(--surface-sub);
   color: var(--ink);
-}
-.ui-wb-more:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .ui-wb-tabbtns {
   flex: none;
@@ -8385,10 +8198,13 @@ a.ui-wb-brand:focus-visible {
   background: var(--surface-sub);
   vertical-align: middle;
 }
+/* Like the tab pill: a line-strong border shows the selection at 3:1 (icon-only items differ in color alone). */
 .ui-seg-ind {
   position: absolute;
   top: 2px;
   bottom: 2px;
+  box-sizing: border-box;
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-xs);
   background: var(--surface);
   box-shadow: var(--shadow-sm);
@@ -8425,10 +8241,6 @@ a.ui-wb-brand:focus-visible {
 }
 .ui-seg.is-icons .ui-seg-item.is-selected {
   color: var(--accent-text);
-}
-.ui-seg-item:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 @media (prefers-reduced-motion: reduce) {
   .ui-seg-ind {
@@ -8505,13 +8317,13 @@ a.ui-wb-brand:focus-visible {
   font-weight: 600;
 }
 .ui-chart-threshold.is-warning line {
-  stroke: var(--warning);
+  stroke: var(--warning-text);
 }
 .ui-chart-threshold.is-warning text {
   fill: var(--warning-text);
 }
 .ui-chart-threshold.is-danger line {
-  stroke: var(--danger);
+  stroke: var(--danger-text);
 }
 .ui-chart-threshold.is-danger text {
   fill: var(--danger-text);
@@ -8626,10 +8438,10 @@ a.ui-wb-brand:focus-visible {
   border-radius: 1px;
 }
 .ui-meter-mark.is-warning {
-  background: var(--warning);
+  background: var(--warning-text);
 }
 .ui-meter-mark.is-danger {
-  background: var(--danger);
+  background: var(--danger-text);
 }
 .ui-meter-dot {
   position: absolute;
@@ -8642,13 +8454,13 @@ a.ui-wb-brand:focus-visible {
   transition: left var(--dur-toggle) ease;
 }
 .ui-meter-dot.is-success {
-  background: var(--success);
+  background: var(--success-text);
 }
 .ui-meter-dot.is-warning {
-  background: var(--warning);
+  background: var(--warning-text);
 }
 .ui-meter-dot.is-danger {
-  background: var(--danger);
+  background: var(--danger-text);
 }
 .ui-meter-marks {
   position: relative;
@@ -8826,10 +8638,6 @@ a.ui-wb-brand:focus-visible {
   text-align: left;
   color: var(--ink);
   cursor: pointer;
-}
-.ui-zone:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .ui-zone.is-warning {
   box-shadow: inset 0 0 0 4px var(--warning);
@@ -9110,4 +8918,88 @@ a.ui-wb-brand:focus-visible {
 }
 .ui-console.is-stacked .ui-console-main {
   min-height: 320px;
+}
+
+/* ---------- Focus ----------
+   One focus style everywhere: a 2 px outline in --focus (the accent's text color, 3:1 or more on every ground in
+   both themes), 2 px outside the control. Controls that sit flush in a container that clips (a tab row that
+   scrolls, a table, a list, a code view) draw it 2 px inside instead, so it is never cut off. A new focusable part
+   joins one of these two lists rather than drawing its own ring. CommandPalette's active result (focus stays in its
+   input) shows the same outline, since Enter picks it. Anything else focusable (a link in Markdown, a
+   breadcrumb) gets the same outline from the first rule. */
+:where(:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.ui-btn:focus-visible,
+.ui-iconbtn:focus-visible,
+.ui-toast-action:focus-visible,
+.ui-input:focus-visible,
+:is(a, button).ui-nav-brand-link:focus-visible,
+.ui-nav-collapse:focus-visible,
+.ui-check:focus-visible,
+.ui-radio:focus-visible,
+.ui-switch:focus-visible,
+.ui-select-trigger:focus-visible,
+.ui-searchfield-clear:focus-visible,
+.ui-dt-chip:focus-visible,
+.ui-dt-chipclear:focus-visible,
+.ui-dt-bulk-close:focus-visible,
+.ui-dt-more:focus-visible,
+.ui-dt-view:focus-visible,
+.ui-dt-page:focus-visible,
+.ui-dt-check:focus-visible,
+.ui-themepick-opt:focus-visible,
+.ui-swatch:focus-visible,
+.ui-link-btn:focus-visible,
+.ui-datefield:focus-within,
+.ui-cal-day:focus-visible,
+.ui-ms:focus-within,
+.ui-pwfield:focus-within,
+.ui-settings-cat:focus-visible,
+.ui-dt-opt:focus-visible,
+.ui-code.is-link:focus-visible,
+.ui-code.is-link.is-name:focus-visible,
+.ui-code.is-link.is-location:focus-visible,
+.ui-projsw:focus-visible,
+.ui-pal-cancel:focus-visible,
+.ui-term:focus-visible,
+.ui-cv-ref:focus-visible,
+.ui-cv-name:focus-visible,
+.ui-lg-libtn:focus-visible,
+.ui-lg-node:focus-visible,
+.ui-skip:focus,
+.ui-bars:focus-visible,
+.ui-chart-plot:focus-visible,
+.ui-sec-btn:focus-visible,
+a.ui-wb-brand:focus-visible,
+.ui-wb-more:focus-visible,
+.ui-zone:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.ui-tab:focus-visible,
+.ui-dt-rowlink:focus-visible,
+.ui-dt-sort:focus-visible,
+.ui-dt-exp-btn:focus-visible,
+.ui-dt-long.is-cut:focus-visible,
+.ui-dt-sortgrip:focus-visible,
+.ui-dt-sortrm:focus-visible,
+.ui-dt-sortdir button:focus-visible,
+.ui-tree-row:focus-visible,
+.ui-cv-body:focus-visible,
+.ui-wb-exfilter .ui-searchfield .ui-input:focus-visible,
+.ui-wb-tab:focus-visible,
+.ui-seg-item:focus-visible,
+.ui-cv-line.is-target:focus,
+.ui-menu-item:focus-visible,
+.ui-select-opt:focus-visible,
+.ui-noti-item:focus-visible,
+.ui-projsw-opt:focus-visible,
+.ui-nav-item:focus-visible,
+.ui-pal-item.is-active,
+.ui-cv .ui-iconbtn:focus-visible,
+.ui-wb .ui-iconbtn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
 }

@@ -24,6 +24,6 @@ h(UI.ProjectSwitcher, {
 ## 細節
 
 - 外框 Chip：高度 40 px，和按鈕、輸入框一致，`line-strong` 外框，`radius-md`；內容是狀態圓點、「專案 · 狀態」，右邊下拉箭頭。
-- 圓點（10 px）：`live` 是實心圓（`success`）、`stale` 是空心圓（`warning`）、`offline` 是加斜線的空心圓（`neutral-500`）。
+- 圓點（10 px）：`live` 是實心圓（`success-text`）、`stale` 是空心圓（`warning-text`）、`offline` 是加斜線的空心圓（`ink-muted`）；用文字色，在頂部列上至少 3:1。
 - 專案名稱和狀態分開排：寬度不夠時先截斷狀態，名稱最後才用「…」截斷。手機（小於 600 px）只寫名稱，狀態只用圓點表示；完整的「專案 · 狀態」在按鈕的 `aria-label` 和 `title`（滑過時顯示）。`statusLabel` 仍可以寫長一點（例如「快照 a085bc3」），手機上不會擠掉名稱。
 - 點了打開清單：每個選項是名稱加說明（例如環境），目前的選項是 `accent-soft` 底加勾；最下方可以放 `footer`，例如「所有資料來源設定」連結。點外面或按 Esc 關閉。
