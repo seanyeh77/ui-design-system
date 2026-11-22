@@ -23,6 +23,6 @@
 ## 細節
 
 - 狀態：滑過變深（`accent-hover`）、按下下移 1 px（`accent-press`）、停用為 `surface-sub` 灰底加 `ink-muted` 灰字（`quiet` 也一樣）。
-- 四種樣式高度、圓角與 Focus 外光暈都相同。
+- 四種樣式高度、圓角與焦點外框（2 px `focus`，離按鈕 2 px）都相同。
 - 高度 `control-height` 40 px；觸控點擊範圍 `touch-target` 48 px（按鈕外觀不變，外圍擴大可點範圍）。
 - `icon`：Phosphor 圖示名稱（例如 `'plus'`，拼錯時型別檢查不會過），或自訂圖示的 24 px path（`'M4 12h16'`）。

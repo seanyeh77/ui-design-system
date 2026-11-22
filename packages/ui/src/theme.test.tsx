@@ -48,19 +48,30 @@ test('dark: a dark accent is lightened with white until it reads on bg and surfa
   }
 });
 
-test('setAccent: only accent-text changes; the accent itself (fills, bars, rings) stays the chosen color', () => {
+test('setAccent: the fill reaches 3:1 and its text 4.5:1; a fill that does not is darkened in light, lightened in dark', () => {
   setTheme('light');
   expect(setAccent('#ffe066', true)).toBe(true);
-  expect(varOf('--accent')).toBe('#ffe066');
+  // Yellow on white is 1.3:1: mixed with black 4 % at a time until it reaches 3:1 on every ground.
+  expect(varOf('--accent')).toBe('#99863d');
+  expect(varOf('--on-accent')).toBe('#171512');
   expect(varOf('--accent-text')).toBe('#7a6c31');
+  expect(varOf('--focus')).toBe('#7a6c31');
+  setAccent('#1a1a6e', true);
+  expect(varOf('--accent')).toBe('#1a1a6e');
+  expect(varOf('--on-accent')).toBe('#ffffff');
   setTheme('dark');
   setAccent('#ffe066', true);
   expect(varOf('--accent')).toBe('#ffe066');
   expect(varOf('--accent-text')).toBe('#ffe066');
   setAccent('#1a1a6e', true);
-  expect(varOf('--accent')).toBe('#1a1a6e');
+  // Mixed with white 5 % at a time until 3:1 on surface, surface-sub, surface-chrome and accent-soft.
+  expect(varOf('--accent')).toBe('#8d8db7');
+  expect(varOf('--on-accent')).toBe('#171512');
+  // Hover and press go lighter in dark, so they keep 3:1 on the page.
+  expect(contrast(varOf('--accent-hover'), DARK.surface)).toBeGreaterThan(contrast(varOf('--accent'), DARK.surface));
   // Lighter than accentText on bg and surface alone (#a3a3c5): it must also read on surface-sub.
   expect(varOf('--accent-text')).toBe('#afafcc');
+  expect(varOf('--focus')).toBe('#afafcc');
 });
 
 test('bundlers shorten #ffffff to #fff: with --surface #fff the default accent-text is still #2457d6, not black', () => {

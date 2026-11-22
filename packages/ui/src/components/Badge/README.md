@@ -16,13 +16,13 @@
 ## 細節
 
 - 外型：`surface` 底色、`shadow-chip` 陰影、`radius-chip` 8 px 圓角、高度 `chip-height` 32 px。
-- Chip 的文字用主要文字色 `ink`，顏色只出現在進度圓圈上。
+- Chip 的文字用主要文字色 `ink`，顏色只出現在進度圓圈上。圓圈用各狀態的文字色，在任何底色（含表格滑過、斑馬紋與選中的列）上都至少 3:1。
 - 圓點樣式（`Card`、`DataTable` 裡，或 `variant="dot"`）：只有要注意的狀態用該狀態的文字色：`fail` 用 `danger-text`、`review` 用 `warning-text`、`doing` 用 `accent-text`；`done` 和 `draft` 用 `ink-muted`，讓需要處理的項目先被看到。字級和旁邊的文字相同（表格裡和其他格子一樣大）；需要注意的三種加粗，`done`、`draft` 用一般粗細。進度圓圈保留各自的顏色和形狀。
 
 | status   | 文字   | 進度圓圈 | 顏色          |
 | -------- | ------ | -------- | ------------- |
-| `draft`  | 草稿   | 空心     | `neutral-500` |
-| `doing`  | 進行中 | 半滿     | `accent`      |
-| `review` | 審核中 | 四分之一 | `warning`     |
-| `done`   | 完成   | 全滿     | `success`     |
-| `fail`   | 失敗   | 全滿     | `danger`      |
+| `draft`  | 草稿   | 空心     | `ink-muted` |
+| `doing`  | 進行中 | 半滿     | `accent-text` |
+| `review` | 審核中 | 四分之一 | `warning-text` |
+| `done`   | 完成   | 全滿     | `success-text` |
+| `fail`   | 失敗   | 全滿     | `danger-text` |

@@ -24,7 +24,7 @@ const [mode, setMode] = useState<'preview' | 'source'>('preview');
 
 ## 細節
 
-- 外觀：`surface-sub` 底的圓角框，選中的一段是白色（`surface`）的凸起小塊，切換時小塊滑過去（和 Tabs 的指示器同樣的動畫，300 ms）。
+- 外觀：`surface-sub` 底的圓角框，選中的一段是白色（`surface`）的凸起小塊，加 1 px `line-strong` 框（達到 3:1），切換時小塊滑過去（和 Tabs 的指示器同樣的動畫，300 ms）。
 - `iconOnly` 每段 28 × 24 px，選中的圖示變實心、強調文字色。不加 `iconOnly`：顯示圖示（有的話）和文字，13 px。
 - 鍵盤：整組一個 Tab 停留點，← → 移動並選取。
 - 無障礙：`role="radiogroup"`，每段是 `role="radio"`、`aria-checked`。
