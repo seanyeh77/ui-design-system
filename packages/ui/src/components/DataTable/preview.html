@@ -1,4 +1,4 @@
-<!-- @dsCard group="Data" height=1560 -->
+<!-- @dsCard group="Data" height=2280 -->
 <!doctype html>
 <html lang="zh-Hant">
   <head>
@@ -56,6 +56,74 @@
         };
       });
       var STL = { draft: '草稿', doing: '進行中', review: '審核中', done: '完成', fail: '失敗' };
+      // The defaults from plain columns: the main text column first takes the room left; status, source, length, words
+      // and date hug their content. Failed rows say why in a second line and offer 「重試」; running rows say how far.
+      var NOW = Date.now();
+      function ago(h) {
+        return new Date(NOW - h * 3600000).toISOString();
+      }
+      var JOBS = [
+        { id: 't1', title: '第 12 次週會錄音', status: 'doing', source: 'YouTube', secs: 2802, words: 6120, created: ago(0.4), note: '轉錄中 42%' },
+        { id: 't2', title: '產品訪談：物流業者', status: 'fail', source: '上傳', secs: 6889, words: 0, created: ago(3), note: '音訊格式不支援，請轉成 MP3 後重試' },
+        { id: 't3', title: '課程錄影 第 3 週：作業系統排程', status: 'done', source: 'Google Drive', secs: 5410, words: 21980, created: ago(26) },
+        { id: 't4', title: '客服通話抽樣', status: 'done', source: '上傳', secs: 1530, words: 5210, created: ago(50) },
+        { id: 't5', title: 'Podcast 第 48 集', status: 'done', source: 'YouTube', secs: 3725, words: 15402, created: ago(120) },
+        { id: 't6', title: '董事會會議（上半場）', status: 'fail', source: '上傳', secs: 90, words: 0, created: ago(180), note: '檔案只有 1:30，可能上傳不完整' },
+        { id: 't7', title: '新人訓練：資安基礎', status: 'done', source: 'Google Drive', secs: 2210, words: 8930, created: ago(300) },
+      ];
+      var JSL = { doing: '進行中', fail: '失敗', done: '完成' };
+      function Jobs() {
+        return h(
+          'div',
+          { style: { padding: 20 } },
+          h(U.DataTable, {
+            caption: '轉錄紀錄',
+            rows: JOBS,
+            urlKey: 'jobs',
+            selectable: true,
+            search: { placeholder: '搜尋標題、來源' },
+            summary: {
+              key: 'status',
+              items: [
+                { value: 'doing', label: '進行中' },
+                { value: 'done', label: '完成' },
+                { value: 'fail', label: '失敗' },
+              ],
+            },
+            filters: [{ key: 'source', label: '來源' }],
+            bulkActions: function (ids, clear) {
+              return h(U.Button, { variant: 'secondary', onClick: clear }, '重試');
+            },
+            rowActions: function (r) {
+              return r.status === 'fail' ? h(U.IconButton, { label: '重試 ' + r.title, icon: U.icons['arrows-clockwise'] }) : null;
+            },
+            columns: [
+              {
+                key: 'title',
+                label: '標題',
+                secondary: function (r) {
+                  return r.note;
+                },
+              },
+              {
+                key: 'status',
+                label: '狀態',
+                mobile: 'status',
+                render: function (r) {
+                  return h(U.Badge, { status: r.status }, JSL[r.status]);
+                },
+                searchText: function (r) {
+                  return JSL[r.status];
+                },
+              },
+              { key: 'source', label: '來源' },
+              { key: 'secs', label: '長度', format: 'duration' },
+              { key: 'words', label: '字數', numeric: true, unit: '字' },
+              { key: 'created', label: '建立時間', format: 'relative' },
+            ],
+          }),
+        );
+      }
       function D() {
         return h(
           'div',
@@ -97,17 +165,15 @@
               {
                 key: 'name',
                 label: '名稱',
-                width: 140,
-                grow: 1.6,
                 render: function (r) {
                   return h('strong', null, r.name);
                 },
               },
-              { key: 'owner', label: '負責人', width: 96 },
+              { key: 'owner', label: '負責人' },
               {
                 key: 'status',
                 label: '狀態',
-                width: 120,
+                mobile: 'status',
                 sortValue: function (r) {
                   return ST.indexOf(r.status);
                 },
@@ -119,9 +185,9 @@
                 },
               },
               { key: 'progress', label: '進度', format: 'percent', decimals: 0, unit: '%' },
-              { key: 'budget', label: '預算', format: 'money', width: 132 },
+              { key: 'budget', label: '預算', format: 'money' },
               // Off at first: turn it on in 「欄位」.
-              { key: 'updated', label: '更新日期', format: 'date', hidden: true, width: 150 },
+              { key: 'updated', label: '更新日期', format: 'date', hidden: true },
             ],
           }),
         );
@@ -210,7 +276,7 @@
           }),
         );
       }
-      ReactDOM.createRoot(document.getElementById('root')).render(h('div', null, h(D), h(Long), h(Summary)));
+      ReactDOM.createRoot(document.getElementById('root')).render(h('div', null, h(Jobs), h(D), h(Long), h(Summary)));
     </script>
   </body>
 </html>

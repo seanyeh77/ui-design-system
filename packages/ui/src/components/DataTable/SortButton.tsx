@@ -71,7 +71,7 @@ export function SortButton({ cols, levels, max, onChange, boundary }: SortButton
           className={cx('ui-btn', 'ui-btn-secondary', 'ui-dt-sortbtn', open && 'is-open', levels.length > 0 && 'is-on')}
           aria-label={levels.length ? tr('排序：{list}', { list: read }) : tr('排序')}
         >
-          <Icon name="sort-ascending" size={18} />
+          <Icon name="sort-ascending" size={20} />
           {/* The whole sort, or on a narrow table (container query) 「排序」 and the number of levels. */}
           <span className="ui-dt-sortbtn-text">{levels.length ? tr('排序：{list}', { list: shown }) : tr('排序')}</span>
           {levels.length ? (

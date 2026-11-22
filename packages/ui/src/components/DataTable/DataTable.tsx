@@ -6,14 +6,15 @@ import { Tabs } from '../Tabs/Tabs';
 import { format } from '../../format';
 import { tr, unitFor, type CountUnit } from '../../i18n';
 import { Icon, type CustomIcon } from '../../icons/Icon';
-import { cx, idPart, monoNums, reduced, seenOnly, useNarrow } from '../../internal/util';
+import { TOUCH_ONLY, copyText, cx, idPart, monoNums, reduced, seenOnly, useMedia, useNarrow } from '../../internal/util';
+import { Tooltip } from '../Tooltip/Tooltip';
 import { devWarn } from '../../internal/dev';
 import { CheckMark } from '../../internal/Field';
 import { announce } from '../../announce';
 import { ScrollHint, useScrollHint } from '../../internal/scrollHint';
-import { ColResize, CopyMarkdownButton, MIN_COL, TableDialog, ZoomButton, markdownTable } from '../../internal/tableTools';
-import { cellText, isActive, matches, readSort, readUrl, resolveFilters, searchHit, writeSort, writeUrl, type SortLevel } from './filters';
-import { ColumnMenu, FilterButton, FullText, LongText, markMatch } from './parts';
+import { ColResize, MIN_COL, TableDialog, markdownTable } from '../../internal/tableTools';
+import { asDate, cellText, isActive, isDateCol, matches, readSort, readUrl, resolveFilters, searchHit, writeSort, writeUrl, type SortLevel } from './filters';
+import { FilterButton, FilterChips, FullText, LongText, MoreMenu, markMatch, type FilterChip } from './parts';
 import { SortButton, dirWord, sortSentence } from './SortButton';
 import type { DataTableColumn, DataTableFilter, DataTableView, FilterOption, FilterValue, ResolvedFilter, Row, RowKey, Total } from './types';
 
@@ -48,6 +49,12 @@ export interface DataTableProps<R extends Row = Record<string, unknown>> {
   filters?: DataTableFilter<R>[];
   /** @deprecated use filters. */
   filter?: { key: RowKey<R>; label?: string; options: FilterOption[] };
+  /** 「/」 focuses this table's search field when focus is not in a text field (no Ctrl, Alt or ⌘). Only the first
+   *  table on the page with a search field takes it; it shows a small 「/」 in the empty field on desktop. Default true. */
+  searchShortcut?: boolean;
+  /** Each row's page: the first cell's text becomes a link to it, and a click anywhere else on the row (not on its own
+   *  links, buttons or checkbox) opens it; Ctrl or ⌘ + click opens a new tab. */
+  rowHref?: (row: R) => string;
   /** Write search and filters into the URL. Default true. */
   urlSync?: boolean;
   /** Prefix of the URL parameters when a page has several tables. */
@@ -64,17 +71,17 @@ export interface DataTableProps<R extends Row = Record<string, unknown>> {
   totals?: Partial<Record<string, Total<R>>>;
   /** Keep the first column visible while scrolling sideways. */
   stickyFirst?: boolean;
-  /** 「欄位」 menu to hide columns. Default true. */
+  /** 「欄位」 in the 「⋯」 menu, to hide columns. Default true. */
   columnMenu?: boolean;
-  /** Remembers the column widths readers drag (the borders in the header) in localStorage under this name
-   *  (ui-dt-width:<widthKey>). Without it the widths go back to width and grow when the page reloads. resetKey does not
-   *  clear them: they are the reader's own. */
+  /** Remembers the column widths readers drag (the borders in the header) and the columns they hide or show, in
+   *  localStorage under this name (ui-dt-width:<widthKey>, ui-dt-cols:<widthKey>). Without it they go back to the
+   *  defaults when the page reloads. resetKey does not clear them: they are the reader's own; 「欄位」 → 「還原預設」 does. */
   widthKey?: string;
-  /** The 「放大表格」 icon above the table's top right: the whole table, with its search, filters, sort and pages, in a
-   *  dialog up to 1200 px wide. A click on a link inside closes the dialog. Not on phones. Default true. */
+  /** 「放大表格」 in the 「⋯」 menu: the whole table, with its search, filters, sort and pages, in a dialog up to
+   *  1200 px wide. A click on a link inside closes the dialog. Not on phones. Default true. */
   zoom?: boolean;
-  /** The 「複製成 Markdown」 icon in the toolbar: every row the search and filters keep (all pages), in the shown
-   *  columns and order; each cell is the column's fullText, else its searchText, else its value. Default true. */
+  /** 「複製成 Markdown」 in the 「⋯」 menu: every row the search and filters keep (all pages), in the shown columns and
+   *  order; each cell is the column's fullText, else its searchText, else its value. Default true. */
   copy?: boolean;
   /** Your own text for 「複製成 Markdown」, from the same rows (all pages, sorted). */
   copyText?: (rows: R[]) => string;
@@ -89,12 +96,72 @@ const MOVE = { dur: 320, stagger: 25, ease: 'cubic-bezier(.2,.8,.2,1)' };
 const ARROWS: Record<'asc' | 'desc' | 'none', CustomIcon> = { asc: 'M12 19V5M6 11l6-6 6 6', desc: 'M12 5v14M6 13l6 6 6-6', none: 'M8 9l4-4 4 4M8 15l4 4 4-4' };
 
 const get = (row: Row, key: string): unknown => (row as Record<string, unknown>)[key];
-const isNum = (c: DataTableColumn<never>) => c.numeric || c.format === 'money' || c.format === 'percent';
+const isNum = (c: DataTableColumn<never>) => c.numeric || c.format === 'money' || c.format === 'percent' || c.format === 'duration';
+// Short by its props: it hugs its content instead of taking the room left (see widths below).
+const isShort = (c: DataTableColumn<never>) => isNum(c) || !!c.unit || isDateCol(c) || c.mobile === 'status' || c.width != null;
+// A plain text column that is not the main one hugs its content up to this width (px); longer text wraps.
+const TEXT_HUG_MAX = 280;
+// Columns sized by props only, before the first measure (px).
+const HUG_START = 96;
+// Cell padding (12 + 12) and its right border (px), added to the measured content.
+const CELL_PAD = 25;
+// <time dateTime>: a date alone for 'date', the moment for the others.
+const isoOf = (d: Date, dateOnly: boolean) =>
+  dateOnly ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` : d.toISOString();
+
+/** The width of what an element holds (its text and children, not absolutely placed parts such as the column border). */
+function contentWidth(el: Element): number {
+  let left = Infinity;
+  let right = -Infinity;
+  const range = document.createRange();
+  for (const n of el.childNodes) {
+    let r: DOMRect | null = null;
+    if (n instanceof HTMLElement) {
+      if (n.classList.contains('ui-col-resize') || getComputedStyle(n).position === 'absolute') continue;
+      r = n.getBoundingClientRect();
+    } else if (n.nodeType === Node.TEXT_NODE && n.textContent?.trim()) {
+      range.selectNodeContents(n);
+      r = range.getBoundingClientRect();
+    }
+    if (r && r.width) {
+      left = Math.min(left, r.left);
+      right = Math.max(right, r.right);
+    }
+  }
+  return right > left ? right - left : 0;
+}
+
+// 「/」 focuses the search field of the first table on the page that has one (in page order). One listener for all.
+const shortcutTables = new Set<HTMLElement>();
+const shortcutListeners = new Set<() => void>();
+const firstShortcutTable = (): HTMLElement | null =>
+  [...shortcutTables].filter((el) => el.isConnected).sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))[0] ?? null;
+function onSlash(e: KeyboardEvent) {
+  if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented || e.isComposing) return;
+  const t = e.target instanceof Element ? e.target : null;
+  if (t?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="dialog"], [role="menu"]')) return;
+  const input = firstShortcutTable()?.querySelector<HTMLInputElement>(':scope > .ui-dt-tools .ui-dt-search input');
+  if (!input) return;
+  e.preventDefault();
+  input.focus();
+}
+function registerShortcut(el: HTMLElement, changed: () => void): () => void {
+  if (!shortcutTables.size) document.addEventListener('keydown', onSlash);
+  shortcutTables.add(el);
+  shortcutListeners.add(changed);
+  shortcutListeners.forEach((f) => f());
+  return () => {
+    shortcutTables.delete(el);
+    shortcutListeners.delete(changed);
+    if (!shortcutTables.size) document.removeEventListener('keydown', onSlash);
+    shortcutListeners.forEach((f) => f());
+  };
+}
 
 // What a row click leaves alone: links, buttons, fields, checkboxes and anything else that acts on its own.
 const ROW_CONTROLS = 'a, button, input, select, textarea, label, [role="checkbox"], [role="button"], [role="menuitem"], [role="link"], [contenteditable]';
 
-function RowCheck({ v, label, onClick }: { v: boolean | 'mixed'; label: string; onClick: () => void }) {
+function RowCheck({ v, label, onClick }: { v: boolean | 'mixed'; label: string; onClick: (e: React.MouseEvent) => void }) {
   return (
     <button
       type="button"
@@ -102,9 +169,11 @@ function RowCheck({ v, label, onClick }: { v: boolean | 'mixed'; label: string; 
       aria-checked={v}
       aria-label={label}
       className={cx('ui-check-box', 'ui-dt-check', v && 'is-on')}
+      // Shift + click picks a range: no text selection from it.
+      onMouseDown={(e) => e.shiftKey && e.preventDefault()}
       onClick={(e) => {
         e.stopPropagation();
-        onClick();
+        onClick(e);
       }}
     >
       <CheckMark v={v} />
@@ -129,7 +198,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   }, [p.filters, p.filter, cols, rows]);
   const fromUrl = () => (urlSync && typeof location !== 'undefined' ? readUrl(urlKey, filters) : { q: '', values: {} });
   const maxSort = Math.max(1, p.maxSort ?? Infinity);
-  const sortCols = cols.filter((c) => c.sortable !== false).map((c) => ({ key: c.key, label: c.label, numeric: c.numeric }));
+  const sortCols = cols.filter((c) => c.sortable !== false).map((c) => ({ key: c.key, label: c.label, numeric: isNum(c) }));
   const firstDir = (key: string): SortLevel['dir'] => (sortCols.find((c) => c.key === key)?.numeric ? 'desc' : 'asc');
   // Only sortable columns, each once, at most maxSort.
   const validSort = (l: readonly { key: string; dir?: SortLevel['dir'] }[]): SortLevel[] =>
@@ -143,11 +212,31 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const [q, setQ] = React.useState(() => fromUrl().q);
   const [values, setValues] = React.useState<Record<string, FilterValue>>(() => fromUrl().values);
   const [view, setView] = React.useState(p.views?.[0]?.id ?? null);
-  // Columns people turned on or off in the 「欄位」 menu; the others follow their own `hidden`.
-  const [toggled, setToggled] = React.useState<Record<string, boolean>>({});
+  // Columns people turned on or off in the 「欄位」 menu; the others follow their own `hidden`. Remembered under widthKey.
+  const colsKey = p.widthKey ? 'ui-dt-cols:' + p.widthKey : null;
+  const [toggled, setToggledState] = React.useState<Record<string, boolean>>(() => {
+    if (!colsKey) return {};
+    try {
+      const v = JSON.parse(localStorage.getItem(colsKey) || 'null');
+      return v && typeof v === 'object' ? (v as Record<string, boolean>) : {};
+    } catch {
+      return {};
+    }
+  });
+  const setToggled = (t: Record<string, boolean>) => {
+    setToggledState(t);
+    if (!colsKey) return;
+    try {
+      if (Object.keys(t).length) localStorage.setItem(colsKey, JSON.stringify(t));
+      else localStorage.removeItem(colsKey);
+    } catch {
+      // Storage blocked or full: it works the same, without remembering.
+    }
+  };
   // Rows opened with the caret on the left: their long columns in full, below the row.
   const [opened, setOpened] = React.useState<Record<string, boolean>>({});
   const narrow = useNarrow();
+  const touch = useMedia(TOUCH_ONLY);
   const uid = React.useId();
   const rootRef = React.useRef<HTMLDivElement>(null);
   const [sel, setSel] = React.useState<Record<string, boolean>>({});
@@ -196,7 +285,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     setSel({});
     setSumVal('all');
     setSort(initialSort);
-    setToggled({});
+    // Remembered columns (widthKey) are the reader's own, like the widths: a new data set keeps them.
+    if (!colsKey) setToggledState({});
     setOpened({});
     setFit({});
   }
@@ -227,6 +317,42 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     'DataTable',
     'a column has hidden: true but there is no 「欄位」 menu (columnMenu is false, or the table has 2 columns or fewer), so nobody can turn it on. Turn the menu on, or leave the column out.',
   );
+  // One condition in one place: a status the summary tabs pick should not be a filter or a view as well.
+  const sumKey = p.summary?.key;
+  const twiceFilter = sumKey ? filters.find((f) => f.key === sumKey) : undefined;
+  devWarn(
+    twiceFilter,
+    'DataTable',
+    `the filter 「${twiceFilter?.label}」 filters ${String(sumKey)}, which the summary tabs already filter, so the same condition is in two places. Drop it from filters (or drop summary).`,
+  );
+  // A view filters the same key when the rows it keeps are exactly the rows of one summary value.
+  const twiceView =
+    sumKey && rows.length
+      ? p.views?.find((v) => {
+          if (!v.filter) return false;
+          const kept = rows.filter((r) => v.filter?.(r));
+          if (!kept.length || kept.length === rows.length) return false;
+          const val = String(get(kept[0], sumKey));
+          return kept.every((r) => String(get(r, sumKey)) === val) && rows.filter((r) => String(get(r, sumKey)) === val).length === kept.length;
+        })
+      : undefined;
+  devWarn(
+    twiceView,
+    'DataTable',
+    `the view 「${twiceView?.label}」 keeps exactly the rows of one ${String(sumKey)} value, which a summary tab already picks, so the same condition is in two places. Drop the view (or drop summary).`,
+  );
+  // A number with its unit baked into a string cannot be formatted, aligned or sorted as a number.
+  for (const c of cols) {
+    if (!c.unit && !c.numeric) continue;
+    const bad = rows
+      .map((r) => get(r, c.key))
+      .find((v) => typeof v === 'string' && /\d/.test(v) && (c.unit ? v.includes(c.unit) : !/^\s*-?[\d,]*\.?\d+\s*$/.test(v)));
+    devWarn(
+      bad !== undefined,
+      'DataTable',
+      `column 「${c.label}」 got the string 「${String(bad)}」. Pass a number${c.unit ? '' : ' and the unit in unit'} (e.g. { numeric: true, unit: '${c.unit || '字'}' } with 1234), so it is formatted, right-aligned and sorted as a number.`,
+    );
+  }
   const hidden: Record<string, boolean> = {};
   cols.forEach((c, i) => (hidden[c.key] = i > 0 && (toggled[c.key] ?? !!c.hidden)));
   const shownCols = cols.filter((c) => !hidden[c.key]);
@@ -251,7 +377,14 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     // The first level decides; the next only between rows the first finds equal; then the rows' own order.
     const by = sort.map((l) => {
       const col = cols.find((c) => c.key === l.key);
-      return { val: (r: R) => (col?.sortValue ? col.sortValue(r) : get(r, l.key)), d: l.dir === 'asc' ? 1 : -1 };
+      // Dates by time (an ISO string or a Date), not by their text.
+      const val = (r: R): unknown => {
+        if (col?.sortValue) return col.sortValue(r);
+        const v = get(r, l.key);
+        if (v instanceof Date || (col && isDateCol(col))) return asDate(v)?.getTime() ?? -Infinity;
+        return v;
+      };
+      return { val, d: l.dir === 'asc' ? 1 : -1 };
     });
     list = [...list].sort((a, b) => {
       for (const { val, d } of by) {
@@ -397,6 +530,19 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   };
   const toggle = (ids: string[], v: boolean) => setSel({ ...sel, ...Object.fromEntries(ids.map((id) => [id, v])) });
   const clear = () => setSel({});
+  // Shift + click on a row's checkbox: every row from the last one clicked to this one (in the shown order, any page)
+  // takes this one's new state.
+  const lastPick = React.useRef<string | null>(null);
+  const pickRow = (id: string, on: boolean, shift: boolean) => {
+    const ids = list.map(idOf);
+    const from = shift && lastPick.current ? ids.indexOf(lastPick.current) : -1;
+    const to = ids.indexOf(id);
+    lastPick.current = id;
+    if (from < 0 || to < 0 || from === to) return toggle([id], !on);
+    const next = { ...sel, ...Object.fromEntries(ids.slice(Math.min(from, to), Math.max(from, to) + 1).map((k) => [k, !on])) };
+    setSel(next);
+    announce(tr('已選 {n} 筆', { n: ids.filter((k) => next[k]).length }));
+  };
   const clearFilters = () => {
     setValues({});
     setQ('');
@@ -415,11 +561,20 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const longCols = shownCols.filter((c) => c.long || c.fullText);
   const expander = longCols.length > 0 && !narrow;
   const EXP = 40;
+  // Widths by default. The main column (the first text column) and long ones take the room left; the others hug their
+  // content: numbers, units, dates, durations, status Badges, other short text and columns given a width. A grow prop
+  // wins either way. Hugging columns are measured below (their heading and every cell on the page, widest wins).
+  const mainKey = (shownCols.find((c) => !isShort(c) && !c.long && c.grow !== 0) ?? shownCols[0])?.key;
+  const grows = (c: DataTableColumn<R>) => (c.grow != null ? c.grow > 0 : c.long || c.key === mainKey);
   // A column is at least as wide as content that cannot wrap (a code chip, a link with a path): measured below.
-  const minOf = (c: DataTableColumn<R>) => Math.max(c.width || (c.numeric ? 96 : 120), fit[c.key] || 0);
+  const minOf = (c: DataTableColumn<R>) => {
+    if (grows(c)) return Math.max(c.width || (isNum(c) ? 96 : 120), fit[c.key] || 0);
+    const cap = c.width == null && !isShort(c) ? TEXT_HUG_MAX : Infinity;
+    return Math.max(c.width || 0, MIN_COL, Math.min(fit[c.key] ?? c.width ?? HUG_START, cap));
+  };
   // Dragged widths (A2) fix every shown column in px; a column shown later starts at its least width.
   const layout = (w: Record<string, number> | null) => {
-    const colW = (c: DataTableColumn<R>) => (w ? `${w[c.key] ?? minOf(c)}px` : `minmax(${minOf(c)}px, ${c.grow || (c.width ? 1 : c.numeric ? 0.8 : 1)}fr)`);
+    const colW = (c: DataTableColumn<R>) => (w ? `${w[c.key] ?? minOf(c)}px` : grows(c) ? `minmax(${minOf(c)}px, ${c.grow || 1}fr)` : `${minOf(c)}px`);
     const template = [expander ? EXP + 'px' : null, selectable ? '46px' : null, ...shownCols.map(colW), hasAct ? actW + 'px' : null].filter(Boolean).join(' ');
     const minW =
       (expander ? EXP : 0) + (selectable ? 46 : 0) + shownCols.reduce((a, c) => a + (w ? (w[c.key] ?? minOf(c)) : minOf(c)), 0) + (hasAct ? actW : 0);
@@ -450,10 +605,22 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     if (!root || narrow) return;
     const measure = () => {
       const need: Record<string, number> = {};
-      for (const el of root.querySelectorAll<HTMLElement>('.ui-dt-body .ui-dt-cell[data-col]:not(.is-long)')) {
+      for (const el of root.querySelectorAll<HTMLElement>('.ui-dt-body .ui-dt-cell[data-col]:not(.is-long):not(.is-hug)')) {
         const over = el.scrollWidth - el.clientWidth;
         const key = el.dataset.col;
         if (over > 1 && key) need[key] = Math.max(need[key] ?? 0, Math.ceil(el.getBoundingClientRect().width + over));
+      }
+      // Hugging columns: the widest of their heading and cells on one line (is-measuring keeps every one unwrapped
+      // for this read; the class is gone before the browser paints).
+      const hugs = root.querySelectorAll<HTMLElement>('.ui-dt-cell.is-hug[data-col]');
+      if (hugs.length) {
+        root.classList.add('is-measuring');
+        for (const el of hugs) {
+          const key = el.dataset.col;
+          const inner = el.querySelector(':scope > .ui-dt-stack > .ui-dt-main') ?? el;
+          if (key) need[key] = Math.max(need[key] ?? 0, Math.ceil(contentWidth(inner) + CELL_PAD));
+        }
+        root.classList.remove('is-measuring');
       }
       setFit((f) => {
         const grow = Object.entries(need).filter(([k, w]) => w > (f[k] ?? 0));
@@ -477,7 +644,10 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   }, [narrow, resetKey]);
   const stickyStyle = (ci: number) => (ci === 0 && sticky ? { left: (expander ? EXP : 0) + (selectable ? 46 : 0) } : undefined);
   const cellClass = (c: DataTableColumn<R>, ci: number, ...more: unknown[]) =>
-    cx('ui-dt-cell', isNum(c) && 'is-num', ci === 0 && sticky && 'is-sticky', ...more);
+    cx('ui-dt-cell', isNum(c) && 'is-num', !grows(c) && 'is-hug', ci === 0 && sticky && 'is-sticky is-sticky-end', ...more);
+  // stickyFirst: the caret and checkbox columns before the first column stay too, so nothing scrolls under them.
+  const lead = (what: 'exp' | 'sel') =>
+    sticky ? { className: 'is-sticky', style: { left: what === 'sel' && expander ? EXP : 0 } } : { className: undefined, style: undefined };
 
   const headOf = (inZoom: boolean) => {
     const gridStyle = inZoom ? zoomGrid : pageGrid;
@@ -498,9 +668,11 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
       </div>
     ) : (
       <div className="ui-dt-row ui-dt-head" role="row" style={gridStyle}>
-        {expander ? <div className="ui-dt-cell ui-dt-exp" role="columnheader" aria-label={tr('詳細')} /> : null}
+        {expander ? (
+          <div className={cx('ui-dt-cell ui-dt-exp', lead('exp').className)} style={lead('exp').style} role="columnheader" aria-label={tr('詳細')} />
+        ) : null}
         {selectable ? (
-          <div className="ui-dt-cell ui-dt-sel" role="columnheader">
+          <div className={cx('ui-dt-cell ui-dt-sel', lead('sel').className)} style={lead('sel').style} role="columnheader">
             <RowCheck v={allOn ? true : mixed ? 'mixed' : false} label={tr('全選')} onClick={() => toggle(visIds, !allOn)} />
           </div>
         ) : null}
@@ -561,11 +733,33 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   };
 
   const mark = searching ? q : '';
+  // A relative date's full date and time: in a Tooltip on hover and as the cell's description (no extra tab stop).
+  const absDate = (r: R, c: DataTableColumn<R>) => {
+    if (c.format !== 'relative' || c.render) return '';
+    const d = asDate(get(r, c.key));
+    const abs = d ? format.dateTime(d) : '';
+    return abs && abs !== format.relative(d) ? abs : '';
+  };
   const cellInner = (r: R, c: DataTableColumn<R>) => {
     const raw = get(r, c.key);
     let v: React.ReactNode;
     if (c.render) v = c.render(r);
-    else if (c.unit && raw !== null && raw !== undefined && raw !== '')
+    else if (isDateCol(c) && asDate(raw)) {
+      const d = asDate(raw) as Date;
+      const abs = absDate(r, c);
+      const t = (
+        <time className="ui-dt-time" dateTime={isoOf(d, c.format === 'date')}>
+          {markMatch(cellText(c, raw), mark)}
+        </time>
+      );
+      v = abs ? (
+        <Tooltip label={abs} describe={false} disabled={touch}>
+          {t}
+        </Tooltip>
+      ) : (
+        t
+      );
+    } else if (c.unit && raw !== null && raw !== undefined && raw !== '')
       // One inline element: the cell is a flex box, which drops a bare space between the number and the unit.
       v = (
         <span className="ui-dt-qty">
@@ -575,9 +769,23 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     else v = markMatch(cellText(c, raw), mark);
     return v;
   };
-  const cell = (r: R, c: DataTableColumn<R>) => {
-    const v = c.long ? <LongText>{cellInner(r, c)}</LongText> : cellInner(r, c);
-    return c.fullText ? <FullText text={c.fullText(r)}>{v}</FullText> : v;
+  const cell = (r: R, c: DataTableColumn<R>, ci: number) => {
+    let v = c.long ? <LongText>{cellInner(r, c)}</LongText> : cellInner(r, c);
+    if (c.fullText) v = <FullText text={c.fullText(r)}>{v}</FullText>;
+    if (ci === 0 && p.rowHref)
+      v = (
+        <a className="ui-dt-rowlink" href={p.rowHref(r)}>
+          {v}
+        </a>
+      );
+    const sub = c.secondary?.(r);
+    if (sub == null || sub === '' || sub === false) return v;
+    return (
+      <span className="ui-dt-stack">
+        <span className="ui-dt-main">{v}</span>
+        <span className="ui-dt-sub">{sub}</span>
+      </span>
+    );
   };
   const total = (c: DataTableColumn<R>, ci: number): React.ReactNode => {
     const how = p.totals?.[c.key];
@@ -605,20 +813,96 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   // One row of tools: search, filter, count, copy, sort, columns, zoom. Without a search field the title goes on the
   // same row: the caption in front of the tools, or, when the table sits under a Card's title, the tools move into
   // that title row (inHead). How it wraps depends on the table's own width (container query in styles.css).
+  // 「複製成 Markdown」 from the 「⋯」 menu: the menu closes, so a small 「已複製」 shows under it for 2 s and is announced.
+  const [copied, setCopied] = React.useState(false);
+  const copiedTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
+  React.useEffect(() => () => clearTimeout(copiedTimer.current), []);
+  const doCopy = () =>
+    copyText(copyMarkdown()).then(
+      () => {
+        setCopied(true);
+        announce(tr('已複製'));
+        clearTimeout(copiedTimer.current);
+        copiedTimer.current = setTimeout(() => setCopied(false), 2000);
+      },
+      () => p.onCopyError?.(),
+    );
+  // 「/」 focuses the search field of the first table on the page that has one; that table shows the 「/」 hint.
+  const slash = search !== false && p.searchShortcut !== false;
+  const [slashOwner, setSlashOwner] = React.useState(false);
+  React.useEffect(() => {
+    const el = rootRef.current;
+    if (!slash || !el) return;
+    const changed = () => setSlashOwner(firstShortcutTable() === el);
+    const off = registerShortcut(el, changed);
+    return () => {
+      off();
+      setSlashOwner(false);
+    };
+  }, [slash]);
+  const [searchFocus, setSearchFocus] = React.useState(false);
+  // The applied conditions as removable chips under the toolbar: 「狀態：失敗 ×」, one per picked option or range.
+  const setFilter = (key: string, v: FilterValue | undefined) => {
+    setValues(v === undefined ? Object.fromEntries(Object.entries(values).filter(([k]) => k !== key)) : { ...values, [key]: v });
+    setPage(0);
+  };
+  const chips: FilterChip[] = [];
+  for (const f of filters) {
+    const v = values[f.key];
+    if (!v || !isActive(v)) continue;
+    if (Array.isArray(v))
+      for (const val of v)
+        chips.push({
+          id: f.key + '=' + val,
+          text: tr('{name}：{value}', { name: f.label, value: f.options.find((o) => String(o.value) === val)?.label ?? val }),
+          remove: () =>
+            setFilter(
+              f.key,
+              v.filter((x) => x !== val),
+            ),
+        });
+    else {
+      const range = v.min && v.max ? `${v.min}–${v.max}` : v.min ? `≥ ${v.min}` : `≤ ${v.max}`;
+      chips.push({ id: f.key, text: tr('{name}：{value}', { name: f.label, value: range }), remove: () => setFilter(f.key, undefined) });
+    }
+  }
+  const chipsView = (inZoom: boolean) => (
+    <FilterChips
+      chips={chips}
+      onClear={() => {
+        setValues({});
+        setPage(0);
+      }}
+      filterButton={() => (inZoom ? zoomRef : rootRef).current?.querySelector<HTMLElement>('.ui-dt-filterbtn') ?? null}
+    />
+  );
+  // The toolbar, the table and the page numbers: on the page, and again in the 「放大表格」 dialog with the same state.
+  // One row of tools: search, 「篩選」, the count, 「排序」 and 「⋯」 (欄位, 複製成 Markdown, 放大表格), every one 40 px tall.
+  // Without a search field the title goes on the same row: the caption in front of the tools, or, when the table sits
+  // under a Card's title, the tools move into that title row (inHead). How it wraps depends on the table's own width
+  // (container query in styles.css).
   const toolsView = (inZoom: boolean, inHead = false) => (
     <div className={cx('ui-dt-tools', inHead && 'is-inhead')}>
       {search === false && p.caption && !inZoom && !inHead ? <div className="ui-dt-caption">{p.caption}</div> : null}
       {search !== false ? (
-        <SearchField
-          value={q}
-          onChange={(v) => {
-            setQ(v);
-            setPage(0);
-          }}
-          placeholder={search.placeholder || tr('搜尋')}
-          label={search.placeholder || tr('搜尋')}
-          className="ui-dt-search"
-        />
+        <div className="ui-dt-search" onFocus={() => setSearchFocus(true)} onBlur={() => setSearchFocus(false)}>
+          <SearchField
+            value={q}
+            onChange={(v) => {
+              setQ(v);
+              setPage(0);
+            }}
+            placeholder={search.placeholder || tr('搜尋')}
+            label={search.placeholder || tr('搜尋')}
+            aria-keyshortcuts={slashOwner && !inZoom ? '/' : undefined}
+            className="ui-dt-searchfield"
+          />
+          {slashOwner && !inZoom && !narrow && !q && !searchFocus ? (
+            <kbd className="ui-dt-kbd" aria-hidden="true">
+              /
+            </kbd>
+          ) : null}
+        </div>
       ) : null}
       <div className="ui-dt-actions">
         {filters.length ? (
@@ -628,10 +912,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
             values={values}
             activeCount={activeN}
             count={(f, v) => all.filter((x) => passes(x.r, f.key) && matches(f, x.r, f.type === 'list' ? [v] : undefined)).length}
-            onChange={(key, v) => {
-              setValues({ ...values, [key]: v });
-              setPage(0);
-            }}
+            onChange={(key, v) => setFilter(key, v)}
             onClear={() => {
               setValues({});
               setPage(0);
@@ -646,12 +927,34 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
           </span>
           <span className="ui-visually-hidden">{format.fractionLabel(list.length, baseCount, tr('筆'))}</span>
         </span>
-        {p.copy !== false && !narrow ? <CopyMarkdownButton text={copyMarkdown} onCopyError={p.onCopyError} /> : null}
         {sortCols.length ? <SortButton cols={sortCols} levels={sort} max={maxSort} onChange={changeSort} boundary={inZoom ? zoomRef : rootRef} /> : null}
-        {p.columnMenu !== false && cols.length > 2 ? (
-          <ColumnMenu cols={cols} hidden={hidden} onToggle={(k) => setToggled({ ...toggled, [k]: !hidden[k] })} />
+        {narrow ? null : (
+          <MoreMenu
+            columns={
+              p.columnMenu !== false && cols.length > 2
+                ? {
+                    cols,
+                    hidden,
+                    onToggle: (k) => setToggled({ ...toggled, [k]: !hidden[k] }),
+                    onReset: () => {
+                      setToggled({});
+                      setWidths(null);
+                      setZoomWidths(null);
+                      announce(tr('已還原預設的欄位與欄寬'));
+                    },
+                  }
+                : undefined
+            }
+            onCopy={p.copy !== false ? doCopy : undefined}
+            onZoom={p.zoom !== false && !inZoom ? () => setZoomed(true) : undefined}
+          />
+        )}
+        {copied && !narrow ? (
+          <span className="ui-dt-copied" aria-hidden="true">
+            <Icon name="check" size={16} />
+            {tr('已複製')}
+          </span>
         ) : null}
-        {p.zoom !== false && !narrow && !inZoom ? <ZoomButton inToolbar onClick={() => setZoomed(true)} /> : null}
       </div>
     </div>
   );
@@ -685,23 +988,37 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                         role="row"
                         // Named by its first cell (the function name, say), not by every cell and the caret's 「展開 …」.
                         aria-labelledby={shownCols.length ? `${pfx}-n-${start + i}` : undefined}
-                        className={cx('ui-dt-row', i % 2 && 'is-even', on && 'is-selected', selectable && 'has-sel', expander && 'has-exp')}
+                        className={cx(
+                          'ui-dt-row',
+                          i % 2 && 'is-even',
+                          on && 'is-selected',
+                          selectable && 'has-sel',
+                          expander && !p.rowHref && 'has-exp',
+                          p.rowHref && 'has-href',
+                        )}
                         style={grid}
                         // EC: a click anywhere on the row opens or closes its details, except on its own controls
-                        // and when the click ends a text selection. Keyboard users have the caret button.
+                        // and when the click ends a text selection. Keyboard users have the caret button. With rowHref
+                        // the click opens the row's page instead (its first cell's link; Ctrl or ⌘ for a new tab).
                         onClick={
-                          expander
+                          expander || p.rowHref
                             ? (e) => {
                                 const t = e.target as Element;
                                 if (t.closest(ROW_CONTROLS) && t.closest(ROW_CONTROLS) !== e.currentTarget) return;
                                 if (String(window.getSelection() ?? '')) return;
+                                if (p.rowHref) {
+                                  const a = e.currentTarget.querySelector<HTMLAnchorElement>('a.ui-dt-rowlink');
+                                  if (e.ctrlKey || e.metaKey) window.open(a?.href, '_blank', 'noopener');
+                                  else a?.click();
+                                  return;
+                                }
                                 setOpened({ ...opened, [id]: !open });
                               }
                             : undefined
                         }
                       >
                         {expander ? (
-                          <div className="ui-dt-cell ui-dt-exp" role="cell">
+                          <div className={cx('ui-dt-cell ui-dt-exp', lead('exp').className)} style={lead('exp').style} role="cell">
                             <button
                               type="button"
                               className={cx('ui-dt-exp-btn', open && 'is-open')}
@@ -715,8 +1032,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                           </div>
                         ) : null}
                         {selectable ? (
-                          <div className="ui-dt-cell ui-dt-sel" role="cell">
-                            <RowCheck v={on} label={tr('選取第 {n} 筆', { n: start + i + 1 })} onClick={() => toggle([id], !on)} />
+                          <div className={cx('ui-dt-cell ui-dt-sel', lead('sel').className)} style={lead('sel').style} role="cell">
+                            <RowCheck v={on} label={tr('選取第 {n} 筆', { n: start + i + 1 })} onClick={(e) => pickRow(id, on, e.shiftKey)} />
                           </div>
                         ) : null}
                         {shownCols.map((c, ci) => (
@@ -726,13 +1043,13 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                             id={ci === 0 ? `${pfx}-n-${start + i}` : undefined}
                             // fullText: the whole text as the cell's description, not hidden text beside the short one
                             // (that put 「ucp.c:62，src/…/ucp.c:62」 in the page's text and the phone card).
-                            aria-description={c.fullText ? c.fullText(x.r) || undefined : undefined}
+                            aria-description={[c.fullText?.(x.r), absDate(x.r, c)].filter(Boolean).join('，') || undefined}
                             data-label={c.label}
                             data-col={c.key}
                             className={cellClass(c, ci, c.long && 'is-long', mobileClass(c, ci))}
                             style={stickyStyle(ci)}
                           >
-                            {cell(x.r, c)}
+                            {cell(x.r, c, ci)}
                           </div>
                         ))}
                         {hasAct ? (
@@ -769,8 +1086,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
             </div>
             {p.totals && list.length ? (
               <div className="ui-dt-row ui-dt-total" role="row" style={grid}>
-                {expander ? <div className="ui-dt-cell" role="cell" /> : null}
-                {selectable ? <div className="ui-dt-cell" role="cell" /> : null}
+                {expander ? <div className={cx('ui-dt-cell', lead('exp').className)} style={lead('exp').style} role="cell" /> : null}
+                {selectable ? <div className={cx('ui-dt-cell', lead('sel').className)} style={lead('sel').style} role="cell" /> : null}
                 {shownCols.map((c, ci) => (
                   <div key={c.key} role="cell" className={cellClass(c, ci)} style={stickyStyle(ci)}>
                     {total(c, ci)}
@@ -871,12 +1188,14 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         />
       ) : null}
       {headSlot ? createPortal(toolsView(false, true), headSlot) : toolsView(false)}
+      {chipsView(false)}
       {tableView(false)}
       <ScrollHint show={overflows} done={scrolled} />
       {footView}
       <TableDialog open={zoomed} onClose={() => setZoomed(false)} title={p.caption || p.label}>
         <div ref={zoomRef} className="ui-dt ui-dt-zoomed">
           {toolsView(true)}
+          {chipsView(true)}
           {tableView(true)}
           {footView}
         </div>

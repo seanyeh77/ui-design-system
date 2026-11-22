@@ -152,6 +152,17 @@ export function fileSize(b: number | null | undefined): string {
   return number(b / 1073741824, 1) + ' GB';
 }
 
+/** Seconds as a clock-style length: under 1 h 「46:42」「1:30」 (minutes not zero-padded), 1 h or more 「1:54:49」.
+ *  Rounded to the second. Negative, NaN or missing: 「—」. */
+function duration(seconds: number | null | undefined): string {
+  if (seconds == null || Number.isNaN(seconds) || seconds < 0 || !Number.isFinite(seconds)) return '—';
+  const t = Math.round(seconds);
+  const h = Math.floor(t / 3600);
+  const m = Math.floor((t % 3600) / 60);
+  const s = t % 60;
+  return h ? `${h}:${pad2(m)}:${pad2(s)}` : `${m}:${pad2(s)}`;
+}
+
 /** Shortens a path: keeps the first segment and the last two, 「src/…/hooks/ops.c:58」. */
 function path(p: string | null | undefined, o: { head?: number; tail?: number } = {}): string {
   const head = o.head ?? 1;
@@ -187,6 +198,7 @@ export const format = {
   compact,
   money,
   fileSize,
+  duration,
   path,
   fraction,
   fractionLabel,

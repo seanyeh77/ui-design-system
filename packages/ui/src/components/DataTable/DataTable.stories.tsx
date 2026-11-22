@@ -81,17 +81,15 @@ function D() {
           {
             key: 'name',
             label: '名稱',
-            width: 140,
-            grow: 1.6,
             render(r) {
               return <strong>{r.name}</strong>;
             },
           },
-          { key: 'owner', label: '負責人', width: 96 },
+          { key: 'owner', label: '負責人' },
           {
             key: 'status',
             label: '狀態',
-            width: 120,
+            mobile: 'status',
             sortValue(r) {
               return ST.indexOf(r.status);
             },
@@ -103,15 +101,72 @@ function D() {
             },
           },
           { key: 'progress', label: '進度', format: 'percent', decimals: 0, unit: '%' },
-          { key: 'budget', label: '預算', format: 'money', width: 132 },
+          { key: 'budget', label: '預算', format: 'money' },
           // Off at first: turn it on in 「欄位」.
-          { key: 'updated', label: '更新日期', format: 'date', hidden: true, width: 150 },
+          { key: 'updated', label: '更新日期', format: 'date', hidden: true },
         ]}
       />
     </div>
   );
 }
 export const Default = { render: () => <D /> };
+
+// The defaults from plain columns: the main text column first takes the room left; status, source, length, words and
+// date hug their content. Failed rows say why in a second line and offer 「重試」; running rows say how far.
+type Job = { id: string; title: string; status: UI.BadgeStatus; source: string; secs: number; words: number; created: string; note?: string };
+const NOW = Date.now();
+const ago = (h: number) => new Date(NOW - h * 3600000).toISOString();
+const JOBS: Job[] = [
+  { id: 't1', title: '第 12 次週會錄音', status: 'doing', source: 'YouTube', secs: 2802, words: 6120, created: ago(0.4), note: '轉錄中 42%' },
+  { id: 't2', title: '產品訪談：物流業者', status: 'fail', source: '上傳', secs: 6889, words: 0, created: ago(3), note: '音訊格式不支援，請轉成 MP3 後重試' },
+  { id: 't3', title: '課程錄影 第 3 週：作業系統排程', status: 'done', source: 'Google Drive', secs: 5410, words: 21980, created: ago(26) },
+  { id: 't4', title: '客服通話抽樣', status: 'done', source: '上傳', secs: 1530, words: 5210, created: ago(50) },
+  { id: 't5', title: 'Podcast 第 48 集', status: 'done', source: 'YouTube', secs: 3725, words: 15402, created: ago(120) },
+  { id: 't6', title: '董事會會議（上半場）', status: 'fail', source: '上傳', secs: 90, words: 0, created: ago(180), note: '檔案只有 1:30，可能上傳不完整' },
+];
+const JSL: Partial<Record<UI.BadgeStatus, string>> = { doing: '進行中', fail: '失敗', done: '完成' };
+export const Defaults = {
+  render: () => (
+    <div style={{ padding: 20 }}>
+      <UI.DataTable<Job>
+        caption="轉錄紀錄"
+        rows={JOBS}
+        urlKey="jobs"
+        selectable
+        search={{ placeholder: '搜尋標題、來源' }}
+        summary={{
+          key: 'status',
+          items: [
+            { value: 'doing', label: '進行中' },
+            { value: 'done', label: '完成' },
+            { value: 'fail', label: '失敗' },
+          ],
+        }}
+        filters={[{ key: 'source', label: '來源' }]}
+        bulkActions={(ids, clear) => (
+          <UI.Button variant="secondary" onClick={clear}>
+            重試
+          </UI.Button>
+        )}
+        rowActions={(r) => (r.status === 'fail' ? <UI.IconButton label={'重試 ' + r.title} icon="arrows-clockwise" /> : null)}
+        columns={[
+          { key: 'title', label: '標題', secondary: (r) => r.note },
+          {
+            key: 'status',
+            label: '狀態',
+            mobile: 'status',
+            render: (r) => <UI.Badge status={r.status}>{JSL[r.status]}</UI.Badge>,
+            searchText: (r) => JSL[r.status] ?? '',
+          },
+          { key: 'source', label: '來源' },
+          { key: 'secs', label: '長度', format: 'duration' },
+          { key: 'words', label: '字數', numeric: true, unit: '字' },
+          { key: 'created', label: '建立時間', format: 'relative' },
+        ]}
+      />
+    </div>
+  ),
+};
 
 // A results list on one page: the summary counts carry their unit, and the count above the table is the only count
 // (no 「第 1–6 筆，共 6 筆」 below it).

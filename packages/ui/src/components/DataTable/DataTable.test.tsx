@@ -5,6 +5,23 @@ import { userEvent } from '@testing-library/user-event';
 import { Card, DataTable, InlineCode } from '../../index';
 
 const cols = [{ key: 'name' as const, label: '名稱' }];
+type User = ReturnType<typeof userEvent.setup>;
+/** 「⋯」 then an item of it. */
+const moreItem = async (user: User, name: string, scope: HTMLElement | Document = document) => {
+  const btn = within(scope instanceof Document ? scope.body : scope).getAllByRole('button', { name: '更多表格操作' })[0];
+  await user.click(btn);
+  const item = await screen.findByRole('menuitem', { name });
+  await user.click(item);
+};
+/** 「⋯」 → 「欄位」: the column checklist. */
+const openColumns = async (user: User) => {
+  // From the keyboard: Enter opens 「⋯」 on its first item (欄位), → opens the checklist.
+  screen.getAllByRole('button', { name: '更多表格操作' })[0].focus();
+  await user.keyboard('{Enter}');
+  await screen.findByRole('menuitem', { name: '欄位' });
+  await user.keyboard('{ArrowRight}');
+  await screen.findByRole('menu', { name: '顯示的欄位' });
+};
 
 test('bulk actions only get the ids of rows that still exist', async () => {
   const bulk = vi.fn(() => null);
@@ -129,16 +146,16 @@ test('a hidden column starts off, can be turned on in 「欄位」, and is off a
   const { rerender } = render(<DataTable columns={columns} rows={rows} urlSync={false} resetKey={1} />);
   expect(headers()).toEqual(['名稱', '負責人']);
   const user = userEvent.setup();
-  await user.click(screen.getByRole('button', { name: '欄位' }));
-  const box = await screen.findByRole('checkbox', { name: '路徑' });
+  await openColumns(user);
+  const box = await screen.findByRole('menuitemcheckbox', { name: '路徑' });
   expect(box.getAttribute('aria-checked')).toBe('false');
   await user.click(box);
-  expect(box.getAttribute('aria-checked')).toBe('true');
+  await waitFor(() => expect(box.getAttribute('aria-checked')).toBe('true'));
   await waitFor(() => expect(headers()).toEqual(['名稱', '負責人', '路徑']));
   // Turning off a column shown by default is reset too.
-  await user.click(screen.getByRole('checkbox', { name: '負責人' }));
+  await user.click(screen.getByRole('menuitemcheckbox', { name: '負責人' }));
   await waitFor(() => expect(headers()).toEqual(['名稱', '路徑']));
-  await user.keyboard('{Escape}');
+  await user.keyboard('{Escape}{Escape}');
   rerender(<DataTable columns={columns} rows={rows} urlSync={false} resetKey={2} />);
   await waitFor(() => expect(headers()).toEqual(['名稱', '負責人']));
 });
@@ -433,8 +450,8 @@ test('DataTable widths: no borders, zoom or copy on phone cards', async () => {
   await page.viewport(390, 800);
   render(<DataTable columns={fnCols} rows={fnRows} label="受影響的函式" urlSync={false} />);
   expect(screen.queryByRole('separator')).toBeNull();
-  expect(screen.queryByRole('button', { name: '放大表格' })).toBeNull();
-  expect(screen.queryByRole('button', { name: '複製成 Markdown' })).toBeNull();
+  // Copy, zoom and 「欄位」 live in 「⋯」, which phones do not have.
+  expect(screen.queryByRole('button', { name: '更多表格操作' })).toBeNull();
 });
 
 test('DataTable zoom: the same table, search and sort in a dialog; a link click closes it', async () => {
@@ -443,7 +460,7 @@ test('DataTable zoom: the same table, search and sort in a dialog; a link click 
   let opened = '';
   const cols = fnCols.map((c) => (c.key === 'loc' ? { ...c, render: (r: Fn) => <InlineCode onClick={() => (opened = r.loc)}>{r.loc}</InlineCode> } : c));
   render(<DataTable columns={cols} rows={fnRows} label="受影響的函式" urlSync={false} />);
-  await user.click(screen.getByRole('button', { name: '放大表格' }));
+  await moreItem(user, '放大表格');
   const dialog = await screen.findByRole('dialog', { name: '受影響的函式' });
   expect(dialog.getBoundingClientRect().width).toBeGreaterThan(1000);
   const box = dialog.querySelector('input[type="search"]') as HTMLInputElement;
@@ -464,7 +481,8 @@ test('DataTable copy: every kept row (all pages) in the shown columns; fullText,
   Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: (t: string) => (writes.push(t), Promise.resolve()) } });
   try {
     const { unmount } = render(<DataTable columns={fnCols} rows={fnRows} label="受影響的函式" pageSize={2} urlSync={false} />);
-    await user.click(screen.getByRole('button', { name: '複製成 Markdown' }));
+    await moreItem(user, '複製成 Markdown');
+    await waitFor(() => expect(writes.length).toBe(1));
     expect(writes[0]).toBe(
       [
         '| 函式 | 關係 | 位置 |',
@@ -474,12 +492,14 @@ test('DataTable copy: every kept row (all pages) in the shown columns; fullText,
         '| Oracle.flow_priority | 被 controller.py 呼叫（直接） | harness/oracle.py:126 |',
       ].join('\n'),
     );
-    await screen.findByRole('button', { name: '已複製' });
+    // The menu has closed: 「已複製」 shows under 「⋯」 for 2 s.
+    await waitFor(() => expect(document.querySelector('.ui-dt-copied')?.textContent).toBe('已複製'));
     unmount();
     render(
       <DataTable columns={fnCols} rows={fnRows} label="受影響的函式" urlSync={false} copyText={(rs) => rs.map((r) => `[${r.fn}](fn:${r.fn})`).join('\n')} />,
     );
-    await user.click(screen.getByRole('button', { name: '複製成 Markdown' }));
+    await moreItem(user, '複製成 Markdown');
+    await waitFor(() => expect(writes.length).toBe(2));
     expect(writes[1]).toBe('[VirtualRouter._sync_as](fn:VirtualRouter._sync_as)\n[_run](fn:_run)\n[Oracle.flow_priority](fn:Oracle.flow_priority)');
   } finally {
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: clip });
@@ -628,13 +648,13 @@ const leaves = (t: Element) =>
   [...t.querySelectorAll(':scope > .ui-dt-search, :scope > .ui-dt-caption, .ui-dt-actions > *')].filter((e) => e.getBoundingClientRect().width > 0);
 const rowsOf = (els: Element[]) => new Set(els.map((e) => Math.round(e.getBoundingClientRect().top + e.getBoundingClientRect().height / 2))).size;
 
-test('toolbar: one row with the zoom icon at its end when the table is 760 px or wider', async () => {
+test('toolbar: one row with 「⋯」 at its end when the table is 760 px or wider', async () => {
   await page.viewport(1280, 900);
   const { container } = render(<div style={{ width: 900 }}>{toolbarTable()}</div>);
   const tools = container.querySelector('.ui-dt-tools') as HTMLElement;
   const items = leaves(tools);
   expect(rowsOf(items)).toBe(1);
-  expect(items[items.length - 1].getAttribute('aria-label')).toBe('放大表格');
+  expect(items[items.length - 1].getAttribute('aria-label')).toBe('更多表格操作');
   // nothing overflows the row
   expect(tools.scrollWidth).toBeLessThanOrEqual(tools.clientWidth);
 });

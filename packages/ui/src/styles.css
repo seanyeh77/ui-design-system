@@ -1862,6 +1862,16 @@ body {
      container it cannot take its width from its content, so it fills its parent. */
   container: ui-dt / inline-size;
   width: 100%;
+  /* Row grounds. Zebra rows are surface-sub; hover is a neutral wash of ink over surface (not accent: selection is
+     accent). Text on each keeps 4.5:1 for ink, ink-muted and every *-text token (DataTable.test.tsx checks it). */
+  --dt-zebra: var(--surface-sub);
+  --dt-hover: color-mix(in srgb, var(--surface), var(--ink) 6%);
+}
+/* Dark: surface-sub rows stood out too much; half-way between surface and surface-sub. A 5 % wash keeps
+   accent-text, danger-text and info-text above 4.5:1 (6 % gave 4.4:1). */
+[data-theme='dark'] .ui-dt {
+  --dt-zebra: color-mix(in srgb, var(--surface), var(--surface-sub) 50%);
+  --dt-hover: color-mix(in srgb, var(--surface), var(--ink) 5%);
 }
 .ui-dt-caption {
   /* The same size as a Card title: a table's heading is a block heading whether or not it sits in a card. */
@@ -1874,10 +1884,129 @@ body {
   gap: 8px;
 }
 /* Search on the left; the count and every button in one group on the right that keeps to one line: when it runs out of
-   room the sort button's text is cut with … first. */
+   room the sort button's text is cut with … first. Every control is 40 px tall. */
 .ui-dt-tools > .ui-dt-search {
-  flex: 0 1 260px;
-  min-width: 160px;
+  position: relative;
+  flex: 0 1 320px;
+  min-width: 240px;
+}
+.ui-dt-search > .ui-searchfield {
+  min-width: 0;
+}
+/* The search icon at 20 px, as in every input. */
+.ui-dt-search .ui-searchfield-icon {
+  width: 20px;
+  height: 20px;
+  left: 12px;
+  top: 10px;
+}
+.ui-dt-search .ui-input {
+  padding-left: 40px;
+}
+/* 「/」 focuses the field (searchShortcut): a small key in the empty, unfocused field on desktop. */
+.ui-dt-kbd {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  min-width: 20px;
+  height: 22px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-mini);
+  line-height: 1;
+  pointer-events: none;
+}
+.ui-dt-actions > :is(.ui-dt-filterbtn, .ui-dt-sortbtn) {
+  height: var(--control-height);
+}
+/* 「⋯」 (更多表格操作): quiet, but as tall as the other tools. */
+.ui-dt-actions > .ui-dt-menubtn {
+  width: var(--control-height);
+  height: var(--control-height);
+}
+/* Filters applied: the button says so in accent, besides its count. */
+.ui-dt-filterbtn.is-active {
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+/* 「已複製」 under the 「⋯」 button for 2 s after copying (the menu has closed). */
+.ui-dt-actions {
+  position: relative;
+}
+.ui-dt-copied {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: var(--z-tooltip);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: var(--radius-chip);
+  background: var(--ink);
+  color: var(--bg);
+  font-size: var(--text-small);
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: ui-pop-fade var(--dur-hover) ease both;
+}
+.ui-dt-subcaret {
+  margin-left: auto;
+  color: var(--ink-muted);
+}
+/* The applied conditions under the toolbar: removable chips and 「清除全部」. */
+.ui-dt-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.ui-dt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  max-width: 100%;
+  padding: 0 6px 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-chip);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-compact);
+  cursor: pointer;
+}
+.ui-dt-chip-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ui-dt-chip .ui-icon {
+  color: var(--ink-muted);
+}
+.ui-dt-chip:hover {
+  background: var(--surface-sub);
+}
+.ui-dt-chip:hover .ui-icon {
+  color: var(--ink);
+}
+.ui-dt-chipclear {
+  font-size: var(--text-compact);
+}
+:is(.ui-dt-chip, .ui-dt-chipclear):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .ui-dt-actions {
   flex: 1 1 auto;
@@ -1938,7 +2067,7 @@ body {
   .ui-dt-actions > .ui-dt-sortbtn {
     min-width: 0;
   }
-  .ui-dt-actions:has(> .ui-dt-zoombtn) .ui-dt-btntext {
+  .ui-dt-actions:has(> .ui-dt-menubtn) .ui-dt-btntext {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -1946,7 +2075,7 @@ body {
     clip: rect(0 0 0 0);
     white-space: nowrap;
   }
-  .ui-dt-actions:has(> .ui-dt-zoombtn) :is(.ui-dt-filterbtn, .ui-dt-sortbtn, .ui-dt-colbtn) {
+  .ui-dt-actions:has(> .ui-dt-menubtn) :is(.ui-dt-filterbtn, .ui-dt-sortbtn) {
     padding-inline: 10px;
   }
   .ui-dt-actions {
@@ -2018,7 +2147,7 @@ body {
   background: var(--surface);
 }
 .ui-dt-body .ui-dt-row.is-even {
-  background: var(--surface-sub);
+  background: var(--dt-zebra);
 }
 .ui-dt-body {
   position: relative;
@@ -2027,15 +2156,85 @@ body {
   transition: background-color 0.12s ease;
 }
 .ui-dt-body .ui-dt-row:hover {
-  background: var(--accent-soft);
+  background: var(--dt-hover);
 }
-/* EC: rows with details are clickable as a whole; the hover above already shows it. */
-.ui-dt-body .ui-dt-row.has-exp {
+/* EC: rows with details or a page (rowHref) are clickable as a whole; the hover above already shows it. */
+.ui-dt-body .ui-dt-row:is(.has-exp, .has-href) {
   cursor: pointer;
 }
-.ui-dt-body .ui-dt-row.is-selected {
+/* Selected: accent-soft and a 3 px accent bar on the left. The row a keyboard is in: a 2 px bar only. The bar sits on
+   the first cell, so a sticky first cell (stickyFirst) does not cover it. */
+.ui-dt-body .ui-dt-row {
+  --dt-mark: 0 0 transparent;
+}
+.ui-dt-body .ui-dt-row:has(:focus-visible) {
+  --dt-mark: inset 2px 0 0 var(--accent);
+}
+.ui-dt-body .ui-dt-row.is-selected,
+.ui-dt-body .ui-dt-row.is-selected:hover {
+  --dt-mark: inset 3px 0 0 var(--accent);
   background: var(--accent-soft);
 }
+.ui-dt-body .ui-dt-row > .ui-dt-cell:first-child {
+  box-shadow: var(--dt-mark);
+}
+/* rowHref: the first cell's text is the row's link. */
+.ui-dt-rowlink {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  min-width: 0;
+}
+.ui-dt-row:hover .ui-dt-rowlink,
+.ui-dt-rowlink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ui-dt-rowlink:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+/* secondary: a second line under the cell's text, smaller and muted, one line cut with …. */
+.ui-dt-stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  max-width: 100%;
+  padding-block: 6px;
+}
+.ui-dt-cell.is-num .ui-dt-stack {
+  align-items: flex-end;
+}
+.ui-dt-main {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+}
+.ui-dt-sub {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-sans);
+  font-size: var(--text-small);
+  line-height: 20px;
+  font-weight: 400;
+  color: var(--ink-muted);
+}
+/* Dates: <time>, figures of one width so a column of times lines up. */
+.ui-dt-time {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* Hugging columns are measured on one line (DataTable adds is-measuring for the read only). */
+.ui-dt.is-measuring .ui-dt-cell.is-hug {
+  white-space: nowrap;
+}
+
 .ui-dt-body .ui-dt-row:last-child {
   border-bottom: 0;
 }
@@ -2071,6 +2270,8 @@ body {
   z-index: var(--z-sticky);
   min-height: 44px;
   background: var(--surface-sub);
+  /* Its own level: a stronger line under the headings than between rows. */
+  border-bottom-color: var(--line-strong);
   font-size: var(--text-compact);
   font-weight: 700;
   color: var(--ink);
@@ -2127,11 +2328,15 @@ body {
 }
 .ui-dt-arrow {
   opacity: 0;
+  color: var(--ink-muted);
   transition: opacity 0.12s ease;
 }
 .ui-dt-sort:hover .ui-dt-arrow,
 .ui-dt-sort:focus-visible .ui-dt-arrow {
-  opacity: 0.55;
+  opacity: 1;
+}
+.ui-dt-sort.is-on .ui-dt-arrow {
+  color: inherit;
 }
 .ui-dt-sort.is-on {
   color: var(--accent-text);
@@ -2207,6 +2412,10 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+:is(.ui-dt-bulk-close, .ui-dt-more, .ui-dt-view):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .ui-dt-empty {
   padding: 28px 12px;
@@ -2318,7 +2527,7 @@ body {
   border-bottom: 1px solid var(--line);
 }
 .ui-dt-detail.is-even {
-  background: var(--surface-sub);
+  background: var(--dt-zebra);
 }
 .ui-dt-detail-cell {
   display: flex;
@@ -2362,9 +2571,6 @@ body {
     border: 0;
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   }
-  .ui-dt-colbtn {
-    display: none !important;
-  }
   .ui-dt-body .ui-dt-row {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto auto !important;
@@ -2383,8 +2589,15 @@ body {
   }
   .ui-dt-body .ui-dt-row.is-selected {
     background: var(--accent-soft) !important;
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  .ui-dt-body .ui-dt-row > .ui-dt-cell:first-child {
     box-shadow: none;
   }
+  .ui-dt-kbd {
+    display: none;
+  }
+
   .ui-dt-body .ui-dt-cell {
     grid-column: 1 / -1;
     display: block;
@@ -2486,29 +2699,6 @@ body {
     font-size: var(--text-small);
     font-weight: 600;
     cursor: pointer;
-  }
-  .ui-dt-body .ui-badge {
-    height: auto;
-    padding: 0;
-    gap: 6px;
-    background: transparent;
-    box-shadow: none;
-    font-weight: 600;
-  }
-  .ui-dt-body .ui-badge-done {
-    color: var(--success-text);
-  }
-  .ui-dt-body .ui-badge-fail {
-    color: var(--danger-text);
-  }
-  .ui-dt-body .ui-badge-review {
-    color: var(--warning-text);
-  }
-  .ui-dt-body .ui-badge-doing {
-    color: var(--accent-text);
-  }
-  .ui-dt-body .ui-badge-draft {
-    color: var(--ink-muted);
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -3755,12 +3945,8 @@ html.ui-theme-fade * {
   color: var(--ink-muted);
   font-weight: 400;
 }
-.ui-dt-filterbtn,
-.ui-dt-colbtn {
-  height: 36px;
-}
-.ui-dt-colbtn {
-  margin-left: 0;
+.ui-dt-filterbtn {
+  height: var(--control-height);
 }
 .ui-dt-result {
   margin-left: auto;
@@ -3783,7 +3969,7 @@ html.ui-theme-fade * {
 /* S2C: the 「排序」 button writes the current sort (「排序：程式 ↑、ΔT ↓」, cut with … when long); on phones 「排序」 and
    the number of levels. Its panel looks like the filter panel. */
 .ui-dt-sortbtn {
-  height: 36px;
+  height: var(--control-height);
 }
 .ui-dt-sortbtn-text {
   min-width: 0;
@@ -4021,14 +4207,24 @@ html.ui-theme-fade * {
 .ui-dt-cell.is-sticky {
   position: sticky;
   z-index: var(--z-raised);
+  /* The row's ground (zebra, hover, selected), so nothing shows through while the table scrolls sideways. */
   background: inherit;
+}
+.ui-dt-cell.is-sticky-end {
   box-shadow: 6px 0 8px -6px var(--edge-shadow);
+}
+.ui-dt-body .ui-dt-row > .ui-dt-cell.is-sticky-end:first-child {
+  box-shadow:
+    var(--dt-mark),
+    6px 0 8px -6px var(--edge-shadow);
 }
 .ui-dt-head .ui-dt-cell.is-sticky {
   background: var(--surface-sub);
 }
 .ui-dt-colmenu {
   min-width: 200px;
+  max-height: min(420px, var(--available-height, 420px));
+  overflow-y: auto;
 }
 @media (max-width: 599px) {
   .ui-dt-total {

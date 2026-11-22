@@ -2,52 +2,67 @@
 
 ## 用法
 
-資料表格，有排序、勾選、篩選和分頁。不用原生 `<table>`。檔案和階層用 TreeList；一個項目的欄位用 DetailList。
+資料表格，有排序、勾選、篩選和分頁；只給欄位就有合適的欄寬、工具列和列的狀態。不用原生 `<table>`。檔案和階層用 TreeList；一個項目的欄位用 DetailList。
 
 ```tsx
-type Project = { id: string; name: string; status: BadgeStatus; budget: number; updated: string };
+type Job = { id: string; title: string; status: BadgeStatus; source: string; secs: number; words: number; created: string; error?: string; progress?: string };
 
-<Card title="專案" padding={false}>
-  <DataTable<Project>
-    label="專案"
-    rows={projects}
+<Card title="轉錄紀錄" padding={false}>
+  <DataTable<Job>
+    label="轉錄紀錄"
+    rows={jobs}
+    rowHref={(r) => `/jobs/${r.id}`}
+    selectable
+    summary={{ key: 'status', items: [{ value: 'doing', label: '進行中' }, { value: 'done', label: '完成' }, { value: 'fail', label: '失敗' }] }}
+    filters={[{ key: 'source', label: '來源' }]}
+    bulkActions={(ids, clear) => <Button onClick={() => retry(ids).then(clear)}>重試</Button>}
+    rowActions={(r) => (r.status === 'fail' ? <IconButton label={`重試 ${r.title}`} icon="arrows-clockwise" onClick={() => retry([r.id])} /> : null)}
     columns={[
-      { key: 'name', label: '名稱' },
-      { key: 'status', label: '狀態', render: (r) => <Badge status={r.status} />, searchText: (r) => r.status, mobile: 'status' },
-      { key: 'budget', label: '預算', numeric: true, format: 'money' },
-      { key: 'updated', label: '更新', format: 'relative' },
+      { key: 'title', label: '標題', secondary: (r) => r.error ?? r.progress },
+      { key: 'status', label: '狀態', mobile: 'status', render: (r) => <Badge status={r.status} />, searchText: (r) => statusLabel[r.status] },
+      { key: 'source', label: '來源' },
+      { key: 'secs', label: '長度', format: 'duration' },
+      { key: 'words', label: '字數', numeric: true, unit: '字' },
+      { key: 'created', label: '建立時間', format: 'relative' },
     ]}
-    filters={[{ key: 'status', label: '狀態' }]}
   />
 </Card>
 ```
 
-- 每列給 `id`。放在 Card 裡時標題寫在 Card 的 `title`，DataTable 給同樣文字的 `label`，不給 `caption`。
-- 數字欄 `numeric: true`；單位寫在欄位的 `unit`（每格數字後面），不寫在標題；表格裡的數字不縮寫。
-- 狀態欄用 Badge；用 `render` 的欄位提供 `searchText`，搜尋才找得到。
-- `rowActions` 只放連結做不到的操作（編輯、刪除）；刪除一樣要先確認。
-- 換成另一份資料（例如切換專案）時給新的 `resetKey`；同一頁有兩個表格時用 `urlKey` 分開網址參數。
-- 合計列、固定第一欄、常用檢視、同一欄位多選看情況開（見下方「看情況決定的功能」）。
+預設就有：主要文字欄占剩下的寬度，其他欄貼合內容；工具列是搜尋框（按「/」移到這裡）、「篩選」、筆數、「排序」和「⋯」（欄位、複製成 Markdown、放大表格），全部 40 px 高；套用的條件在工具列下方列成可移除的標籤；相對時間滑過時顯示完整日期。
+
+- 主要的文字欄放第一欄：它占剩下的寬度，也是手機卡片的標題、列的名稱。每列給 `id`。
+- 數字給 `numeric: true` 加 `unit`（傳數字 `1234`，不傳字串 `'1,234 字'`）；長度（秒）用 `format: 'duration'`；日期用 `format: 'date' | 'datetime' | 'relative'`。
+- 失敗的列：原因寫在 `secondary`（標題下的第二行），「重試」放 `rowActions`；可勾選時 `bulkActions` 也放「重試」。進行中的列：`doing` 的 Badge，進度文字（「轉錄中 42%」）寫在 `secondary`，格子裡不放 ProgressBar。
+- `rowActions` 最多 2 個 IconButton；更多時，最後幾個放進「⋯」（`Menu`）。有自己頁面的列給 `rowHref`，不另加「開啟」按鈕。
+- 同一個條件只放一個地方：狀態用 `summary` 時，`filters` 和 `views` 不再篩選同一欄（開發時 console 會警告）。
+- 放在 Card 裡時標題寫在 Card 的 `title`，DataTable 給同樣文字的 `label`，不給 `caption`。換成另一份資料時給新的 `resetKey`；同一頁兩個表格用 `urlKey` 分開網址參數。
 
 ## 外觀
 
 - 標題（`caption`）：17 px 粗體，和 Card 標題同一個大小；放在 Card 裡時不給 `caption`，改用 Card 的 `title` 加 DataTable 的 `label`。
-- 表頭：灰底（`surface-sub`）粗體 14 px，往下捲動時固定在上方。
-- 列高 48 px。
-- 分隔：斑馬紋加格線。偶數列用 `surface-sub`，每列之間有橫線，欄之間有直線，外圍有框，全部用 `line`。
-- 滑過列：整列變成強調淺底 `accent-soft`；勾選中的列也用 `accent-soft`。
+- 表頭：灰底（`surface-sub`）粗體 14 px，下緣 1 px `line-strong`（比列之間的線深，和內容分層），往下捲動時固定在上方。
+- 列高 48 px；有 `secondary` 的列才變高。
+- 分隔：斑馬紋加格線。偶數列用 `surface-sub`（深色主題用 `surface` 和 `surface-sub` 各半，比較淡），每列之間有橫線，欄之間有直線，外圍有框，全部用 `line`。
+- 列的狀態：滑過是中性的淡底（`surface` 混 6% `ink`，深色主題 5%）；勾選中是 `accent-soft` 加左緣 3 px `accent` 線；鍵盤移到列裡時左緣 2 px `accent` 線（和勾選分得開）。每一種底色上，`ink`、`ink-muted` 和各 `*-text` 都至少 4.5:1（測試會算）。
+- 欄寬預設：第一個文字欄（主要欄）和 `long` 欄占剩下的寬度；數字、有 `unit`、日期、長度、金額、百分比、狀態（`mobile: 'status'` 或格子裡是 Badge）、其他短文字和有 `width` 的欄貼合內容：量標題和這一頁每一格，取最寬的，一行放得下（其他文字欄最寬 280 px，再長就換行）。給 `grow` 時照 `grow` 分配剩下的寬度；`width` 是最小寬度。
+- 第二行 `secondary: (row) => ReactNode`：在格子文字下方，13 px `ink-muted`，一行，太長用「…」。搜尋會找它的文字；手機卡片也顯示。
+- 日期欄（`format: 'date' | 'datetime' | 'relative'`）是 `<time dateTime>`，等寬數字，依時間排序。相對時間（「2 小時前」）滑鼠滑過時 Tooltip 顯示完整日期時間，螢幕閱讀器從格子的描述聽到它；不多一個 Tab 停點。觸控螢幕不顯示 Tooltip。
+- 長度 `format: 'duration'`：值是秒數，未滿 1 小時 `46:42`，以上 `1:54:49`（`format.duration`）；靠右、等寬數字，依秒數排序。
 - 數字欄 `numeric: true`：Geist Mono、等寬數字、靠右對齊。
 - 格子裡的 InlineCode：白底加 1 px 框線，奇數列、偶數列和滑過的列上都看得出範圍。
 - 單位寫在每格數字後面：欄位設定 `unit`，例如 `unit: 'GB'` 會顯示「3,480.3 GB」。表格裡的數字不縮寫。
-- 欄位格式 `format`：`money`（NT$ 1,280,000）、`date`（2026/11/04（三））、`datetime`、`relative`（一週內寫「2 小時前」）、`percent`（一位小數，% 用 `unit: '%'` 加上，和 KpiCard 一樣）。
-- 狀態欄使用 Badge。
+- 欄位格式 `format`：`money`（NT$ 1,280,000）、`date`（2026/11/04（三））、`datetime`、`relative`（一週內寫「2 小時前」）、`percent`（一位小數，% 用 `unit: '%'` 加上，和 KpiCard 一樣）、`duration`（46:42）。
+- 狀態欄使用 Badge；列裡的 Badge 是圓點加文字（Badge 自己的樣式）。
+- 有單位的欄位收到含單位的字串（`'1,234 字'`）時，開發時 console 會警告：改傳數字加 `unit`。
 - 欄位標題不換行；欄寬至少要放得下標題和排序箭頭（`width` 設最小寬度），放不下時表格橫向捲動，底色延伸到最右邊。容器比表格窄時（例如旁邊開著詳細面板），右邊還有欄位時右緣有漸層，表格下方靠右有提示，觸控螢幕寫「→ 左右滑動」、滑鼠寫「→ 向右捲動」；第一次左右捲動後提示隱藏但保留位置，捲到最右邊時漸層消失。看的是表格自己的寬度，不是視窗寬度；隱藏欄位、換資料或字型載入後重新量一次，放得下時不顯示提示。
 - 格子裡不能換行的內容（`InlineCode` 的路徑、連結）比欄寬寬時，欄位自動加寬到放得下，不會切掉最後幾個字；`long` 欄位照原本截斷。加寬只增不減，給新的 `resetKey` 時重新量。
 
 ## 排序
 
 - 點欄位標題排序。第一下：文字欄從小到大，數字欄從大到小；第二下：反過來；第三下：還原成原本的順序。
-- 排序箭頭滑過標題才顯示；正在排序的欄位一直顯示箭頭，標題變成 `accent-text`。
+- 排序箭頭滑過標題才顯示（`ink-muted`）；正在排序的欄位一直顯示箭頭，標題和箭頭變成 `accent-text`。
+- 第一下由大到小的「數字欄」包括 `numeric`、`money`、`percent` 和 `duration`。
 - 不能排序的欄位設 `sortable: false`；排序依據和顯示內容不同時用 `sortValue`。
 - 多欄排序（例如先依程式、再依 ΔT）：第一層決定順序，第一層相同的列才看第二層，再相同時照資料原本的順序。預設不限層數（最多就是能排序的欄位數）；頁面要限制時給 `maxSort`。
   - Shift＋點標題（鍵盤是 Shift＋Enter）：把這一欄加成下一層；再按一次反過來，第三次移除。不按 Shift 點標題時，照上面的規則換成只排這一欄。
@@ -60,15 +75,18 @@ type Project = { id: string; name: string; status: BadgeStatus; budget: number; 
 ## 勾選與操作
 
 - `selectable`：勾選框平常隱藏，滑過列（或用鍵盤移到列上）才出現；勾了任一筆後所有列都顯示。觸控裝置一直顯示。
+- Shift＋點勾選框：從上一次點的列到這一列（照目前的順序，跨頁也算）都變成這一列的新狀態，並念出「已選 n 筆」。
 - 勾選後，表頭換成批次操作列：全選框、「已選 n 筆」、`bulkActions` 的按鈕、取消選取 ×。
 - 篩選、搜尋、檢視或摘要改變後看不到的列會自動取消勾選，刪除的列也一樣，所以 `bulkActions` 只處理畫面上留下的列（換頁不影響）。
 - 單筆操作 `rowActions`：放 IconButton，滑過列時出現在最右邊（例如編輯、刪除）。刪除一樣要先跳確認對話框。
+- `rowHref: (row) => string`：第一欄的文字變成真的連結（Enter 開啟、可以中鍵或 Ctrl＋點開新分頁），點列上其他地方也開啟；點列裡的其他連結、按鈕、勾選框和 `rowActions` 時只做它們自己的事。有 `rowHref` 時點列不展開詳細，用左邊的箭頭。第一欄的 `render` 不要再放連結（連結裡不能有連結）。
 - 同一列已經有連結能做到的事（例如位置欄的連結開啟檔案），不要再加 `rowActions` 按鈕；`rowActions` 只放連結做不到的操作，例如編輯、刪除。操作欄跟著表格一起捲動，不固定在右緣。
 
 ## 搜尋與篩選
 
 - 搜尋框搜所有欄位，符合的文字用黃底標出（`mark`）。只想搜部分欄位時用 `search.keys`；用 `render` 的欄位提供 `searchText`。
-- 篩選：搜尋框旁邊的「篩選」按鈕，按鈕上顯示已套用的條件數。點開是彈出框（寬 520 px），只在表格的範圍內往左右移動，不蓋到表格旁邊的面板；表格比 520 px 窄時彈出框跟著變窄。`filters` 裡的每個欄位一區：
+- 搜尋框寬 320 px（最窄 240 px），表格窄時一整列；放大鏡 20 px。按「/」（焦點不在輸入框、沒有按 Ctrl、Alt、⌘）移到搜尋框：同一頁有好幾個表格時，只有第一個有搜尋框的表格接這個鍵，它的搜尋框在桌機上空白且沒有焦點時，右邊顯示一個小的「/」。`searchShortcut={false}` 關掉。
+- 篩選：搜尋框旁邊的「篩選」按鈕，按鈕上顯示已套用的條件數；有條件時按鈕文字變 `accent-text`、外框變 `accent`。工具列下方列出每個條件（「狀態：失敗 ×」，清單的每個選項一個，範圍一個），按 × 移除那一個（網址一起更新，焦點移到下一個標籤），最後是「清除全部」；沒有條件時這一列不出現。點開是彈出框（寬 520 px），只在表格的範圍內往左右移動，不蓋到表格旁邊的面板；表格比 520 px 窄時彈出框跟著變窄。`filters` 裡的每個欄位一區：
   - `type: 'list'`：勾選清單，每個選項後面寫套用後會剩幾筆；沒給 `options` 時從資料取出。
   - `type: 'range'`：最低、最高兩個欄位；`scale` 是輸入單位（例如 10000 代表「萬」），`unitLabel` 寫在下方。
 - 勾選就生效，不需要「套用」按鈕。彈出框右上角有「清除全部」。
@@ -90,28 +108,29 @@ type Project = { id: string; name: string; status: BadgeStatus; budget: number; 
 
 ## 欄位顯示
 
-- 工具列右邊的「欄位」按鈕可以隱藏或顯示欄位，第一欄不能隱藏。`columnMenu={false}` 關掉。
-- 工具列的順序：搜尋框、「篩選」，右邊是筆數、複製、「排序」、「欄位」、放大。怎麼排看的是表格自己的寬度（container query），不是視窗寬度，所以旁邊開著面板的表格在大螢幕上也照窄的排：
+- 「⋯」（更多表格操作，工具列最右邊，40 px）裡的「欄位」打開欄位清單，可以隱藏或顯示欄位，第一欄不能隱藏；清單最下面「還原預設」讓顯示的欄位和欄寬都回到預設。`columnMenu={false}` 或表格只有 2 欄以下時沒有「欄位」。鍵盤：Enter 打開「⋯」，↑ ↓ 移動，→ 打開欄位清單，Esc 關閉。
+- 工具列的順序：搜尋框、「篩選」，右邊是筆數、「排序」、「⋯」，每一個都是 40 px 高。怎麼排看的是表格自己的寬度（container query），不是視窗寬度，所以旁邊開著面板的表格在大螢幕上也照窄的排：
   - 760 px 以上：一列。放不下時「排序」按鈕的文字先用「…」省略，不換行。
   - 760 px 以下：搜尋框一列，其他按鈕一列（「篩選」靠左，筆數和其他按鈕靠右）。
-  - 480 px 以下：「排序」只寫「排序」加層數；同時有複製、「欄位」、放大時（不是手機），「篩選」「排序」「欄位」只留圖示和數字，名稱仍在按鈕的無障礙名稱裡。連這樣都放不下才換行。
+  - 480 px 以下：「排序」只寫「排序」加層數；有「⋯」時（不是手機），「篩選」「排序」只留圖示和數字，名稱仍在按鈕的無障礙名稱裡。連這樣都放不下才換行。
   - 沒有搜尋框（`search: false`）時，標題和工具同一列：有 `caption` 時標題在左、按鈕在右；直接放在 Card 標題下面時，按鈕放進 Card 的標題列。標題剩不到約 12 個字寬時，按鈕換到標題下一列、靠右。
   - DataTable 填滿父元素的寬度（量寬度需要），不會依內容縮小。
-- 一開始不顯示的欄位設 `hidden: true`（預設 `false`）：仍列在「欄位」選單裡，沒有勾選，使用者勾選後顯示。給新的 `resetKey` 時，所有欄位回到預設（`hidden: true` 的欄位又隱藏，使用者關掉的欄位又顯示）。第一欄一定顯示，設了也沒有作用；沒有「欄位」選單時（`columnMenu={false}`，或表格只有 2 欄以下）使用者打不開，開發時 console 會警告。手機不顯示「欄位」按鈕，所以手機上這些欄位一直隱藏。
+- 一開始不顯示的欄位設 `hidden: true`（預設 `false`）：仍列在「欄位」清單裡，沒有勾選，使用者勾選後顯示。給新的 `resetKey` 時，所有欄位回到預設；有 `widthKey` 時例外（見下）。第一欄一定顯示，設了也沒有作用；沒有「欄位」時使用者打不開，開發時 console 會警告。手機沒有「⋯」，所以手機上這些欄位一直隱藏。
+- `widthKey` 也記住使用者隱藏或顯示的欄位（localStorage `ui-dt-cols:<widthKey>`），重新整理後還在；讀寫失敗時照常運作，只是不記住。這是讀者的偏好，`resetKey` 不清掉；「還原預設」清掉。
 
 ## 欄寬、放大與複製
 
-和 Markdown 表格用同一份實作（拖拉邊框、放大對話框、複製圖示），看起來和操作都一樣。
+和 Markdown 表格用同一份實作（拖拉邊框、放大對話框），看起來和操作都一樣。
 
-- 調整欄寬：表頭每一欄的右邊框可以左右拖拉，滑過、拖拉或用鍵盤移到時出現 3 px 強調色的線。鍵盤：Tab 到邊框，← → 每次 16 px；Enter 或雙擊邊框讓所有欄回到 `width`、`grow` 的排法。
-  - 第一次拖拉時，量下所有顯示中欄位目前的寬度並固定，之後 `grow` 不再分配剩餘寬度；之後才顯示的欄位從它的最小寬度開始。
+- 調整欄寬：表頭每一欄的右邊框可以左右拖拉，滑過、拖拉或用鍵盤移到時出現 3 px 強調色的線。鍵盤：Tab 到邊框，← → 每次 16 px；Enter 或雙擊邊框讓所有欄回到預設的排法（主要欄占剩下的寬度、其他欄貼合內容）。
+  - 第一次拖拉時，量下所有顯示中欄位目前的寬度並固定，之後不再分配剩餘寬度；之後才顯示的欄位從它的最小寬度開始。
   - 最窄 48 px，而且不比標題加排序箭頭窄（表頭不換行）。
-  - `stickyFirst` 的第一欄照樣固定在左邊，也可以拖拉。展開箭頭欄、勾選欄、`rowActions` 操作欄固定寬度，沒有邊框。
+  - `stickyFirst` 的第一欄照樣固定在左邊，也可以拖拉；它左邊的展開箭頭欄和勾選欄也一起固定（底色跟著列的狀態），橫向捲動時中間沒有縫。展開箭頭欄、勾選欄、`rowActions` 操作欄固定寬度，沒有邊框。
   - 拖過之後，格子裡不能換行的內容（路徑）不再自動加寬欄位：讀者給的寬度優先。
-  - `widthKey` 把拖出的寬度存在 localStorage（`ui-dt-width:<widthKey>`），重新整理後還在；讀寫失敗時照常運作，只是不記住。`resetKey` 不會清掉它（那是讀者的偏好）；Enter 或雙擊回到預設時一併清掉。
+  - `widthKey` 把拖出的寬度存在 localStorage（`ui-dt-width:<widthKey>`），重新整理後還在；讀寫失敗時照常運作，只是不記住。`resetKey` 不會清掉它（那是讀者的偏好）；Enter、雙擊或「還原預設」回到預設時一併清掉。
   - 不到 600 px 的卡片與觸控螢幕不顯示邊框；記住的寬度保留給桌機。
-- 放大表格（`zoom`，預設開）：工具列最右邊一個「放大表格」圖示，在最寬 1200 px 的對話框裡顯示同一張表，連同工具列與頁碼。搜尋、篩選、排序、分頁、展開和頁面上是同一份狀態，關閉後頁面上的表格維持對話框裡的樣子。對話框裡拖拉的欄寬只在對話框裡，不改頁面上的寬度。點對話框裡的連結（函式名稱、InlineCode 位置）會先做連結的事，再關閉對話框；Ctrl、⌘、Shift 或中鍵點擊在新分頁開啟，對話框不關。標題是 `caption` 或 `label`。手機上不顯示。
-- 複製成 Markdown（`copy`，預設開）：工具列筆數右邊一個只有圖示的複製按鈕（tooltip「複製成 Markdown」），複製後 2 秒變成勾，提示「已複製」。手機上不顯示。
+- 放大表格（`zoom`，預設開）：「⋯」裡的「放大表格」，在最寬 1200 px 的對話框裡顯示同一張表，連同工具列與頁碼。搜尋、篩選、排序、分頁、展開和頁面上是同一份狀態，關閉後頁面上的表格維持對話框裡的樣子。對話框裡拖拉的欄寬只在對話框裡，不改頁面上的寬度。點對話框裡的連結（函式名稱、InlineCode 位置）會先做連結的事，再關閉對話框；Ctrl、⌘、Shift 或中鍵點擊在新分頁開啟，對話框不關。標題是 `caption` 或 `label`。手機上不顯示。
+- 複製成 Markdown（`copy`，預設開）：「⋯」裡的「複製成 Markdown」。選單關閉後，「⋯」下方出現「已複製」2 秒，螢幕閱讀器也念「已複製」。手機上不顯示。
   - 內容：搜尋與篩選後留下的所有列（所有頁，不只這一頁），照目前的排序；欄位是目前顯示的欄，依顯示順序。
   - 每格的文字依序用欄位的 `fullText`、`searchText`，再其次是欄位值（含格式與單位）。`|` 會跳脫，換行變成空格。
   - `copyText: (rows) => string` 自訂內容，拿到同樣的列（例如把位置寫成 `harness/controller.py:540`、函式帶 `fn:` 連結）。
@@ -127,6 +146,7 @@ type Project = { id: string; name: string; status: BadgeStatus; budget: number; 
 ## 結果摘要
 
 - `summary={{ key, items: [{ value, label }] }}`：表格上方放一個分段控制（Tabs），「全部」加上每種狀態，各自附筆數，點了就只看那一種。筆數後面帶單位，預設「筆」，用 `summary.unit` 換成「則」「個」等；英文等有單複數的語言傳函式，例如 `unit: (n) => (n === 1 ? 'item' : 'items')`。預設的「筆」在英文是「1 row」「2 rows」。手機上各項平均分配寬度；字放不下時每一項保留完整的文字，整排改成左右捲動，不會互相重疊。用在檢查結果、審核清單這類有狀態的清單。
+- 同一個條件只在一個地方：用了 `summary` 的欄位不再放進 `filters`，也不另做只留那一種狀態的 `views`；開發時 console 會警告並說明改法。
 - 排序看情況：結果清單預設照資料原本的順序（例如筆記的行號），不自動把錯誤排到前面；需要處理的項目用摘要篩選出來。
 
 ## 手機
@@ -136,12 +156,11 @@ type Project = { id: string; name: string; status: BadgeStatus; budget: number; 
 - 欄位用 `mobile` 指定：`'title'`（標題列左邊，預設是第一欄）、`'status'`（標題列右邊）、`'hide'`（手機不顯示）。
 - 長文字欄位設 `long: true`：卡片上最多 2 行，超過時下方出現「顯示全部」；桌機時一行，寫到欄位右緣為止，放不下才用「…」（依欄寬，不是固定字數）。
 - 短的格子代表一段較長的文字時（例如只顯示檔名、代表完整路徑），給欄位 `fullText: (row) => 完整文字`：滑鼠滑過或用 Tab 移到格子裡的連結時，Tooltip 顯示完整文字；完整文字是格子的 `aria-description`，螢幕閱讀器在格子內容後面念它，頁面文字裡不會出現第二份（複製、手機卡片、讀頁面文字的工具都只看到顯示的文字）；列的展開詳細也列出它（這種欄位也會讓列有展開箭頭）。觸控裝置不顯示 Tooltip，用展開詳細看。
-  - 看全文（600 px 以上）：表格有 `long` 欄位時，每列最左邊多一欄展開箭頭（40 px）。點箭頭（或 Tab 移到後按 Enter）在這列下方整行列出所有 `long` 欄位的全文，欄位名稱在上（13 px 次要文字）；再點一次收合。點列上任何地方也一樣會展開或收合：滑過整列是強調淺底（`accent-soft`）、游標變手指；點列裡的連結、按鈕、勾選框、輸入框和 `rowActions` 時只做它們自己的事，選取文字放開時也不切換。鍵盤用箭頭按鈕。觸控和滑鼠一樣。箭頭的名稱是「展開 第一欄的值」，`aria-expanded` 表示狀態。給新的 `resetKey` 時全部收合。
+  - 看全文（600 px 以上）：表格有 `long` 欄位時，每列最左邊多一欄展開箭頭（40 px）。點箭頭（或 Tab 移到後按 Enter）在這列下方整行列出所有 `long` 欄位的全文，欄位名稱在上（13 px 次要文字）；再點一次收合。點列上任何地方也一樣會展開或收合：滑過整列是中性淡底、游標變手指；點列裡的連結、按鈕、勾選框、輸入框和 `rowActions` 時只做它們自己的事，選取文字放開時也不切換。鍵盤用箭頭按鈕。觸控和滑鼠一樣。箭頭的名稱是「展開 第一欄的值」，`aria-expanded` 表示狀態。給新的 `resetKey` 時全部收合。
   - 用滑鼠時，滑過或用 Tab 移到被截掉的格子，上方的 Tooltip 也會顯示全文（最寬 360 px，自動換行）。沒被截掉的格子沒有 Tooltip，也不會被 Tab 移到。
   - 觸控裝置（`pointer: coarse`）不用 Tooltip：點一下會留在畫面上蓋住其他列。用左邊的箭頭看全文。
-- 卡片裡的 Badge 自動改成「圓點加文字」：沒有底色和陰影，文字用該狀態的文字色。
-- 勾選框在標題列最左邊，一直顯示；操作按鈕一直顯示，不用滑過。
-- 工具列在手機上：搜尋框一列，「篩選」、筆數和「排序」一列；「欄位」、複製和放大不顯示。
+- 勾選框在標題列最左邊，一直顯示；勾選中的列是 `accent-soft` 加左緣 3 px `accent` 線。操作按鈕一直顯示，不用滑過。
+- 工具列在手機上：搜尋框一列，「篩選」、筆數和「排序」一列；「⋯」（欄位、複製、放大）不顯示。
 - 筆數和頁碼文字只有數字用 Geist Mono，「筆」等文字用一般字體；有單位的數字欄也一樣（「1 層」）。
 
 ## 無障礙
