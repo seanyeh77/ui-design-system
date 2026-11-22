@@ -370,6 +370,12 @@ body {
   gap: 6px;
   background: transparent;
   box-shadow: none;
+  /* the size and weight of the text beside it (a status cell reads like the other cells); states that need
+     attention are bold */
+  font-size: inherit;
+  font-weight: inherit;
+}
+.ui-badge:is(.is-dot, .ui-card *, .ui-dt *):is(.ui-badge-fail, .ui-badge-review, .ui-badge-doing) {
   font-weight: 600;
 }
 .ui-badge:is(.is-dot, .ui-card *, .ui-dt *):is(.ui-badge-done, .ui-badge-draft) {
