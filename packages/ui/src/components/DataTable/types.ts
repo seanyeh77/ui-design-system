@@ -15,12 +15,20 @@ interface ColumnBase<R extends Row> {
   sortable?: boolean;
   /** What to sort by when it is not the field itself. */
   sortValue?: (row: R) => number | string;
+  /** Least width (px). A column with a width hugs its content (never narrower than this) instead of taking the room
+   *  left, unless it also has grow. */
   width?: number;
+  /** Takes a share of the room left (like fr). Default: the first text column and long columns take it (1); numbers,
+   *  units, dates, durations, status Badges, other short text and columns with a width hug their content (0). */
   grow?: number;
-  /** money: NT$ 1,280. date: 2026/11/04（三）. relative: 「2 小時前」 within a week. percent: 1 decimal, no % sign: add unit: '%'. */
-  format?: 'money' | 'date' | 'datetime' | 'relative' | 'percent';
+  /** money: NT$ 1,280. date: 2026/11/04（三）. relative: 「2 小時前」 within a week, the full date on hover. percent:
+   *  1 decimal, no % sign: add unit: '%'. duration: seconds as 46:42 or 1:54:49, right-aligned, sorted by the number. */
+  format?: 'money' | 'date' | 'datetime' | 'relative' | 'percent' | 'duration';
   currency?: string;
   decimals?: number;
+  /** A second line under the cell's text: smaller, muted, one line cut with …. Search finds its text; phone cards show
+   *  it. E.g. the reason a job failed, or 「轉錄中 42%」 for a running one. Rows grow only when a column has it. */
+  secondary?: (row: R) => React.ReactNode;
   /** The text search matches for this column. */
   searchText?: (row: R) => string;
   /** Place on phone cards: title row left, title row right, or hidden. Default: the first column is the title. */

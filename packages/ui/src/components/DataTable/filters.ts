@@ -1,4 +1,5 @@
 import { format } from '../../format';
+import { nodeText } from '../../internal/util';
 import type { DataTableColumn, DataTableFilter, FilterValue, RangeValue, ResolvedFilter, Row } from './types';
 
 /* Search, filters and the URL for DataTable. Filters apply at once; every option shows how many rows it would leave;
@@ -14,6 +15,7 @@ export function cellText<R extends Row>(c: DataTableColumn<R>, v: unknown): stri
   if (c.format === 'date') return format.date(asDate());
   if (c.format === 'datetime') return format.dateTime(asDate());
   if (c.format === 'relative') return format.relative(asDate());
+  if (c.format === 'duration') return format.duration(Number(v));
   // percent fixes the decimals only; the % comes from unit, as in KpiCard.
   const n =
     c.format === 'percent'
@@ -22,6 +24,17 @@ export function cellText<R extends Row>(c: DataTableColumn<R>, v: unknown): stri
         ? format.number(v, c.decimals ?? (c.unit === 'GB' || c.unit === 'MB' ? 'size' : 0))
         : String(v);
   return c.unit ? `${n} ${c.unit}` : n;
+}
+
+/** Date formats: shown as dates, written as <time>, sorted by time. */
+export const DATE_FORMATS = ['date', 'datetime', 'relative'] as const;
+export const isDateCol = <R extends Row>(c: DataTableColumn<R>): boolean => (DATE_FORMATS as readonly string[]).includes(c.format ?? '');
+
+/** A cell value as a Date, or null when it is missing or not a date. */
+export function asDate(v: unknown): Date | null {
+  if (v === null || v === undefined || v === '') return null;
+  const d = v instanceof Date ? v : new Date(v as string | number);
+  return Number.isNaN(d.getTime()) ? null : d;
 }
 
 /** The filters with defaults: list type, multiple, and options from the rows' distinct values. */
@@ -73,6 +86,7 @@ export function searchHit<R extends Row>(row: R, cols: DataTableColumn<R>[], fil
     const opt = filters.find((x) => x.key === c.key)?.options.find((o) => o.value === String(raw));
     if (opt) t += ' ' + opt.label;
     if (!t && c.render) t = raw == null ? '' : String(raw);
+    if (c.secondary) t += ' ' + nodeText(c.secondary(row));
     return t.toLowerCase().includes(ql);
   });
 }

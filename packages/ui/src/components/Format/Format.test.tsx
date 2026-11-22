@@ -100,3 +100,18 @@ test('other locales use their own conventions through Intl; the currency follows
 test('format.weekdays: zh-TW starts on Sunday', () => {
   expect(format.weekdays()).toEqual(['日', '一', '二', '三', '四', '五', '六']);
 });
+
+test('format.duration: m:ss under an hour (minutes not padded), h:mm:ss from an hour; negative or NaN is 「—」', () => {
+  expect(format.duration(2802)).toBe('46:42');
+  expect(format.duration(90)).toBe('1:30');
+  expect(format.duration(5)).toBe('0:05');
+  expect(format.duration(0)).toBe('0:00');
+  expect(format.duration(3599.4)).toBe('59:59');
+  expect(format.duration(3600)).toBe('1:00:00');
+  expect(format.duration(6889)).toBe('1:54:49');
+  expect(format.duration(36000 + 61)).toBe('10:01:01');
+  expect(format.duration(-1)).toBe('—');
+  expect(format.duration(Number.NaN)).toBe('—');
+  expect(format.duration(null)).toBe('—');
+  expect(format.duration(Number.POSITIVE_INFINITY)).toBe('—');
+});
