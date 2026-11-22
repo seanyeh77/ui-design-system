@@ -7,6 +7,8 @@ type Value = string | { light: string; dark?: string };
 interface Token {
   name: string;
   value: Value;
+  /** text tokens only: the line height that goes with the size (Tailwind's text-* utilities set it too). */
+  lineHeight?: string;
   usage?: string;
 }
 interface Preset {
@@ -21,13 +23,16 @@ interface TokenFile {
   radius: { tokens: Token[] };
   shadow: { tokens: Token[] };
   size: { tokens: Token[] };
+  text: { tokens: Token[] };
+  motion: { tokens: Token[] };
+  layer: { tokens: Token[] };
   type: { families: Record<string, string> };
   presets?: Preset[];
 }
 
 const root = new URL('../', import.meta.url);
 const file: TokenFile = JSON.parse(readFileSync(new URL('tokens.json', root), 'utf8'));
-const GROUPS = ['color', 'spacing', 'radius', 'shadow', 'size'] as const;
+const GROUPS = ['color', 'spacing', 'radius', 'shadow', 'size', 'text', 'motion', 'layer'] as const;
 const HEADER = '/* Generated from tokens.json by scripts/build.ts. Do not edit by hand. */\n';
 
 const light: Record<string, string> = {};
@@ -64,13 +69,20 @@ for (const preset of file.presets ?? []) {
 // Tailwind v4: colors point at the runtime variables so themes keep working (bg-surface, text-ink-muted).
 // Shadows too: Tailwind copies a plain @theme shadow value into the utility, which would ignore dark and presets.
 // Radius and font names are the same as Tailwind's own namespaces and compile to var(--radius-md), so they get
-// the light value here and tokens.css (unlayered) overrides them per theme.
+// the light value here and tokens.css (unlayered) overrides them per theme. Text sizes (text-body) carry their line
+// height; easings are ease-standard and the like. Durations and z layers have no Tailwind namespace: duration-(--dur-hover).
 const twVars = [
   ...groups.color.map((n) => `  --color-${n}: var(--${n});`),
   ...groups.spacing.map((n) => `  --spacing-${n.replace('space-', '')}: var(--${n});`),
   ...groups.shadow.map((n) => `  --${n}: var(--${n});`),
 ];
-const twValues = [...groups.radius.map((n) => `  --${n}: ${light[n]};`), ...groups.font.map((n) => `  --${n}: ${light[n]};`)];
+const lineHeights = Object.fromEntries(file.text.tokens.map((t) => [t.name, t.lineHeight]));
+const twValues = [
+  ...groups.radius.map((n) => `  --${n}: ${light[n]};`),
+  ...groups.font.map((n) => `  --${n}: ${light[n]};`),
+  ...groups.text.flatMap((n) => [`  --${n}: ${light[n]};`, ...(lineHeights[n] ? [`  --${n}--line-height: ${lineHeights[n]};`] : [])]),
+  ...groups.motion.filter((n) => n.startsWith('ease-')).map((n) => `  --${n}: ${light[n]};`),
+];
 // inline: utilities read var(--bg) where they are used, so a nested data-theme still switches them.
 const tailwind = `${HEADER}/* Use after @import "tailwindcss". Also load tokens.css, unlayered: the color, spacing and shadow utilities read its variables. */\n@theme inline {\n${twVars.join('\n')}\n}\n@theme {\n${twValues.join('\n')}\n}\n`;
 
@@ -82,7 +94,10 @@ export type RadiusToken = ${union(groups.radius)};
 export type ShadowToken = ${union(groups.shadow)};
 export type SizeToken = ${union(groups.size)};
 export type FontToken = ${union(groups.font)};
-export type Token = ColorToken | SpaceToken | RadiusToken | ShadowToken | SizeToken | FontToken;
+export type TextToken = ${union(groups.text)};
+export type MotionToken = ${union(groups.motion)};
+export type LayerToken = ${union(groups.layer)};
+export type Token = ColorToken | SpaceToken | RadiusToken | ShadowToken | SizeToken | FontToken | TextToken | MotionToken | LayerToken;
 export type ThemeId = 'light' | 'dark'${(file.presets ?? []).map((p) => ` | '${p.id}'`).join('')};
 /** Light values; read the live value with getComputedStyle when the theme matters. */
 export declare const tokens: Readonly<Record<Token, string>>;

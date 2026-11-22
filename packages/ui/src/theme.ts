@@ -90,21 +90,34 @@ function contrast(a: string, b: string): number {
   return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
 }
 
-/** The accent's text color (accent-text): the accent itself when it reads on both bg and surface (4.5:1); else, in
- *  light, the accent mixed with black 4 % at a time, in dark with white 5 % at a time, until it reads on both. Only
- *  text changes: fills, bars, rings and dots keep the accent. */
-export function accentText(hex: string, dark: boolean, bg: string, surface: string): string {
-  const b = toHex(bg);
-  const s = toHex(surface);
+/** The accent's text color (accent-text): the accent itself when it reads (4.5:1) on bg, surface and every extra
+ *  ground passed (setAccent passes surface-sub, surface-chrome and accent-soft); else, in light, the accent mixed with
+ *  black 4 % at a time, in dark with white 5 % at a time, until it reads on all of them. Only text changes: fills,
+ *  bars, rings and dots keep the accent. */
+export function accentText(hex: string, dark: boolean, bg: string, surface: string, ...grounds: string[]): string {
+  const all = [bg, surface, ...grounds].map(toHex);
   // A background that cannot be read: keep the accent itself rather than mixing it toward black or white blindly.
-  if (!b || !s) return hex;
-  const reads = (c: string) => contrast(c, b) >= 4.5 && contrast(c, s) >= 4.5;
+  if (all.some((g) => !g)) return hex;
+  const reads = (c: string) => all.every((g) => contrast(c, g as string) >= 4.5);
   const toward = dark ? '#ffffff' : '#000000';
   const step = dark ? 0.05 : 0.04;
   let text = hex;
   for (let k = 1; k * step <= 1 && !reads(text); k++) text = mixHex(hex, toward, k * step);
   return text;
 }
+
+/** The preset swatches of AccentPicker. Each one, as text, reads on every ground of light, dark and the teaching
+ *  preset once accentText has adjusted it, and white text reads on it in light (tokens-contrast.test.tsx). */
+export const ACCENT_SWATCHES: readonly (readonly [name: string, hex: string])[] = [
+  ['藍', '#2457d6'],
+  ['靛', '#5b4fd6'],
+  ['紫', '#8a4fd6'],
+  ['桃紅', '#c2407a'],
+  ['紅', '#cd3a2f'],
+  ['橘', '#b85a0e'],
+  ['綠', '#1a844a'],
+  ['青', '#0e827d'],
+];
 
 /** Derives every accent token from one color (自訂強調色的換算 in docs/guidelines.md).
  *  Returns false for anything but #rrggbb. quiet: apply without storing. */
@@ -117,13 +130,17 @@ export function setAccent(hex: string, quiet = false): boolean {
   // Read the theme's colors as #rrggbb (bundlers may have shortened #ffffff to #fff); the theme's defaults when unset.
   const surface = toHex(cs.getPropertyValue('--surface')) ?? (dark ? '#393530' : '#ffffff');
   const bg = toHex(cs.getPropertyValue('--bg')) ?? (dark ? '#2f2a25' : '#fcfbfb');
-  const text = accentText(hex, dark, bg, surface);
+  const sub = toHex(cs.getPropertyValue('--surface-sub')) ?? (dark ? '#443f3b' : '#f6f5f4');
+  const chrome = toHex(cs.getPropertyValue('--surface-chrome')) ?? (dark ? '#35302c' : '#ffffff');
+  const soft = dark ? mixHex(bg, hex, 0.22) : mixHex('#ffffff', hex, 0.12);
+  // Text in the accent also sits on zebra rows, code blocks, the top bar and its own soft fill (a selected row).
+  const text = accentText(hex, dark, bg, surface, sub, chrome, soft);
   const ink = '#171512';
   const vars: Record<string, string> = {
     '--accent': hex,
     '--accent-hover': mixHex(hex, '#000000', 0.12),
     '--accent-press': mixHex(hex, '#000000', 0.22),
-    '--accent-soft': dark ? mixHex(bg, hex, 0.22) : mixHex('#ffffff', hex, 0.12),
+    '--accent-soft': soft,
     '--accent-text': text,
     '--on-accent': contrast('#ffffff', hex) >= contrast(ink, hex) ? '#ffffff' : ink,
     '--focus-ring': `rgba(${hexRgb(hex).join(', ')}, 0.3)`,

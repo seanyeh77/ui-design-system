@@ -44,7 +44,7 @@ export function Switch({ checked, onChange, label, disabled, className }: Switch
           right,
           height: th,
           marginTop: -th / 2,
-          transition: `${dropTransition('left', 'right', on)}, height 150ms ease, margin-top 150ms ease, background-color .2s ease`,
+          transition: `${dropTransition('left', 'right', on)}, height var(--dur-hover) ease, margin-top var(--dur-hover) ease, background-color var(--dur-nav) ease`,
         }}
       >
         <svg

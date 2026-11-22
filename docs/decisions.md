@@ -1099,3 +1099,16 @@ AI 定的細節（待確認）：
 - DatePicker：格式錯誤離開欄位後才顯示，改對時立刻消失。
 - FileUpload：進度條名稱「檔名 上傳進度」。
 - 表格放不下時的操作欄做成實驗室（K0、KA、KB、KC），等使用者選。
+
+## 文字對比、字級、動畫時間與層級 token
+
+使用者的要求：「都照你的意見，因為我外來新專案每個前端都會使用 design system，不要讓前端只支持特定場景為原則去判斷，另外希望是 agent 能夠使用者個 design 使用越少的 token 或是更專注於設計網頁與 UX 這樣最好」（以下細節都交給 AI 決定）
+
+AI 定的細節（待確認）：
+
+- 文字對比：`ink`、`ink-muted` 和每個 `*-text`，放在兩個主題的 `bg`、`surface`、`surface-sub`、`surface-chrome`、`accent-soft` 上都要達 4.5:1，狀態文字在自己的 `*-soft` 底色上也要達 4.5:1。不合格的只調亮度、不換色相，調到剛好合格：淺色 `warning-text` `#965f0b` → `#955e0b`（在 `accent-soft` 上 4.47:1 → 4.53:1）；深色 `danger-text` `#e48986` → `#e79593`（在 `surface-sub` 上 4.07:1 → 4.51:1）；深色 `info-text` `#87a3e8` → `#90aaea`（4.18:1 → 4.52:1）。斑馬紋底色不變。
+- 自訂強調色：`setAccent` 換算 `accent-text` 時，除了 `bg`、`surface`，也要在 `surface-sub`、`surface-chrome` 和換算出來的 `accent-soft` 上達 4.5:1（規則不變：淺色每次混 4% 黑、深色每次混 5% 白，直到合格）。8 個預設色票在淺色、深色和 `teaching` 預設都合格。token 檔裡的值改成和換算結果相同：深色 `accent-text` `#819ee7` → `#92abeb`（在 `surface-sub` 上 3.95:1 → 4.58:1）；`teaching` 的 `accent-text` `#0e827d` → `#0d7873`（`#0e827d` 在 `surface-sub` 上 4.28:1、在 `accent-soft` 上 3.98:1，改後最低 4.54:1）；強調色本身（按鈕、進度條、焦點框）仍是 `#0e827d`。淺色的非預設色票（紫、桃紅、紅、橘、綠、青）的文字色因此略深。
+- 字級 token（`--text-*`，Tailwind 的 `text-*` 同名並帶行高）：`mini` 12 px、`small` 13 px、`compact` 14 px、`control` 15 px、`body` 16 px、`title` 17 px、`lead` 18 px、`h4` 20 px、`h3` 25 px、`h2` 31 px、`h1` 39 px、`display` 49 px。14、15、17 px 是元件實際在用的大小：14 px 是密集介面文字（選單、表頭、欄位名稱、提示框），15 px 是控制項文字（按鈕、輸入框、分頁、導覽列），17 px 是卡片標題和表格標題。12 px 是最小字級，原本 9 px 和 11 px 的五處改成 12 px：手機底部分頁列文字、通知數字、多欄排序的順序數字、樹狀清單的副檔名標籤（改成置中在檔案圖示上、左右內距 2 px、不加字距，4 個字母的標籤才放得下）、樹狀清單的層級數字。`h3` 的用途改成獨立頁面的標題（登入、錯誤頁、設定頁）和圖表重點數字，卡片標題是 17 px。只出現一次的 22 px（精簡 KPI 數字）、28 px（TimeControl 時鐘）、96 px（錯誤頁狀態碼）不設 token，在該行註明 `token-exempt`。
+- 動畫時間 token（`--dur-*`，依 `docs/motion.md` 的用途命名，數值不變）：`hover` 150 ms、`menu` 180 ms、`nav` 200 ms、`tooltip` 220 ms、`expand` 260 ms、`toggle` 300 ms、`drawer` 450 ms、`bar` 500 ms、`chart` 900 ms、`loop` 1400 ms。重複出現的曲線也設 token：`--ease-standard`、`--ease-glide`、`--ease-spring`、`--ease-exit`。`docs/motion.md` 沒有對應用途的 80、100、120、250、320、600、800、1200 ms 和逐項進場間隔維持原本的數值，不設 token。
+- 層級 token（`--z-*`，數值和原本相同，所以疊放順序完全不變）：元件內部 `base` 0、`raised` 1、`sticky` 2、`float` 5；頁面 `header` 10、`rail` 20、`hint` 30、`drawer` 800、`modal` 900、`palette` 950、`tour` 960、`popover` 980、`tooltip` 1000。遮罩用層級本身，上面的面板用 `calc(層級 + 1)`；Workbench 內部的幾層用 `calc(var(--z-float) - 1)` 到 `+ 4`。
+- 檢查：`pnpm test` 會先跑 `packages/ui/scripts/check-css-tokens.ts`，`styles.css` 寫了 px 字級、數字 z-index，或和 token 相同的動畫時間、曲線就失敗；刻意的例外在同一行寫 `/* token-exempt: 原因 */`。`tokens-contrast.test.tsx` 從 `tokens.json` 和 `setAccent` 算上面所有的對比。

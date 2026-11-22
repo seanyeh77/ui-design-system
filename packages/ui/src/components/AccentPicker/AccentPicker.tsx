@@ -2,19 +2,9 @@ import * as React from 'react';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx, store } from '../../internal/util';
-import { ACCENT_KEY, DEFAULT_ACCENT, setAccent } from '../../theme';
+import { ACCENT_KEY, ACCENT_SWATCHES, DEFAULT_ACCENT, setAccent } from '../../theme';
 
-// 每個色票在淺色主題都要達 4.5:1：當文字放在 bg 上，以及白字放在它上面。
-const SWATCHES: [name: string, hex: string][] = [
-  ['藍', '#2457d6'],
-  ['靛', '#5b4fd6'],
-  ['紫', '#8a4fd6'],
-  ['桃紅', '#c2407a'],
-  ['紅', '#cd3a2f'],
-  ['橘', '#b85a0e'],
-  ['綠', '#1a844a'],
-  ['青', '#0e827d'],
-];
+const SWATCHES = ACCENT_SWATCHES;
 const HEX = /^#[0-9a-fA-F]{6}$/;
 
 export interface AccentPickerProps {

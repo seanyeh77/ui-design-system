@@ -59,7 +59,8 @@ test('setAccent: only accent-text changes; the accent itself (fills, bars, rings
   expect(varOf('--accent-text')).toBe('#ffe066');
   setAccent('#1a1a6e', true);
   expect(varOf('--accent')).toBe('#1a1a6e');
-  expect(varOf('--accent-text')).toBe('#a3a3c5');
+  // Lighter than accentText on bg and surface alone (#a3a3c5): it must also read on surface-sub.
+  expect(varOf('--accent-text')).toBe('#afafcc');
 });
 
 test('bundlers shorten #ffffff to #fff: with --surface #fff the default accent-text is still #2457d6, not black', () => {

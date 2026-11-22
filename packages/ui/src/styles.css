@@ -1,7 +1,7 @@
 body {
   margin: 0;
   font-family: var(--font-sans);
-  font-size: 16px;
+  font-size: var(--text-body);
   line-height: 1.65;
   background: var(--bg);
   color: var(--ink);
@@ -42,15 +42,15 @@ body {
   border-radius: var(--radius-md);
   border: 1px solid transparent;
   font: inherit;
-  font-size: 15px;
+  font-size: var(--text-control);
   font-weight: 600;
   line-height: 1;
   cursor: pointer;
   white-space: nowrap;
   transition:
-    background-color 0.15s ease,
-    transform 0.15s ease,
-    border-color 0.15s ease;
+    background-color var(--dur-hover) ease,
+    transform var(--dur-hover) ease,
+    border-color var(--dur-hover) ease;
 }
 .ui-btn:active:not(:disabled) {
   transform: translateY(1px);
@@ -111,7 +111,7 @@ body {
   background: transparent;
   color: var(--ink);
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: background-color var(--dur-hover) ease;
 }
 .ui-iconbtn:hover {
   background: var(--surface-sub);
@@ -159,7 +159,7 @@ body {
 }
 .ui-hint {
   position: absolute;
-  z-index: 30;
+  z-index: var(--z-hint);
   top: 50%;
   right: calc(100% + 12px);
   translate: 0 -50%;
@@ -174,11 +174,11 @@ body {
   background: var(--ink);
   color: var(--bg);
   box-shadow: var(--shadow-overlay);
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 20px;
   font-weight: 400;
   white-space: normal;
-  animation: ui-pop-scale 220ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  animation: ui-pop-scale var(--dur-tooltip) var(--ease-spring) both;
   transform-origin: 100% 50%;
 }
 .ui-hint::before {
@@ -254,7 +254,7 @@ body {
   min-width: 220px;
 }
 .ui-field-label {
-  font-size: 14px;
+  font-size: var(--text-compact);
   font-weight: 600;
 }
 .ui-field-box {
@@ -266,15 +266,15 @@ body {
   height: var(--control-height);
   padding: 0 var(--space-3);
   font: inherit;
-  font-size: 15px;
+  font-size: var(--text-control);
   color: var(--ink);
   background: var(--surface-input);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-md);
   outline: none;
   transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+    border-color var(--dur-hover) ease,
+    box-shadow var(--dur-hover) ease;
 }
 .ui-input::placeholder {
   color: var(--ink-muted);
@@ -298,11 +298,11 @@ body {
   color: var(--danger);
 }
 .ui-field-hint {
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
 }
 .ui-field-error {
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--danger-text);
 }
 .is-disabled .ui-field-label {
@@ -328,7 +328,7 @@ body {
   background: var(--surface);
   box-shadow: var(--shadow-chip);
   color: var(--ink);
-  font-size: 13px;
+  font-size: var(--text-small);
   font-weight: 500;
   white-space: nowrap;
   box-sizing: border-box;
@@ -386,7 +386,7 @@ body {
   border-radius: var(--radius-md);
   background: var(--surface);
   box-shadow: var(--shadow-card);
-  font-size: 14px;
+  font-size: var(--text-compact);
   line-height: 1.5;
 }
 .ui-alert::before {
@@ -432,7 +432,7 @@ body {
   align-self: center;
   height: 32px;
   padding: 0 var(--space-3);
-  font-size: 13px;
+  font-size: var(--text-small);
 }
 .ui-alert-close {
   flex: 0 0 32px;
@@ -477,14 +477,14 @@ body {
   padding: var(--space-8) var(--space-5);
 }
 .ui-empty-title {
-  font-size: 20px;
+  font-size: var(--text-h4);
   font-weight: 700;
   line-height: 28px;
 }
 .ui-empty-desc {
   margin: 0;
   max-width: 360px;
-  font-size: 14px;
+  font-size: var(--text-compact);
   color: var(--ink-muted);
 }
 .ui-steps {
@@ -495,7 +495,7 @@ body {
   flex-direction: column;
   gap: var(--space-2);
   text-align: left;
-  font-size: 14px;
+  font-size: var(--text-compact);
   color: var(--ink-muted);
 }
 .ui-steps li {
@@ -515,7 +515,7 @@ body {
   background: var(--surface-sub);
   color: var(--ink-muted);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-mini);
   font-weight: 700;
   display: inline-flex;
   align-items: center;
@@ -546,7 +546,7 @@ body {
   color: var(--ink);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-overlay);
-  font-size: 14px;
+  font-size: var(--text-compact);
   animation: ui-toast-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
 }
 .ui-toast-icon {
@@ -586,7 +586,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  animation: ui-dialog-in 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+  animation: ui-dialog-in var(--dur-tooltip) cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
 }
 .ui-dialog-head {
   display: flex;
@@ -623,12 +623,12 @@ body {
   padding: var(--space-4);
 }
 .ui-dialog-title {
-  font-size: 20px;
+  font-size: var(--text-h4);
   font-weight: 700;
   line-height: 28px;
 }
 .ui-dialog-body {
-  font-size: 14px;
+  font-size: var(--text-compact);
   color: var(--ink-muted);
 }
 .ui-dialog-actions {
@@ -649,7 +649,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .ui-toast,
   .ui-dialog {
-    animation: ui-fade 0.15s ease both;
+    animation: ui-fade var(--dur-hover) ease both;
   }
   .ui-btn:active:not(:disabled) {
     transform: none;
@@ -667,7 +667,7 @@ body {
   padding: 14px 10px;
   background: var(--surface-chrome);
   border-right: 1px solid var(--line);
-  transition: width 0.3s cubic-bezier(0.3, 0.7, 0.3, 1);
+  transition: width var(--dur-toggle) var(--ease-glide);
 }
 .ui-sidenav.ui-shell-allnav {
   width: auto;
@@ -740,14 +740,14 @@ body {
   border-radius: 6px;
   background: var(--accent);
   color: var(--on-accent);
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 1;
 }
 .ui-nav-brand-name {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: opacity 0.3s cubic-bezier(0.3, 0.7, 0.3, 1) 80ms;
+  transition: opacity var(--dur-toggle) var(--ease-glide) 80ms;
 }
 .ui-sidenav.is-collapsed .ui-nav-brand-name {
   opacity: 0;
@@ -792,19 +792,19 @@ body {
   background: transparent;
   color: var(--ink-muted);
   font: inherit;
-  font-size: 15px;
+  font-size: var(--text-control);
   font-weight: 500;
   text-align: left;
   white-space: nowrap;
   overflow: hidden;
   cursor: pointer;
   transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
+    background-color var(--dur-hover) ease,
+    color var(--dur-hover) ease;
 }
 .ui-nav-item.is-sub {
   padding-left: 44px;
-  font-size: 14px;
+  font-size: var(--text-compact);
 }
 .ui-nav-item:hover:not(.is-selected) {
   background: var(--surface-sub);
@@ -833,7 +833,7 @@ body {
 }
 .ui-nav-bar {
   position: absolute;
-  z-index: 1;
+  z-index: var(--z-raised);
   left: 0;
   width: 3px;
   border-radius: 0 3px 3px 0;
@@ -850,20 +850,20 @@ body {
   position: absolute;
   left: calc(100% + 10px);
   top: 50%;
-  z-index: 5;
+  z-index: var(--z-float);
   padding: 6px 10px;
   border-radius: var(--radius-sm);
   background: var(--ink);
   color: var(--bg);
-  font-size: 13px;
+  font-size: var(--text-small);
   font-weight: 600;
   white-space: nowrap;
   box-shadow: var(--shadow-overlay);
   opacity: 0;
   transform: translate(-4px, -50%);
   transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
+    opacity var(--dur-hover) ease,
+    transform var(--dur-hover) ease;
   pointer-events: none;
 }
 .ui-nav-row:hover .ui-nav-tip,
@@ -903,7 +903,7 @@ body {
   color: var(--accent-text);
 }
 .ui-nav-collapse .ui-icon {
-  transition: transform 0.3s ease;
+  transition: transform var(--dur-toggle) ease;
 }
 .ui-nav-collapse .is-flipped {
   transform: scaleX(-1);
@@ -921,7 +921,7 @@ body {
 }
 .ui-topbar-title {
   margin: 0;
-  font-size: 20px;
+  font-size: var(--text-h4);
   line-height: 28px;
   font-weight: 700;
   white-space: nowrap;
@@ -959,13 +959,13 @@ body {
   background: var(--surface-sub);
   color: var(--ink-muted);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--text-compact);
   cursor: pointer;
 }
 .ui-search kbd {
   margin-left: auto;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-mini);
 }
 
 .ui-crumb ol {
@@ -976,7 +976,7 @@ body {
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 14px;
+  font-size: var(--text-compact);
   color: var(--ink-muted);
 }
 .ui-crumb li {
@@ -1044,10 +1044,10 @@ body {
   background: transparent;
   color: var(--ink-muted);
   font: inherit;
-  font-size: 15px;
+  font-size: var(--text-control);
   font-weight: 500;
   cursor: pointer;
-  transition: color 0.15s ease;
+  transition: color var(--dur-hover) ease;
 }
 .ui-tab.is-selected {
   color: var(--ink);
@@ -1102,7 +1102,7 @@ body {
   top: 8px;
 }
 .ui-tabbar-label {
-  font-size: 11px;
+  font-size: var(--text-mini);
   line-height: 14px;
   white-space: nowrap;
 }
@@ -1121,7 +1121,7 @@ body {
   }
 }
 .ui-rise-in > * {
-  animation: ui-rise 200ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  animation: ui-rise var(--dur-nav) var(--ease-spring) both;
 }
 .ui-rise-in > *:nth-child(2) {
   animation-delay: 40ms;
@@ -1143,10 +1143,10 @@ body {
   .ui-tabs-ind,
   .ui-tabbar-pill,
   .ui-nav-bar {
-    transition: opacity 0.15s ease !important;
+    transition: opacity var(--dur-hover) ease !important;
   }
   .ui-rise-in > * {
-    animation: ui-fade 0.15s ease both;
+    animation: ui-fade var(--dur-hover) ease both;
   }
   .ui-sidenav {
     transition: none;
@@ -1168,7 +1168,7 @@ body {
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 15px;
+  font-size: var(--text-control);
   text-align: left;
   cursor: pointer;
 }
@@ -1189,8 +1189,8 @@ body {
   align-items: center;
   justify-content: center;
   transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease;
+    background-color var(--dur-hover) ease,
+    border-color var(--dur-hover) ease;
 }
 .ui-check.is-on .ui-check-box {
   background: var(--accent);
@@ -1212,7 +1212,7 @@ body {
 }
 .ui-draw {
   stroke-dasharray: 24;
-  animation: ui-draw 200ms ease-out both;
+  animation: ui-draw var(--dur-nav) ease-out both;
 }
 .ui-check:focus-visible .ui-check-box,
 .ui-radio:focus-visible .ui-radio-ring {
@@ -1237,7 +1237,7 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: border-color 0.15s ease;
+  transition: border-color var(--dur-hover) ease;
 }
 .ui-radio.is-on .ui-radio-ring {
   border-color: var(--accent);
@@ -1247,7 +1247,7 @@ body {
   height: 10px;
   border-radius: 99px;
   background: var(--accent);
-  animation: ui-draw-dot 200ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: ui-draw-dot var(--dur-nav) cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 @keyframes ui-draw-dot {
   from {
@@ -1270,8 +1270,8 @@ body {
   background: var(--surface-sub);
   cursor: pointer;
   transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease;
+    background-color var(--dur-nav) ease,
+    border-color var(--dur-nav) ease;
 }
 .ui-switch.is-on {
   background: var(--accent);
@@ -1321,7 +1321,7 @@ body {
   background: var(--surface-input);
   color: var(--ink);
   font: inherit;
-  font-size: 15px;
+  font-size: var(--text-control);
   text-align: left;
   cursor: pointer;
 }
@@ -1333,7 +1333,7 @@ body {
 }
 .ui-select-chev {
   color: var(--ink-muted);
-  transition: transform 0.2s ease;
+  transition: transform var(--dur-nav) ease;
 }
 .ui-select-trigger[data-popup-open] .ui-select-chev {
   transform: rotate(180deg);
@@ -1362,7 +1362,7 @@ body {
   border: 1px solid var(--line);
   box-shadow: var(--shadow-overlay);
   transform-origin: top;
-  animation: ui-menu-down 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: ui-menu-down var(--dur-nav) var(--ease-standard) both;
 }
 .ui-select-search {
   display: flex;
@@ -1383,7 +1383,7 @@ body {
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--text-compact);
 }
 .ui-select-opt {
   display: flex;
@@ -1398,7 +1398,7 @@ body {
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 15px;
+  font-size: var(--text-control);
   text-align: left;
   cursor: pointer;
 }
@@ -1413,7 +1413,7 @@ body {
 }
 .ui-select-empty {
   padding: 10px;
-  font-size: 14px;
+  font-size: var(--text-compact);
   color: var(--ink-muted);
 }
 
@@ -1469,7 +1469,7 @@ body {
 }
 .ui-count {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
 }
 
@@ -1490,14 +1490,14 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .ui-draw,
   .ui-radio-dot {
-    animation: ui-fade 0.15s ease both;
+    animation: ui-fade var(--dur-hover) ease both;
     stroke-dasharray: none;
   }
   .ui-select-menu {
-    animation: ui-fade 0.15s ease both;
+    animation: ui-fade var(--dur-hover) ease both;
   }
   .ui-switch-thumb {
-    transition: background-color 0.15s ease !important;
+    transition: background-color var(--dur-hover) ease !important;
   }
 }
 
@@ -1513,13 +1513,13 @@ body {
   box-shadow: var(--shadow-card);
 }
 .ui-kpi-label {
-  font-size: 14px;
+  font-size: var(--text-compact);
   color: var(--ink-muted);
 }
 .ui-kpi-value {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  font-size: 31px;
+  font-size: var(--text-h2);
   line-height: 1.15;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -1540,7 +1540,7 @@ body {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: var(--text-small);
 }
 .ui-kpi-change {
   font-weight: 600;
@@ -1564,7 +1564,7 @@ body {
   flex-wrap: wrap;
   gap: 14px;
   margin-bottom: 10px;
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
 }
 .ui-chart-legend > span {
@@ -1594,7 +1594,7 @@ body {
 }
 .ui-chart-tick {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-mini);
   fill: var(--ink-muted);
   color: var(--ink-muted);
 }
@@ -1612,7 +1612,7 @@ body {
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 1;
-  animation: ui-line-draw 900ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: ui-line-draw var(--dur-chart) cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 .ui-chart-hit {
   position: absolute;
@@ -1644,14 +1644,14 @@ body {
 .ui-chart-tip {
   position: absolute;
   top: 4px;
-  z-index: 5;
+  z-index: var(--z-float);
   min-width: 120px;
   padding: 10px 12px;
   border-radius: var(--radius-md);
   background: var(--surface);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-overlay);
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink);
   pointer-events: none;
 }
@@ -1675,7 +1675,7 @@ body {
 .ui-bars-labels {
   display: flex;
   margin-top: 4px;
-  font-size: 12px;
+  font-size: var(--text-mini);
   color: var(--ink-muted);
 }
 .ui-chart-xlabels > span,
@@ -1730,8 +1730,8 @@ body {
   border-radius: 4px 4px 0 0;
   background: var(--chart-1);
   transform-origin: bottom;
-  animation: ui-bar-grow 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  transition: opacity 0.15s ease;
+  animation: ui-bar-grow var(--dur-bar) var(--ease-standard) both;
+  transition: opacity var(--dur-hover) ease;
 }
 .ui-bar-slot .ui-chart-tip {
   top: auto;
@@ -1757,15 +1757,15 @@ body {
   border-radius: 99px;
   background: var(--accent);
   transition:
-    width 0.15s linear,
-    background-color 0.3s ease;
+    width var(--dur-hover) linear,
+    background-color var(--dur-toggle) ease;
 }
 .ui-progress.is-done .ui-progress-fill {
   background: var(--success);
 }
 .ui-progress-text {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
 }
 .ui-progress.is-done .ui-progress-text {
@@ -1802,8 +1802,8 @@ body {
   border-radius: 99px;
   background: var(--accent);
   animation:
-    ui-drop-l 1.4s cubic-bezier(0.65, 0, 0.35, 1) infinite,
-    ui-drop-r 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+    ui-drop-l var(--dur-loop) cubic-bezier(0.65, 0, 0.35, 1) infinite,
+    ui-drop-r var(--dur-loop) var(--ease-standard) infinite;
 }
 .ui-ring-track {
   fill: none;
@@ -1816,7 +1816,7 @@ body {
 }
 .ui-ring-text {
   font-family: var(--font-mono);
-  font-size: 15px;
+  font-size: var(--text-control);
   font-weight: 700;
   fill: var(--ink);
 }
@@ -1824,7 +1824,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .ui-chart-line,
   .ui-bar {
-    animation: ui-fade 0.2s ease both;
+    animation: ui-fade var(--dur-nav) ease both;
     stroke-dasharray: none;
   }
   .ui-loading-drop {
@@ -1848,7 +1848,7 @@ body {
 }
 .ui-dt-caption {
   /* The same size as a Card title: a table's heading is a block heading whether or not it sits in a card. */
-  font-size: 17px;
+  font-size: var(--text-title);
   font-weight: 700;
 }
 .ui-dt-tools {
@@ -1972,7 +1972,7 @@ body {
   pointer-events: none;
   background: linear-gradient(to right, transparent, var(--surface));
   opacity: 0;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--dur-hover) ease;
 }
 .ui-dt-scroller.has-more::after {
   opacity: 1;
@@ -2026,7 +2026,7 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  z-index: 0;
+  z-index: var(--z-base);
   pointer-events: none;
 }
 .ui-dt-cell {
@@ -2051,10 +2051,10 @@ body {
 .ui-dt-head {
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: var(--z-sticky);
   min-height: 44px;
   background: var(--surface-sub);
-  font-size: 14px;
+  font-size: var(--text-compact);
   font-weight: 700;
   color: var(--ink);
   white-space: nowrap;
@@ -2172,7 +2172,7 @@ body {
   border-right: 0;
 }
 .ui-dt-bulk-count {
-  font-size: 14px;
+  font-size: var(--text-compact);
 }
 .ui-dt-bulk-actions {
   margin-left: auto;
@@ -2204,7 +2204,7 @@ body {
   gap: 12px;
 }
 .ui-dt-range {
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
 }
 .ui-dt-pages {
@@ -2291,7 +2291,7 @@ body {
   box-shadow: inset 0 0 0 2px var(--accent);
 }
 .ui-dt-exp-btn .ui-icon {
-  transition: transform 0.2s ease;
+  transition: transform var(--dur-nav) ease;
 }
 .ui-dt-exp-btn.is-open .ui-icon {
   transform: rotate(90deg);
@@ -2311,7 +2311,7 @@ body {
   max-width: 72em;
 }
 .ui-dt-detail-label {
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 20px;
   color: var(--ink-muted);
 }
@@ -2387,7 +2387,7 @@ body {
     margin-bottom: 0;
     color: var(--ink-muted);
     font-family: var(--font-sans);
-    font-size: 12px;
+    font-size: var(--text-mini);
     line-height: 18px;
     font-weight: 400;
     white-space: nowrap;
@@ -2447,7 +2447,7 @@ body {
     min-width: 0;
     padding-left: 6px;
     padding-right: 6px;
-    font-size: 14px;
+    font-size: var(--text-compact);
   }
   .ui-dt-body .ui-dt-cell.is-long > .ui-dt-long {
     max-width: none;
@@ -2466,7 +2466,7 @@ body {
     background: transparent;
     color: var(--accent-text);
     font: inherit;
-    font-size: 13px;
+    font-size: var(--text-small);
     font-weight: 600;
     cursor: pointer;
   }
@@ -2524,12 +2524,12 @@ body {
   border-radius: var(--radius-chip);
   background: var(--ink);
   color: var(--bg);
-  font-size: 13px;
+  font-size: var(--text-small);
   font-weight: 600;
   line-height: 1.4;
   white-space: nowrap;
   pointer-events: none;
-  animation: ui-pop-scale 220ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  animation: ui-pop-scale var(--dur-tooltip) var(--ease-spring) both;
 }
 .ui-tooltip {
   transform-origin: var(--transform-origin);
@@ -2582,7 +2582,7 @@ body {
   background: var(--surface);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-overlay);
-  animation: ui-pop-scale 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: ui-pop-scale var(--dur-menu) var(--ease-standard) both;
 }
 .ui-menu-item {
   display: flex;
@@ -2596,7 +2596,7 @@ body {
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--text-compact);
   text-align: left;
   white-space: nowrap;
   cursor: pointer;
@@ -2624,7 +2624,7 @@ body {
 .ui-menu-kbd {
   margin-left: 16px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-mini);
   color: var(--ink-muted);
 }
 .ui-menu-item.is-danger .ui-menu-kbd {
@@ -2648,7 +2648,7 @@ body {
   border-radius: 99px;
   background: var(--accent);
   color: var(--on-accent);
-  font-size: 12px;
+  font-size: var(--text-mini);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2662,7 +2662,7 @@ body {
   background: var(--surface);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-overlay);
-  animation: ui-pop-fade 150ms ease both;
+  animation: ui-pop-fade var(--dur-hover) ease both;
 }
 .ui-popover-arrow {
   position: absolute;
@@ -2689,18 +2689,18 @@ body {
 .ui-drawer-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 800;
+  z-index: var(--z-drawer);
   background: var(--scrim);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  transition: opacity 300ms ease;
+  transition: opacity var(--dur-toggle) ease;
 }
 .ui-drawer-backdrop:is([data-starting-style], [data-ending-style]) {
   opacity: 0;
 }
 .ui-drawer {
   position: fixed;
-  z-index: 801;
+  z-index: calc(var(--z-drawer) + 1);
   top: 0;
   right: 0;
   bottom: 0;
@@ -2710,15 +2710,15 @@ body {
   flex-direction: column;
   background: var(--surface);
   box-shadow: var(--shadow-overlay);
-  transition: transform 450ms cubic-bezier(0.34, 1.4, 0.64, 1);
+  transition: transform var(--dur-drawer) var(--ease-spring);
 }
 .ui-drawer[data-starting-style] {
   transform: translateX(105%);
 }
 .ui-drawer[data-ending-style] {
   transform: translateX(105%);
-  transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
-  transition-duration: 300ms;
+  transition-timing-function: var(--ease-exit);
+  transition-duration: var(--dur-toggle);
 }
 .ui-drawer.is-left {
   right: auto;
@@ -2737,7 +2737,7 @@ body {
   border-bottom: 1px solid var(--line);
 }
 .ui-drawer-title {
-  font-size: 20px;
+  font-size: var(--text-h4);
   font-weight: 700;
 }
 .ui-drawer-head .ui-dialog-close {
@@ -2763,10 +2763,10 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .ui-tooltip,
   .ui-menu {
-    animation: ui-pop-fade 150ms ease both;
+    animation: ui-pop-fade var(--dur-hover) ease both;
   }
   .ui-drawer {
-    transition: opacity 200ms ease;
+    transition: opacity var(--dur-nav) ease;
   }
   .ui-drawer:is([data-starting-style], [data-ending-style]) {
     transform: none;
@@ -2778,11 +2778,11 @@ body {
 html.ui-theme-fade,
 html.ui-theme-fade * {
   transition:
-    background-color 300ms ease,
-    color 300ms ease,
-    border-color 300ms ease,
-    fill 300ms ease,
-    stroke 300ms ease !important;
+    background-color var(--dur-toggle) ease,
+    color var(--dur-toggle) ease,
+    border-color var(--dur-toggle) ease,
+    fill var(--dur-toggle) ease,
+    stroke var(--dur-toggle) ease !important;
 }
 .ui-themepick {
   display: grid;
@@ -2800,7 +2800,7 @@ html.ui-theme-fade * {
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--text-small);
   cursor: pointer;
 }
 .ui-themepick-opt.is-on {
@@ -2953,7 +2953,7 @@ html.ui-theme-fade * {
   background: var(--danger);
   color: var(--on-solid);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--text-mini);
   font-weight: 700;
   line-height: 18px;
   text-align: center;
@@ -2970,7 +2970,7 @@ html.ui-theme-fade * {
   border: 1px solid var(--line);
   box-shadow: var(--shadow-overlay);
   overflow: hidden;
-  animation: ui-pop-fade 150ms ease both;
+  animation: ui-pop-fade var(--dur-hover) ease both;
 }
 .ui-noti-head {
   display: flex;
@@ -2981,7 +2981,7 @@ html.ui-theme-fade * {
   border-bottom: 1px solid var(--line);
 }
 .ui-noti-title {
-  font-size: 17px;
+  font-size: var(--text-title);
   font-weight: 700;
 }
 .ui-noti-readall {
@@ -2992,7 +2992,7 @@ html.ui-theme-fade * {
   background: transparent;
   color: var(--accent-text);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--text-small);
   font-weight: 600;
   cursor: pointer;
 }
@@ -3004,7 +3004,7 @@ html.ui-theme-fade * {
 }
 .ui-noti-group {
   padding: 10px 16px 4px;
-  font-size: 12px;
+  font-size: var(--text-mini);
   font-weight: 700;
   color: var(--ink-muted);
 }
@@ -3040,17 +3040,17 @@ html.ui-theme-fade * {
   min-width: 0;
 }
 .ui-noti-t {
-  font-size: 14px;
+  font-size: var(--text-compact);
   font-weight: 600;
 }
 .ui-noti-b {
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
 }
 .ui-noti-time {
   margin-top: 2px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-mini);
   color: var(--ink-muted);
 }
 .ui-noti-empty {
@@ -3092,7 +3092,7 @@ html.ui-theme-fade * {
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 15px;
+  font-size: var(--text-control);
 }
 .ui-datefield-input {
   font-family: var(--font-mono);
@@ -3119,7 +3119,7 @@ html.ui-theme-fade * {
   padding: 0 var(--space-3);
   font: inherit;
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: var(--text-compact);
   text-align: left;
   cursor: pointer;
 }
@@ -3132,7 +3132,7 @@ html.ui-theme-fade * {
   background: var(--surface);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-overlay);
-  animation: ui-pop-fade 150ms ease both;
+  animation: ui-pop-fade var(--dur-hover) ease both;
 }
 .ui-rangepop {
   display: flex;
@@ -3142,7 +3142,7 @@ html.ui-theme-fade * {
   display: flex;
   justify-content: space-between;
   margin-top: 8px;
-  font-size: 13px;
+  font-size: var(--text-small);
 }
 .ui-cal {
   width: 266px;
@@ -3178,7 +3178,7 @@ html.ui-theme-fade * {
 }
 .ui-cal-wk {
   height: 24px;
-  font-size: 12px;
+  font-size: var(--text-mini);
   color: var(--ink-muted);
   text-align: center;
 }
@@ -3207,7 +3207,7 @@ html.ui-theme-fade * {
   color: var(--ink);
   font: inherit;
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: var(--text-compact);
   cursor: pointer;
 }
 .ui-cal-day:hover {
@@ -3256,7 +3256,7 @@ html.ui-theme-fade * {
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--text-compact);
   text-align: left;
   white-space: nowrap;
   cursor: pointer;
@@ -3306,8 +3306,8 @@ html.ui-theme-fade * {
   border-radius: var(--radius-md);
   color: var(--ink-muted);
   transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease;
+    background-color var(--dur-hover) ease,
+    border-color var(--dur-hover) ease;
 }
 .ui-dropline.is-drag {
   border-color: var(--accent);
@@ -3316,10 +3316,10 @@ html.ui-theme-fade * {
 .ui-dropline-text {
   flex: 1 1 auto;
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--text-compact);
 }
 .ui-dropline-limit {
-  font-size: 13px;
+  font-size: var(--text-small);
 }
 .ui-upload-list {
   list-style: none;
@@ -3367,13 +3367,13 @@ html.ui-theme-fade * {
 .ui-upload-size {
   flex: 0 0 auto;
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
 }
 .ui-upload-error {
   display: flex;
   gap: 12px;
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--danger-text);
 }
 
@@ -3404,7 +3404,7 @@ html.ui-theme-fade * {
   padding: 0 4px 0 10px;
   border-radius: var(--radius-chip);
   background: var(--surface-sub);
-  font-size: 14px;
+  font-size: var(--text-compact);
   white-space: nowrap;
 }
 .ui-chip-x {
@@ -3428,7 +3428,7 @@ html.ui-theme-fade * {
   border-radius: var(--radius-chip);
   background: var(--accent-soft);
   color: var(--accent-text);
-  font-size: 13px;
+  font-size: var(--text-small);
   font-weight: 700;
   line-height: 28px;
   white-space: nowrap;
@@ -3442,7 +3442,7 @@ html.ui-theme-fade * {
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 15px;
+  font-size: var(--text-control);
 }
 .ui-ms-opt {
   justify-content: flex-start;
@@ -3470,7 +3470,7 @@ html.ui-theme-fade * {
 }
 .ui-errorpage-code {
   font-family: var(--font-mono);
-  font-size: 96px;
+  font-size: 96px; /* token-exempt: ErrorPage status code, one use */
   line-height: 1;
   font-weight: 700;
   color: var(--accent-text);
@@ -3478,7 +3478,7 @@ html.ui-theme-fade * {
 }
 .ui-errorpage-title {
   margin: 0;
-  font-size: 25px;
+  font-size: var(--text-h3);
   font-weight: 700;
 }
 .ui-errorpage-desc {
@@ -3521,7 +3521,7 @@ html.ui-theme-fade * {
 }
 .ui-login-title {
   margin: 0;
-  font-size: 25px;
+  font-size: var(--text-h3);
   font-weight: 700;
 }
 .ui-login-pwlabel {
@@ -3557,7 +3557,7 @@ html.ui-theme-fade * {
 }
 .ui-settings-title {
   margin: 0;
-  font-size: 25px;
+  font-size: var(--text-h3);
   font-weight: 700;
 }
 .ui-settings-body {
@@ -3624,19 +3624,19 @@ html.ui-theme-fade * {
 }
 .ui-settings-h {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--text-lead);
   font-weight: 700;
 }
 .ui-settings-desc {
   margin: -6px 0 0;
-  font-size: 14px;
+  font-size: var(--text-compact);
   color: var(--ink-muted);
 }
 .ui-settings-toast {
   position: fixed;
   right: 24px;
   bottom: 24px;
-  z-index: 950;
+  z-index: var(--z-palette);
 }
 .ui-danger {
   padding: 18px;
@@ -3649,7 +3649,7 @@ html.ui-theme-fade * {
 }
 .ui-danger-title {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--text-lead);
   font-weight: 700;
   color: var(--danger-text);
 }
@@ -3662,7 +3662,7 @@ html.ui-theme-fade * {
 }
 .ui-danger-row p {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-compact);
   color: var(--ink-muted);
 }
 @media (max-width: 599px) {
@@ -3686,7 +3686,7 @@ html.ui-theme-fade * {
   }
 }
 .ui-login-pwlabel .ui-link {
-  font-size: 14px;
+  font-size: var(--text-compact);
 }
 
 /* ---------- DataTable filters ---------- */
@@ -3703,7 +3703,7 @@ html.ui-theme-fade * {
   background: transparent;
   color: var(--ink-muted);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--text-compact);
   cursor: pointer;
 }
 .ui-dt-view.is-on {
@@ -3723,7 +3723,7 @@ html.ui-theme-fade * {
 .ui-dt-view-n {
   margin-left: 6px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-mini);
   color: var(--ink-muted);
   font-weight: 400;
 }
@@ -3736,7 +3736,7 @@ html.ui-theme-fade * {
 }
 .ui-dt-result {
   margin-left: auto;
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
   white-space: nowrap;
 }
@@ -3750,7 +3750,7 @@ html.ui-theme-fade * {
   background: var(--surface);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-overlay);
-  animation: ui-pop-fade 150ms ease both;
+  animation: ui-pop-fade var(--dur-hover) ease both;
 }
 /* S2C: the 「排序」 button writes the current sort (「排序：程式 ↑、ΔT ↓」, cut with … when long); on phones 「排序」 and
    the number of levels. Its panel looks like the filter panel. */
@@ -3820,7 +3820,7 @@ html.ui-theme-fade * {
   flex: none;
   width: 1ch;
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
 }
 .ui-dt-sortname {
@@ -3845,7 +3845,7 @@ html.ui-theme-fade * {
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--text-small);
   white-space: nowrap;
   cursor: pointer;
 }
@@ -3863,7 +3863,7 @@ html.ui-theme-fade * {
 }
 .ui-dt-sortnone {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
 }
 .ui-dt-sortmore {
@@ -3872,7 +3872,7 @@ html.ui-theme-fade * {
   gap: 4px;
   min-height: 40px;
   margin-top: 4px;
-  font-size: 14px;
+  font-size: var(--text-compact);
 }
 .ui-dt-sortadd {
   margin-top: 8px;
@@ -3882,7 +3882,7 @@ html.ui-theme-fade * {
 .ui-dt-sortaddhead {
   display: block;
   margin-bottom: 4px;
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
 }
 .ui-dt-sortadd .ui-dt-opt {
@@ -3891,7 +3891,7 @@ html.ui-theme-fade * {
 /* The heading's place in a multi-column sort, after its arrow. */
 .ui-dt-sortpri {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--text-mini);
   line-height: 1;
   color: var(--accent-text);
   margin-left: -2px;
@@ -3916,7 +3916,7 @@ html.ui-theme-fade * {
 .ui-dt-facet legend {
   padding: 0;
   margin-bottom: 6px;
-  font-size: 13px;
+  font-size: var(--text-small);
   font-weight: 700;
 }
 .ui-dt-opt {
@@ -3931,7 +3931,7 @@ html.ui-theme-fade * {
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--text-compact);
   text-align: left;
   cursor: pointer;
 }
@@ -3960,7 +3960,7 @@ html.ui-theme-fade * {
 }
 .ui-dt-opt-n {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-mini);
   color: var(--ink-muted);
 }
 .ui-dt-range-inputs {
@@ -3992,7 +3992,7 @@ html.ui-theme-fade * {
 }
 .ui-dt-cell.is-sticky {
   position: sticky;
-  z-index: 1;
+  z-index: var(--z-raised);
   background: inherit;
   box-shadow: 6px 0 8px -6px var(--edge-shadow);
 }
@@ -4024,10 +4024,10 @@ html.ui-theme-fade * {
   border-color: var(--accent);
 }
 .ui-dt-head .ui-dt-cell.is-sticky {
-  z-index: 3;
+  z-index: calc(var(--z-sticky) + 1);
 }
 .ui-dt-filterhead .ui-link-btn {
-  font-size: 13px;
+  font-size: var(--text-small);
 }
 
 /* KPI count-up: the final value reserves the width, the counting value sits on top of it, right-aligned. */
@@ -4056,7 +4056,7 @@ html.ui-theme-fade * {
   box-shadow: var(--shadow-card);
   overflow: hidden;
   color: var(--ink);
-  font-size: 15px;
+  font-size: var(--text-control);
 }
 .ui-tree-head {
   display: flex;
@@ -4071,7 +4071,7 @@ html.ui-theme-fade * {
 }
 .ui-tree-title {
   margin: 0;
-  font-size: 20px;
+  font-size: var(--text-h4);
   font-weight: 700;
   line-height: 1.3;
   white-space: nowrap;
@@ -4095,7 +4095,7 @@ html.ui-theme-fade * {
 .ui-tree-bulk-size {
   margin-left: 8px;
   font-weight: 400;
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
   font-family: var(--font-mono);
 }
@@ -4170,7 +4170,7 @@ html.ui-theme-fade * {
   flex: 0 0 16px;
   display: flex;
   color: var(--ink-muted);
-  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform var(--dur-nav) var(--ease-standard);
 }
 .ui-tree-caret.is-open {
   transform: rotate(90deg);
@@ -4198,20 +4198,21 @@ html.ui-theme-fade * {
 }
 .ui-tree-ext {
   position: absolute;
-  left: 0;
+  /* Centred on the page icon: a 4-letter label at 12 px is a little wider than the 30 px icon. */
+  left: 50%;
+  translate: -50% 0;
   bottom: 5px;
   min-width: 22px;
-  padding: 0 3px;
+  padding: 0 2px;
   box-sizing: border-box;
   border-radius: 3px;
   background: var(--ext);
   color: var(--on-solid);
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: var(--text-mini);
   font-weight: 700;
   line-height: 14px;
   text-align: center;
-  letter-spacing: 0.02em;
 }
 .ui-tree-doc.is-pdf {
   --ext: var(--file-pdf);
@@ -4260,13 +4261,13 @@ html.ui-theme-fade * {
 }
 .ui-tree-count {
   flex: 0 0 auto;
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
   white-space: nowrap;
 }
 .ui-tree-newcount {
   flex: 0 0 auto;
-  font-size: 12px;
+  font-size: var(--text-mini);
   font-weight: 700;
   color: var(--accent-text);
   white-space: nowrap;
@@ -4275,7 +4276,7 @@ html.ui-theme-fade * {
   display: flex;
   flex-wrap: wrap;
   column-gap: 0.4em;
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
   font-family: var(--font-mono);
 }
@@ -4284,7 +4285,7 @@ html.ui-theme-fade * {
 }
 .ui-tree-col {
   flex: 0 0 auto;
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
   font-family: var(--font-mono);
   white-space: nowrap;
@@ -4348,11 +4349,11 @@ html.ui-theme-fade * {
 }
 .ui-tree-in {
   overflow: hidden;
-  animation: ui-tree-grow 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: ui-tree-grow var(--dur-expand) var(--ease-standard) both;
 }
 @media (prefers-reduced-motion: reduce) {
   .ui-tree-in {
-    animation: ui-fade 0.15s ease both;
+    animation: ui-fade var(--dur-hover) ease both;
   }
   .ui-tree-caret {
     transition: none;
@@ -4420,7 +4421,7 @@ html.ui-theme-fade * {
 /* One step smaller: the 13 px of secondary text. Never breaks inside. */
 .ui-code.is-link.is-location {
   color: var(--ink-muted);
-  font-size: 13px;
+  font-size: var(--text-small);
   white-space: nowrap;
 }
 .ui-code.is-link.is-name:is(:hover, :focus-visible),
@@ -4441,7 +4442,7 @@ html.ui-theme-fade * {
 .ui-aimark {
   margin-left: 8px;
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: var(--text-small);
   font-weight: 400;
   color: var(--ink-muted);
   white-space: nowrap;
@@ -4451,7 +4452,7 @@ html.ui-theme-fade * {
   /* With the space before it: about 6 px from the name. */
   margin-left: 2px;
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
 }
 .ui-tab.is-selected .ui-tab-count {
@@ -4469,7 +4470,7 @@ html.ui-theme-fade * {
   padding-top: 0;
   padding-bottom: 0;
   padding-right: 8px;
-  font-size: 13px;
+  font-size: var(--text-small);
   border-radius: var(--radius-sm);
 }
 .ui-tree.is-plain.is-compact .ui-tree-guide {
@@ -4496,7 +4497,7 @@ html.ui-theme-fade * {
   font-weight: 600;
 }
 .ui-tree.is-plain.is-compact .ui-tree-pmeta {
-  font-size: 12px;
+  font-size: var(--text-mini);
 }
 @media (pointer: coarse) {
   .ui-tree.is-plain.is-compact .ui-tree-row {
@@ -4568,7 +4569,7 @@ html.ui-theme-fade * {
   font-weight: 500;
 }
 .ui-tree-pmeta {
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -4582,7 +4583,7 @@ html.ui-theme-fade * {
   background: var(--surface-sub);
   color: var(--ink-muted);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--text-mini);
   font-weight: 600;
   line-height: 18px;
 }
@@ -4607,7 +4608,7 @@ html.ui-theme-fade * {
 /* Tag: category, small gray text only */
 .ui-tag {
   flex: 0 0 auto;
-  font-size: 12px;
+  font-size: var(--text-mini);
   font-weight: 600;
   line-height: 1.4;
   color: var(--ink-muted);
@@ -4662,7 +4663,7 @@ html.ui-theme-fade * {
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--text-compact);
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -4727,7 +4728,7 @@ html.ui-theme-fade * {
 .ui-projsw-caret {
   flex: 0 0 auto;
   color: var(--ink-muted);
-  transition: transform 0.2s ease;
+  transition: transform var(--dur-nav) ease;
 }
 .ui-projsw[data-popup-open] .ui-projsw-caret {
   transform: rotate(180deg);
@@ -4740,11 +4741,11 @@ html.ui-theme-fade * {
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow-overlay);
-  animation: ui-pop-scale 200ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  animation: ui-pop-scale var(--dur-nav) var(--ease-spring) both;
 }
 .ui-projsw-title {
   padding: 4px 8px 8px;
-  font-size: 13px;
+  font-size: var(--text-small);
   font-weight: 700;
   color: var(--ink-muted);
 }
@@ -4760,7 +4761,7 @@ html.ui-theme-fade * {
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--text-compact);
   text-align: left;
   cursor: pointer;
 }
@@ -4778,7 +4779,7 @@ html.ui-theme-fade * {
 .ui-projsw-optdetail {
   flex: 1 1 auto;
   color: var(--ink-muted);
-  font-size: 13px;
+  font-size: var(--text-small);
 }
 .ui-projsw-check {
   color: var(--accent-text);
@@ -4787,7 +4788,7 @@ html.ui-theme-fade * {
   margin-top: 6px;
   padding: 8px 10px 4px;
   border-top: 1px solid var(--line);
-  font-size: 14px;
+  font-size: var(--text-compact);
 }
 @media (prefers-reduced-motion: reduce) {
   .ui-projsw-pop {
@@ -4808,7 +4809,7 @@ html.ui-theme-fade * {
 }
 .ui-dl-item dt {
   color: var(--ink-muted);
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 24px;
   white-space: nowrap;
 }
@@ -4902,16 +4903,16 @@ html.ui-theme-fade * {
 /* CommandPalette */
 .ui-pal-backdrop {
   position: fixed;
-  z-index: 950;
+  z-index: var(--z-palette);
   inset: 0;
   background: var(--scrim);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  animation: ui-fade 150ms ease both;
+  animation: ui-fade var(--dur-hover) ease both;
 }
 .ui-pal {
   position: fixed;
-  z-index: 951;
+  z-index: calc(var(--z-palette) + 1);
   left: 50%;
   top: 12vh;
   width: 640px;
@@ -4927,7 +4928,7 @@ html.ui-theme-fade * {
   border: 1px solid var(--line);
   box-shadow: var(--shadow-overlay);
   overflow: hidden;
-  animation: ui-pal-in 200ms cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+  animation: ui-pal-in var(--dur-nav) cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
 }
 @keyframes ui-pal-in {
   from {
@@ -4960,7 +4961,7 @@ html.ui-theme-fade * {
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 16px;
+  font-size: var(--text-body);
 }
 .ui-pal-input::placeholder {
   color: var(--ink-muted);
@@ -4974,7 +4975,7 @@ html.ui-theme-fade * {
   background: transparent;
   color: var(--accent-text);
   font: inherit;
-  font-size: 15px;
+  font-size: var(--text-control);
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -4988,7 +4989,7 @@ html.ui-theme-fade * {
 }
 .ui-pal-group {
   padding: var(--space-3) var(--space-4) var(--space-1);
-  font-size: 13px;
+  font-size: var(--text-small);
   font-weight: 700;
   color: var(--ink-muted);
 }
@@ -5041,12 +5042,12 @@ html.ui-theme-fade * {
   white-space: nowrap;
 }
 .ui-pal-label {
-  font-size: 15px;
+  font-size: var(--text-control);
   color: var(--ink);
 }
 .ui-pal-label.is-code {
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: var(--text-compact);
 }
 .ui-pal-hit {
   background: transparent;
@@ -5054,7 +5055,7 @@ html.ui-theme-fade * {
   font-weight: 700;
 }
 .ui-pal-detail {
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 20px;
   color: var(--ink-muted);
 }
@@ -5075,7 +5076,7 @@ html.ui-theme-fade * {
 .ui-pal-empty {
   margin: 0;
   padding: var(--space-6) var(--space-4);
-  font-size: 14px;
+  font-size: var(--text-compact);
   color: var(--ink-muted);
   text-align: center;
 }
@@ -5085,7 +5086,7 @@ html.ui-theme-fade * {
   margin: 0;
   padding: var(--space-2) var(--space-4);
   border-top: 1px solid var(--line);
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
 }
 /* CodeView: the keys that move inside the code, shown while it has focus. */
@@ -5098,7 +5099,7 @@ html.ui-theme-fade * {
   margin: 0;
   display: grid;
   gap: 4px;
-  font-size: 13px;
+  font-size: var(--text-small);
 }
 .ui-cv-keylist > div {
   display: flex;
@@ -5119,7 +5120,7 @@ html.ui-theme-fade * {
   border-radius: var(--radius-sm);
   background: var(--surface);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-mini);
 }
 /* header="float": the language and buttons float at the top right while the pointer is over the code or focus is in
    it; always on touch screens. */
@@ -5130,7 +5131,7 @@ html.ui-theme-fade * {
   position: absolute;
   top: 6px;
   right: 6px;
-  z-index: 2;
+  z-index: var(--z-sticky);
   display: flex;
   align-items: center;
   gap: 2px;
@@ -5138,9 +5139,9 @@ html.ui-theme-fade * {
   border-radius: var(--radius-sm);
   background: var(--surface);
   box-shadow: var(--shadow-sm);
-  font-size: 12px;
+  font-size: var(--text-mini);
   opacity: 0;
-  transition: opacity 150ms ease;
+  transition: opacity var(--dur-hover) ease;
 }
 .ui-cv:is(:hover, :focus-within) .ui-cv-tools,
 .ui-cv-tools:has([aria-expanded='true']) {
@@ -5164,7 +5165,7 @@ html.ui-theme-fade * {
   gap: var(--space-4);
   padding: var(--space-2) var(--space-4);
   border-top: 1px solid var(--line);
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
   white-space: nowrap;
 }
@@ -5184,7 +5185,7 @@ html.ui-theme-fade * {
   border: 1px solid var(--line-strong);
   border-radius: 4px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-mini);
 }
 @media (hover: none), (pointer: coarse) {
   .ui-pal-keys {
@@ -5205,7 +5206,7 @@ html.ui-theme-fade * {
 .ui-tour-layer {
   position: fixed;
   inset: 0;
-  z-index: 960;
+  z-index: var(--z-tour);
 }
 .ui-tour-block {
   position: absolute;
@@ -5222,10 +5223,10 @@ html.ui-theme-fade * {
     0 0 0 9999px var(--scrim-strong);
   pointer-events: none;
   transition:
-    left 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    top 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    width 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    height 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    left var(--dur-toggle) var(--ease-standard),
+    top var(--dur-toggle) var(--ease-standard),
+    width var(--dur-toggle) var(--ease-standard),
+    height var(--dur-toggle) var(--ease-standard);
 }
 .ui-tour-card {
   width: 320px;
@@ -5239,16 +5240,16 @@ html.ui-theme-fade * {
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow-overlay);
-  font-size: 15px;
+  font-size: var(--text-control);
   line-height: 1.55;
-  animation: ui-pop-fade 200ms ease both;
+  animation: ui-pop-fade var(--dur-nav) ease both;
 }
 .ui-tour-body {
   min-height: 0;
   overflow-y: auto;
 }
 .ui-tour-count {
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
 }
 .ui-tour-title {
@@ -5281,7 +5282,7 @@ html.ui-theme-fade * {
   padding: var(--space-3);
   border-radius: var(--radius-md);
   background: var(--surface-sub);
-  font-size: 15px;
+  font-size: var(--text-control);
   line-height: 1.5;
 }
 .ui-sug-head {
@@ -5293,7 +5294,7 @@ html.ui-theme-fade * {
 }
 .ui-sug-title {
   flex: 1 1 auto;
-  font-size: 14px;
+  font-size: var(--text-compact);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -5372,7 +5373,7 @@ html.ui-theme-fade * {
   margin-left: 2px;
   vertical-align: -2px;
   color: var(--ink-muted);
-  transition: color 0.15s ease;
+  transition: color var(--dur-hover) ease;
 }
 .ui-term:hover .ui-term-q,
 .ui-term.is-open .ui-term-q {
@@ -5388,7 +5389,7 @@ html.ui-theme-fade * {
   text-decoration: underline dashed var(--line-strong);
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
-  transition: text-decoration-color 0.15s ease;
+  transition: text-decoration-color var(--dur-hover) ease;
 }
 .ui-term.is-word:hover,
 .ui-term.is-word.is-open,
@@ -5406,12 +5407,12 @@ html.ui-theme-fade * {
   border: 1px solid var(--line);
   box-shadow: var(--shadow-overlay);
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--text-compact);
   font-weight: 400;
   line-height: 1.55;
   text-align: left;
   white-space: normal;
-  animation: ui-pop-scale 200ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  animation: ui-pop-scale var(--dur-nav) var(--ease-spring) both;
   transform-origin: 16px 0;
 }
 .ui-term-pop[data-side='top'] {
@@ -5440,7 +5441,7 @@ html.ui-theme-fade * {
   border-radius: var(--radius-sm);
   background: var(--surface-sub);
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 1.5;
   white-space: pre;
   overflow-x: auto;
@@ -5454,14 +5455,14 @@ html.ui-theme-fade * {
 }
 .ui-term-backdrop {
   position: fixed;
-  z-index: 900;
+  z-index: var(--z-modal);
   inset: 0;
   background: var(--scrim);
-  animation: ui-fade 200ms ease both;
+  animation: ui-fade var(--dur-nav) ease both;
 }
 .ui-term-sheet {
   position: fixed;
-  z-index: 901;
+  z-index: calc(var(--z-modal) + 1);
   left: 0;
   right: 0;
   bottom: 0;
@@ -5473,15 +5474,15 @@ html.ui-theme-fade * {
   background: var(--surface);
   box-shadow: var(--shadow-overlay);
   color: var(--ink);
-  font-size: 15px;
+  font-size: var(--text-control);
   font-weight: 400;
   line-height: 1.6;
   text-align: left;
   white-space: normal;
-  animation: ui-sheet-up 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: ui-sheet-up var(--dur-expand) var(--ease-standard) both;
 }
 .ui-term-sheet .ui-term-title {
-  font-size: 17px;
+  font-size: var(--text-title);
 }
 .ui-term-sheet .ui-term-close {
   width: var(--touch-target);
@@ -5559,7 +5560,7 @@ html.ui-theme-fade * {
 }
 .ui-tree-row.is-error .ui-tree-main {
   color: var(--danger-text);
-  font-size: 14px;
+  font-size: var(--text-compact);
 }
 .ui-tree-row.is-error .ui-link-btn {
   flex: 0 0 auto;
@@ -5579,7 +5580,7 @@ html.ui-theme-fade * {
   min-height: 40px;
   padding: 0 var(--space-3);
   border-bottom: 1px solid var(--line);
-  font-size: 13px;
+  font-size: var(--text-small);
 }
 .ui-cv-file {
   min-width: 0;
@@ -5646,7 +5647,7 @@ html.ui-theme-fade * {
   overflow-y: auto;
   overflow-x: hidden;
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 20px;
   color: var(--ink);
   tab-size: 4;
@@ -5668,7 +5669,7 @@ html.ui-theme-fade * {
   /* peek: a line marked for a moment from outside (an item pointing at it); quieter than the target. */
   background: var(--surface);
   box-shadow: inset 3px 0 0 var(--line-strong);
-  transition: background 0.15s ease;
+  transition: background var(--dur-hover) ease;
 }
 .ui-cv-line.is-target {
   background: var(--accent-soft);
@@ -5767,7 +5768,7 @@ html.ui-theme-fade * {
 .ui-cv-preview {
   max-width: 320px;
   padding: var(--space-3);
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 20px;
 }
 .ui-cv-sr {
@@ -5802,7 +5803,7 @@ html.ui-theme-fade * {
   align-items: center;
   min-height: 40px;
   margin: 0 var(--space-3) var(--space-1);
-  font-size: 14px;
+  font-size: var(--text-compact);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -5849,13 +5850,13 @@ html.ui-theme-fade * {
 }
 .ui-graph-name {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: var(--text-small);
   fill: var(--ink);
   color: var(--ink);
 }
 .ui-graph-label {
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: var(--text-mini);
   font-weight: 600;
   fill: var(--ink);
   color: var(--ink);
@@ -5876,7 +5877,7 @@ html.ui-theme-fade * {
 }
 .ui-graph .is-dim {
   opacity: 0.4;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--dur-hover) ease;
 }
 .ui-graph-legend {
   display: flex;
@@ -5885,7 +5886,7 @@ html.ui-theme-fade * {
   margin-top: var(--space-2);
   padding-top: var(--space-3);
   border-top: 1px solid var(--line);
-  font-size: 13px;
+  font-size: var(--text-small);
 }
 .ui-graph-legend-item {
   display: inline-flex;
@@ -5946,17 +5947,17 @@ html.ui-theme-fade * {
 }
 .ui-tree-subtitle {
   margin-top: 2px;
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
   white-space: nowrap;
 }
 .ui-tree-pmeta.is-path {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-mini);
 }
 .ui-tree-pmeta .ui-num {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-mini);
 }
 
 /* LayerGraph */
@@ -5990,7 +5991,7 @@ html.ui-theme-fade * {
   align-items: center;
   gap: var(--space-2);
   min-height: 48px;
-  font-size: 14px;
+  font-size: var(--text-compact);
   color: var(--ink);
   white-space: nowrap;
   cursor: pointer;
@@ -6019,7 +6020,7 @@ html.ui-theme-fade * {
 }
 .ui-lg-listtitle {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-small);
   font-weight: 700;
   color: var(--ink-muted);
 }
@@ -6028,8 +6029,8 @@ html.ui-theme-fade * {
   flex-wrap: wrap;
   align-items: center;
   min-height: 32px;
-  font-size: 14px;
-  transition: opacity 0.15s ease;
+  font-size: var(--text-compact);
+  transition: opacity var(--dur-hover) ease;
 }
 .ui-lg-libtn {
   min-height: 32px;
@@ -6112,8 +6113,8 @@ html.ui-theme-fade * {
   background: var(--line);
   pointer-events: none;
   transition:
-    height 0.15s ease,
-    background 0.15s ease;
+    height var(--dur-hover) ease,
+    background var(--dur-hover) ease;
 }
 .ui-lg-resize:hover::after,
 .ui-lg-resize.is-dragging::after,
@@ -6125,7 +6126,7 @@ html.ui-theme-fade * {
   position: absolute;
   top: 50%;
   left: 50%;
-  z-index: 1;
+  z-index: var(--z-raised);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6138,7 +6139,7 @@ html.ui-theme-fade * {
   border-radius: 5px;
   background: var(--surface);
   pointer-events: none;
-  transition: border-color 0.15s ease;
+  transition: border-color var(--dur-hover) ease;
 }
 .ui-lg-resize-grip i {
   display: block;
@@ -6146,7 +6147,7 @@ html.ui-theme-fade * {
   height: 3px;
   border-radius: 50%;
   background: var(--line-strong);
-  transition: background 0.15s ease;
+  transition: background var(--dur-hover) ease;
 }
 .ui-lg-resize:hover .ui-lg-resize-grip,
 .ui-lg-resize.is-dragging .ui-lg-resize-grip,
@@ -6172,7 +6173,7 @@ html.ui-theme-fade * {
   pointer-events: none;
   background: linear-gradient(to right, transparent, var(--ui-graph-bg, var(--surface)));
   opacity: 0;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--dur-hover) ease;
 }
 .ui-lg-scroller.has-more::after {
   opacity: 1;
@@ -6183,10 +6184,10 @@ html.ui-theme-fade * {
   justify-content: flex-end;
   gap: 4px;
   margin-top: var(--space-1);
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 20px;
   color: var(--ink-muted);
-  transition: opacity 0.15s ease;
+  transition: opacity var(--dur-hover) ease;
 }
 .ui-scroll-hint.is-done {
   visibility: hidden;
@@ -6207,7 +6208,7 @@ html.ui-theme-fade * {
   stroke: var(--graph-edge);
   stroke-linecap: round;
   stroke-linejoin: round;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--dur-hover) ease;
 }
 .ui-lg-edge.is-inferred {
   stroke-dasharray: 6 4;
@@ -6222,7 +6223,7 @@ html.ui-theme-fade * {
 }
 .ui-lg-arrow {
   fill: var(--graph-edge);
-  transition: opacity 0.15s ease;
+  transition: opacity var(--dur-hover) ease;
 }
 .ui-lg-arrow.is-related {
   fill: var(--accent);
@@ -6236,7 +6237,7 @@ html.ui-theme-fade * {
   position: absolute;
   left: 0;
   top: 0;
-  z-index: 1;
+  z-index: var(--z-raised);
   overflow: visible;
   pointer-events: none;
 }
@@ -6257,7 +6258,7 @@ html.ui-theme-fade * {
 }
 .ui-lg-node,
 .ui-lg-label {
-  z-index: 2;
+  z-index: var(--z-sticky);
 }
 .ui-lg-label.is-clickable {
   pointer-events: auto;
@@ -6315,8 +6316,8 @@ html.ui-theme-fade * {
   text-align: left;
   cursor: pointer;
   transition:
-    opacity 0.15s ease,
-    background 0.15s ease;
+    opacity var(--dur-hover) ease,
+    background var(--dur-hover) ease;
 }
 .ui-lg-node:hover {
   background: var(--line);
@@ -6352,7 +6353,7 @@ html.ui-theme-fade * {
   box-shadow: none;
 }
 .ui-lg-ext {
-  font-size: 12px;
+  font-size: var(--text-mini);
   line-height: 16px;
   color: var(--ink-muted);
 }
@@ -6362,7 +6363,7 @@ html.ui-theme-fade * {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: var(--text-small);
   font-weight: 600;
 }
 .ui-lg-size {
@@ -6388,14 +6389,14 @@ html.ui-theme-fade * {
 }
 .ui-lg-count {
   flex: 0 0 auto;
-  font-size: 12px;
+  font-size: var(--text-mini);
   color: var(--ink-muted);
   white-space: nowrap;
 }
 .ui-lg-label {
   position: absolute;
   transform: translateY(-50%);
-  font-size: 12px;
+  font-size: var(--text-mini);
   font-weight: 600;
   line-height: 16px;
   color: var(--ink);
@@ -6403,7 +6404,7 @@ html.ui-theme-fade * {
   pointer-events: none;
   paint-order: stroke fill;
   -webkit-text-stroke: 5px var(--ui-graph-bg, var(--surface));
-  transition: opacity 0.15s ease;
+  transition: opacity var(--dur-hover) ease;
 }
 .ui-lg-label.is-over {
   background: var(--ui-graph-bg, var(--surface));
@@ -6412,7 +6413,7 @@ html.ui-theme-fade * {
 /* NA+B: the text of a numbered line shows only while the line is hovered or selected. */
 .ui-lg-label.is-numbered {
   visibility: hidden;
-  z-index: 3;
+  z-index: calc(var(--z-sticky) + 1);
 }
 .ui-lg-label.is-numbered.is-shown {
   visibility: visible;
@@ -6420,7 +6421,7 @@ html.ui-theme-fade * {
 /* A line's number: a 20 px dot on the line, the same number as in the list under the diagram. */
 .ui-lg-num {
   position: absolute;
-  z-index: 2;
+  z-index: var(--z-sticky);
   width: 20px;
   height: 20px;
   margin: -10px 0 0 -10px;
@@ -6428,7 +6429,7 @@ html.ui-theme-fade * {
   background: var(--ink);
   color: var(--surface);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-mini);
   font-weight: 700;
   line-height: 20px;
   text-align: center;
@@ -6454,7 +6455,7 @@ html.ui-theme-fade * {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  font-size: 13px;
+  font-size: var(--text-small);
 }
 .ui-lg-numlist li {
   display: flex;
@@ -6472,7 +6473,7 @@ html.ui-theme-fade * {
 }
 .ui-lg-shared {
   margin-top: var(--space-3);
-  font-size: 13px;
+  font-size: var(--text-small);
 }
 .ui-lg-shared-title {
   font-weight: 700;
@@ -6493,7 +6494,7 @@ html.ui-theme-fade * {
   padding: 6px 12px 6px 16px;
 }
 .ui-lg-shared-meta {
-  font-size: 12px;
+  font-size: var(--text-mini);
   color: var(--ink-muted);
 }
 .ui-lg-head {
@@ -6513,7 +6514,7 @@ html.ui-theme-fade * {
   background: var(--surface);
   color: var(--ink-muted);
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: var(--text-mini);
   font-weight: 600;
   line-height: 16px;
   white-space: nowrap;
@@ -6542,7 +6543,7 @@ html.ui-theme-fade * {
   border-radius: var(--radius-sm);
   background: var(--accent);
   color: var(--on-accent);
-  font-size: 12px;
+  font-size: var(--text-mini);
   line-height: 18px;
   white-space: nowrap;
 }
@@ -6601,7 +6602,7 @@ html.ui-theme-fade * {
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
-  font-size: 17px;
+  font-size: var(--text-title);
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
@@ -6638,7 +6639,7 @@ html.ui-theme-fade * {
    Popups stay above every panel layer (drawer 800, dialog 900, palette 950, tour 960) and below tooltips (1000). */
 .ui-float,
 .ui-select-positioner {
-  z-index: 980;
+  z-index: var(--z-popover);
   outline: none;
 }
 .ui-menu {
@@ -6654,19 +6655,19 @@ html.ui-theme-fade * {
   box-sizing: border-box;
 }
 .ui-tooltip-positioner {
-  z-index: 1000;
+  z-index: var(--z-tooltip);
   pointer-events: none;
 }
 .ui-tour-float {
-  z-index: 961;
+  z-index: calc(var(--z-tour) + 1);
 }
 .ui-backdrop {
-  z-index: 900;
+  z-index: var(--z-modal);
 }
 .ui-dialog-viewport {
   position: fixed;
   inset: 0;
-  z-index: 901;
+  z-index: calc(var(--z-modal) + 1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6691,14 +6692,14 @@ html.ui-theme-fade * {
   margin-bottom: 0;
 }
 .ui-dialog-title:where(h2) {
-  font-size: 20px;
+  font-size: var(--text-h4);
   line-height: 28px;
 }
 .ui-drawer-title:where(h2) {
-  font-size: 20px;
+  font-size: var(--text-h4);
 }
 .ui-term-sheet .ui-term-title:where(h2) {
-  font-size: 17px;
+  font-size: var(--text-title);
 }
 .ui-select-empty:empty {
   display: none;
@@ -6719,7 +6720,7 @@ html.ui-theme-fade * {
    name tooltips are not needed there: resting on the strip opens the names. */
 .ui-shell-rail {
   position: relative;
-  z-index: 20;
+  z-index: var(--z-rail);
   flex: 0 0 var(--sidebar-collapsed);
   height: 100%;
 }
@@ -6729,8 +6730,8 @@ html.ui-theme-fade * {
   bottom: 0;
   left: 0;
   transition:
-    width 0.3s cubic-bezier(0.3, 0.7, 0.3, 1),
-    box-shadow 0.3s ease;
+    width var(--dur-toggle) var(--ease-glide),
+    box-shadow var(--dur-toggle) ease;
 }
 .ui-shell-rail.is-open > .ui-sidenav {
   box-shadow: var(--shadow-overlay);
@@ -6752,7 +6753,7 @@ html.ui-theme-fade * {
 }
 .ui-shell-top {
   position: absolute;
-  z-index: 10;
+  z-index: var(--z-header);
   top: 0;
   left: 0;
   right: 0;
@@ -6773,7 +6774,7 @@ html.ui-theme-fade * {
   min-height: var(--touch-target);
   left: var(--space-3);
   top: var(--space-3);
-  z-index: 1000;
+  z-index: var(--z-tooltip);
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-md);
   background: var(--surface);
@@ -6919,8 +6920,8 @@ html.ui-theme-fade * {
   border-radius: 2px;
   pointer-events: none;
   transition:
-    width 0.15s ease,
-    background 0.15s ease;
+    width var(--dur-hover) ease,
+    background var(--dur-hover) ease;
 }
 .ui-split-handle:hover::after,
 .ui-split.is-dragging .ui-split-handle::after,
@@ -6933,7 +6934,7 @@ html.ui-theme-fade * {
   position: absolute;
   top: 50%;
   left: 50%;
-  z-index: 1;
+  z-index: var(--z-raised);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -6947,7 +6948,7 @@ html.ui-theme-fade * {
   border-radius: 5px;
   background: var(--surface);
   pointer-events: none;
-  transition: border-color 0.15s ease;
+  transition: border-color var(--dur-hover) ease;
 }
 .ui-split-grip i {
   display: block;
@@ -6955,7 +6956,7 @@ html.ui-theme-fade * {
   height: 3px;
   border-radius: 50%;
   background: var(--line-strong);
-  transition: background 0.15s ease;
+  transition: background var(--dur-hover) ease;
 }
 .ui-split-handle:hover .ui-split-grip,
 .ui-split.is-dragging .ui-split-grip,
@@ -7052,7 +7053,7 @@ html.ui-theme-fade * {
 .ui-sec-caret {
   flex: none;
   color: var(--ink-muted);
-  transition: transform 260ms ease;
+  transition: transform var(--dur-expand) ease;
 }
 .ui-sec.is-open .ui-sec-caret {
   transform: rotate(90deg);
@@ -7060,7 +7061,7 @@ html.ui-theme-fade * {
 .ui-sec-title {
   flex: none;
   max-width: 100%;
-  font-size: 20px;
+  font-size: var(--text-h4);
   line-height: 28px;
   font-weight: 700;
   white-space: nowrap;
@@ -7072,7 +7073,7 @@ html.ui-theme-fade * {
   min-width: 0;
   padding-left: var(--space-1);
   color: var(--ink-muted);
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 20px;
   font-weight: 400;
   white-space: nowrap;
@@ -7082,7 +7083,7 @@ html.ui-theme-fade * {
 .ui-sec-body {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 260ms ease;
+  transition: grid-template-rows var(--dur-expand) ease;
 }
 .ui-sec.is-open > .ui-sec-body {
   grid-template-rows: 1fr;
@@ -7110,7 +7111,7 @@ html.ui-theme-fade * {
 
 /* Markdown: project documents and code comments in the system's type; # is an h4 (20 px). */
 .ui-md {
-  font-size: 16px;
+  font-size: var(--text-body);
   line-height: 1.65;
   color: var(--ink);
   /* break-word, not anywhere: a long word still wraps, but a table does not think every column can shrink to one
@@ -7118,7 +7119,7 @@ html.ui-theme-fade * {
   overflow-wrap: break-word;
 }
 .ui-md.is-small {
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 20px;
 }
 .ui-md > :first-child {
@@ -7138,7 +7139,7 @@ html.ui-theme-fade * {
 }
 .ui-md h4.ui-md-h {
   margin: var(--space-5) 0 var(--space-2);
-  font-size: 20px;
+  font-size: var(--text-h4);
   line-height: 28px;
   font-weight: 700;
 }
@@ -7151,11 +7152,11 @@ html.ui-theme-fade * {
   font-weight: 700;
 }
 .ui-md h3.ui-md-h {
-  font-size: 25px;
+  font-size: var(--text-h3);
   line-height: 32px;
 }
 .ui-md.is-small h4.ui-md-h {
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 20px;
 }
 .ui-md ul,
@@ -7196,7 +7197,7 @@ html.ui-theme-fade * {
 .ui-md-table {
   border-collapse: collapse;
   min-width: 100%;
-  font-size: 14px;
+  font-size: var(--text-compact);
   line-height: 20px;
 }
 .ui-md-table th {
@@ -7250,7 +7251,7 @@ html.ui-theme-fade * {
 .ui-md-caret {
   flex: none;
   color: var(--ink-muted);
-  transition: transform 260ms ease;
+  transition: transform var(--dur-expand) ease;
 }
 .ui-md-details.is-open .ui-md-caret {
   transform: rotate(90deg);
@@ -7302,7 +7303,7 @@ html.ui-theme-fade * {
   top: 0;
   bottom: 0;
   right: -6px;
-  z-index: 1;
+  z-index: var(--z-raised);
   width: 11px;
   cursor: col-resize;
   touch-action: none;
@@ -7322,7 +7323,7 @@ html.ui-theme-fade * {
   transform: translateX(-50%);
   border-radius: 2px;
   background: var(--accent);
-  transition: width 0.15s ease;
+  transition: width var(--dur-hover) ease;
 }
 .ui-md-table th:last-child .ui-col-resize::after {
   left: auto;
@@ -7407,13 +7408,13 @@ html.ui-theme-fade * {
     display: block;
     color: var(--ink-muted);
     font-family: var(--font-sans);
-    font-size: 13px;
+    font-size: var(--text-small);
     line-height: 20px;
   }
 }
 /* Headings of Markdown inside a Section stay under the section's 20 px title. */
 .ui-sec-content .ui-md h4.ui-md-h {
-  font-size: 16px;
+  font-size: var(--text-body);
   line-height: 24px;
 }
 
@@ -7445,7 +7446,7 @@ html.ui-theme-fade * {
     grid-template-columns: minmax(0, 1fr);
   }
   .ui-dl.is-body .ui-dl-item dt {
-    font-size: 13px;
+    font-size: var(--text-small);
     line-height: 20px;
   }
 }
@@ -7470,7 +7471,7 @@ html.ui-theme-fade * {
   background: var(--surface-chrome);
   border-bottom: 1px solid var(--line);
   position: relative;
-  z-index: 6;
+  z-index: calc(var(--z-float) + 1);
   --hint-ring: var(--surface-chrome);
 }
 .ui-wb-top-l {
@@ -7506,7 +7507,7 @@ html.ui-theme-fade * {
   border-radius: var(--radius-sm);
   color: inherit;
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--text-control);
   text-decoration: none;
   white-space: nowrap;
 }
@@ -7527,12 +7528,12 @@ a.ui-wb-brand:focus-visible {
 .ui-wb-crumbs {
   min-width: 0;
   overflow: hidden;
-  font-size: 13px;
+  font-size: var(--text-small);
 }
 .ui-wb-crumbs ol {
   flex-wrap: nowrap;
   white-space: nowrap;
-  font-size: 13px;
+  font-size: var(--text-small);
   min-width: 0;
 }
 /* Too long for the bar: the levels give way, then the current one ends in an ellipsis. */
@@ -7561,16 +7562,16 @@ a.ui-wb-brand:focus-visible {
   overflow: auto;
   background: var(--bg);
   transition:
-    left 300ms cubic-bezier(0.3, 0.7, 0.3, 1),
-    right 300ms cubic-bezier(0.3, 0.7, 0.3, 1),
-    bottom 300ms cubic-bezier(0.3, 0.7, 0.3, 1);
+    left var(--dur-toggle) var(--ease-glide),
+    right var(--dur-toggle) var(--ease-glide),
+    bottom var(--dur-toggle) var(--ease-glide);
 }
 /* The bar above the main view: breadcrumb and the page's small buttons, 36 px, in line with the tab rows beside it. */
 .ui-wb-mainbar {
   position: absolute;
   top: 0;
   height: 36px;
-  z-index: 1;
+  z-index: var(--z-raised);
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -7579,8 +7580,8 @@ a.ui-wb-brand:focus-visible {
   background: var(--surface);
   border-bottom: 1px solid var(--line);
   transition:
-    left 300ms cubic-bezier(0.3, 0.7, 0.3, 1),
-    right 300ms cubic-bezier(0.3, 0.7, 0.3, 1);
+    left var(--dur-toggle) var(--ease-glide),
+    right var(--dur-toggle) var(--ease-glide);
 }
 .ui-wb.is-sizing .ui-wb-mainbar {
   transition: none;
@@ -7619,7 +7620,7 @@ a.ui-wb-brand:focus-visible {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  font-size: 13px;
+  font-size: var(--text-small);
   box-shadow: none;
 }
 .ui-wb-exfilter .ui-searchfield .ui-input:hover,
@@ -7675,9 +7676,9 @@ a.ui-wb-brand:focus-visible {
 .ui-wb-side.is-docked,
 .ui-wb-panel {
   transition:
-    transform 300ms cubic-bezier(0.3, 0.7, 0.3, 1),
-    left 300ms cubic-bezier(0.3, 0.7, 0.3, 1),
-    right 300ms cubic-bezier(0.3, 0.7, 0.3, 1),
+    transform var(--dur-toggle) var(--ease-glide),
+    left var(--dur-toggle) var(--ease-glide),
+    right var(--dur-toggle) var(--ease-glide),
     visibility 0s;
 }
 .ui-wb-ex.is-docked.is-shut,
@@ -7685,10 +7686,10 @@ a.ui-wb-brand:focus-visible {
 .ui-wb-panel.is-shut {
   visibility: hidden;
   transition:
-    transform 300ms cubic-bezier(0.3, 0.7, 0.3, 1),
-    left 300ms cubic-bezier(0.3, 0.7, 0.3, 1),
-    right 300ms cubic-bezier(0.3, 0.7, 0.3, 1),
-    visibility 0s linear 300ms;
+    transform var(--dur-toggle) var(--ease-glide),
+    left var(--dur-toggle) var(--ease-glide),
+    right var(--dur-toggle) var(--ease-glide),
+    visibility 0s linear var(--dur-toggle);
 }
 .ui-wb-ex.is-shut {
   transform: translateX(-100%);
@@ -7702,19 +7703,19 @@ a.ui-wb-brand:focus-visible {
 /* motion.md 側邊抽屜: elastic in 450 ms, out 300 ms; scrim 300 ms. */
 .ui-wb-ex.is-drawer,
 .ui-wb-side.is-drawer {
-  z-index: 8;
+  z-index: calc(var(--z-float) + 3);
   box-shadow: var(--shadow-overlay);
   border: 0;
   transition:
-    transform 450ms cubic-bezier(0.34, 1.4, 0.64, 1),
+    transform var(--dur-drawer) var(--ease-spring),
     visibility 0s;
 }
 .ui-wb-ex.is-drawer.is-shut,
 .ui-wb-side.is-drawer.is-shut {
   visibility: hidden;
   transition:
-    transform 300ms cubic-bezier(0.4, 0, 1, 1),
-    visibility 0s linear 300ms;
+    transform var(--dur-toggle) var(--ease-exit),
+    visibility 0s linear var(--dur-toggle);
 }
 .ui-wb-ex.is-drawer::before,
 .ui-wb-side.is-drawer::after {
@@ -7734,7 +7735,7 @@ a.ui-wb-brand:focus-visible {
 .ui-wb-scrim {
   position: absolute;
   inset: 0;
-  z-index: 7;
+  z-index: calc(var(--z-float) + 2);
   border: 0;
   padding: 0;
   background: var(--scrim);
@@ -7742,7 +7743,7 @@ a.ui-wb-brand:focus-visible {
   -webkit-backdrop-filter: blur(4px);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 300ms ease;
+  transition: opacity var(--dur-toggle) ease;
 }
 .ui-wb-scrim.is-open {
   opacity: 1;
@@ -7776,7 +7777,7 @@ a.ui-wb-brand:focus-visible {
 /* Splitters: 8 px to grab, a 1 px line; a 2 px accent line on hover (after 150 ms), while dragging and on focus. */
 .ui-wb-split {
   position: absolute;
-  z-index: 5;
+  z-index: var(--z-float);
   outline: none;
   touch-action: none;
 }
@@ -7799,7 +7800,7 @@ a.ui-wb-brand:focus-visible {
 .ui-wb-split-line {
   position: absolute;
   background: transparent;
-  transition: background-color 0.15s ease 0.15s;
+  transition: background-color var(--dur-hover) ease var(--dur-hover);
 }
 .ui-wb-split.is-v .ui-wb-split-line {
   top: 0;
@@ -7883,7 +7884,7 @@ a.ui-wb-brand:focus-visible {
   background: none;
   color: var(--ink-muted);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--text-small);
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
@@ -7904,15 +7905,15 @@ a.ui-wb-brand:focus-visible {
   opacity: 0.4;
 }
 .ui-wb-tab.is-held {
-  z-index: 2;
+  z-index: var(--z-sticky);
   border-radius: var(--radius-sm);
   background: var(--accent-soft);
   color: var(--accent-text);
   box-shadow: var(--shadow-overlay);
   transform: scale(1.06);
   transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
+    transform var(--dur-hover) ease,
+    box-shadow var(--dur-hover) ease;
 }
 /* Where a dragged tab lands: a 2 px accent line before (or after the last) tab. */
 .ui-wb-tab.has-line::before,
@@ -7959,7 +7960,7 @@ a.ui-wb-brand:focus-visible {
   background: none;
   color: var(--ink-muted);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--text-small);
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -7986,7 +7987,7 @@ a.ui-wb-brand:focus-visible {
 }
 /* motion.md 內容切換: the new view's blocks rise one after another, 40 ms apart. */
 .ui-wb-pane > * {
-  animation: ui-wb-rise 300ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: ui-wb-rise var(--dur-toggle) var(--ease-standard) both;
 }
 .ui-wb-pane > :nth-child(2) {
   animation-delay: 40ms;
@@ -8014,7 +8015,7 @@ a.ui-wb-brand:focus-visible {
 .ui-wb-dropframe {
   position: absolute;
   inset: 4px;
-  z-index: 4;
+  z-index: calc(var(--z-float) - 1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8024,7 +8025,7 @@ a.ui-wb-brand:focus-visible {
 }
 .ui-wb-dropframe span,
 .ui-wb-dropzone {
-  font-size: 13px;
+  font-size: var(--text-small);
   font-weight: 700;
 }
 .ui-wb-dropframe span {
@@ -8036,7 +8037,7 @@ a.ui-wb-brand:focus-visible {
 }
 .ui-wb-dropzone {
   position: absolute;
-  z-index: 9;
+  z-index: calc(var(--z-float) + 4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8066,18 +8067,18 @@ a.ui-wb-brand:focus-visible {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 5;
+  z-index: var(--z-float);
   border-top: 1px solid var(--line);
   transition:
-    transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform var(--dur-toggle) var(--ease-standard),
     visibility 0s;
 }
 .ui-wb-sheet.is-shut {
   visibility: hidden;
   transform: translateY(100%);
   transition:
-    transform 300ms cubic-bezier(0.4, 0, 1, 1),
-    visibility 0s linear 300ms;
+    transform var(--dur-toggle) var(--ease-exit),
+    visibility 0s linear var(--dur-toggle);
 }
 .ui-wb-sheet > .ui-wb-split.is-h {
   height: 20px;
@@ -8175,11 +8176,11 @@ a.ui-wb-brand:focus-visible {
   background: none;
   color: var(--ink-muted);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 20px;
   white-space: nowrap;
   cursor: pointer;
-  transition: color 0.15s ease;
+  transition: color var(--dur-hover) ease;
 }
 .ui-seg-item:hover,
 .ui-seg-item.is-selected {
@@ -8208,7 +8209,7 @@ a.ui-wb-brand:focus-visible {
 /* LineChart additions for monitoring: band between two series, now and the future, thresholds, marker, playhead. */
 .ui-chart-headline {
   margin-bottom: 4px;
-  font-size: 25px;
+  font-size: var(--text-h3);
   line-height: 32px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -8259,7 +8260,7 @@ a.ui-wb-brand:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
 }
 .ui-chart-stripe {
@@ -8270,7 +8271,7 @@ a.ui-wb-brand:focus-visible {
   stroke-dasharray: 6 4;
 }
 .ui-chart-threshold text {
-  font-size: 12px;
+  font-size: var(--text-mini);
   font-weight: 600;
 }
 .ui-chart-threshold.is-warning line {
@@ -8291,7 +8292,7 @@ a.ui-wb-brand:focus-visible {
 }
 .ui-chart-now text,
 .ui-chart-marker text {
-  font-size: 12px;
+  font-size: var(--text-mini);
   font-weight: 600;
   fill: var(--ink);
 }
@@ -8360,7 +8361,7 @@ a.ui-wb-brand:focus-visible {
   white-space: nowrap;
 }
 .ui-meter-state {
-  font-size: 13px;
+  font-size: var(--text-small);
   font-weight: 600;
   white-space: nowrap;
   text-align: right;
@@ -8408,7 +8409,7 @@ a.ui-wb-brand:focus-visible {
   border-radius: 7px;
   transform: translate(-50%, -50%);
   box-shadow: 0 0 0 2px var(--surface);
-  transition: left 0.3s ease;
+  transition: left var(--dur-toggle) ease;
 }
 .ui-meter-dot.is-success {
   background: var(--success);
@@ -8422,7 +8423,7 @@ a.ui-wb-brand:focus-visible {
 .ui-meter-marks {
   position: relative;
   height: 18px;
-  font-size: 12px;
+  font-size: var(--text-mini);
   line-height: 18px;
   color: var(--ink-muted);
 }
@@ -8447,11 +8448,11 @@ a.ui-wb-brand:focus-visible {
   padding: 10px 14px;
 }
 .ui-kpi.is-compact .ui-kpi-value {
-  font-size: 22px;
+  font-size: 22px; /* token-exempt: KpiCard compact number, one use */
   line-height: 30px;
 }
 .ui-kpi-target {
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 20px;
   color: var(--ink-muted);
 }
@@ -8622,7 +8623,7 @@ a.ui-wb-brand:focus-visible {
   min-width: 0;
 }
 .ui-zone-name {
-  font-size: 16px;
+  font-size: var(--text-body);
   font-weight: 600;
   line-height: 22px;
   white-space: nowrap;
@@ -8631,7 +8632,7 @@ a.ui-wb-brand:focus-visible {
 }
 .ui-zone-state {
   flex: none;
-  font-size: 13px;
+  font-size: var(--text-small);
   font-weight: 600;
   line-height: 20px;
   white-space: nowrap;
@@ -8639,7 +8640,7 @@ a.ui-wb-brand:focus-visible {
 .ui-zone-value {
   margin-top: auto;
   font-family: var(--font-mono);
-  font-size: 31px;
+  font-size: var(--text-h2);
   font-weight: 700;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
@@ -8648,11 +8649,11 @@ a.ui-wb-brand:focus-visible {
 .ui-zone-unit {
   margin-left: 4px;
   font-family: var(--font-sans);
-  font-size: 16px;
+  font-size: var(--text-body);
   font-weight: 500;
 }
 .ui-zone-detail {
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 20px;
   white-space: nowrap;
   overflow: hidden;
@@ -8687,7 +8688,7 @@ a.ui-wb-brand:focus-visible {
 }
 .ui-events-time {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: var(--text-small);
   color: var(--ink-muted);
   font-variant-numeric: tabular-nums;
 }
@@ -8716,7 +8717,7 @@ a.ui-wb-brand:focus-visible {
 }
 .ui-timecontrol-clock {
   font-family: var(--font-mono);
-  font-size: 28px;
+  font-size: 28px; /* token-exempt: TimeControl clock, one use */
   font-weight: 700;
   line-height: 36px;
   font-variant-numeric: tabular-nums;
@@ -8726,7 +8727,7 @@ a.ui-wb-brand:focus-visible {
 }
 .ui-timecontrol-detail {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-small);
   line-height: 20px;
   color: var(--ink-muted);
 }
@@ -8772,7 +8773,7 @@ a.ui-wb-brand:focus-visible {
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow-card);
-  font-size: 16px;
+  font-size: var(--text-body);
   line-height: 1.5;
 }
 .ui-console-start,

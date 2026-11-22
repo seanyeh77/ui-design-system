@@ -5,9 +5,9 @@ export const MOTION = { dur: 200, stretch: 2.2 } as const;
 
 /** Transition for an indicator whose leading edge moves first and trailing edge catches up (the droplet stretch). */
 export function dropTransition(axisA: string, axisB: string, forward: boolean): string {
-  const lead = MOTION.dur * 0.6 + 'ms cubic-bezier(.2,.8,.2,1)';
+  const lead = MOTION.dur * 0.6 + 'ms var(--ease-standard)';
   const follow = MOTION.dur * MOTION.stretch + 'ms cubic-bezier(.65,0,.25,1.15)';
-  return axisA + ' ' + (forward ? follow : lead) + ', ' + axisB + ' ' + (forward ? lead : follow) + ', transform 150ms ease';
+  return axisA + ' ' + (forward ? follow : lead) + ', ' + axisB + ' ' + (forward ? lead : follow) + ', transform var(--dur-hover) ease';
 }
 
 /** [moving, start]: true from start() until the droplet has settled. */

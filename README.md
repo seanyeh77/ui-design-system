@@ -47,7 +47,7 @@ initTheme();
 | 路徑 | 內容 |
 | --- | --- |
 | `packages/ui` | 元件（`@seanyeh77/ui`）：每個元件一個資料夾，有 TSX、說明、Storybook 範例和預覽 |
-| `packages/tokens` | `tokens.json`（色彩、字體、間距、圓角、陰影、尺寸）和產生的 CSS、Tailwind 設定、字型 |
+| `packages/tokens` | `tokens.json`（色彩、字體、字級、間距、圓角、陰影、尺寸、動畫時間、層級）和產生的 CSS、Tailwind 設定、字型 |
 | `packages/blocks` | 頁面範本，透過 `registry.json` 發佈成 shadcn registry |
 | `packages/eslint-plugin-ui` | 檢查設計規則的 ESLint 規則 |
 | `packages/cli` | `ui check`：手機寬度、觸控範圍、卡片裡的卡片等自動檢查 |
