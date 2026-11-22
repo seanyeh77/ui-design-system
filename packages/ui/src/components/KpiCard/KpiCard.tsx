@@ -38,6 +38,19 @@ export interface KpiCardProps {
   className?: string;
 }
 
+/** Chinese in a figure (the 萬 and 億 of an abbreviated number) in the text font; Geist Mono stays on the digits. */
+function sansCjk(text: string): React.ReactNode[] {
+  return text.split(/([\u2e80-\u9fff\uff00-\uffef]+)/).map((t, i) =>
+    i % 2 ? (
+      <span key={i} className="ui-kpi-cjk">
+        {t}
+      </span>
+    ) : (
+      t
+    ),
+  );
+}
+
 /** One figure with its change and a sparkline. It is a card: put several in a grid, not inside another Card. */
 export function KpiCard(props: KpiCardProps) {
   const { label, value, unit, decimals = 0, delta, deltaUnit, good, spark, compareLabel, size = 'default', verdict, target, className } = props;
@@ -63,8 +76,8 @@ export function KpiCard(props: KpiCardProps) {
       <div className="ui-kpi-label">{label}</div>
       <div ref={valRef} className="ui-kpi-value" aria-label={kpiText(value, props, decimals) + (showUnit ? ' ' + unit : '')}>
         <span className="ui-kpi-num" aria-hidden="true">
-          <span className="ui-kpi-sizer">{kpiText(value, props, decimals)}</span>
-          <span className="ui-kpi-live">{kpiText(value * t, props, decimals)}</span>
+          <span className="ui-kpi-sizer">{sansCjk(kpiText(value, props, decimals))}</span>
+          <span className="ui-kpi-live">{sansCjk(kpiText(value * t, props, decimals))}</span>
         </span>
         {showUnit ? (
           <span className="ui-kpi-unit" aria-hidden="true">

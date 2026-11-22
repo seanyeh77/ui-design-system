@@ -26,3 +26,10 @@ test('compact: 22 px, no sparkline; the verdict replaces the target line only wh
   expect(line().textContent).toBe('偏差變大（目標 ≤ 0.5 °C）');
   expect(line().classList.contains('is-warning')).toBe(true);
 });
+
+test('萬 and 億 in an abbreviated figure are in the text font, the digits in Geist Mono', () => {
+  const { container } = render(<KpiCard label="營收" value={12840000} format="money" />);
+  const cjk = container.querySelector('.ui-kpi-sizer .ui-kpi-cjk') as HTMLElement;
+  expect(cjk.textContent).toBe('萬');
+  expect(getComputedStyle(cjk).fontFamily).not.toMatch(/Geist Mono/);
+});

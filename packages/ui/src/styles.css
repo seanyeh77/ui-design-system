@@ -4275,6 +4275,9 @@ html.ui-theme-fade * {
   justify-items: end;
   vertical-align: bottom;
 }
+.ui-kpi-cjk {
+  font-family: var(--font-sans);
+}
 .ui-kpi-sizer,
 .ui-kpi-live {
   grid-area: 1 / 1;
