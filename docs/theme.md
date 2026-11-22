@@ -33,7 +33,7 @@
 
 文字 token 在兩套主題都對它的底色達到 4.5:1；`line-strong` 對 `surface` 達到 3:1。
 
-間距、圓角與陰影：密度緊密，區塊間距 `space-8` 32 px；中圓角 `radius-sm` 6 px、`radius-md` 10 px、`radius-lg` 14 px；表面用柔和陰影 `shadow-card`。
+間距、圓角與陰影：密度緊密，區塊間距 `space-8` 32 px；中圓角 `radius-xs` 4 px（行內程式碼、鍵帽、分段控制）、`radius-sm` 6 px、`radius-md` 10 px、`radius-lg` 14 px；表面用柔和陰影 `shadow-card`。
 
 ## 字型
 

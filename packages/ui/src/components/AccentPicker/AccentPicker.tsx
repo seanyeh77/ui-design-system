@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
-import { browserKey, cx, store } from '../../internal/util';
-import { ACCENT_KEY, ACCENT_SWATCHES, DEFAULT_ACCENT, setAccent } from '../../theme';
+import { browserKey, cx } from '../../internal/util';
+import { ACCENT_SWATCHES, setAccent, storedAccent } from '../../theme';
 
 const SWATCHES = ACCENT_SWATCHES;
 const HEX = /^#[0-9a-fA-F]{6}$/;
@@ -19,7 +19,7 @@ export interface AccentPickerProps {
 
 /** 8 swatches plus a hex field for any color. */
 export function AccentPicker({ value, onChange, label, className }: AccentPickerProps) {
-  const [own, setOwn] = React.useState(() => (value || store(ACCENT_KEY) || DEFAULT_ACCENT).toLowerCase());
+  const [own, setOwn] = React.useState(() => (value || storedAccent()).toLowerCase());
   const [hexIn, setHexIn] = React.useState('');
   const cur = (value || own).toLowerCase();
   const pick = (c: string) => {

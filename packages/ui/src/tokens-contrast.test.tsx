@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from 'vitest';
 import tokens from '@seanyeh77/tokens/tokens.json';
-import { ACCENT_SWATCHES, DEFAULT_ACCENT, accentText, setAccent, setTheme } from './theme';
+import { ACCENT_KEY, ACCENT_SWATCHES, DEFAULT_ACCENT, accentText, setAccent, setTheme, storedAccent } from './theme';
 
 // Text contrast (WCAG 2, 4.5:1) computed from tokens.json, and from setAccent for every preset swatch, so a token
 // change or a new swatch that makes text unreadable on one of the grounds fails here.
@@ -122,4 +122,13 @@ test('every type style in tokens.json uses a size of the text scale', () => {
   const sizes = new Set(tokens.text.tokens.map((t) => t.value));
   const off = tokens.type.groups.flatMap((g) => g.styles.filter((s) => !sizes.has(s.fontSize)).map((s) => `${s.name} ${s.fontSize}`));
   expect(off).toEqual([]);
+});
+
+test('an old swatch value stored before the swatches changed moves to the current swatch', () => {
+  localStorage.setItem(ACCENT_KEY, '#0e827d');
+  expect(storedAccent()).toBe('#027874');
+  expect(localStorage.getItem(ACCENT_KEY)).toBe('#027874');
+  localStorage.setItem(ACCENT_KEY, '#123456');
+  expect(storedAccent()).toBe('#123456');
+  localStorage.removeItem(ACCENT_KEY);
 });

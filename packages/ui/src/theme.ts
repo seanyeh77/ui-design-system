@@ -37,7 +37,26 @@ export function setTheme(t: ThemeSetting): void {
   root.setAttribute('data-theme-setting', t);
   store(THEME_KEY, t);
   // The accent's text and soft colors depend on the theme.
-  setAccent(store(ACCENT_KEY) || DEFAULT_ACCENT, true);
+  setAccent(storedAccent(), true);
+}
+
+/** Swatches whose color changed so they read as text on every ground: a stored old value moves to the new one. */
+const RENAMED_SWATCHES: Record<string, string> = {
+  '#8a4fd6': '#864ad1',
+  '#c2407a': '#ba3873',
+  '#cd3a2f': '#c53228',
+  '#b85a0e': '#ab5101',
+  '#1a844a': '#077b42',
+  '#0e827d': '#027874',
+};
+
+/** The stored accent, with an old swatch value moved to its current one (and stored again). */
+export function storedAccent(): string {
+  const v = store(ACCENT_KEY);
+  if (!v) return DEFAULT_ACCENT;
+  const now = RENAMED_SWATCHES[v.toLowerCase()];
+  if (now) store(ACCENT_KEY, now);
+  return now ?? v;
 }
 
 const hexRgb = (x: string): number[] => [1, 3, 5].map((i) => parseInt(x.slice(i, i + 2), 16));
