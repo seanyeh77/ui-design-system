@@ -10,7 +10,8 @@ export interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputEleme
   required?: boolean;
   /** One short line under the field. */
   hint?: string;
-  /** The cause and the fix: 「日期格式不正確，請寫成 2026/11/14」. Turns the border red. */
+  /** The cause and the fix: 「日期格式不正確，請寫成 2026/11/14」. Turns the border red and is announced when it appears.
+   *  Set it when the field is left (blur) or the form is sent, not on every key; clear it as soon as the value is right. */
   error?: string;
   ref?: React.Ref<HTMLInputElement>;
 }
@@ -19,7 +20,7 @@ export interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputEleme
 export function TextField({ label, hint, error, id, className, required, disabled, ...native }: TextFieldProps) {
   const auto = React.useId();
   const fieldId = id || auto;
-  const desc = error || hint ? fieldId + '-desc' : undefined;
+  const desc = error ? fieldId + '-err' : hint ? fieldId + '-hint' : undefined;
   return (
     <div className={cx('ui-field', error && 'has-error', disabled && 'is-disabled', className)}>
       <FieldLabel htmlFor={fieldId} required={required}>
@@ -38,10 +39,15 @@ export function TextField({ label, hint, error, id, className, required, disable
         />
         {error ? <Icon name="warning-circle" className="ui-field-icon" /> : null}
       </div>
-      {desc ? (
-        // An error is announced when it appears (role="alert"), the same as the password error of LoginCard.
-        <div id={desc} className={error ? 'ui-field-error' : 'ui-field-hint'} role={error ? 'alert' : undefined}>
-          {error || hint}
+      {error ? (
+        // Inserted only while there is an error, keyed by its text: a new error is a new alert node, announced once;
+        // the same error on the next render is not read again. The hint is a separate node that never announces.
+        <div key={error} id={desc} className="ui-field-error" role="alert">
+          {error}
+        </div>
+      ) : hint ? (
+        <div id={desc} className="ui-field-hint">
+          {hint}
         </div>
       ) : null}
     </div>

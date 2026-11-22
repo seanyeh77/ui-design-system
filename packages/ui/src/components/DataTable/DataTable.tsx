@@ -53,8 +53,12 @@ export interface DataTableProps<R extends Row = Record<string, unknown>> {
    *  table on the page with a search field takes it; it shows a small 「/」 in the empty field on desktop. Default true. */
   searchShortcut?: boolean;
   /** Each row's page: the first cell's text becomes a link to it, and a click anywhere else on the row (not on its own
-   *  links, buttons or checkbox) opens it; Ctrl or ⌘ + click opens a new tab. */
+   *  links, buttons or checkbox, nor a click that ends a text selection) opens it. Like a link, Ctrl, ⌘ or Shift + click
+   *  and a middle click open it in a new tab. */
   rowHref?: (row: R) => string;
+  /** With rowHref: called instead of following the link on a plain click (on the row or its first cell's link), so an
+   *  app router can push the route. Ctrl, ⌘, Shift and middle clicks still open the href in a new tab. */
+  onRowOpen?: (row: R, event: React.MouseEvent) => void;
   /** Write search and filters into the URL. Default true. */
   urlSync?: boolean;
   /** Prefix of the URL parameters when a page has several tables. */
@@ -97,8 +101,9 @@ const ARROWS: Record<'asc' | 'desc' | 'none', CustomIcon> = { asc: 'M12 19V5M6 1
 
 const get = (row: Row, key: string): unknown => (row as Record<string, unknown>)[key];
 const isNum = (c: DataTableColumn<never>) => c.numeric || c.format === 'money' || c.format === 'percent' || c.format === 'duration';
-// Short by its props: it hugs its content instead of taking the room left (see widths below).
-const isShort = (c: DataTableColumn<never>) => isNum(c) || !!c.unit || isDateCol(c) || c.mobile === 'status' || c.width != null;
+// Short by what it holds: numbers, units, dates, durations and status. It hugs its content instead of taking the room
+// left (see widths below). A width is only a least width: it never makes a column short.
+const isShort = (c: DataTableColumn<never>) => isNum(c) || !!c.unit || isDateCol(c) || c.mobile === 'status';
 // A plain text column that is not the main one hugs its content up to this width (px); longer text wraps.
 const TEXT_HUG_MAX = 280;
 // Columns sized by props only, before the first measure (px).
@@ -131,32 +136,62 @@ function contentWidth(el: Element): number {
   return right > left ? right - left : 0;
 }
 
-// 「/」 focuses the search field of the first table on the page that has one (in page order). One listener for all.
+// 「/」 focuses the search field of the first table on the page that has one (in page order) and that is shown: a table
+// in a hidden tab panel, a closed drawer or behind a modal does not take it. One listener for all.
 const shortcutTables = new Set<HTMLElement>();
 const shortcutListeners = new Set<() => void>();
+// Tables hidden or shown later (a tab panel switched, a drawer opened) change size, so the 「/」 hint moves with them.
+let shortcutSizes: ResizeObserver | null = null;
+const notifyShortcut = () => shortcutListeners.forEach((f) => f());
+type Visible = { checkVisibility?: (o?: Record<string, boolean>) => boolean };
+/** Rendered and not hidden: not display: none (itself or an ancestor), not visibility: hidden, not inert or aria-hidden. */
+function isShown(el: HTMLElement): boolean {
+  if (!el.isConnected || el.closest('[inert], [aria-hidden="true"]')) return false;
+  const check = (el as HTMLElement & Visible).checkVisibility;
+  if (typeof check === 'function') return check.call(el, { checkVisibilityCSS: true, visibilityProperty: true });
+  return el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
+}
+const shortcutInput = (el: HTMLElement) => el.querySelector<HTMLInputElement>(':scope > .ui-dt-tools .ui-dt-search input');
 const firstShortcutTable = (): HTMLElement | null =>
-  [...shortcutTables].filter((el) => el.isConnected).sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))[0] ?? null;
+  [...shortcutTables]
+    .filter((el) => isShown(el) && !!shortcutInput(el))
+    .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))[0] ?? null;
+// Where 「/」 is typed text or a key of the widget itself: fields, lists, grids, menus and dialogs keep it.
+const SLASH_OWNERS =
+  'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="searchbox"], [role="combobox"], [role="listbox"], [role="grid"], [role="treegrid"], [role="tree"], [role="menu"], [role="menubar"], [role="dialog"], [role="alertdialog"], dialog';
 function onSlash(e: KeyboardEvent) {
   if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented || e.isComposing) return;
   const t = e.target instanceof Element ? e.target : null;
-  if (t?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="dialog"], [role="menu"]')) return;
-  const input = firstShortcutTable()?.querySelector<HTMLInputElement>(':scope > .ui-dt-tools .ui-dt-search input');
+  if (t?.closest(SLASH_OWNERS)) return;
+  const table = firstShortcutTable();
+  const input = table ? shortcutInput(table) : null;
   if (!input) return;
-  e.preventDefault();
   input.focus();
+  // Only when the field took the focus: otherwise the key does what it would have done.
+  if (document.activeElement === input) e.preventDefault();
 }
 function registerShortcut(el: HTMLElement, changed: () => void): () => void {
   if (!shortcutTables.size) document.addEventListener('keydown', onSlash);
+  if (!shortcutSizes && typeof ResizeObserver !== 'undefined') shortcutSizes = new ResizeObserver(notifyShortcut);
   shortcutTables.add(el);
   shortcutListeners.add(changed);
-  shortcutListeners.forEach((f) => f());
+  shortcutSizes?.observe(el);
+  notifyShortcut();
   return () => {
     shortcutTables.delete(el);
     shortcutListeners.delete(changed);
-    if (!shortcutTables.size) document.removeEventListener('keydown', onSlash);
-    shortcutListeners.forEach((f) => f());
+    shortcutSizes?.unobserve(el);
+    if (!shortcutTables.size) {
+      document.removeEventListener('keydown', onSlash);
+      shortcutSizes?.disconnect();
+      shortcutSizes = null;
+    }
+    notifyShortcut();
   };
 }
+
+// Ctrl, ⌘, Shift or the middle button: a link opens in a new tab or window.
+const newTab = (e: React.MouseEvent) => e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1;
 
 // What a row click leaves alone: links, buttons, fields, checkboxes and anything else that acts on its own.
 const ROW_CONTROLS = 'a, button, input, select, textarea, label, [role="checkbox"], [role="button"], [role="menuitem"], [role="link"], [contenteditable]';
@@ -531,8 +566,14 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const toggle = (ids: string[], v: boolean) => setSel({ ...sel, ...Object.fromEntries(ids.map((id) => [id, v])) });
   const clear = () => setSel({});
   // Shift + click on a row's checkbox: every row from the last one clicked to this one (in the shown order, any page)
-  // takes this one's new state.
+  // takes this one's new state. Only rows the search, filters, view and summary keep, in the current sort.
   const lastPick = React.useRef<string | null>(null);
+  // A new search, filter, summary tab, view, sort or page size changes which rows lie between two clicks: the range
+  // starts again from the next click.
+  const anchorKey = `${shownKey}|${sortKey}|${pageSize}`;
+  React.useEffect(() => {
+    lastPick.current = null;
+  }, [anchorKey]);
   const pickRow = (id: string, on: boolean, shift: boolean) => {
     const ids = list.map(idOf);
     const from = shift && lastPick.current ? ids.indexOf(lastPick.current) : -1;
@@ -562,8 +603,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const expander = longCols.length > 0 && !narrow;
   const EXP = 40;
   // Widths by default. The main column (the first text column) and long ones take the room left; the others hug their
-  // content: numbers, units, dates, durations, status Badges, other short text and columns given a width. A grow prop
-  // wins either way. Hugging columns are measured below (their heading and every cell on the page, widest wins).
+  // content: numbers, units, dates, durations, status Badges and other short text. A width is a least width for any
+  // column and never decides which column is the main one. A grow prop wins either way. Hugging columns are measured below (their heading and every cell on the page, widest wins).
   const mainKey = (shownCols.find((c) => !isShort(c) && !c.long && c.grow !== 0) ?? shownCols[0])?.key;
   const grows = (c: DataTableColumn<R>) => (c.grow != null ? c.grow > 0 : c.long || c.key === mainKey);
   // A column is at least as wide as content that cannot wrap (a code chip, a link with a path): measured below.
@@ -598,21 +639,24 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   };
   // Desktop rows: a cell whose content cannot wrap and is wider than the cell (InlineCode, a path) widens its column
   // instead of being cut. Long columns truncate on purpose and are left alone. Widths only grow, until resetKey.
-  // Measured once, then when the table's content changes (a page, a filter, a column shown, new rows) or web fonts
-  // load; not on every render. The state changes only when a column has to grow, so measuring again settles.
+  // Hugging columns take the widest of their heading, every cell on the page and the totals row, each read on one line
+  // from its content's own boxes (not scrollWidth, which misses text that overflows to the left of a right-aligned cell).
+  // Measured on mount, then at most once a frame when the shown rows or columns change, rows are added or removed, or
+  // web fonts load; not on every render or text change. The state changes only when a column has to grow.
+  const measureRef = React.useRef<() => void>(() => {});
   React.useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root || narrow) return;
     const measure = () => {
       const need: Record<string, number> = {};
-      for (const el of root.querySelectorAll<HTMLElement>('.ui-dt-body .ui-dt-cell[data-col]:not(.is-long):not(.is-hug)')) {
+      for (const el of root.querySelectorAll<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-body .ui-dt-cell[data-col]:not(.is-long):not(.is-hug)')) {
         const over = el.scrollWidth - el.clientWidth;
         const key = el.dataset.col;
         if (over > 1 && key) need[key] = Math.max(need[key] ?? 0, Math.ceil(el.getBoundingClientRect().width + over));
       }
-      // Hugging columns: the widest of their heading and cells on one line (is-measuring keeps every one unwrapped
-      // for this read; the class is gone before the browser paints).
-      const hugs = root.querySelectorAll<HTMLElement>('.ui-dt-cell.is-hug[data-col]');
+      // Hugging columns: the widest of their heading, cells and total on one line (is-measuring keeps every one
+      // unwrapped for this read; the class is gone before the browser paints).
+      const hugs = root.querySelectorAll<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-cell.is-hug[data-col]');
       if (hugs.length) {
         root.classList.add('is-measuring');
         for (const el of hugs) {
@@ -627,21 +671,33 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         return grow.length ? { ...f, ...Object.fromEntries(grow) } : f;
       });
     };
-    measure();
     let frame = 0;
     const later = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(measure);
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        measure();
+      });
     };
+    measureRef.current = later;
+    measure();
+    // Rows added or removed (a page, a filter, new data) and the header or totals row swapped: the child lists of the
+    // table and its body only, not every text change inside a cell.
     const mo = new MutationObserver(later);
-    mo.observe(root, { childList: true, subtree: true, characterData: true });
+    for (const el of root.querySelectorAll(':scope > .ui-dt-scroller .ui-dt-table, :scope > .ui-dt-scroller .ui-dt-body')) mo.observe(el, { childList: true });
     document.fonts?.ready.then(later).catch(() => {});
     return () => {
       mo.disconnect();
       cancelAnimationFrame(frame);
+      measureRef.current = () => {};
     };
     // resetKey clears the widths: measured again even when the rows look the same.
   }, [narrow, resetKey]);
+  // The same rows with new content (rows replaced by the app, a search marking text, totals recomputed): once a frame.
+  const contentKey = `${visIds.join('\u0001')}|${shownCols.map((c) => c.key).join(',')}|${list.length}|${q}|${!!p.totals}`;
+  React.useLayoutEffect(() => {
+    measureRef.current();
+  }, [contentKey, rows]);
   const stickyStyle = (ci: number) => (ci === 0 && sticky ? { left: (expander ? EXP : 0) + (selectable ? 46 : 0) } : undefined);
   const cellClass = (c: DataTableColumn<R>, ci: number, ...more: unknown[]) =>
     cx('ui-dt-cell', isNum(c) && 'is-num', !grows(c) && 'is-hug', ci === 0 && sticky && 'is-sticky is-sticky-end', ...more);
@@ -769,12 +825,41 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     else v = markMatch(cellText(c, raw), mark);
     return v;
   };
+  // A click on the row itself: not on one of its own controls, and not the end of a text selection.
+  const rowClick = (e: React.MouseEvent<HTMLElement>) => {
+    const t = e.target as Element;
+    const ctl = t.closest(ROW_CONTROLS);
+    if (ctl && ctl !== e.currentTarget) return false;
+    const s = window.getSelection();
+    return !(s && !s.isCollapsed && String(s).trim());
+  };
+  const openRow = (r: R, e: React.MouseEvent<HTMLElement>) => {
+    const href = p.rowHref?.(r);
+    if (href == null) return;
+    if (newTab(e)) {
+      e.preventDefault();
+      window.open(href, '_blank', 'noopener');
+    } else if (p.onRowOpen) p.onRowOpen(r, e);
+    else e.currentTarget.querySelector<HTMLAnchorElement>('a.ui-dt-rowlink')?.click();
+  };
   const cell = (r: R, c: DataTableColumn<R>, ci: number) => {
     let v = c.long ? <LongText>{cellInner(r, c)}</LongText> : cellInner(r, c);
     if (c.fullText) v = <FullText text={c.fullText(r)}>{v}</FullText>;
     if (ci === 0 && p.rowHref)
       v = (
-        <a className="ui-dt-rowlink" href={p.rowHref(r)}>
+        <a
+          className="ui-dt-rowlink"
+          href={p.rowHref(r)}
+          onClick={
+            p.onRowOpen
+              ? (e) => {
+                  if (newTab(e)) return;
+                  e.preventDefault();
+                  p.onRowOpen?.(r, e);
+                }
+              : undefined
+          }
+        >
           {v}
         </a>
       );
@@ -790,12 +875,25 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const total = (c: DataTableColumn<R>, ci: number): React.ReactNode => {
     const how = p.totals?.[c.key];
     const rowsAll = list.map((x) => x.r);
-    if (ci === 0 && !how) return tr('合計 {n} 筆', { n: format.number(rowsAll.length) });
+    // Numbers in Geist Mono, the words (「合計」「平均」「筆」) and the unit in the text font.
+    if (ci === 0 && !how) return <span className="ui-dt-qty">{monoNums(tr('合計 {n} 筆', { n: '\u0001' }), [format.number(rowsAll.length)])}</span>;
     if (typeof how === 'function') return how(rowsAll);
     if (how === 'sum' || how === 'avg') {
       const sum = rowsAll.reduce((a, r) => a + (Number(get(r, c.key)) || 0), 0);
       const val = how === 'sum' ? sum : sum / (rowsAll.length || 1);
-      return (how === 'avg' ? tr('平均') + ' ' : '') + cellText(how === 'avg' && !c.format ? { ...c, decimals: 1 } : c, val);
+      const num = cellText({ ...(how === 'avg' && !c.format ? { ...c, decimals: 1 } : c), unit: undefined }, val);
+      return (
+        <span className="ui-dt-qty">
+          {how === 'avg' ? <span className="ui-unit">{tr('平均')} </span> : null}
+          {num}
+          {c.unit ? (
+            <>
+              {' '}
+              <span className="ui-unit">{c.unit}</span>
+            </>
+          ) : null}
+        </span>
+      );
     }
     return '';
   };
@@ -999,20 +1097,30 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                         style={grid}
                         // EC: a click anywhere on the row opens or closes its details, except on its own controls
                         // and when the click ends a text selection. Keyboard users have the caret button. With rowHref
-                        // the click opens the row's page instead (its first cell's link; Ctrl or ⌘ for a new tab).
+                        // the click opens the row's page instead (its first cell's link, or onRowOpen); Ctrl, ⌘,
+                        // Shift and the middle button open it in a new tab, as on a link.
                         onClick={
                           expander || p.rowHref
                             ? (e) => {
-                                const t = e.target as Element;
-                                if (t.closest(ROW_CONTROLS) && t.closest(ROW_CONTROLS) !== e.currentTarget) return;
-                                if (String(window.getSelection() ?? '')) return;
-                                if (p.rowHref) {
-                                  const a = e.currentTarget.querySelector<HTMLAnchorElement>('a.ui-dt-rowlink');
-                                  if (e.ctrlKey || e.metaKey) window.open(a?.href, '_blank', 'noopener');
-                                  else a?.click();
-                                  return;
-                                }
+                                if (!rowClick(e)) return;
+                                if (p.rowHref) return openRow(x.r, e);
                                 setOpened({ ...opened, [id]: !open });
+                              }
+                            : undefined
+                        }
+                        // Shift + click would select text up to here and the middle button would start autoscroll:
+                        // neither, so those clicks open the row like a link.
+                        onMouseDown={
+                          p.rowHref
+                            ? (e) => {
+                                if ((e.shiftKey || e.button === 1) && !(e.target as Element).closest(ROW_CONTROLS)) e.preventDefault();
+                              }
+                            : undefined
+                        }
+                        onAuxClick={
+                          p.rowHref
+                            ? (e) => {
+                                if (e.button === 1 && rowClick(e)) openRow(x.r, e);
                               }
                             : undefined
                         }
@@ -1089,7 +1197,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                 {expander ? <div className={cx('ui-dt-cell', lead('exp').className)} style={lead('exp').style} role="cell" /> : null}
                 {selectable ? <div className={cx('ui-dt-cell', lead('sel').className)} style={lead('sel').style} role="cell" /> : null}
                 {shownCols.map((c, ci) => (
-                  <div key={c.key} role="cell" className={cellClass(c, ci)} style={stickyStyle(ci)}>
+                  <div key={c.key} role="cell" className={cellClass(c, ci)} style={stickyStyle(ci)} data-col={c.key}>
                     {total(c, ci)}
                   </div>
                 ))}

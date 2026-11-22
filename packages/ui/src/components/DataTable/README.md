@@ -5,24 +5,24 @@
 資料表格，有排序、勾選、篩選和分頁；只給欄位就有合適的欄寬、工具列和列的狀態。不用原生 `<table>`。檔案和階層用 TreeList；一個項目的欄位用 DetailList。
 
 ```tsx
-type Job = { id: string; title: string; status: BadgeStatus; source: string; secs: number; words: number; created: string; error?: string; progress?: string };
+type Import = { id: string; name: string; status: BadgeStatus; source: string; secs: number; records: number; created: string; error?: string; progress?: string };
 
-<Card title="轉錄紀錄" padding={false}>
-  <DataTable<Job>
-    label="轉錄紀錄"
-    rows={jobs}
-    rowHref={(r) => `/jobs/${r.id}`}
+<Card title="匯入紀錄" padding={false}>
+  <DataTable<Import>
+    label="匯入紀錄"
+    rows={imports}
+    rowHref={(r) => `/imports/${r.id}`}
     selectable
     summary={{ key: 'status', items: [{ value: 'doing', label: '進行中' }, { value: 'done', label: '完成' }, { value: 'fail', label: '失敗' }] }}
     filters={[{ key: 'source', label: '來源' }]}
     bulkActions={(ids, clear) => <Button onClick={() => retry(ids).then(clear)}>重試</Button>}
-    rowActions={(r) => (r.status === 'fail' ? <IconButton label={`重試 ${r.title}`} icon="arrows-clockwise" onClick={() => retry([r.id])} /> : null)}
+    rowActions={(r) => (r.status === 'fail' ? <IconButton label={`重試 ${r.name}`} icon="arrows-clockwise" onClick={() => retry([r.id])} /> : null)}
     columns={[
-      { key: 'title', label: '標題', secondary: (r) => r.error ?? r.progress },
+      { key: 'name', label: '檔案', secondary: (r) => r.error ?? r.progress },
       { key: 'status', label: '狀態', mobile: 'status', render: (r) => <Badge status={r.status} />, searchText: (r) => statusLabel[r.status] },
       { key: 'source', label: '來源' },
-      { key: 'secs', label: '長度', format: 'duration' },
-      { key: 'words', label: '字數', numeric: true, unit: '字' },
+      { key: 'secs', label: '耗時', format: 'duration' },
+      { key: 'records', label: '筆數', numeric: true, unit: '筆' },
       { key: 'created', label: '建立時間', format: 'relative' },
     ]}
   />
@@ -32,8 +32,8 @@ type Job = { id: string; title: string; status: BadgeStatus; source: string; sec
 預設就有：主要文字欄占剩下的寬度，其他欄貼合內容；工具列是搜尋框（按「/」移到這裡）、「篩選」、筆數、「排序」和「⋯」（欄位、複製成 Markdown、放大表格），全部 40 px 高；套用的條件在工具列下方列成可移除的標籤；相對時間滑過時顯示完整日期。
 
 - 主要的文字欄放第一欄：它占剩下的寬度，也是手機卡片的標題、列的名稱。每列給 `id`。
-- 數字給 `numeric: true` 加 `unit`（傳數字 `1234`，不傳字串 `'1,234 字'`）；長度（秒）用 `format: 'duration'`；日期用 `format: 'date' | 'datetime' | 'relative'`。
-- 失敗的列：原因寫在 `secondary`（標題下的第二行），「重試」放 `rowActions`；可勾選時 `bulkActions` 也放「重試」。進行中的列：`doing` 的 Badge，進度文字（「轉錄中 42%」）寫在 `secondary`，格子裡不放 ProgressBar。
+- 數字給 `numeric: true` 加 `unit`（傳數字 `1234`，不傳字串 `'1,234 筆'`）；長度（秒）用 `format: 'duration'`；日期用 `format: 'date' | 'datetime' | 'relative'`。
+- 失敗的列：原因寫在 `secondary`（標題下的第二行），「重試」放 `rowActions`；可勾選時 `bulkActions` 也放「重試」。進行中的列：`doing` 的 Badge，進度文字（「匯入中 42%」）寫在 `secondary`，格子裡不放 ProgressBar。
 - `rowActions` 最多 2 個 IconButton；更多時，最後幾個放進「⋯」（`Menu`）。有自己頁面的列給 `rowHref`，不另加「開啟」按鈕。
 - 同一個條件只放一個地方：狀態用 `summary` 時，`filters` 和 `views` 不再篩選同一欄（開發時 console 會警告）。
 - 放在 Card 裡時標題寫在 Card 的 `title`，DataTable 給同樣文字的 `label`，不給 `caption`。換成另一份資料時給新的 `resetKey`；同一頁兩個表格用 `urlKey` 分開網址參數。
@@ -45,11 +45,13 @@ type Job = { id: string; title: string; status: BadgeStatus; source: string; sec
 - 列高 48 px；有 `secondary` 的列才變高。
 - 分隔：斑馬紋加格線。偶數列用 `surface-sub`（深色主題用 `surface` 和 `surface-sub` 各半，比較淡），每列之間有橫線，欄之間有直線，外圍有框，全部用 `line`。
 - 列的狀態：滑過是中性的淡底（`surface` 混 6% `ink`，深色主題 5%）；勾選中是 `accent-soft` 加左緣 3 px `accent` 線；鍵盤移到列裡時左緣 2 px `accent` 線（和勾選分得開）。每一種底色上，`ink`、`ink-muted` 和各 `*-text` 都至少 4.5:1（測試會算）。
-- 欄寬預設：第一個文字欄（主要欄）和 `long` 欄占剩下的寬度；數字、有 `unit`、日期、長度、金額、百分比、狀態（`mobile: 'status'` 或格子裡是 Badge）、其他短文字和有 `width` 的欄貼合內容：量標題和這一頁每一格，取最寬的，一行放得下（其他文字欄最寬 280 px，再長就換行）。給 `grow` 時照 `grow` 分配剩下的寬度；`width` 是最小寬度。
+- 欄寬預設：第一個文字欄（主要欄）和 `long` 欄占剩下的寬度；數字、有 `unit`、日期、長度、金額、百分比、狀態（`mobile: 'status'` 或格子裡是 Badge）和其他短文字貼合內容：量標題、這一頁每一格和合計列，取最寬的，一行放得下（其他文字欄最寬 280 px，再長就換行）。給 `grow` 時照 `grow` 分配剩下的寬度。
+  - `width` 對每一種欄位都只是最小寬度，不會讓欄位變成貼合內容的短欄，也不會讓別的欄變成主要欄：第一個文字欄給了 `width` 仍然占剩下的寬度。欄位短不短只看內容的種類（數字、`unit`、`format`、狀態）。
+  - 量寬度在第一次顯示、換頁、篩選、顯示或隱藏欄位、資料換新和字型載入後進行，每個畫面最多一次；格子文字的變動本身不觸發。寬度沒有變大時不更新。
 - 第二行 `secondary: (row) => ReactNode`：在格子文字下方，13 px `ink-muted`，一行，太長用「…」。搜尋會找它的文字；手機卡片也顯示。
 - 日期欄（`format: 'date' | 'datetime' | 'relative'`）是 `<time dateTime>`，等寬數字，依時間排序。相對時間（「2 小時前」）滑鼠滑過時 Tooltip 顯示完整日期時間，螢幕閱讀器從格子的描述聽到它；不多一個 Tab 停點。觸控螢幕不顯示 Tooltip。
 - 長度 `format: 'duration'`：值是秒數，未滿 1 小時 `46:42`，以上 `1:54:49`（`format.duration`）；靠右、等寬數字，依秒數排序。
-- 數字欄 `numeric: true`：Geist Mono、等寬數字、靠右對齊。
+- 數字欄 `numeric: true`：數字用 Geist Mono、等寬數字、靠右對齊；`unit` 和中文字用一般字體（Geist Mono 不用在中文上）。
 - 格子裡的 InlineCode：白底加 1 px 框線，奇數列、偶數列和滑過的列上都看得出範圍。
 - 單位寫在每格數字後面：欄位設定 `unit`，例如 `unit: 'GB'` 會顯示「3,480.3 GB」。表格裡的數字不縮寫。
 - 欄位格式 `format`：`money`（NT$ 1,280,000）、`date`（2026/11/04（三））、`datetime`、`relative`（一週內寫「2 小時前」）、`percent`（一位小數，% 用 `unit: '%'` 加上，和 KpiCard 一樣）、`duration`（46:42）。
@@ -75,17 +77,18 @@ type Job = { id: string; title: string; status: BadgeStatus; source: string; sec
 ## 勾選與操作
 
 - `selectable`：勾選框平常隱藏，滑過列（或用鍵盤移到列上）才出現；勾了任一筆後所有列都顯示。觸控裝置一直顯示。
-- Shift＋點勾選框：從上一次點的列到這一列（照目前的順序，跨頁也算）都變成這一列的新狀態，並念出「已選 n 筆」。
+- Shift＋點勾選框：從上一次點的列到這一列（照目前的順序，跨頁也算）都變成這一列的新狀態，並念出「已選 n 筆」。只選搜尋、篩選、摘要與檢視後留下的列；搜尋、篩選、摘要、檢視、排序或每頁筆數改變後，起點清掉，下一次點擊重新當起點。
 - 勾選後，表頭換成批次操作列：全選框、「已選 n 筆」、`bulkActions` 的按鈕、取消選取 ×。
 - 篩選、搜尋、檢視或摘要改變後看不到的列會自動取消勾選，刪除的列也一樣，所以 `bulkActions` 只處理畫面上留下的列（換頁不影響）。
 - 單筆操作 `rowActions`：放 IconButton，滑過列時出現在最右邊（例如編輯、刪除）。刪除一樣要先跳確認對話框。
-- `rowHref: (row) => string`：第一欄的文字變成真的連結（Enter 開啟、可以中鍵或 Ctrl＋點開新分頁），點列上其他地方也開啟；點列裡的其他連結、按鈕、勾選框和 `rowActions` 時只做它們自己的事。有 `rowHref` 時點列不展開詳細，用左邊的箭頭。第一欄的 `render` 不要再放連結（連結裡不能有連結）。
+- `rowHref: (row) => string`：第一欄的文字變成真的連結（Enter 開啟、可以中鍵或 Ctrl＋點開新分頁），點列上其他地方也開啟；和連結一樣，在列上按中鍵或 Ctrl、⌘、Shift＋點擊時在新分頁開啟。點列裡的其他連結、按鈕、勾選框和 `rowActions` 時只做它們自己的事；在列上選取文字放開時不開啟。
+- `onRowOpen: (row, event) => void`（和 `rowHref` 一起用）：一般點擊列或第一欄的連結時呼叫它，不換頁，讓 SPA 的 router 推新的路由；連結仍有 `href`，所以新分頁、複製連結照常。有 `rowHref` 時點列不展開詳細，用左邊的箭頭。第一欄的 `render` 不要再放連結（連結裡不能有連結）。
 - 同一列已經有連結能做到的事（例如位置欄的連結開啟檔案），不要再加 `rowActions` 按鈕；`rowActions` 只放連結做不到的操作，例如編輯、刪除。操作欄跟著表格一起捲動，不固定在右緣。
 
 ## 搜尋與篩選
 
 - 搜尋框搜所有欄位，符合的文字用黃底標出（`mark`）。只想搜部分欄位時用 `search.keys`；用 `render` 的欄位提供 `searchText`。
-- 搜尋框寬 320 px（最窄 240 px），表格窄時一整列；放大鏡 20 px。按「/」（焦點不在輸入框、沒有按 Ctrl、Alt、⌘）移到搜尋框：同一頁有好幾個表格時，只有第一個有搜尋框的表格接這個鍵，它的搜尋框在桌機上空白且沒有焦點時，右邊顯示一個小的「/」。`searchShortcut={false}` 關掉。
+- 搜尋框寬 320 px（最窄 240 px），表格窄時一整列；放大鏡 20 px。按「/」（焦點不在輸入框、下拉選單、清單、格線、選單、對話框或可編輯區，沒有按 Ctrl、Alt、⌘）移到搜尋框：同一頁有好幾個表格時，只有第一個有搜尋框而且看得到的表格接這個鍵（隱藏的分頁、關閉的抽屜、`inert` 裡的表格不算），搜尋框真的拿到焦點時才攔下這個鍵，它的搜尋框在桌機上空白且沒有焦點時，右邊顯示一個小的「/」。`searchShortcut={false}` 關掉。
 - 篩選：搜尋框旁邊的「篩選」按鈕，按鈕上顯示已套用的條件數；有條件時按鈕文字變 `accent-text`、外框變 `accent`。工具列下方列出每個條件（「狀態：失敗 ×」，清單的每個選項一個，範圍一個），按 × 移除那一個（網址一起更新，焦點移到下一個標籤），最後是「清除全部」；沒有條件時這一列不出現。點開是彈出框（寬 520 px），只在表格的範圍內往左右移動，不蓋到表格旁邊的面板；表格比 520 px 窄時彈出框跟著變窄。`filters` 裡的每個欄位一區：
   - `type: 'list'`：勾選清單，每個選項後面寫套用後會剩幾筆；沒給 `options` 時從資料取出。
   - `type: 'range'`：最低、最高兩個欄位；`scale` 是輸入單位（例如 10000 代表「萬」），`unitLabel` 寫在下方。
@@ -145,7 +148,7 @@ type Job = { id: string; title: string; status: BadgeStatus; source: string; sec
 
 ## 結果摘要
 
-- `summary={{ key, items: [{ value, label }] }}`：表格上方放一個分段控制（Tabs），「全部」加上每種狀態，各自附筆數，點了就只看那一種。筆數後面帶單位，預設「筆」，用 `summary.unit` 換成「則」「個」等；英文等有單複數的語言傳函式，例如 `unit: (n) => (n === 1 ? 'item' : 'items')`。預設的「筆」在英文是「1 row」「2 rows」。手機上各項平均分配寬度；字放不下時每一項保留完整的文字，整排改成左右捲動，不會互相重疊。用在檢查結果、審核清單這類有狀態的清單。
+- `summary={{ key, items: [{ value, label }] }}`：表格上方放一個分段控制（Tabs），「全部」加上每種狀態，各自附筆數，點了就只看那一種。筆數後面帶單位，預設「筆」，用 `summary.unit` 換成「則」「個」等；英文等有單複數的語言傳函式，例如 `unit: (n) => (n === 1 ? 'item' : 'items')`。預設的「筆」在英文是「1 row」「2 rows」。手機上各項平均分配寬度；字放不下時每一項保留完整的文字，整排改成左右捲動，不會互相重疊：還有項目的一側淡出，停下時對齊一整個項目（scroll snap），不會停在字的中間。放在 `padding={false}` 的 Card 裡時，摘要和卡片邊緣隔 16 px。用在檢查結果、審核清單這類有狀態的清單。
 - 同一個條件只在一個地方：用了 `summary` 的欄位不再放進 `filters`，也不另做只留那一種狀態的 `views`；開發時 console 會警告並說明改法。
 - 排序看情況：結果清單預設照資料原本的順序（例如筆記的行號），不自動把錯誤排到前面；需要處理的項目用摘要篩選出來。
 
@@ -161,7 +164,7 @@ type Job = { id: string; title: string; status: BadgeStatus; source: string; sec
   - 觸控裝置（`pointer: coarse`）不用 Tooltip：點一下會留在畫面上蓋住其他列。用左邊的箭頭看全文。
 - 勾選框在標題列最左邊，一直顯示；勾選中的列是 `accent-soft` 加左緣 3 px `accent` 線。操作按鈕一直顯示，不用滑過。
 - 工具列在手機上：搜尋框一列，「篩選」、筆數和「排序」一列；「⋯」（欄位、複製、放大）不顯示。
-- 筆數和頁碼文字只有數字用 Geist Mono，「筆」等文字用一般字體；有單位的數字欄也一樣（「1 層」）。
+- 筆數和頁碼文字只有數字用 Geist Mono，「筆」等文字用一般字體；有單位的數字欄也一樣（「1 層」），合計列的「合計」「平均」和單位也是。日期和相對時間（「2 小時前」）整段用一般字體加等寬數字（tabular-nums）。
 
 ## 無障礙
 

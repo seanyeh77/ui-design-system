@@ -2233,6 +2233,8 @@ body {
 }
 /* Dates: <time>, figures of one width so a column of times lines up. */
 .ui-dt-time {
+  /* Dates and 「2 小時前」 hold words: the text font, with figures of one width so a column of times lines up. */
+  font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -2472,12 +2474,15 @@ body {
 
 .ui-dt-summary {
   margin-bottom: var(--space-3);
-}
-.ui-dt-summary {
   align-self: flex-start;
+  /* Wider than the table (phones): the row scrolls sideways, the edge with more tabs fades (Tabs), and it comes to rest
+     on a whole tab rather than in the middle of a word. */
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 4px;
 }
 .ui-dt-summary .ui-tab {
   white-space: nowrap;
+  scroll-snap-align: start;
 }
 .ui-dt-cell.is-long > .ui-dt-long {
   /* As wide as the column: the text is cut where the column ends, not after a set number of characters. */
@@ -6821,8 +6826,13 @@ html.ui-theme-fade * {
 .ui-card.is-flush > .ui-dt:first-child {
   padding-top: var(--space-4);
 }
-.ui-card.is-flush > .ui-dt > :not(.ui-dt-scroller) {
+.ui-card.is-flush > .ui-dt > :not(.ui-dt-scroller, .ui-dt-summary) {
   padding-inline: var(--space-4);
+}
+/* The summary tabs draw their own track: kept off the card's edges by a margin, not padded inside the track. */
+.ui-card.is-flush > .ui-dt > .ui-dt-summary {
+  margin-inline: var(--space-4);
+  max-width: calc(100% - 2 * var(--space-4));
 }
 .ui-card.is-flush > .ui-dt .ui-dt-scroll {
   border-inline: 0;
@@ -6843,6 +6853,8 @@ html.ui-theme-fade * {
   align-items: center;
   gap: var(--space-2);
   flex: 0 0 auto;
+  /* Always at the right end, with or without a title beside them. */
+  margin-left: auto;
 }
 :is(.ui-card, .ui-tree, .ui-settings-section, .ui-dialog, .ui-drawer) :is(.ui-tree, .ui-kpi, .ui-settings-section, .ui-alert) {
   box-shadow: none;

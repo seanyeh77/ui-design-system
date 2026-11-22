@@ -506,6 +506,8 @@ const FENCE_LANG: Record<string, string> = {
 };
 const fenceLang = (l: string) => FENCE_LANG[l] ?? (languageOf('x.' + l) !== 'plain' ? languageOf('x.' + l) : l || 'plain');
 
+// A number cell's figures and its unit: [all, number, space, unit].
+const NUM_UNIT = /^([-+]?(?:NT\$\s?)?[\d,]+(?:\.\d+)?)(\s?)(%|[A-Za-z]{1,3}|\p{Script=Han}{1,2})$/u;
 const NUM = /^[-+]?(?:NT\$\s?)?[\d,]+(?:\.\d+)?\s?(?:%|[A-Za-z]{1,3}|\p{Script=Han}{1,2})?$/u;
 
 export interface MarkdownProps {
@@ -630,7 +632,21 @@ export function Markdown(p: MarkdownProps) {
               label={b.head.map(plain).join('、')}
               heads={b.head.map((h) => inline(h, noTerms(c)))}
               headText={b.head.map(plain)}
-              rows={b.rows.map((r) => Array.from({ length: n }, (_, j) => inline(r[j] ?? '', block(c))))}
+              rows={b.rows.map((r) =>
+                Array.from({ length: n }, (_, j) => {
+                  // A number column: the figures in Geist Mono (td.is-num), the unit (「46 分」「3.5 GB」) in the text font.
+                  const u = numeric[j] ? NUM_UNIT.exec(r[j] ?? '') : null;
+                  return u ? (
+                    <>
+                      {inline(u[1], block(c))}
+                      {u[2]}
+                      <span className="ui-unit">{u[3]}</span>
+                    </>
+                  ) : (
+                    inline(r[j] ?? '', block(c))
+                  );
+                }),
+              )}
               numeric={numeric}
               align={align}
             />

@@ -26,7 +26,7 @@ export function Card({ as: Tag = 'section', title, actions, padding = true, clas
       <Tag {...native} className={cx('ui-card', !padding && 'is-flush', className)}>
         {title || actions ? (
           <div className="ui-card-head">
-            {title ? <h2 className="ui-card-title">{title}</h2> : <span />}
+            {title ? <h2 className="ui-card-title">{title}</h2> : null}
             {actions ? <div className="ui-card-actions">{actions}</div> : null}
           </div>
         ) : null}
