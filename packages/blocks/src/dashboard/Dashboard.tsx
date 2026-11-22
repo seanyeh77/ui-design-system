@@ -50,7 +50,7 @@ const NAV: NavSection[] = [
 const STATUS_LABEL: Record<ProjectRow['status'], string> = { draft: '草稿', doing: '進行中', review: '審核中', done: '完成', fail: '失敗' };
 
 const COLUMNS: DataTableColumn<ProjectRow>[] = [
-  { key: 'name', label: '名稱', width: 180 },
+  { key: 'name', label: '名稱' },
   { key: 'owner', label: '負責人' },
   { key: 'status', label: '狀態', render: (r) => <Badge status={r.status} />, searchText: (r) => STATUS_LABEL[r.status], mobile: 'status' },
   { key: 'progress', label: '進度', numeric: true, unit: '%' },

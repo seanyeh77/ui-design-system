@@ -186,7 +186,7 @@ test('widths: short columns hug their content and the main text column takes the
         rows={JOBS}
         urlSync={false}
         columns={[
-          { key: 'title', label: 'T', width: 200 },
+          { key: 'title', label: 'T', width: 200, grow: 0 },
           { key: 'source', label: 'S', grow: 1 },
         ]}
       />

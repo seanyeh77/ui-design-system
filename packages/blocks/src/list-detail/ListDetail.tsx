@@ -60,6 +60,8 @@ const SUMMARY = (['fail', 'review', 'doing', 'done', 'draft'] as const).map((v) 
 export function ListDetail({ items, owners, onSave }: ListDetailProps) {
   const [editing, setEditing] = React.useState<Item | null>(null);
   const [draft, setDraft] = React.useState<Item | null>(null);
+  // The name's error shows once the field is left (blur), not on every key, as the form rules say.
+  const [nameLeft, setNameLeft] = React.useState(false);
   const dirty = !!editing && JSON.stringify(editing) !== JSON.stringify(draft);
   const open = (it: Item) => {
     setEditing(it);
@@ -68,11 +70,12 @@ export function ListDetail({ items, owners, onSave }: ListDetailProps) {
   const close = () => {
     setEditing(null);
     setDraft(null);
+    setNameLeft(false);
   };
   const create = () => open({ id: '', name: '', owner: owners[0] ?? '', status: 'draft', note: '', updated: new Date() });
   const set = <K extends keyof Item>(k: K, v: Item[K]) => setDraft((d) => (d ? { ...d, [k]: v } : d));
   const columns: DataTableColumn<Item>[] = [
-    { key: 'name', label: '名稱', width: 200 },
+    { key: 'name', label: '名稱' },
     { key: 'owner', label: '負責人' },
     { key: 'status', label: '狀態', render: (r) => <Badge status={r.status} />, searchText: (r) => statusLabel(r.status), mobile: 'status' },
     { key: 'note', label: '備註', long: true, grow: 2 },
@@ -127,7 +130,8 @@ export function ListDetail({ items, owners, onSave }: ListDetailProps) {
               required
               value={draft.name}
               onChange={(e) => set('name', e.target.value)}
-              error={draft.name.trim() || draft.name === editing?.name ? undefined : '名稱不能空白，請輸入專案名稱。'}
+              onBlur={() => setNameLeft(true)}
+              error={nameLeft && !draft.name.trim() ? '名稱不能空白，請輸入專案名稱。' : undefined}
             />
             <Select label="負責人" value={draft.owner} options={owners.map((o) => ({ value: o, label: o }))} onChange={(v) => set('owner', v)} />
             <Select label="狀態" value={draft.status} options={STATUS_OPTIONS} onChange={(v) => set('status', v)} />
