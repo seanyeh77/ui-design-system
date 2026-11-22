@@ -39,7 +39,8 @@ export function TextField({ label, hint, error, id, className, required, disable
         {error ? <Icon name="warning-circle" className="ui-field-icon" /> : null}
       </div>
       {desc ? (
-        <div id={desc} className={error ? 'ui-field-error' : 'ui-field-hint'}>
+        // An error is announced when it appears (role="alert"), the same as the password error of LoginCard.
+        <div id={desc} className={error ? 'ui-field-error' : 'ui-field-hint'} role={error ? 'alert' : undefined}>
           {error || hint}
         </div>
       ) : null}

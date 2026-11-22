@@ -106,17 +106,18 @@ export function accentText(hex: string, dark: boolean, bg: string, surface: stri
   return text;
 }
 
-/** The preset swatches of AccentPicker. Each one, as text, reads on every ground of light, dark and the teaching
- *  preset once accentText has adjusted it, and white text reads on it in light (tokens-contrast.test.tsx). */
+/** The preset swatches of AccentPicker. In light (and the teaching preset) each one reads as text by itself (4.5:1 on
+ *  bg, surface, surface-sub, surface-chrome and its own accent-soft), so accentText returns it unchanged; white text
+ *  reads on it (4.5:1). In dark, accentText lightens it. Checked in tokens-contrast.test.tsx. */
 export const ACCENT_SWATCHES: readonly (readonly [name: string, hex: string])[] = [
   ['藍', '#2457d6'],
   ['靛', '#5b4fd6'],
-  ['紫', '#8a4fd6'],
-  ['桃紅', '#c2407a'],
-  ['紅', '#cd3a2f'],
-  ['橘', '#b85a0e'],
-  ['綠', '#1a844a'],
-  ['青', '#0e827d'],
+  ['紫', '#864ad1'],
+  ['桃紅', '#ba3873'],
+  ['紅', '#c53228'],
+  ['橘', '#ab5101'],
+  ['綠', '#077b42'],
+  ['青', '#027874'],
 ];
 
 /** Derives every accent token from one color (自訂強調色的換算 in docs/theme.md).
@@ -131,8 +132,8 @@ export function setAccent(hex: string, quiet = false): boolean {
   const surface = toHex(cs.getPropertyValue('--surface')) ?? (dark ? '#393530' : '#ffffff');
   const bg = toHex(cs.getPropertyValue('--bg')) ?? (dark ? '#2f2a25' : '#fcfbfb');
   const sub = toHex(cs.getPropertyValue('--surface-sub')) ?? (dark ? '#443f3b' : '#f6f5f4');
-  const chrome = toHex(cs.getPropertyValue('--surface-chrome')) ?? (dark ? '#35302c' : '#ffffff');
-  const soft = dark ? mixHex(bg, hex, 0.22) : mixHex('#ffffff', hex, 0.12);
+  const chrome = toHex(cs.getPropertyValue('--surface-chrome')) ?? (dark ? '#3d3834' : '#ffffff');
+  const soft = dark ? mixHex(surface, hex, 0.22) : mixHex('#ffffff', hex, 0.12);
   // Text in the accent also sits on zebra rows, code blocks, the top bar and its own soft fill (a selected row).
   const text = accentText(hex, dark, bg, surface, sub, chrome, soft);
   const ink = '#171512';

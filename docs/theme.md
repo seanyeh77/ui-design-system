@@ -51,7 +51,7 @@
 
 - 主題與強調色放在設定頁的「外觀」，不放在頂部列。
 - 主題：自動、淺色、深色三張預覽卡片（`ThemePicker`）。
-- 強調色：8 個推薦色票，加上可以輸入任何色碼的欄位（`AccentPicker`）。每個推薦色在淺色主題都至少 4.5:1：當文字放在 `bg` 上，以及白字放在它上面；預設色一定是其中之一。
+- 強調色：8 個推薦色票，加上可以輸入任何色碼的欄位（`AccentPicker`）。每個推薦色在淺色主題本身就能當文字：在 `bg`、`surface`、`surface-sub`、`surface-chrome` 和它自己的 `accent-soft` 上都至少 4.5:1，白字放在它上面也至少 4.5:1，所以淺色主題的 `accent-text` 就是色票本身；預設色一定是其中之一。色票：藍 `#2457d6`、靛 `#5b4fd6`、紫 `#864ad1`、桃紅 `#ba3873`、紅 `#c53228`、橘 `#ab5101`、綠 `#077b42`、青 `#027874`。
 - 切換主題時，所有顏色用 300 ms 漸變。
 
 ## 自訂強調色的換算
@@ -59,7 +59,7 @@
 使用者換強調色時（`setAccent()`），其他強調相關 token 依下列方式重新計算：
 
 - `accent-hover`、`accent-press`：強調色混入 12% 與 22% 黑色。
-- `accent-soft`：淺色主題為白色混入 12% 強調色；深色主題為 `bg` 混入 22% 強調色。
+- `accent-soft`：淺色主題為白色混入 12% 強調色；深色主題為 `surface` 混入 22% 強調色（選中的列多半在卡片上，以卡片底色為準）。
 - `accent-text`：強調色的文字色，對 `bg`、`surface`、`surface-sub`、`surface-chrome` 與換算出的 `accent-soft` 都要至少 4.5:1。強調色本身已經達標時就等於強調色（預設 `#2457d6` 在淺色主題不變）；不夠時，淺色主題混入黑色、每步 4%，深色主題混入白色、每步 5%，直到全部都達 4.5:1。例如淺色主題 `#ffe066` → `#7a6c31`、`#c4600f` → `#a5510d`、`#0f8a85` → `#0d7975`；深色主題 `#1a1a6e` → `#afafcc`，預設 `#2457d6` → `#92abeb`。讀 `bg`、`surface` 時接受 `#rgb`（打包工具會把 `#ffffff` 縮成 `#fff`）、`#rrggbb` 與 `rgb()`；讀不出來時 `accent-text` 就用強調色本身，不往黑或白混。
 - 只有文字跟著換：`accent` 本身（填色、進度條、選取框、色點、線）維持使用者選的顏色。用強調色寫的文字和緊貼文字的圖示一律讀 `accent-text`，不讀 `accent`。
 - `on-accent`：白色與 `ink` 中對比較高者。
@@ -72,10 +72,10 @@ Slidev 教材投影片使用 `data-theme="teaching"`。投影片的 CSS 只讀 t
 已確認的選擇：
 
 - 混合方案：中性色與字型沿用設計系統，強調色、直角與細線邊框沿用投影片風格。
-- 強調色：預設為青 `#0e827d`，即 8 個推薦色之一；觀眾可以用簡報的選色器改成其他顏色。
-- 圓角：全部 0 px（`radius-sm`、`radius-chip`、`radius-md`、`radius-lg`）。
+- 強調色：預設為青 `#027874`，即 8 個推薦色之一；觀眾可以用簡報的選色器改成其他顏色。
+- 圓角：全部 0 px（`radius-xs`、`radius-sm`、`radius-chip`、`radius-md`、`radius-lg`）。
 - 陰影：不用（`shadow-*` 為 none），外框用 1.5 px 的 `line`。
 - 字型：標題與內文 Inter 加思源黑體，程式碼 Geist Mono。
 - 只有淺色。
 
-`accent-hover`、`accent-press`、`accent-soft`、`accent-text`、`on-accent` 依「自訂強調色的換算」由 `#0e827d` 算出：它在 `bg` 上為 4.51:1、白字在它上面為 4.66:1，強調色底上的文字用白色；它在 `surface-sub` 與 `accent-soft` 上不到 4.5:1，所以 `accent-text` 是 `#0d7873`。版面、字級與投影片規則見 `teaching-materials-style`。
+`accent-hover`、`accent-press`、`accent-soft`、`accent-text`、`on-accent` 依「自訂強調色的換算」由 `#027874` 算出：它在 `surface-sub` 上為 4.89:1、在 `accent-soft` `#e1efee` 上為 4.51:1，白字在它上面為 5.33:1，所以 `accent-text` 就是 `#027874`，強調色底上的文字用白色。版面、字級與投影片規則見 `teaching-materials-style`。

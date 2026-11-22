@@ -82,6 +82,15 @@ body {
 .ui-btn-secondary:hover:not(:disabled) {
   background: var(--surface-sub);
 }
+/* Quiet: low-emphasis and toolbar actions. Same height and focus ring; no border, muted text, a gray ground on hover. */
+.ui-btn-quiet {
+  background: transparent;
+  color: var(--ink-muted);
+}
+.ui-btn-quiet:hover:not(:disabled) {
+  background: var(--surface-sub);
+  color: var(--ink);
+}
 .ui-btn-danger {
   background: var(--danger);
   color: var(--on-solid);
@@ -352,7 +361,10 @@ body {
 .ui-badge-fail .ui-badge-mark {
   color: var(--danger);
 }
-.ui-badge.is-dot {
+/* The dot form: a mark and text, no chip and no shadow. variant="dot", and every Badge inside a Card or a DataTable
+   (a raised chip on a raised card reads as a button). Only the attention states (fail, review, doing) color their
+   text; done and draft stay calm in ink-muted. The mark keeps its status color and shape. */
+.ui-badge:is(.is-dot, .ui-card *, .ui-dt *) {
   height: auto;
   padding: 0;
   gap: 6px;
@@ -360,20 +372,17 @@ body {
   box-shadow: none;
   font-weight: 600;
 }
-.ui-badge.is-dot.ui-badge-done {
-  color: var(--success-text);
+.ui-badge:is(.is-dot, .ui-card *, .ui-dt *):is(.ui-badge-done, .ui-badge-draft) {
+  color: var(--ink-muted);
 }
-.ui-badge.is-dot.ui-badge-fail {
+.ui-badge:is(.is-dot, .ui-card *, .ui-dt *).ui-badge-fail {
   color: var(--danger-text);
 }
-.ui-badge.is-dot.ui-badge-review {
+.ui-badge:is(.is-dot, .ui-card *, .ui-dt *).ui-badge-review {
   color: var(--warning-text);
 }
-.ui-badge.is-dot.ui-badge-doing {
+.ui-badge:is(.is-dot, .ui-card *, .ui-dt *).ui-badge-doing {
   color: var(--accent-text);
-}
-.ui-badge.is-dot.ui-badge-draft {
-  color: var(--ink-muted);
 }
 
 .ui-alert {
@@ -888,6 +897,10 @@ body {
 .ui-nav-collapse:hover {
   background: var(--surface-sub);
 }
+.ui-nav-collapse:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
 /* Pin and collapse at the bottom left: side by side at 240 px, one above the other at 72 px. */
 .ui-nav-foot {
   flex: 0 0 auto;
@@ -1027,7 +1040,7 @@ body {
   position: absolute;
   top: 4px;
   bottom: 4px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--surface);
   box-shadow: var(--shadow-sm);
   pointer-events: none;
@@ -1040,7 +1053,7 @@ body {
   height: 38px;
   padding: 0 var(--space-4);
   border: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-muted);
   font: inherit;
@@ -1232,7 +1245,7 @@ body {
   width: 22px;
   height: 22px;
   box-sizing: border-box;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   border: 2px solid var(--line-strong);
   display: inline-flex;
   align-items: center;
@@ -1245,7 +1258,7 @@ body {
 .ui-radio-dot {
   width: 10px;
   height: 10px;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   background: var(--accent);
   animation: ui-draw-dot var(--dur-nav) cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
@@ -1265,7 +1278,7 @@ body {
   height: 32px;
   padding: 0;
   box-sizing: border-box;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   border: 2px solid var(--line-strong);
   background: var(--surface-sub);
   cursor: pointer;
@@ -1288,7 +1301,7 @@ body {
 .ui-switch-thumb {
   position: absolute;
   top: 50%;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   background: var(--line-strong);
   color: var(--surface);
   display: flex;
@@ -1445,13 +1458,17 @@ body {
   width: 28px;
   height: 28px;
   border: 0;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   background: var(--surface-sub);
   color: var(--ink-muted);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+.ui-searchfield-clear:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .ui-textarea {
@@ -1638,7 +1655,7 @@ body {
   width: 10px;
   height: 10px;
   margin: -5px 0 0 -5px;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   box-shadow: 0 0 0 2px var(--surface);
 }
 .ui-chart-tip {
@@ -1748,13 +1765,13 @@ body {
 }
 .ui-progress-track {
   height: 8px;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   background: var(--surface-sub);
   overflow: hidden;
 }
 .ui-progress-fill {
   height: 100%;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   background: var(--accent);
   transition:
     width var(--dur-hover) linear,
@@ -1775,7 +1792,7 @@ body {
 .ui-loading {
   position: relative;
   height: 8px;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   background: var(--surface-sub);
   overflow: hidden;
 }
@@ -1799,7 +1816,7 @@ body {
   position: absolute;
   top: 0;
   bottom: 0;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   background: var(--accent);
   animation:
     ui-drop-l var(--dur-loop) cubic-bezier(0.65, 0, 0.35, 1) infinite,
@@ -2566,6 +2583,12 @@ body {
 .ui-tooltip[data-side='bottom'] .ui-tooltip-arrow {
   top: -4px;
 }
+.ui-tooltip[data-side='right'] .ui-tooltip-arrow {
+  left: -4px;
+}
+.ui-tooltip[data-side='left'] .ui-tooltip-arrow {
+  right: -4px;
+}
 
 .ui-menu-trigger {
   border-color: transparent;
@@ -2645,7 +2668,7 @@ body {
   height: 20px;
   padding: 0 6px;
   box-sizing: border-box;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   background: var(--accent);
   color: var(--on-accent);
   font-size: var(--text-mini);
@@ -2869,7 +2892,7 @@ html.ui-theme-fade * {
   height: 28px;
   padding: 0;
   border: 0;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2924,6 +2947,11 @@ html.ui-theme-fade * {
   color: var(--ink-muted);
   font-weight: 400;
 }
+.ui-link-btn:focus-visible {
+  outline: none;
+  border-radius: var(--radius-xs);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
 .ui-link {
   color: var(--accent-text);
   font-weight: 600;
@@ -2949,7 +2977,7 @@ html.ui-theme-fade * {
   height: 18px;
   padding: 0 5px;
   box-sizing: border-box;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   background: var(--danger);
   color: var(--on-solid);
   font-family: var(--font-mono);
@@ -3031,7 +3059,7 @@ html.ui-theme-fade * {
   top: 17px;
   width: 8px;
   height: 8px;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   background: var(--accent);
 }
 .ui-noti-text {
@@ -3230,7 +3258,7 @@ html.ui-theme-fade * {
   width: 4px;
   height: 4px;
   margin-left: -2px;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   background: var(--accent-text);
 }
 .ui-cal-day.is-today.is-sel::after {
@@ -4365,7 +4393,7 @@ html.ui-theme-fade * {
   font-family: var(--font-mono);
   font-size: 0.875em;
   padding: 1px 5px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   background: var(--surface-sub);
   color: var(--ink);
   overflow-wrap: anywhere;
@@ -4434,7 +4462,7 @@ html.ui-theme-fade * {
 }
 .ui-code.is-link.is-name:focus-visible,
 .ui-code.is-link.is-location:focus-visible {
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
@@ -4690,7 +4718,7 @@ html.ui-theme-fade * {
   width: 10px;
   height: 10px;
   box-sizing: border-box;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   background: var(--success);
 }
 .ui-projsw.is-stale .ui-projsw-dot {
@@ -5117,7 +5145,7 @@ html.ui-theme-fade * {
   padding: 0 var(--space-1);
   border: 1px solid var(--line);
   border-bottom-width: 2px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-xs);
   background: var(--surface);
   font-family: var(--font-mono);
   font-size: var(--text-mini);
@@ -5183,7 +5211,7 @@ html.ui-theme-fade * {
   align-items: center;
   justify-content: center;
   border: 1px solid var(--line-strong);
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   font-family: var(--font-mono);
   font-size: var(--text-mini);
 }
@@ -5366,7 +5394,7 @@ html.ui-theme-fade * {
   font: inherit;
   text-align: inherit;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
 }
 .ui-term-q {
   display: inline-block;
@@ -6425,7 +6453,7 @@ html.ui-theme-fade * {
   width: 20px;
   height: 20px;
   margin: -10px 0 0 -10px;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   background: var(--ink);
   color: var(--surface);
   font-family: var(--font-mono);
@@ -8159,9 +8187,9 @@ a.ui-wb-brand:focus-visible {
   position: absolute;
   top: 2px;
   bottom: 2px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   background: var(--surface);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-sm);
 }
 .ui-seg-item {
   position: relative;
@@ -8172,7 +8200,7 @@ a.ui-wb-brand:focus-visible {
   height: 24px;
   padding: 0 10px;
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   background: none;
   color: var(--ink-muted);
   font: inherit;

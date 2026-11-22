@@ -54,7 +54,7 @@ export function LoginCard(p: LoginCardProps) {
             <FieldLabel htmlFor={pwId}>{tr('密碼')}</FieldLabel>
             {p.forgotHref ? (
               <a href={p.forgotHref} className="ui-link">
-                {tr('忘記密碼？')}
+                {tr('忘記密碼')}
               </a>
             ) : null}
           </div>

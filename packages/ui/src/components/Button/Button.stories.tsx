@@ -16,6 +16,9 @@ function Demo() {
           {saving ? '儲存中' : '儲存'}
         </UI.Button>
         <UI.Button>取消</UI.Button>
+        <UI.Button variant="quiet" icon="download-simple">
+          匯出
+        </UI.Button>
         <UI.Button variant="danger" confirm={{ title: '刪除這個專案？', body: '專案內的 12 個任務會一起刪除，無法復原。' }}>
           刪除
         </UI.Button>

@@ -4,8 +4,8 @@ import { Tooltip as Base } from '@base-ui/react/tooltip';
 export interface TooltipProps {
   /** Short text, also announced as the trigger's description. Never the only place important information lives. */
   label: string;
-  /** Preferred side; flips when there is no room. Default 'top'. */
-  side?: 'top' | 'bottom';
+  /** Preferred side; flips when there is no room. 'right' for controls at a sidebar's edge. Default 'top'. */
+  side?: 'top' | 'bottom' | 'right';
   /** One focusable element that accepts a ref (a button, IconButton, Button, a link). */
   children: React.ReactElement;
   /** false: the label only repeats the trigger's own name (an IconButton's aria-label), so it is not added as its description. Default true. */

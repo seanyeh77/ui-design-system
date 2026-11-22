@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
+import { page } from 'vitest/browser';
 import { render } from '@testing-library/react';
-import { Badge, type BadgeStatus } from '../../index';
+import { Badge, Card, type BadgeStatus } from '../../index';
 
 const NAMES: [BadgeStatus, string][] = [
   ['draft', '草稿'],
@@ -41,4 +42,38 @@ test('Badge: children replace the name; the dot variant keeps the text', () => {
 test('Badge: an unknown status from data falls back to 草稿 instead of crashing', () => {
   const { container } = render(<Badge status={'archived' as BadgeStatus} />);
   expect(container.textContent).toBe('草稿');
+});
+
+test('Badge: inside a Card it is the dot form at every width; only fail, review and doing color their text', async () => {
+  const { container } = render(
+    <>
+      <Badge status="done" />
+      <Card title="部署">
+        <Badge status="done" />
+        <Badge status="draft" />
+        <Badge status="fail" />
+      </Card>
+    </>,
+  );
+  const [loose, done, draft, fail] = Array.from(container.querySelectorAll('.ui-badge')) as HTMLElement[];
+  const muted = getComputedStyle(container.querySelector('.ui-card') as Element)
+    .getPropertyValue('--ink-muted')
+    .trim();
+  const probe = document.createElement('span');
+  probe.style.color = muted;
+  document.body.append(probe);
+  const mutedRgb = getComputedStyle(probe).color;
+  probe.remove();
+  for (const width of [1280, 390]) {
+    await page.viewport(width, 800);
+    expect(getComputedStyle(loose).boxShadow).not.toBe('none');
+    for (const b of [done, draft, fail]) {
+      expect(getComputedStyle(b).boxShadow).toBe('none');
+      expect(getComputedStyle(b).backgroundColor).toBe('rgba(0, 0, 0, 0)');
+    }
+    expect(getComputedStyle(done).color).toBe(mutedRgb);
+    expect(getComputedStyle(draft).color).toBe(mutedRgb);
+    expect(getComputedStyle(fail).color).not.toBe(mutedRgb);
+  }
+  await page.viewport(1280, 800);
 });

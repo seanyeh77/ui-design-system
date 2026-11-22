@@ -27,8 +27,9 @@ export interface DangerConfirm {
 
 export type ButtonProps =
   | (ButtonBase & {
-      /** primary: the one main action of a section. secondary (default): everything else. */
-      variant?: 'primary' | 'secondary';
+      /** primary: the one main action of a section (solid). secondary (default): everything else (outline). quiet:
+       *  low-emphasis and toolbar actions, text only with no border, a gray background on hover. */
+      variant?: 'primary' | 'secondary' | 'quiet';
     })
   | (ButtonBase & {
       /** Destructive. Must be confirmed: pass `confirm`, or `confirmed` when this button is itself inside the confirm Dialog. */

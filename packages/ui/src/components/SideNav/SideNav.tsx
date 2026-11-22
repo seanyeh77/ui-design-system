@@ -5,6 +5,7 @@ import { dropTransition, useMoving } from '../../motion';
 import { announce } from '../../announce';
 import { cx } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
+import { Tooltip } from '../Tooltip/Tooltip';
 
 export interface NavItem {
   id: string;
@@ -191,21 +192,24 @@ export function SideNav({ sections, value, onChange, collapsed = false, onToggle
       {onToggle || onPin ? (
         <div className="ui-nav-foot">
           {onPin ? (
-            <button
-              type="button"
-              className={cx('ui-nav-collapse', 'ui-nav-pin', pinned && 'is-on')}
-              aria-pressed={pinned}
-              aria-label={pinned ? tr('取消釘選') : tr('釘選側邊欄')}
-              title={pinned ? tr('取消釘選') : tr('釘選側邊欄')}
-              onClick={onPin}
-            >
-              <Icon name="push-pin" size={20} filled={pinned} />
-            </button>
+            <Tooltip label={pinned ? tr('取消釘選') : tr('釘選側邊欄')} side="right" describe={false}>
+              <button
+                type="button"
+                className={cx('ui-nav-collapse', 'ui-nav-pin', pinned && 'is-on')}
+                aria-pressed={pinned}
+                aria-label={pinned ? tr('取消釘選') : tr('釘選側邊欄')}
+                onClick={onPin}
+              >
+                <Icon name="push-pin" size={20} filled={pinned} />
+              </button>
+            </Tooltip>
           ) : null}
           {onToggle ? (
-            <button type="button" className="ui-nav-collapse" aria-label={toggleLabel} title={toggleLabel} onClick={onToggle}>
-              <Icon name="sidebar-simple" size={20} />
-            </button>
+            <Tooltip label={toggleLabel} side="right" describe={false}>
+              <button type="button" className="ui-nav-collapse" aria-label={toggleLabel} onClick={onToggle}>
+                <Icon name="sidebar-simple" size={20} />
+              </button>
+            </Tooltip>
           ) : null}
         </div>
       ) : null}

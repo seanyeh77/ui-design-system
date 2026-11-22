@@ -47,7 +47,7 @@ test('LoginCard: the eye button shows the password and says whether it is presse
   expect(pw.type).toBe('text');
   const hide = screen.getByRole('button', { name: '隱藏密碼' });
   expect(hide.getAttribute('aria-pressed')).toBe('true');
-  expect(screen.getByRole('link', { name: '忘記密碼？' }).getAttribute('href')).toBe('/forgot');
+  expect(screen.getByRole('link', { name: '忘記密碼' }).getAttribute('href')).toBe('/forgot');
 });
 
 test('LoginCard: loading disables the submit button', () => {
@@ -55,4 +55,11 @@ test('LoginCard: loading disables the submit button', () => {
   const btn = screen.getByRole('button', { name: '登入' }) as HTMLButtonElement;
   expect(btn.disabled).toBe(true);
   expect(btn.getAttribute('aria-busy')).toBe('true');
+});
+
+test('LoginCard: an account error is announced like the password error (role alert)', () => {
+  render(<LoginCard onSubmit={() => {}} error={{ account: '找不到這個帳號，請確認拼字。' }} />);
+  const alerts = screen.getAllByRole('alert');
+  expect(alerts.map((a) => a.textContent)).toEqual(['找不到這個帳號，請確認拼字。']);
+  expect(described(screen.getByLabelText('帳號'))).toBe('找不到這個帳號，請確認拼字。');
 });

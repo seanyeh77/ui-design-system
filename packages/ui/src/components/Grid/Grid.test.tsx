@@ -9,7 +9,7 @@ afterEach(async () => {
 
 const cols = (el: Element | null) => getComputedStyle(el as Element).gridTemplateColumns.split(' ').length;
 
-test('Grid: 3 columns from 1280 px, 2 on a tablet, 1 on a phone', async () => {
+test('Grid: 3 columns from 960 px, 2 on a tablet, 1 on a phone', async () => {
   const { container } = render(
     <Page>
       <Grid>
@@ -43,6 +43,30 @@ test('Grid: columns 4 and 6 from 1280 px', async () => {
   const [four, six] = Array.from(container.querySelectorAll('.ui-grid'));
   expect(cols(four)).toBe(4);
   expect(cols(six)).toBe(6);
+});
+
+test('Grid: from 960 px to 1279 px, columns 3 stays 3, 4 becomes 2 and 6 becomes 3', async () => {
+  const { container } = render(
+    <>
+      <Grid>
+        <div>a</div>
+      </Grid>
+      <Grid columns={4}>
+        <div>a</div>
+      </Grid>
+      <Grid columns={6}>
+        <div>a</div>
+      </Grid>
+      <Grid columns={2}>
+        <div>a</div>
+      </Grid>
+    </>,
+  );
+  const [three, four, six, two] = Array.from(container.querySelectorAll('.ui-grid'));
+  await page.viewport(1000, 800);
+  expect([cols(three), cols(four), cols(six), cols(two)]).toEqual([3, 2, 3, 2]);
+  await page.viewport(800, 800);
+  expect([cols(three), cols(four), cols(six), cols(two)]).toEqual([2, 2, 2, 2]);
 });
 
 test('FormGrid: one column under 960 px, two from 960 px', async () => {

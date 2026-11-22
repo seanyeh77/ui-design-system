@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from 'vitest';
 import tokens from '@seanyeh77/tokens/tokens.json';
-import { ACCENT_SWATCHES, DEFAULT_ACCENT, setAccent, setTheme } from './theme';
+import { ACCENT_SWATCHES, DEFAULT_ACCENT, accentText, setAccent, setTheme } from './theme';
 
 // Text contrast (WCAG 2, 4.5:1) computed from tokens.json, and from setAccent for every preset swatch, so a token
 // change or a new swatch that makes text unreadable on one of the grounds fails here.
@@ -88,6 +88,34 @@ test('the token values of accent-text and accent-soft are what setAccent derives
   setAccent(teaching.accent, true);
   expect(varOf('--accent-text')).toBe(teaching['accent-text']);
   expect(varOf('--accent-soft')).toBe(teaching['accent-soft']);
+});
+
+test('light and teaching: every preset swatch and the teaching accent read as text by themselves (accentText keeps them)', () => {
+  const fails: string[] = [];
+  const check = (name: string, hex: string, c: Record<string, string>) => {
+    // The light accent-soft of this accent: white with 12% of it (setAccent).
+    const soft =
+      '#' +
+      [1, 3, 5]
+        .map((i) =>
+          Math.round(255 + (parseInt(hex.slice(i, i + 2), 16) - 255) * 0.12)
+            .toString(16)
+            .padStart(2, '0'),
+        )
+        .join('');
+    const text = accentText(hex, false, c.bg, c.surface, c['surface-sub'], c['surface-chrome'], soft);
+    if (text !== hex) fails.push(`${name} ${hex}: accentText gives ${text}`);
+    if (contrast('#ffffff', hex) < 4.5) fails.push(`${name} ${hex}: white on it ${contrast('#ffffff', hex).toFixed(2)}:1`);
+  };
+  for (const [name, hex] of ACCENT_SWATCHES) check(name, hex, themes.light);
+  check('teaching', teaching.accent, themes.teaching);
+  expect(teaching['accent-text']).toBe(teaching.accent);
+  expect(fails).toEqual([]);
+});
+
+test.each(['light', 'dark'])('%s: line-strong (control borders) reaches 3:1 on surface and surface-sub', (theme) => {
+  const c = themes[theme];
+  for (const g of ['surface', 'surface-sub']) expect(contrast(c['line-strong'], c[g]), `line-strong on ${g}`).toBeGreaterThanOrEqual(3);
 });
 
 test('every type style in tokens.json uses a size of the text scale', () => {

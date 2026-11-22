@@ -10,13 +10,14 @@
 ```
 
 - 5 種 `status`：`draft`、`doing`、`review`、`done`、`fail`，預設文字見下表；`children` 可以換字。
-- 放在卡片上時用 `variant="dot"`：圓點加文字，沒有底色和陰影，避免看起來像按鈕。DataTable 的手機卡片會自動使用。
+- 放在 `Card` 或 `DataTable` 裡時，不論寬度都自動變成圓點加文字（等同 `variant="dot"`），沒有底色和陰影，避免看起來像按鈕；不用自己給 `variant`。其他地方要圓點樣式時才給 `variant="dot"`。
 - 狀態不只靠顏色：一定有文字。
 
 ## 細節
 
 - 外型：`surface` 底色、`shadow-chip` 陰影、`radius-chip` 8 px 圓角、高度 `chip-height` 32 px。
-- 文字用主要文字色 `ink`，顏色只出現在進度圓圈上。`variant="dot"` 的文字用該狀態的文字色（`success-text`、`danger-text`、`warning-text`、`accent-text`、`ink-muted`）。
+- Chip 的文字用主要文字色 `ink`，顏色只出現在進度圓圈上。
+- 圓點樣式（`Card`、`DataTable` 裡，或 `variant="dot"`）：只有要注意的狀態用該狀態的文字色：`fail` 用 `danger-text`、`review` 用 `warning-text`、`doing` 用 `accent-text`；`done` 和 `draft` 用 `ink-muted`，讓需要處理的項目先被看到。進度圓圈保留各自的顏色和形狀。
 
 | status   | 文字   | 進度圓圈 | 顏色          |
 | -------- | ------ | -------- | ------------- |

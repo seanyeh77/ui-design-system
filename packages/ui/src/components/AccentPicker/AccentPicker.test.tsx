@@ -24,7 +24,7 @@ test('AccentPicker: 8 named swatches in a radio group; the stored accent is chec
   expect(radios.length).toBe(8);
   expect(screen.getByRole('radio', { name: '藍' }).getAttribute('aria-checked')).toBe('true');
   unmount();
-  localStorage.setItem('ui-accent', '#0e827d');
+  localStorage.setItem('ui-accent', '#027874');
   render(<AccentPicker />);
   expect(screen.getByRole('radio', { name: '青' }).getAttribute('aria-checked')).toBe('true');
   expect(screen.getByRole('radio', { name: '藍' }).getAttribute('aria-checked')).toBe('false');
@@ -33,8 +33,8 @@ test('AccentPicker: 8 named swatches in a radio group; the stored accent is chec
 test('AccentPicker: a swatch applies the accent to the root and stores it', async () => {
   render(<AccentPicker />);
   await userEvent.setup().click(screen.getByRole('radio', { name: '綠' }));
-  expect(accent()).toBe('#1a844a');
-  expect(localStorage.getItem('ui-accent')).toBe('#1a844a');
+  expect(accent()).toBe('#077b42');
+  expect(localStorage.getItem('ui-accent')).toBe('#077b42');
   expect(screen.getByRole('radio', { name: '綠' }).getAttribute('aria-checked')).toBe('true');
 });
 
@@ -57,10 +57,10 @@ test('AccentPicker: the hex field applies a full #rrggbb at once and explains a 
 
 test('AccentPicker: with onChange it only reports; value controls the checked swatch', async () => {
   const onChange = vi.fn();
-  render(<AccentPicker value="#C2407A" onChange={onChange} />);
+  render(<AccentPicker value="#BA3873" onChange={onChange} />);
   expect(screen.getByRole('radio', { name: '桃紅' }).getAttribute('aria-checked')).toBe('true');
   await userEvent.setup().click(screen.getByRole('radio', { name: '紅' }));
-  expect(onChange).toHaveBeenCalledWith('#cd3a2f');
+  expect(onChange).toHaveBeenCalledWith('#c53228');
   expect(accent()).toBe(DEFAULT_ACCENT);
   expect(localStorage.getItem('ui-accent')).toBeNull();
 });
@@ -75,7 +75,7 @@ test('AccentPicker: blocked storage still applies the accent', async () => {
   render(<AccentPicker />);
   expect(screen.getByRole('radio', { name: '藍' }).getAttribute('aria-checked')).toBe('true');
   await userEvent.setup().click(screen.getByRole('radio', { name: '橘' }));
-  expect(accent()).toBe('#b85a0e');
+  expect(accent()).toBe('#ab5101');
 });
 
 test('AccentPicker: the swatches are one Tab stop; arrows move and choose, then Tab goes to the hex field', async () => {
@@ -88,7 +88,7 @@ test('AccentPicker: the swatches are one Tab stop; arrows move and choose, then 
   expect(accent()).toBe('#5b4fd6');
   await user.keyboard('{ArrowLeft}{ArrowLeft}');
   expect(document.activeElement).toBe(screen.getByRole('radio', { name: '青' }));
-  expect(accent()).toBe('#0e827d');
+  expect(accent()).toBe('#027874');
   await user.tab();
   expect(document.activeElement).toBe(screen.getByRole('textbox', { name: '自訂強調色（色碼）' }));
 });

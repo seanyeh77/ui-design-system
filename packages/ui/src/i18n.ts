@@ -41,7 +41,7 @@ export const I18N: I18nState = {
       '已選 {n} 筆': '{n} selected',
       帳號: 'Username',
       強調色: 'Accent color',
-      '忘記密碼？': 'Forgot password?',
+      忘記密碼: 'Forgot password',
       找不到符合的選項: 'No matching options',
       '拖放檔案，或 ': 'Drop files here, or ',
       搜尋: 'Search',

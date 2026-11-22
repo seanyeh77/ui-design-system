@@ -2,7 +2,8 @@ import type * as React from 'react';
 import { cx } from '../../internal/util';
 
 export interface GridProps {
-  /** Columns from 1280 px. Under 600 px there is one column; in between, at most 2. Default 3. */
+  /** Columns from 1280 px. 960–1279 px: 4 becomes 2, 6 becomes 3, 1, 2 and 3 stay. 600–959 px: 2 (1 stays 1).
+   *  Under 600 px: 1. Default 3. */
   columns?: 1 | 2 | 3 | 4 | 6;
   children: React.ReactNode;
   className?: string;
