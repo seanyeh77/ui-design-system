@@ -89,7 +89,8 @@ function compact(v: number, like?: number): string {
   if (Math.abs(ref) < 1e4) return number(v);
   if (/^zh/i.test(I18N.locale)) {
     const a = Math.abs(ref);
-    const [unit, div, maxDec] = a >= 1e8 ? (['億', 1e8, 2] as const) : (['萬', 1e4, 1] as const);
+    // 99,999,999 rounds to 10,000.0 萬: write it as 1 億.
+    const [unit, div, maxDec] = Math.round(a / 1e3) >= 1e5 ? (['億', 1e8, 2] as const) : (['萬', 1e4, 1] as const);
     const finalStr = new Intl.NumberFormat(I18N.locale, { maximumFractionDigits: maxDec }).format(a / div);
     const sign = v < 0 ? '-' : '';
     if (like === undefined) return `${sign}${finalStr} ${unit}`;
@@ -134,7 +135,8 @@ function money(v: number, o: { currency?: string; compact?: boolean; like?: numb
   return new Intl.NumberFormat(I18N.locale, {
     style: 'currency',
     currency: cur,
-    currencyDisplay: 'narrowSymbol',
+    // narrowSymbol writes TWD as a bare 「$」, which reads as dollars: keep 「NT$」 (docs: 英文介面顯示 NT$486,000).
+    currencyDisplay: cur === 'TWD' ? 'symbol' : 'narrowSymbol',
     minimumFractionDigits: 0,
     maximumFractionDigits: cur === 'TWD' || cur === 'JPY' ? 0 : 2,
   }).format(v);
@@ -144,8 +146,9 @@ function money(v: number, o: { currency?: string; compact?: boolean; like?: numb
 export function fileSize(b: number | null | undefined): string {
   if (b == null || Number.isNaN(b)) return '';
   // An empty file is 0 KB; anything else at least 1 KB.
-  if (b < 1048576) return number(b === 0 ? 0 : Math.max(1, Math.round(b / 1024))) + ' KB';
-  if (b < 1073741824) return number(b / 1048576, 1) + ' MB';
+  // Compare after rounding: 1,048,500 bytes rounds to 1,024 KB, so it is written 「1.0 MB」.
+  if (Math.round(b / 1024) < 1024) return number(b === 0 ? 0 : Math.max(1, Math.round(b / 1024))) + ' KB';
+  if (Math.round((b / 1048576) * 10) < 10240) return number(b / 1048576, 1) + ' MB';
   return number(b / 1073741824, 1) + ' GB';
 }
 

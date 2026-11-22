@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
-import { cx, store } from '../../internal/util';
+import { browserKey, cx, store } from '../../internal/util';
 import { ACCENT_KEY, DEFAULT_ACCENT, setAccent } from '../../theme';
 
 // 每個色票在淺色主題都要達 4.5:1：當文字放在 bg 上，以及白字放在它上面。
@@ -38,17 +38,27 @@ export function AccentPicker({ value, onChange, label, className }: AccentPicker
     else setAccent(c);
   };
   const bad = !!hexIn && !HEX.test(hexIn);
+  const refs = React.useRef<(HTMLButtonElement | null)[]>([]);
+  // One Tab stop in the swatches (the chosen one, or the first for a custom color); arrow keys move and choose.
+  const tabStop = Math.max(
+    0,
+    SWATCHES.findIndex(([, hex]) => hex === cur),
+  );
   return (
     <div className={cx('ui-accentpick', className)}>
       <div role="radiogroup" aria-label={label || tr('強調色')} className="ui-accentpick-swatches">
-        {SWATCHES.map(([name, hex]) => {
+        {SWATCHES.map(([name, hex], i) => {
           const on = cur === hex;
           return (
             <button
               key={hex}
+              ref={(el) => {
+                refs.current[i] = el;
+              }}
               type="button"
               role="radio"
               aria-checked={on}
+              tabIndex={i === tabStop ? 0 : -1}
               aria-label={tr(name)}
               title={tr(name)}
               className={cx('ui-swatch', on && 'is-on')}
@@ -56,6 +66,16 @@ export function AccentPicker({ value, onChange, label, className }: AccentPicker
               onClick={() => {
                 setHexIn('');
                 pick(hex);
+              }}
+              onKeyDown={(e) => {
+                if (browserKey(e)) return;
+                const n = SWATCHES.length;
+                const to = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? (i + 1) % n : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? (i - 1 + n) % n : -1;
+                if (to < 0) return;
+                e.preventDefault();
+                refs.current[to]?.focus();
+                setHexIn('');
+                pick(SWATCHES[to][1]);
               }}
             >
               {on ? <Icon name="check" size={14} /> : null}

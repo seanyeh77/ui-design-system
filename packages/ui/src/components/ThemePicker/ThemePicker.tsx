@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { tr } from '../../i18n';
-import { cx } from '../../internal/util';
+import { browserKey, cx } from '../../internal/util';
 import { setTheme, storedTheme, type ThemeSetting } from '../../theme';
 
 const THEMES: { id: ThemeSetting; label: string }[] = [
@@ -23,21 +23,40 @@ export interface ThemePickerProps {
 export function ThemePicker({ value, onChange, label, className }: ThemePickerProps) {
   const [own, setOwn] = React.useState<ThemeSetting>(() => value ?? storedTheme());
   const cur = value ?? own;
+  const refs = React.useRef<(HTMLButtonElement | null)[]>([]);
   const pick = (id: ThemeSetting) => {
     setOwn(id);
     if (onChange) onChange(id);
     else setTheme(id);
   };
+  // One Tab stop (the chosen card); arrow keys move to the next card and choose it, as in RadioGroup.
+  const tabStop = Math.max(
+    0,
+    THEMES.findIndex((t) => t.id === cur),
+  );
   return (
     <div role="radiogroup" aria-label={label || tr('主題')} className={cx('ui-themepick', className)}>
-      {THEMES.map((t) => (
+      {THEMES.map((t, i) => (
         <button
           key={t.id}
+          ref={(el) => {
+            refs.current[i] = el;
+          }}
           type="button"
           role="radio"
           aria-checked={cur === t.id}
+          tabIndex={i === tabStop ? 0 : -1}
           className={cx('ui-themepick-opt', cur === t.id && 'is-on')}
           onClick={() => pick(t.id)}
+          onKeyDown={(e) => {
+            if (browserKey(e)) return;
+            const n = THEMES.length;
+            const to = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? (i + 1) % n : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? (i - 1 + n) % n : -1;
+            if (to < 0) return;
+            e.preventDefault();
+            refs.current[to]?.focus();
+            pick(THEMES[to].id);
+          }}
         >
           <span className={'ui-themepick-mini is-' + t.id} aria-hidden="true">
             <span />
