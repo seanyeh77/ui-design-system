@@ -1,5 +1,54 @@
 # @seanyeh77/ui
 
+## 0.41.0
+
+### Minor Changes
+
+- be1018c: DataTable：合計列一起量欄寬，「平均 63 %」不再被切掉；`width` 對每一種欄位都只是最小寬度，不再讓欄位變短（欄位短不短只看數字、單位、格式與狀態）；量欄寬改成每個畫面最多一次，只在列或欄位改變時進行。「/」只交給看得到的表格，焦點在清單、格線、選單、對話框時不接，搜尋框拿到焦點後才攔下按鍵。`rowHref` 的列：中鍵與 Ctrl、⌘、Shift＋點擊在新分頁開啟，選取文字時不開啟；新增 `onRowOpen(row, event)` 給 SPA 推路由。Shift＋點勾選框的起點在搜尋、篩選、排序或每頁筆數改變後重新開始。單位、相對時間、「合計」「平均」改用一般字體，只有數字用 Geist Mono（Markdown 表格的數字欄也一樣）。`padding={false}` 的 Card 裡，摘要分段控制和卡片邊緣隔 16 px；手機上捲動時停在完整的項目上。Card：沒有 `title` 時 `actions` 一樣靠右，不再有空的占位元素。TextField：錯誤訊息只在有錯誤時插入，新的錯誤念一次。
+- bc1608a: DataTable 只給欄位就有合適的預設：
+  
+  - 欄寬：第一個文字欄和 `long` 欄占剩下的寬度，數字、單位、日期、長度、狀態、其他短文字和有 `width` 的欄貼合內容（量標題和格子）。`grow` 仍然優先。
+  - 工具列：搜尋框（320 px，最窄 240 px，放大鏡 20 px）、「篩選」、「排序」和新的「⋯」（更多表格操作）都是 40 px 高；「欄位」（加「還原預設」）、「複製成 Markdown」、「放大表格」移進「⋯」，複製後在按鈕下方顯示「已複製」。
+  - 按「/」移到第一個表格的搜尋框（`searchShortcut`，預設開），空白時框內顯示「/」。
+  - 有篩選條件時「篩選」按鈕變強調色，工具列下方列出可移除的條件標籤和「清除全部」。
+  - 新欄位設定：`secondary`（格子下的第二行）、`format: 'duration'`（46:42、1:54:49）；新的 `rowHref`（第一欄變連結、點整列開啟）。
+  - 日期欄是 `<time>`，依時間排序；相對時間滑過時顯示完整日期。
+  - 列的狀態：滑過是中性淡底，勾選是 `accent-soft` 加左緣 3 px 線，鍵盤所在列是左緣 2 px 線；表頭下緣改用 `line-strong`；深色主題的斑馬紋較淡。
+  - `stickyFirst` 時勾選欄和展開箭頭欄也固定；`widthKey` 也記住顯示的欄位；Shift＋點勾選框選取一段。
+  - 開發時警告：`summary` 和篩選或檢視篩同一欄、有單位的欄位收到含單位的字串。
+  - 排序箭頭用 `ink-muted`；檢視分頁、取消選取、「顯示全部」加上焦點外光暈；移除手機卡片裡 Badge 的覆寫樣式（Badge 自己處理）。
+  - 新增 `format.duration(seconds)`。
+- 20b6f04: 焦點、填色與狀態記號一律達到 WCAG 對比：文字 4.5:1，非文字 3:1，淺色、深色、教材主題與 8 個推薦色票都成立。
+  
+  - 焦點：所有控制項改用同一種焦點樣式，2 px 實線外框、離控制項 2 px（貼齊會裁切的容器時畫在內側 2 px），顏色是新的 `focus` token（等於 `accent-text`，在每種底色上至少 4.5:1）。原本 3 px 的 `focus-ring` 光暈只有約 1.6:1（淺色）與 2:1（深色），已全部換掉；`styles.css` 也對其他 `:focus-visible` 元素預設同一種外框。`focus-ring` 保留為舊名稱，數值和 `focus` 相同；`danger-ring` 不再使用，數值改為 `danger-text`。
+  - 強調色填色：`setAccent()` 換算出的 `accent` 在 `bg`、`surface`、`surface-sub`、`surface-chrome`、`accent-soft` 上至少 3:1，`on-accent` 在它上面至少 4.5:1；不夠時淺色混黑色（每步 4%）、深色混白色（每步 5%）。深色主題預設 `accent` 由 `#2457d6`（在 `surface-sub` 上 1.69:1）改為 `#6689e2`（3.09:1），`accent-hover`／`accent-press` 改為往亮的方向 `#7897e5`／`#88a3e8`，`on-accent` 改為 `#171512`。淺色的 8 個推薦色不變。
+  - 語意實色：淺色 `success` `#1ca655` → `#1b9f52`、`warning` `#d68710` → `#bc770e`，深色 `danger` `#cd2823` → `#dc6965`，在各底色與表格列上至少 3:1；新增 `on-danger`（淺色白、深色 `#171512`）給危險按鈕與數字徽章的文字。必填星號改用 `danger-text`。
+  - 狀態記號：Badge 的進度圓圈、TreeList 與 Workbench 的圓點、ProjectSwitcher 的狀態點、Meter 的標記與圓點、LineChart 的門檻線改用 `success-text`、`warning-text`、`danger-text`、`accent-text`，草稿用 `ink-muted`。
+  - Tabs 與 SegmentedControl 選中的白塊加 1 px `line-strong` 框，選中處對灰底達到 3:1。
+- dbee37f: 放在 `Card` 或 `DataTable` 裡的 Badge 不論寬度都自動變成圓點加文字、沒有陰影，圓點樣式只有失敗、審核中、進行中用狀態色，完成與草稿用 `ink-muted`；Button 新增 `variant="quiet"`（無外框、`ink-muted` 文字、滑過 `surface-sub` 底色）；新增 `radius-xs` 4 px 給行內程式碼、Term、按鍵與 SegmentedControl，Tabs 指示塊與分頁改用 `radius-sm`，所有膠囊圓角改用 `radius-full`；深色 `shadow-chip` 變淡、`surface-chrome` 調亮為 `#3d3834`、`accent-soft` 改為 `surface` 混入 22% 強調色（`#343c55`，`setAccent` 同步），`line-strong` 深色調亮為 `#988c80`，兩個主題在 `surface` 與 `surface-sub` 上都達 3:1；8 個推薦強調色在淺色主題本身就達 4.5:1，未達標的 6 個改深（紫 `#864ad1`、桃紅 `#ba3873`、紅 `#c53228`、橘 `#ab5101`、綠 `#077b42`、青 `#027874`），教材主題的強調色隨之改為 `#027874`；SearchField 清除鈕、`ui-link-btn`、SideNav 的圖釘與收合按鈕有 Focus 外光暈，圖釘與收合按鈕改用右側 Tooltip；Tooltip 新增 `side="right"`；TextField 的錯誤訊息改為 `role="alert"`，LoginCard 的帳號錯誤因此和密碼錯誤一樣會被念出，「忘記密碼？」改為「忘記密碼」；Grid 的說明改為實際的欄數變化。
+- f7ac5f6: 新增字級（`--text-*`，12 px 到 49 px，Tailwind 的 `text-*` 帶行高）、動畫時間（`--dur-*`）、動畫曲線（`--ease-*`）和層級（`--z-*`）token，`styles.css` 的字級、動畫時間、曲線和 z-index 全部改用這些 token，數值不變；最小字級是 12 px，原本 9 px 和 11 px 的手機分頁列文字、通知數字、排序順序、副檔名標籤和層級數字改成 12 px。文字對比在 `surface-sub`、`surface-chrome` 和 `accent-soft` 上也達 4.5:1：深色 `accent-text`、`danger-text`、`info-text` 稍微調亮，淺色 `warning-text` 稍微調暗，`setAccent` 換算自訂強調色的文字色時也檢查這些底色。`pnpm test` 會檢查 `styles.css` 沒有寫死已有 token 的字級、時間和層級。
+
+### Patch Changes
+
+- 75bbec2: `ui check` 新增兩項檢查：同一列工具列裡的控制項高度相差超過 1 px（例如「篩選」40 px、「欄位」32 px），以及表格列或卡片裡帶陰影的狀態標籤（`.ui-badge`）；兩項都寫出原因與修正方式。`docs/guidelines.md` 新增清單頁的做法（清單放在一張 Card，主要操作「新增」放在 Card 的 `actions`，筆數由表格工具列顯示）、按鈕層級（primary、secondary、quiet、danger）、表格與卡片裡的狀態圓點，以及時間長度格式（`46:42`、`1:54:49`）。`docs/data.md` 新增表格頁的規則：摘要已有筆數時不再用 KPI 卡片重複、要處理的狀態緊接在「全部」後面、摘要的欄位不再放進篩選、數字欄用 `numeric` 加 `unit`、失敗的列寫出原因並提供「重試」、執行中的進度寫在次要文字、列操作超過 2 個收進「⋯」、用 `rowHref` 打開一筆資料。`docs/motion.md` 的主題切換時間改為實際使用的 300 ms。
+- b42450a: 文件改成依需要讀取：`docs/guidelines.md` 只留每一頁都需要的核心規則，其他規則分到主題檔（`layout`、`forms`、`data`、`monitoring`、`code`、`theme`、`motion`）和各元件的 README，套件的 `docs/` 一併附上這些主題檔。每個元件的 README 開頭新增「用法」：一句話說明、最短的範例與最常用錯的規則。`ui docs <Name>` 預設只印「用法」，加 `--full` 印整份 README；`ui docs` 也能印主題檔，`ui list` 列出主題檔與元件的一句話說明。
+- 0daa633: EmptyState 目前的步驟加上 `aria-current="step"`，不只靠顏色標示。
+- 0daa633: `format.fileSize` 四捨五入後滿 1,024 KB 或 1,024.0 MB 時改寫成 1.0 MB 或 1.0 GB，`format.compact` 四捨五入成 10,000 萬時改寫成 1 億，英文介面的台幣金額寫成 `NT$486,000` 而不是 `$486,000`。
+- 6217554: KpiCard 縮寫數字裡的「萬」「億」改用一般字型，Geist Mono 只用在數字上。
+- 0daa633: ThemePicker 與 AccentPicker 的色票改成只有一個 Tab 停留點，方向鍵移到下一個選項並套用，與 RadioGroup、SegmentedControl 一致。
+- 4a10b3c: 對比、焦點、字型與錯誤欄位的修正：
+  
+  - 淺色 `warning-text` 由 `#955e0b` 調成 `#945d0b`：在紅色色票（`#c53228`）算出的 `accent-soft` 上由 4.49:1 提高到 4.55:1。對比測試改為檢查所有文字 token 在每個推薦色票算出的 `accent-soft` 上達 4.5:1。
+  - DataTable 格子裡的可聚焦元素改畫內側焦點外框；截斷的長文字裡的連結取得焦點時整段展開。CommandPalette 搜尋列有焦點時畫內側外框。SettingsLayout 分類與 LayerGraph 方框的焦點外框不再被捲動區切掉。
+  - 中文不再用 Geist Mono：KpiCard 單位、TreeList 日期與 meta、ProgressBar 的「完成 ✓」改用一般字體（數字等寬）。LayerGraph 節點新增 `code`，名稱是路徑或模組時才用 Geist Mono，預設一般字體。
+  - 表格列裡完成的 ProgressBar 改用 `success-text`，選中的列上也有 3:1。
+  - 所有欄位的錯誤樣式一致：紅框、框內警告圖示、下方錯誤訊息。TextArea、Select、MultiSelect、DatePicker 新增 `error`；LoginCard 密碼欄補上圖示。
+  - DataTable 的合計列在手機上不再隱藏，改成卡片下方的摘要。
+  - `ui check` 在用 bundle.js 的頁面呼叫 `UI.setTheme()` 切換淺色與深色，深色檢查真的是深色。
+  - 文件與範例裡的專案名稱換成通用的例子。
+- 0daa633: SearchField 按「清除搜尋」後焦點留在搜尋框，不會因清除鈕消失而跑回頁面開頭。
+- 0daa633: TextArea 的 `hint` 以 `aria-describedby` 連到輸入框，螢幕閱讀器會念出說明。
+
 ## 0.40.0
 
 ### Minor Changes
