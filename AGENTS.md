@@ -33,7 +33,15 @@ Then:
 - Your own CSS uses tokens only: `var(--surface)`, `var(--space-4)` in CSS; `cssVar('ink-muted')` from `@seanyeh77/tokens` in style props (only token names compile); `bg-surface text-ink-muted` with the Tailwind theme.
 - TypeScript enforces most rules: icon names, `confirm` on danger buttons and menu items, `DataTable` column keys. Fix type errors instead of casting them away. In development the components warn in the console with the cause and the fix.
 - Items marked 看情況 ("situational") are not fixed rules: choose per context and say which way you chose.
-- Before you finish: run `npx @seanyeh77/ui-cli check <file or URL>`. It opens the page at 390 px and 1280 px, light and dark, and fails on console errors, horizontal overflow at 390 px, touch targets under 48 px, touch areas that spill past their control, a card inside a card, raw Markdown, native controls the system replaces, and wrapped buttons, tabs, headers or headings. Add `--shots shots/` and check the screenshots against the last section of `guidelines.md`.
+- Before you finish: run `npx @seanyeh77/ui-cli check <file or URL>`. It opens the page at 390 px and 1280 px, light and dark, and fails on console errors, horizontal overflow at 390 px, touch targets under 48 px, touch areas that spill past their control, a card inside a card, raw Markdown, native controls the system replaces, wrapped buttons, tabs, headers or headings, controls of different heights in one toolbar, and a status badge with a shadow in a table or card. Add `--shots shots/` and check the screenshots against the last section of `guidelines.md`.
+
+### Rules that are easy to miss
+
+- List page: title once (top bar); the list in one `Card`; the page's primary action (新增) in that Card's `actions`, never in the sidebar; the count comes from the DataTable toolbar, not next to the title.
+- Buttons: `primary` solid, at most one per section; `secondary` outline; `quiet` for low-emphasis and toolbar actions; `danger` always confirmed.
+- Status is a `Badge` (dot + text in tables and cards), never a hand-made colored chip; only states that need attention stand out.
+- Numbers are numbers: `numeric` + `unit`, `format: 'duration'` or `'relative'`, never strings like 「46 分」.
+- Summary tabs already give the counts: no KPI cards repeating them, and a condition in the summary is not also a filter. Table rules: `docs/data.md`.
 
 ### Projects with a build step (Vite, Next.js and similar)
 

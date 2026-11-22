@@ -9,10 +9,14 @@ export interface Findings {
   wrapped: string[];
   /** Touch areas (::before / ::after) larger than their own control: on a static element they size against an ancestor. */
   escaped: string[];
+  /** One row of a toolbar whose controls differ in height by more than 1 px. */
+  mixed: string[];
+  /** A status Badge with a shadow inside a table row or a card. */
+  raised: string[];
 }
 
 export function measure(): Findings {
-  const out: Findings = { overflow: [], small: [], inline: [], nested: [], markdown: [], native: [], wrapped: [], escaped: [] };
+  const out: Findings = { overflow: [], small: [], inline: [], nested: [], markdown: [], native: [], wrapped: [], escaped: [], mixed: [], raised: [] };
   const describe = (el: Element) => {
     let s = el.tagName.toLowerCase();
     const cls = [...el.classList].filter((c) => c.startsWith('ui-')).slice(0, 2);
@@ -161,6 +165,40 @@ export function measure(): Findings {
       }),
     );
     if (wraps) out.wrapped.push(describe(el));
+  }
+
+  // 7. One row of controls with mixed heights: in a toolbar, controls on the same line must share one height.
+  // A field box (search, password) counts as the control instead of its input; controls inside another control
+  // (the clear button of a search field) are part of it. Only the outermost toolbar is measured.
+  const bars = '.ui-dt-tools, .ui-dt-actions, .ui-card-actions, [role=toolbar]';
+  const boxes = '.ui-searchfield, .ui-pwfield, .ui-datefield, .ui-ms, .ui-select';
+  const controls = 'button, a[href], input:not([type=hidden]), [role=button], [role=combobox], ' + boxes;
+  for (const bar of document.querySelectorAll(bars)) {
+    if (out.mixed.length >= 6) break;
+    if (bar.parentElement?.closest(bars) || !visible(bar)) continue;
+    const items: { el: Element; r: DOMRect }[] = [];
+    for (const el of bar.querySelectorAll(controls)) {
+      const own = el.parentElement?.closest(controls);
+      if ((own && bar.contains(own)) || !visible(el) || el.closest('[aria-hidden="true"]')) continue;
+      items.push({ el, r: el.getBoundingClientRect() });
+    }
+    let hit = '';
+    for (let i = 0; i < items.length && !hit; i++)
+      for (let j = i + 1; j < items.length && !hit; j++) {
+        const a = items[i].r;
+        const b = items[j].r;
+        const sameLine = Math.min(a.bottom, b.bottom) > Math.max(a.top, b.top);
+        if (sameLine && Math.abs(a.height - b.height) > 1)
+          hit = `${describe(bar)}: ${describe(items[i].el)} ${Math.round(a.height)} px, ${describe(items[j].el)} ${Math.round(b.height)} px`;
+      }
+    if (hit) out.mixed.push(hit);
+  }
+
+  // 8. A raised status chip: inside a table row or a card a Badge is a dot and text, with no shadow of its own.
+  for (const el of document.querySelectorAll('.ui-dt-body .ui-badge, .ui-card .ui-badge')) {
+    if (out.raised.length >= 6) break;
+    const sh = getComputedStyle(el).boxShadow;
+    if (sh && sh !== 'none' && visible(el)) out.raised.push(describe(el));
   }
   return out;
 }

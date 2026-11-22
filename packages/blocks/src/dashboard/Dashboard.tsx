@@ -16,7 +16,8 @@ import {
 } from '@seanyeh77/ui';
 
 /* Dashboard: KPI cards, one trend chart and the table of records, inside the app frame.
-   Replace the sample data with yours; keep the order (figures, trend, records). */
+   Replace the sample data with yours; keep the order (figures, trend, records). KPIs show only
+   figures the table cannot: its summary already counts the projects per status. */
 
 export interface ProjectRow {
   id: string;
@@ -46,10 +47,12 @@ const NAV: NavSection[] = [
   { items: [{ id: 'settings', label: '設定', icon: 'gear' }] },
 ];
 
+const STATUS_LABEL: Record<ProjectRow['status'], string> = { draft: '草稿', doing: '進行中', review: '審核中', done: '完成', fail: '失敗' };
+
 const COLUMNS: DataTableColumn<ProjectRow>[] = [
   { key: 'name', label: '名稱', width: 180 },
   { key: 'owner', label: '負責人' },
-  { key: 'status', label: '狀態', render: (r) => <Badge status={r.status} />, mobile: 'status' },
+  { key: 'status', label: '狀態', render: (r) => <Badge status={r.status} />, searchText: (r) => STATUS_LABEL[r.status], mobile: 'status' },
   { key: 'progress', label: '進度', numeric: true, unit: '%' },
   { key: 'budget', label: '預算', format: 'money' },
   { key: 'updated', label: '更新', format: 'relative' },

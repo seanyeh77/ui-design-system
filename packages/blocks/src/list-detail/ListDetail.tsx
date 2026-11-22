@@ -16,8 +16,9 @@ import {
   type NavSection,
 } from '@seanyeh77/ui';
 
-/* A list of records with an edit drawer: click a row's pencil to edit it in place; closing with
-   unsaved changes asks first. Replace Item and the fields with yours. */
+/* A list page: the title once (top bar), the list in one Card, the page's one primary action (新增) in that Card's
+   actions, the count in the table's toolbar. Click a row's pencil to edit it in a drawer; closing with unsaved changes
+   asks first. Replace Item and the fields with yours. */
 
 export interface Item {
   id: string;
@@ -25,11 +26,14 @@ export interface Item {
   owner: string;
   status: 'draft' | 'doing' | 'review' | 'done' | 'fail';
   note: string;
+  /** Last change; shown as relative time within a week. */
+  updated: Date;
 }
 
 export interface ListDetailProps {
   items: Item[];
   owners: string[];
+  /** A new item has id ''; give it an id when you store it. */
   onSave: (item: Item) => void;
 }
 
@@ -49,6 +53,10 @@ const STATUS_OPTIONS: { value: Item['status']; label: string }[] = [
   { value: 'fail', label: '失敗' },
 ];
 
+// The summary: 「全部」, then the state that needs attention, then the rest.
+const statusLabel = (s: Item['status']) => STATUS_OPTIONS.find((o) => o.value === s)?.label ?? s;
+const SUMMARY = (['fail', 'review', 'doing', 'done', 'draft'] as const).map((v) => ({ value: v, label: statusLabel(v) }));
+
 export function ListDetail({ items, owners, onSave }: ListDetailProps) {
   const [editing, setEditing] = React.useState<Item | null>(null);
   const [draft, setDraft] = React.useState<Item | null>(null);
@@ -61,20 +69,31 @@ export function ListDetail({ items, owners, onSave }: ListDetailProps) {
     setEditing(null);
     setDraft(null);
   };
+  const create = () => open({ id: '', name: '', owner: owners[0] ?? '', status: 'draft', note: '', updated: new Date() });
   const set = <K extends keyof Item>(k: K, v: Item[K]) => setDraft((d) => (d ? { ...d, [k]: v } : d));
   const columns: DataTableColumn<Item>[] = [
     { key: 'name', label: '名稱', width: 200 },
     { key: 'owner', label: '負責人' },
-    { key: 'status', label: '狀態', render: (r) => <Badge status={r.status} />, mobile: 'status' },
+    { key: 'status', label: '狀態', render: (r) => <Badge status={r.status} />, searchText: (r) => statusLabel(r.status), mobile: 'status' },
     { key: 'note', label: '備註', long: true, grow: 2 },
+    { key: 'updated', label: '更新', format: 'relative' },
   ];
   return (
     <AppShell nav={NAV} value="items" onNavigate={() => {}} brand="專案中心" title="項目">
       <Page>
-        <Card padding={false}>
+        <Card
+          padding={false}
+          actions={
+            <Button variant="primary" icon="plus" onClick={create}>
+              新增
+            </Button>
+          }
+        >
           <DataTable
+            label="項目"
             columns={columns}
             rows={items}
+            summary={{ key: 'status', items: SUMMARY }}
             rowActions={(r) => <IconButton icon="pencil-simple" label={`編輯 ${r.name}`} onClick={() => open(r)} />}
             urlKey="items"
           />
@@ -84,7 +103,7 @@ export function ListDetail({ items, owners, onSave }: ListDetailProps) {
         open={!!editing}
         onClose={close}
         dirty={dirty}
-        title={editing ? `編輯 ${editing.name}` : ''}
+        title={!editing ? '' : editing.id ? `編輯 ${editing.name}` : '新增項目'}
         actions={(requestClose) => (
           <>
             <Button onClick={requestClose}>取消</Button>
@@ -92,7 +111,7 @@ export function ListDetail({ items, owners, onSave }: ListDetailProps) {
               variant="primary"
               disabled={!dirty || !draft?.name.trim()}
               onClick={() => {
-                if (draft) onSave(draft);
+                if (draft) onSave({ ...draft, updated: new Date() });
                 close();
               }}
             >
@@ -108,7 +127,7 @@ export function ListDetail({ items, owners, onSave }: ListDetailProps) {
               required
               value={draft.name}
               onChange={(e) => set('name', e.target.value)}
-              error={draft.name.trim() ? undefined : '名稱不能空白，請輸入專案名稱。'}
+              error={draft.name.trim() || draft.name === editing?.name ? undefined : '名稱不能空白，請輸入專案名稱。'}
             />
             <Select label="負責人" value={draft.owner} options={owners.map((o) => ({ value: o, label: o }))} onChange={(v) => set('owner', v)} />
             <Select label="狀態" value={draft.status} options={STATUS_OPTIONS} onChange={(v) => set('status', v)} />
