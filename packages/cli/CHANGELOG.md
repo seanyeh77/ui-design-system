@@ -1,5 +1,37 @@
 # @seanyeh77/ui-cli
 
+## 0.41.0
+
+### Patch Changes
+
+- 75bbec2: `ui check` 新增兩項檢查：同一列工具列裡的控制項高度相差超過 1 px（例如「篩選」40 px、「欄位」32 px），以及表格列或卡片裡帶陰影的狀態標籤（`.ui-badge`）；兩項都寫出原因與修正方式。`docs/guidelines.md` 新增清單頁的做法（清單放在一張 Card，主要操作「新增」放在 Card 的 `actions`，筆數由表格工具列顯示）、按鈕層級（primary、secondary、quiet、danger）、表格與卡片裡的狀態圓點，以及時間長度格式（`46:42`、`1:54:49`）。`docs/data.md` 新增表格頁的規則：摘要已有筆數時不再用 KPI 卡片重複、要處理的狀態緊接在「全部」後面、摘要的欄位不再放進篩選、數字欄用 `numeric` 加 `unit`、失敗的列寫出原因並提供「重試」、執行中的進度寫在次要文字、列操作超過 2 個收進「⋯」、用 `rowHref` 打開一筆資料。`docs/motion.md` 的主題切換時間改為實際使用的 300 ms。
+- b42450a: 文件改成依需要讀取：`docs/guidelines.md` 只留每一頁都需要的核心規則，其他規則分到主題檔（`layout`、`forms`、`data`、`monitoring`、`code`、`theme`、`motion`）和各元件的 README，套件的 `docs/` 一併附上這些主題檔。每個元件的 README 開頭新增「用法」：一句話說明、最短的範例與最常用錯的規則。`ui docs <Name>` 預設只印「用法」，加 `--full` 印整份 README；`ui docs` 也能印主題檔，`ui list` 列出主題檔與元件的一句話說明。
+- 4a10b3c: 對比、焦點、字型與錯誤欄位的修正：
+  
+  - 淺色 `warning-text` 由 `#955e0b` 調成 `#945d0b`：在紅色色票（`#c53228`）算出的 `accent-soft` 上由 4.49:1 提高到 4.55:1。對比測試改為檢查所有文字 token 在每個推薦色票算出的 `accent-soft` 上達 4.5:1。
+  - DataTable 格子裡的可聚焦元素改畫內側焦點外框；截斷的長文字裡的連結取得焦點時整段展開。CommandPalette 搜尋列有焦點時畫內側外框。SettingsLayout 分類與 LayerGraph 方框的焦點外框不再被捲動區切掉。
+  - 中文不再用 Geist Mono：KpiCard 單位、TreeList 日期與 meta、ProgressBar 的「完成 ✓」改用一般字體（數字等寬）。LayerGraph 節點新增 `code`，名稱是路徑或模組時才用 Geist Mono，預設一般字體。
+  - 表格列裡完成的 ProgressBar 改用 `success-text`，選中的列上也有 3:1。
+  - 所有欄位的錯誤樣式一致：紅框、框內警告圖示、下方錯誤訊息。TextArea、Select、MultiSelect、DatePicker 新增 `error`；LoginCard 密碼欄補上圖示。
+  - DataTable 的合計列在手機上不再隱藏，改成卡片下方的摘要。
+  - `ui check` 在用 bundle.js 的頁面呼叫 `UI.setTheme()` 切換淺色與深色，深色檢查真的是深色。
+  - 文件與範例裡的專案名稱換成通用的例子。
+- Updated dependencies [be1018c]
+- Updated dependencies [bc1608a]
+- Updated dependencies [75bbec2]
+- Updated dependencies [b42450a]
+- Updated dependencies [0daa633]
+- Updated dependencies [20b6f04]
+- Updated dependencies [0daa633]
+- Updated dependencies [6217554]
+- Updated dependencies [0daa633]
+- Updated dependencies [4a10b3c]
+- Updated dependencies [0daa633]
+- Updated dependencies [dbee37f]
+- Updated dependencies [f7ac5f6]
+- Updated dependencies [0daa633]
+  - @seanyeh77/ui@0.41.0
+
 ## 0.40.0
 
 ### Patch Changes
