@@ -22,7 +22,7 @@ export function EmptyState({ title, description, steps = [], current = 0, action
       {steps.length ? (
         <ol className="ui-steps">
           {steps.map((s, i) => (
-            <li key={i} className={i === current ? 'is-current' : undefined}>
+            <li key={i} className={i === current ? 'is-current' : undefined} aria-current={i === current ? 'step' : undefined}>
               <span className="ui-step-num">{i + 1}</span>
               <span>{s}</span>
             </li>

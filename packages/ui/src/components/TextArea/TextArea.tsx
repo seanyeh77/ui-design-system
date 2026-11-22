@@ -18,6 +18,7 @@ export interface TextAreaProps extends Omit<React.TextareaHTMLAttributes<HTMLTex
 export function TextArea({ label, hint, value, onChange, maxLength = 200, className, id, required, ...native }: TextAreaProps) {
   const auto = React.useId();
   const fieldId = id || auto;
+  const hintId = hint ? fieldId + '-hint' : undefined;
   const ref = React.useRef<HTMLTextAreaElement>(null);
   React.useLayoutEffect(() => {
     const el = ref.current;
@@ -41,10 +42,13 @@ export function TextArea({ label, hint, value, onChange, maxLength = 200, classN
         maxLength={maxLength}
         value={value || ''}
         aria-required={required || undefined}
+        aria-describedby={[native['aria-describedby'], hintId].filter(Boolean).join(' ') || undefined}
         onChange={(e) => onChange(e.target.value)}
       />
       <div className="ui-field-foot">
-        <span className="ui-field-hint">{hint || ''}</span>
+        <span id={hintId} className="ui-field-hint">
+          {hint || ''}
+        </span>
         <span className="ui-count">
           {/* Shown 「12 / 200」, drawn by CSS; read and copied as 「200 字中的 12 字」, not 「12 斜線 200」. */}
           <span aria-hidden="true">
