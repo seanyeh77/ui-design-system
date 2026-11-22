@@ -4,34 +4,36 @@ Instructions for AI agents (Claude, Codex, Cursor and others) that build UI with
 
 ## What this is
 
-SeanYeh's design system: typed React 19 components, design tokens, page templates and written rules. Warm-gray neutrals, one blue accent (`#2457d6`, user-adjustable), Inter + Noto Sans TC, Geist Mono for numbers, light and dark themes, compact density, Phosphor icons. Overlays (Dialog, Menu, Popover, Select…) run on Base UI, so focus, keyboard and positioning are handled for you.
+SeanYeh's design system: typed React 19 components, design tokens, page templates and written rules. Overlays (Dialog, Menu, Popover, Select…) run on Base UI, so focus, keyboard and positioning are handled for you.
 
-- Docs site (Storybook: every component, live examples, props tables): https://seanyeh77.github.io/ui-design-system/
-- Index of every published file: https://seanyeh77.github.io/ui-design-system/llms.txt
+Docs site (Storybook, live examples, props tables): https://seanyeh77.github.io/ui-design-system/ ; index of every published file: https://seanyeh77.github.io/ui-design-system/llms.txt
 
 | Package | What it is |
 | --- | --- |
-| `@seanyeh77/ui` | The components (ES module with types), `styles.css`, `bundle.js` for pages without a build step, and every README under `docs/` |
+| `@seanyeh77/ui` | The components (ES module with types), `styles.css`, `bundle.js` for pages without a build step, and the docs under `docs/` (each README and guide) |
 | `@seanyeh77/tokens` | `tokens.css`, a Tailwind v4 theme (`tailwind.css`), typed token names with `cssVar()`, the fonts |
-| `@seanyeh77/eslint-plugin-ui` | Lint rules: token colors only (no Tailwind default palette, radii or shadows), no native controls, no card in a card, danger actions confirmed, one primary button, verb labels |
-| `@seanyeh77/ui-cli` | `ui check <page>` (the automatic checks below), `ui docs <Name>`, `ui list`. Run it as `npx @seanyeh77/ui-cli …`: plain `npx ui` runs an unrelated npm package when the CLI is not installed. |
+| `@seanyeh77/eslint-plugin-ui` | Lint rules: tokens only, no native controls, no card in a card, danger actions confirmed, one primary button, verb labels |
+| `@seanyeh77/ui-cli` | `ui check <page>`, `ui docs <Name> [--full]`, `ui list`. Run it as `npx @seanyeh77/ui-cli …`: plain `npx ui` runs an unrelated npm package. |
 | Registry `…/r/<name>.json` | Page templates to copy into a project: `dashboard`, `list-detail`, `settings`, `login` |
 
 ## Building UI with it
 
-Use it for any web page, dashboard, frontend or tool UI unless the user asks for a different look. Your job is to pick the right template or component and connect data and events. Do not write your own styles for something a component covers.
+Use it for any web page, dashboard, frontend or tool UI unless the user asks for a different look. Pick the template or components, connect data and events, and spend the effort on the page's design and UX. Do not write your own styles for something a component covers.
 
-1. Start from a page template when one fits: `npx shadcn@latest add https://seanyeh77.github.io/ui-design-system/r/dashboard.json` (also `list-detail`, `settings`, `login`). It copies an editable page into the project. It needs a `components.json` (run `npx shadcn@latest init` first, or the command stops at a prompt) and `@seanyeh77/ui` installed. Without shadcn, read the files from the same JSON (`files[].content`) and write them yourself. Agents with the shadcn MCP server can search and add them by name once the registry is in `components.json`:
+What to read, and nothing more:
 
-   ```json
-   { "registries": { "@seanyeh77": "https://seanyeh77.github.io/ui-design-system/r/{name}.json" } }
-   ```
+1. `docs/guidelines.md`: the core rules every page needs (about 6 KB). Read it once.
+2. The 用法 block of each component you use: `npx @seanyeh77/ui-cli docs DataTable` prints what it is, a minimal example and the rules most often gotten wrong. Add `--full` only when you need a detail the block does not cover. The same files are in `node_modules/@seanyeh77/ui/docs/` and on the docs site under `/md/`.
+3. A topic file only when the page has that topic: `layout` (your own frame, navigation, search, tours), `forms`, `data` (tables, lists, KPIs, charts), `monitoring`, `code` (code-reading tools), `theme` (all tokens, accent, Slidev preset), `motion`. `ui docs layout` prints one.
 
-2. Otherwise build the page from components. Frame a dashboard with `AppShell` (sidebar, top bar, phone tabs), lay out content with `Page` and `Grid`, put each block in one `Card`. Before using a component, read its README: `npx @seanyeh77/ui-cli docs DataTable`, `node_modules/@seanyeh77/ui/docs/DataTable.md`, or the docs site.
-3. Read the rules once: `docs/guidelines.md` (all confirmed choices), `docs/layout.md`, `docs/motion.md`.
-4. Your own CSS uses tokens only: `var(--surface)`, `var(--space-4)`, `var(--radius-md)` in CSS; `cssVar('ink-muted')` from `@seanyeh77/tokens` in style props (only token names compile); `bg-surface text-ink-muted` with the Tailwind theme. Never hard-code a color, size or radius that has a token.
-5. TypeScript enforces most rules: icon names are checked, a danger `Button` or menu item does not compile without `confirm`, `DataTable` column keys must exist on the rows. Fix type errors instead of casting them away. In development the components also warn in the console with the cause and the fix.
-6. Items marked 看情況 ("situational") in the docs are not fixed rules: choose per context and say which way you chose.
+Then:
+
+- Start from a page template when one fits: `npx shadcn@latest add https://seanyeh77.github.io/ui-design-system/r/dashboard.json` (also `list-detail`, `settings`, `login`). It needs a `components.json` (run `npx shadcn@latest init` first, or the command stops at a prompt) and `@seanyeh77/ui` installed. Without shadcn, read the files from the same JSON (`files[].content`) and write them yourself. With the shadcn MCP server, add `{ "registries": { "@seanyeh77": "https://seanyeh77.github.io/ui-design-system/r/{name}.json" } }` to `components.json` and add them by name.
+- Otherwise frame a dashboard with `AppShell`, lay out content with `Page` and `Grid`, one `Card` per block.
+- Your own CSS uses tokens only: `var(--surface)`, `var(--space-4)` in CSS; `cssVar('ink-muted')` from `@seanyeh77/tokens` in style props (only token names compile); `bg-surface text-ink-muted` with the Tailwind theme.
+- TypeScript enforces most rules: icon names, `confirm` on danger buttons and menu items, `DataTable` column keys. Fix type errors instead of casting them away. In development the components warn in the console with the cause and the fix.
+- Items marked 看情況 ("situational") are not fixed rules: choose per context and say which way you chose.
+- Before you finish: run `npx @seanyeh77/ui-cli check <file or URL>`. It opens the page at 390 px and 1280 px, light and dark, and fails on console errors, horizontal overflow at 390 px, touch targets under 48 px, touch areas that spill past their control, a card inside a card, raw Markdown, native controls the system replaces, and wrapped buttons, tabs, headers or headings. Add `--shots shots/` and check the screenshots against the last section of `guidelines.md`.
 
 ### Projects with a build step (Vite, Next.js and similar)
 
@@ -64,7 +66,7 @@ export default [ui.configs.recommended];
 
 ### Pages without a build step
 
-One script brings React 19, ReactDOM and every component (`window.React`, `window.ReactDOM`, `window.UI`):
+`bundle.js` brings React 19, ReactDOM and every component (`window.React`, `window.ReactDOM`, `window.UI`); the styles are in `styles.css`:
 
 ```html
 <meta charset="utf-8">
@@ -82,25 +84,7 @@ One script brings React 19, ReactDOM and every component (`window.React`, `windo
 
 For a single-file page that must work offline or in a sandbox that blocks this host, inline the same files. `bundle.js` keeps the development warnings on.
 
-### Rules that are easy to miss
-
-No native `<select>`, `<table>` or checkbox (use Select, DataTable, Checkbox); one primary button per section; button labels are verbs (儲存, 刪除, never 確定); danger actions confirm in a Dialog; dates `2026/11/04（三）` with relative time inside a week; amounts `NT$ 1,280`; numbers right-aligned with tabular figures; error messages give the cause and the fix; status uses `Badge`, never color alone.
-
-### Before you finish
-
-Run `npx @seanyeh77/ui-cli check <file or URL>`. It opens the page at 390 px and 1280 px, light and dark, and fails on console errors, horizontal overflow at 390 px, touch targets under 48 px, touch areas that spill past their control, a card inside a card, raw Markdown, native controls the system replaces, and wrapped buttons, tabs, headers or headings. Add `--shots shots/` and look at the screenshots for the rest of this list:
-
-- Components: wherever `@seanyeh77/ui` has a component for the job, it is used and its README was read. Nothing is hand-built that a component covers.
-- Fonts: Geist Mono only on numbers, code, file paths and IDs, never on a Chinese sentence or a whole meta line.
-- Sizes: body text is one size; secondary text is one step smaller. No ad-hoc sizes for a single row.
-- Text: only the point, in formal written Chinese. Explanations are at most 2 short sentences; nothing the screen already shows is said again; no question-style titles or links. See 文字語氣 in `docs/guidelines.md`.
-- Cards: one shadow per block. TreeList, KpiCard, Alert and SettingsSection are already cards and lose their shadow inside `Card`.
-- Titles: the page title appears once, in the top bar or as the page heading, not both.
-- Links: file paths, line references, IDs and anything else that points somewhere are links.
-- Long lists of results: items that need attention (errors, to confirm) come first or can be filtered from the summary.
-- Phones: long text is left-aligned.
-
-Scope: this system covers web UI and the tokens of SeanYeh's Slidev decks. Slidev decks use the `teaching` preset (`data-theme="teaching"` in `tokens.css`, defined under `presets` in `packages/tokens/tokens.json`): warm-gray neutrals and Inter / Geist Mono from this system, plus teal `#0e827d` (the 青 preset swatch) as the default accent, 0 px radius, no shadows and 1.5 px borders, light only. Deck CSS reads token names only. Slide layout and rules, Notion documents and teaching diagrams follow SeanYeh's separate `teaching-materials-style` skill.
+Scope: web UI and the tokens of SeanYeh's Slidev decks (the `teaching` preset, `data-theme="teaching"`: teal `#0e827d` accent, 0 px radius, no shadows, 1.5 px borders, light only; see `theme.md`). Slide layout, Notion documents and teaching diagrams follow SeanYeh's separate `teaching-materials-style` skill.
 
 ## Changing the design system
 
@@ -112,15 +96,17 @@ A pnpm workspace. `pnpm install`, then `pnpm check` builds, type-checks, lints a
 | `packages/ui/src/components/<Name>/` | `<Name>.tsx`, `README.md`, `<Name>.stories.tsx` (Storybook, module example) and `preview.html` (plain-HTML example; the card of the Design System artifact) |
 | `packages/ui/src/styles.css` | Component styles, token variables only |
 | `packages/blocks/src/` | Page templates; `registry.json` at the root lists them |
-| `packages/eslint-plugin-ui`, `packages/cli` | The lint rules and `ui check` |
-| `apps/docs` | Storybook; `pnpm site` builds the whole docs site into `site/` |
-| `docs/` | `guidelines.md`, `layout.md`, `motion.md`, `decisions.md` |
+| `packages/eslint-plugin-ui`, `packages/cli` | The lint rules, `ui check` and `ui docs` |
+| `apps/docs` | Storybook; `pnpm site` builds the whole docs site into `site/` (with `llms.txt` and `/md/`) |
+| `docs/` | `guidelines.md` (core rules), the topic files, `decisions.md` (history) |
 
-- Components: TypeScript strict, React 19 (`ref` is a prop), Base UI for anything that floats or traps focus. Props get a JSDoc line each: it becomes the props table and what an agent reads in its editor. Prefer types that make a wrong use fail to compile over a sentence in the README; add a `devWarn` with the cause and the fix for what types cannot catch. Export new components and their types from `src/index.ts`.
+- Components: TypeScript strict, React 19 (`ref` is a prop), Base UI for anything that floats or traps focus. One JSDoc line per prop (it becomes the props table). Prefer types that make a wrong use fail to compile over a sentence in the README; add a `devWarn` with the cause and the fix for what types cannot catch. Export new components and their types from `src/index.ts`.
 - A new component needs `README.md`, a story and `preview.html` whose first line is `<!-- @dsCard group="Data" height=400 -->`, plus a test when it has behavior (`src/**/*.test.tsx`, Vitest in a real Chromium).
+- A README starts with `## 用法`: one sentence (what it is, when to use it, what to use instead), a minimal example, and the 3 to 6 rules most often gotten wrong. Details follow in later `##` sections. The first sentence is the summary in `llms.txt` and `ui list`.
+- Where a rule goes: one component's rule in its README; a rule every page needs in `docs/guidelines.md` (keep it about 6 KB); a rule for one kind of page in its topic file. Say each rule once. A new topic file goes in the guides lists of `scripts/site.ts` and `apps/docs/scripts/pages.ts`.
 - Names and default texts are generic: no project's terms (no 「函式」 or 「編譯器」 as built-in words). A project passes its own words through props.
 - Releases: `pnpm changeset` for every change to a published package. Merging the "Version packages" pull request publishes to npm through trusted publishing (each package names this repo and `publish.yml` as its Trusted Publisher on npmjs.com; no token). Pushing to `main` rebuilds the docs site.
 - Docs are written in Traditional Chinese with technical terms in English; every number carries its unit.
-- Rules: confirmed choices go in `docs/guidelines.md`; the original wording of each lab decision goes in `docs/decisions.md`. Only record what the user confirmed.
+- Only record what the user confirmed: the rule in the file above, the original wording of each lab decision in `docs/decisions.md`.
 - New design decisions are SeanYeh's: he picks them from option labs with a live demo for every choice. Propose options; do not change tokens, rules or component behavior on your own. Any default you pick must be flagged as yours. In `docs/decisions.md` they go under 「AI 定的細節（待確認）」, whichever agent (Claude, Codex, Cursor or another) picked them; when SeanYeh leaves the details to the agent, write that down with his words.
 - Commits never carry Claude co-author or Claude-Session trailers.

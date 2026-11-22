@@ -1,46 +1,61 @@
 #!/usr/bin/env node
 /* ui: the command-line tools of @seanyeh77/ui.
      ui check <file or URL>...   the automatic part of "Before you finish"
-     ui docs [Name]              a component's README (or the list of docs)
-     ui list                     every component with its one-line description */
+     ui docs [Name] [--full]     a component's 用法 block (--full: the whole README), a guide, or the list of docs
+     ui list                     every guide and component with its one-line description */
 import { existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { measure } from './measure';
+import { summary, usageBlock } from './usage';
 
 const HELP = `ui check <file or URL>... [--shots DIR] [--strict] [--wait MS]
   Opens each page at 390 px and 1280 px, light and dark, and fails (exit 1) on:
   console errors, horizontal overflow at 390 px, touch targets under 48 px, touch areas that spill past their control, a card inside a card,
   raw Markdown, native controls the design system replaces, and wrapped buttons, tabs, headers or headings.
   Exits 2 when a page cannot be checked at all: it does not load, or the check itself crashes.
-ui docs [Name]   prints the README of a component (Button, DataTable…) or a guide (guidelines, layout, motion)
-ui list          lists every component`;
+ui docs [Name] [--full]
+  Prints the 用法 block of a component (Button, DataTable…): what it is, a minimal example and the rules most often
+  gotten wrong. --full prints the whole README. Guides print whole: guidelines (the core rules every page needs),
+  layout, forms, data, monitoring, code, theme, motion. Without a name, lists every doc.
+ui list          lists every guide and component with its one-line description`;
 
 function docsDir(): string {
   const require = createRequire(import.meta.url);
   return join(dirname(require.resolve('@seanyeh77/ui/package.json')), 'docs');
 }
 
-function docs(name?: string) {
-  const dir = docsDir();
+/** Guides (lowercase file names) first, then the components. */
+function docFiles(dir: string): string[] {
   const files = readdirSync(dir).filter((f) => f.endsWith('.md'));
+  const guide = (f: string) => (/^[a-z]/.test(f) ? 0 : 1);
+  return files.sort((a, b) => guide(a) - guide(b) || (a === 'guidelines.md' ? -1 : b === 'guidelines.md' ? 1 : a.localeCompare(b)));
+}
+
+function docs(name: string | undefined, full: boolean) {
+  const dir = docsDir();
+  const files = docFiles(dir);
   if (!name) return console.log(files.map((f) => f.slice(0, -3)).join('\n'));
   const hit = files.find((f) => f.slice(0, -3).toLowerCase() === name.toLowerCase());
   if (!hit) {
     console.error(`No docs for "${name}". Run "ui docs" for the list.`);
     process.exit(1);
   }
-  console.log(readFileSync(join(dir, hit), 'utf8'));
+  const md = readFileSync(join(dir, hit), 'utf8');
+  const usage = full ? null : usageBlock(md);
+  if (!usage) return console.log(md);
+  console.log(usage + `\n(用法 only. The whole README: ui docs ${hit.slice(0, -3)} --full)`);
 }
 
 function list() {
   const dir = docsDir();
-  for (const f of readdirSync(dir).filter((x) => x.endsWith('.md') && /^[A-Z]/.test(x))) {
-    const lines = readFileSync(join(dir, f), 'utf8').split('\n');
-    const first = lines.find((l) => l.trim() && !l.startsWith('#')) ?? '';
-    console.log(`${f.slice(0, -3).padEnd(18)} ${first.trim()}`);
+  for (const f of docFiles(dir)) {
+    const md = readFileSync(join(dir, f), 'utf8');
+    // A guide is described by its title; a component by the first sentence of its 用法 block.
+    const line = /^[a-z]/.test(f) ? (/^# (.+)$/m.exec(md)?.[1] ?? '') : summary(md);
+    console.log(`${f.slice(0, -3).padEnd(18)} ${line}`);
   }
 }
 
@@ -202,8 +217,10 @@ if (cmd === 'check') {
     process.exit(2);
   }
   await check(positionals, { shots: values.shots, strict: !!values.strict, wait });
-} else if (cmd === 'docs') docs(rest[0]);
-else if (cmd === 'list') list();
+} else if (cmd === 'docs') {
+  const { values, positionals } = parseArgs({ args: rest, allowPositionals: true, options: { full: { type: 'boolean', default: false } } });
+  docs(positionals[0], !!values.full);
+} else if (cmd === 'list') list();
 else {
   console.log(HELP);
   process.exit(cmd ? 2 : 0);

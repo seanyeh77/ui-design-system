@@ -1,17 +1,27 @@
 # InlineCode
 
-句子裡的程式碼、檔案路徑和 ID。
+## 用法
+
+句子裡的程式碼、檔案路徑和 ID。含反引號的整段文字用 CodeText；多行程式碼用 CodeView。
+
+```tsx
+<InlineCode>IBTRACE_SHM</InlineCode>
+<InlineCode href="/code/child.c#L86">child.c:86</InlineCode>
+<InlineCode look="name" href="#fn/_sync_as">VirtualRouter._sync_as</InlineCode>
+<InlineCode look="location" onClick={openLine}>harness/controller.py:540</InlineCode>
+```
+
+- 指向某個地方的（檔案和行號、函式）是連結：給 `href` 或 `onClick`。
+- `look="name"`：函式、類別、變數；`look="location"`：檔案和行號。兩種都一定要給 `href` 或 `onClick`；不指向任何地方的維持灰底（預設 `look="chip"`）。
+- Geist Mono 只用在程式碼本身，周圍的中文句子維持一般字體。
+
+## 細節
 
 - 外觀：淺灰底（`surface-sub`）、Geist Mono、字級是周圍文字的 0.875 倍，圓角 4 px，左右 5 px 內距。
 - 在表格裡（DataTable 的格子與展開詳細、Markdown 表格）改成白底（`surface`）加 1 px 框線（`line`）：表格的偶數列也是 `surface-sub`，灰底在那裡看不出範圍。
 - 指向某個地方的（例如檔案和行號 `child.c:86`）是連結：強調文字色（`accent-text`）加底線，給 `href` 或 `onClick`。
 - 24 個字元以內的不會從中間斷行（例如 `h->post_send` 不會斷成 `h-` 和 `>post_send`）；更長的路徑才會換行。
 - Geist Mono 只用在程式碼本身，周圍的中文句子維持一般字體。
-
-```js
-h(UI.InlineCode, null, 'IBTRACE_SHM');
-h(UI.InlineCode, { href: '/code/child.c#L86' }, 'child.c:86');
-```
 
 ## 名稱與位置
 

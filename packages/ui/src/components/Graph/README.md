@@ -1,8 +1,23 @@
 # Graph
 
-方框與箭頭的圖的樣式：自己畫 SVG，套用這些 class，再加 `UI.GraphDefs` 和 `UI.GraphLegend`。
+## 用法
 
-元件架構圖請直接用 `UI.LayerGraph`，它會自己排版和畫線。這裡的 class 給其他種類的圖用。
+方框與箭頭的圖的樣式：自己畫 SVG，套用 `ui-graph-*` class，再加 `GraphDefs` 和 `GraphLegend`。元件架構圖請直接用 LayerGraph，它會自己排版和畫線。
+
+```js
+h('div', { className: 'ui-graph' },
+  h('svg', { viewBox: '0 0 640 300', width: 640, height: 300 },
+    h(UI.GraphDefs),
+    h('path', { d: 'M320 56 V118', className: 'ui-graph-edge', markerEnd: 'url(#ui-arrow)' }),
+    h('rect', { x: 230, y: 120, width: 180, height: 40, rx: 10, className: 'ui-graph-node' })),
+  h(UI.GraphLegend));
+```
+
+- 線直角轉彎；推測的關係加 `is-inferred`（虛線），專案宣告的關係加 `is-declared`（長短交替的虛線）。
+- 顏色只用 token：`graph-edge`、`graph-node`、`accent`、`accent-soft`。
+- 圖放在卡片（`surface`）上；直接放在頁面底色上時，外層加 `style: { '--ui-graph-bg': 'var(--bg)' }`。
+
+## 細節
 
 - 外層加 `ui-graph`，`<svg>` 裡第一個放 `h(UI.GraphDefs)`，提供箭頭 `url(#ui-arrow)` 和強調色的 `url(#ui-arrow-accent)`。
 - 線：`<path class="ui-graph-edge">`，1.5 px、`graph-edge` 灰色，直角轉彎（`M x y V … H … V …`）。推測的關係加 `is-inferred`，變成虛線；專案宣告的關係加 `is-declared`，變成長短交替的虛線。圖例 `GraphLegend` 的 `type` 也有 `declared`。

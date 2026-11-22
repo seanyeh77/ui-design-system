@@ -1,6 +1,22 @@
 # Markdown
 
-顯示專案文件與程式註解裡的 Markdown，例如 README.md 的摘錄、檔案開頭的註解、側邊面板裡 .md 檔的預覽。
+## 用法
+
+顯示專案文件與程式註解裡的 Markdown，例如 README.md 的摘錄、檔案開頭的註解、側邊面板裡 .md 檔的預覽。介面上不要顯示原始的 Markdown 文字。
+
+```tsx
+<Markdown refHref={(ref) => '#code=' + ref} onLink={(href) => openInPanel(href)}>
+  {readme}
+</Markdown>
+```
+
+- 不執行 HTML：標籤去掉只留文字（`<details>`、`<summary>` 例外）。
+- `#` 顯示成 h4；放在 Section 裡、原文從 `###` 開始寫時用 `topLevel`（見下方）。
+- 路徑和行號（`routing.py:108`）用 `refHref`／`onRef` 變成連結；連結文字只有一段行內程式碼的自動用名稱外觀。
+- AI 寫的段落寫 `[AI](ai:)`；提示用 `> [!NOTE]` 這類 GitHub 提示框；可收合的長清單用 `<details><summary>`。
+- .md 檔的「預覽／原始碼」用 `SegmentedControl` 切換（放在 Workbench 的 `mainBar` 時加 `iconOnly`）。
+
+## 細節
 
 - 支援：段落與換行、標題、粗體、斜體、行內程式碼（`UI.InlineCode`）、程式碼區塊（`UI.CodeView`，依語言上色；32 px 的矮標題列只有語言名稱和複製的小圖示，沒有分隔線也沒有行號，程式碼左右留 16 px）、連結、項目與編號清單（可巢狀）、引用、表格、水平線。圖片只顯示替代文字，不載入。
 - 標題降級：`#` 顯示成 h4（20 px），`##` 是 h5，`###` 以下是 h6（兩者都是 16 px 粗體）。用 `topLevel` 改 `#` 對應的層級。
@@ -93,7 +109,7 @@ h(UI.Markdown, { inline: true }, '先跑 `make`，再用 **harness/run.sh** 啟�
 
 ## .md 檔的「原始碼／預覽」
 
-CodeView 不內建預覽：由使用的地方在面板上方放 `UI.Tabs`（「原始碼」「預覽」），原始碼用 CodeView，預覽用 Markdown。
+CodeView 不內建預覽：由使用的地方放一個 `SegmentedControl`（「預覽」「原始碼」）切換，原始碼用 CodeView，預覽用 Markdown。放在 Workbench 的 `mainBar` 時加 `iconOnly`。
 
 - 預覽沒有行號。連到某一行的位置（`README.md:12`、CodeView 的 `target`）時，切回「原始碼」分頁再捲到那一行。
 - 預覽裡的連結和路徑交給同一組 `onLink`、`onRef`，例如在側邊面板開啟另一個檔案。

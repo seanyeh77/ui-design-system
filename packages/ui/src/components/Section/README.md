@@ -1,15 +1,26 @@
 # Section
 
+## 用法
+
 一頁裡可以收合的一段內容，例如程式碼地圖的「概觀」、設定頁或報告頁的分段。收合時仍看得到標題和一行摘要。
+
+```tsx
+<SectionGroup>
+  <Section title="元件" summary="6 個元件、138 個函式" defaultOpen>…</Section>
+  <Section id="external" title="外部指令" summary="29 個指令、4 個 namespace" lazy>…</Section>
+</SectionGroup>
+```
+
+- `summary` 是標題右邊的一行重點，收合時也顯示；不放連結或按鈕。
+- 收合的內容留在頁面上，頁內搜尋找到時自動展開；很長的段落（例如上百筆的表格）設 `lazy`。
+- 「複製」這類按鈕放在 `actions`。一組段落用 `SectionGroup`；放在卡片裡時把 `SectionGroupToggle` 放進卡片標題列（`bar={false}`），不另外佔一列。
+
+## 細節
 
 - 外觀：標題 20 px 粗體（h4 字級），比 16 px 的內容大；標題左邊有箭頭，展開時轉 90 度。標題右邊同一行是一行摘要（13 px、次要文字色），放不下時以「…」截斷。段落之間一條細線（`line`）。
 - 動畫：展開與收合 260 ms，和 TreeList 子項目長出來一樣；`prefers-reduced-motion` 時不做動畫。
 - 標題列是 `<h3>` 裡的 `<button>`，帶 `aria-expanded` 與 `aria-controls`；Enter 與空白鍵切換。螢幕閱讀器的標題清單找得到每一段。用 `level` 改標題層級，大小不變。
 - 摘要是按鈕的一部分，會跟著標題念出來；不要放連結或按鈕。
-
-```js
-h(UI.Section, { id: 'external', title: '外部指令', summary: '29 個指令、4 個 namespace、3 個沒有逾時', lazy: true }, h(UI.DataTable, {/* … */}));
-```
 
 ## Props
 
@@ -23,6 +34,7 @@ h(UI.Section, { id: 'external', title: '外部指令', summary: '29 個指令、
 | `lazy`                 | 收合時完全不渲染內容。預設 `false`：內容留在頁面上但隱藏（`hidden="until-found"`），瀏覽器的頁內搜尋（Ctrl+F）找到裡面的字時自動展開。很長的段落（例如上百筆的表格）再設 `lazy`。 |
 | `storageKey`           | 用這個 key 把開合狀態存在 localStorage（`ui-section:<key>`）。讀寫失敗時照常運作，只是不記住。                                                                                    |
 | `level`                | 標題的 heading 層級，預設 3。                                                                                                                                                     |
+| `actions`              | 標題列右邊的按鈕，例如「複製」。Section 寬度不到 480 px 時，摘要移到標題下一行。 |
 
 ## SectionGroup
 

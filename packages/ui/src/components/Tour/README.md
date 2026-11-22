@@ -1,6 +1,30 @@
 # Tour
 
+## 用法
+
 第一次使用的導覽：一次介紹一個地方，整頁變暗，只亮出要介紹的地方。
+
+```tsx
+const tour = useTour('codemap-flow');
+
+<IconButton icon="question" label="導覽" onClick={tour.start} hint={tour.hint('導覽：三個步驟介紹這一頁。')} />
+<Tour
+  open={tour.open}
+  onClose={tour.close}
+  steps={[
+    { target: 'search', title: '搜尋', text: '搜尋函式、檔案、元件與環境變數。快捷鍵 Ctrl K。' },
+    { target: 'tree', title: '流程樹', text: '名稱旁的標籤是關係的來源，點選問號查看依據。' },
+  ]}
+/>
+<section data-tour="tree">…</section>
+```
+
+- `useTour(key)` 記住這個瀏覽器看過了沒有：沒看過會自動打開，看完或略過後不再出現。
+- 頁面有「導覽」按鈕時用按鈕上的提示（`hint`），導覽不自己打開；不用「第一次使用」橫幅。
+- 頁面上要有「重看導覽」，呼叫 `tour.start()`。
+- `target` 用名稱：在元素上加 `data-tour="tree"`。目標要小（一張卡片或一列），步驟 3 到 5 步。
+
+## 細節
 
 - 亮出的地方加 3 px 強調色框；說明卡放在它下方（放不下時換到上方），寬 320 px，寫「1 / 3」、標題和一兩句說明（說明裡的反引號會變成行內程式碼）。
 - 說明卡一定完整留在視窗內，四邊至少留 `--space-3`（12 px）。

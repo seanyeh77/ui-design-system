@@ -1,6 +1,23 @@
 # SideNav
 
-Dashboard 類頁面的左側導覽，可以收合。
+## 用法
+
+Dashboard 類頁面的左側導覽，可以收合。AppShell 已經內建（側邊欄、平板抽屜、手機分頁列都由它處理），通常不必單獨使用。
+
+```tsx
+<SideNav
+  sections={[{ items: [{ id: 'home', label: '總覽', icon: 'house' }, { id: 'projects', label: '專案', icon: 'folder' }] }]}
+  value={page}
+  onChange={setPage}
+  brand={{ name: '專案中心', href: '/' }}
+/>
+```
+
+- 品牌傳 `{ mark, name, href }`；只有文字時用第一個字放在強調色方塊裡當 logo。
+- 選中：左側 3 px 強調色指示條，用水滴方式移動到新項目。
+- 有子項目的父項目：收合時點了直接進第一個子頁面，頁面內再切換其他子頁面（例如用 Tabs）。
+
+## 細節
 
 - 寬度：展開 240 px（`sidebar-width`），收合 72 px（`sidebar-collapsed`），底色 `surface-chrome`，右邊一條 `line`。
 - 由上到下：品牌（logo 加名稱，見下方「品牌」）、選單項目、收合按鈕。品牌和收合按鈕固定大小；項目太多時，中間的選單自己捲動。

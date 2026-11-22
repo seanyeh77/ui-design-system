@@ -1,4 +1,4 @@
-// Copies the CSS, the token files and the fonts next to the JavaScript in dist/, and the component READMEs into docs/
+// Copies the CSS, the token files and the fonts next to the JavaScript in dist/, and the component READMEs and the guides into docs/
 // so an agent can read them from node_modules/@seanyeh77/ui/docs.
 import { cpSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
 
@@ -18,5 +18,7 @@ for (const name of readdirSync(components)) {
   const readme = new URL(`${name}/README.md`, components);
   if (existsSync(readme)) cpSync(readme, new URL(`${name}.md`, docs));
 }
-for (const file of ['guidelines.md', 'layout.md', 'motion.md']) cpSync(new URL(`../../docs/${file}`, root), new URL(file, docs));
+// The guides: the core rules (guidelines.md) and the topic files. decisions.md is history, not something to build from.
+const guides = new URL('../../docs/', root);
+for (const file of readdirSync(guides)) if (file.endsWith('.md') && file !== 'decisions.md') cpSync(new URL(file, guides), new URL(file, docs));
 console.log('postbuild: styles, tokens, fonts and docs copied');

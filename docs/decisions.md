@@ -1112,3 +1112,20 @@ AI 定的細節（待確認）：
 - 動畫時間 token（`--dur-*`，依 `docs/motion.md` 的用途命名，數值不變）：`hover` 150 ms、`menu` 180 ms、`nav` 200 ms、`tooltip` 220 ms、`expand` 260 ms、`toggle` 300 ms、`drawer` 450 ms、`bar` 500 ms、`chart` 900 ms、`loop` 1400 ms。重複出現的曲線也設 token：`--ease-standard`、`--ease-glide`、`--ease-spring`、`--ease-exit`。`docs/motion.md` 沒有對應用途的 80、100、120、250、320、600、800、1200 ms 和逐項進場間隔維持原本的數值，不設 token。
 - 層級 token（`--z-*`，數值和原本相同，所以疊放順序完全不變）：元件內部 `base` 0、`raised` 1、`sticky` 2、`float` 5；頁面 `header` 10、`rail` 20、`hint` 30、`drawer` 800、`modal` 900、`palette` 950、`tour` 960、`popover` 980、`tooltip` 1000。遮罩用層級本身，上面的面板用 `calc(層級 + 1)`；Workbench 內部的幾層用 `calc(var(--z-float) - 1)` 到 `+ 4`。
 - 檢查：`pnpm test` 會先跑 `packages/ui/scripts/check-css-tokens.ts`，`styles.css` 寫了 px 字級、數字 z-index，或和 token 相同的動畫時間、曲線就失敗；刻意的例外在同一行寫 `/* token-exempt: 原因 */`。`tokens-contrast.test.tsx` 從 `tokens.json` 和 `setAccent` 算上面所有的對比。
+
+## 文件拆分：核心規則、主題檔與元件的「用法」
+
+使用者的要求：「因為我外來新專案每個前端都會使用 design system，不要讓前端只支持特定場景為原則去判斷，另外希望是 agent 能夠使用者個 design 使用越少的 token 或是更專注於設計網頁與 UX 這樣最好」
+
+- 規則的內容不變，只換位置：`docs/guidelines.md` 改成每一頁都需要的核心規則；只和某種頁面有關的放主題檔（`layout.md`、`forms.md`、`data.md`、`monitoring.md`、`code.md`、`theme.md`、`motion.md`）；只和一個元件有關的放該元件的 README，README 已經寫了的不再重複。
+- 每個元件的 README 從 `## 用法` 開始：一句話說明是什麼、什麼時候用（不適合時改用哪個），一個最短的範例，以及最常用錯的 3 到 6 條規則；細節放在後面的段落。
+- `ui docs <Name>` 預設只印「用法」，`--full` 印整份；`ui docs <主題>` 印主題檔。`llms.txt` 先列核心規則，再列每個主題檔和每個元件的一句話說明。
+
+AI 定的細節（待確認）：
+
+- 主題檔的分法和名稱；核心規則收哪些條目（目標 6 KB 以內）；`theme.md` 收色彩 token 對照表、字型檔、圖示用法、外觀設定、自訂強調色的換算與教材主題。
+- 每個元件「用法」挑的規則、範例和「改用哪個元件」的說法。`forms.md` 的選擇表是新寫的對照：選項要全部攤開時用 RadioGroup、立即生效用 Switch、其他勾選用 Checkbox。
+- 「標籤只標例外」原本寫在階層清單，現在也寫進 Tag 的用法和 `code.md`，套用到所有分類標籤。
+- Markdown README 原本寫 .md 檔的「原始碼／預覽」用 Tabs，改成和已確認規則一致的 SegmentedControl。
+- Toast 的用法寫成「頁面掛上它 3 s 後移除」，照元件目前的做法（元件本身不計時）。
+- 套件的 `docs/` 收核心規則和所有主題檔，不收 `decisions.md`；Storybook 的規則頁標題依主題檔命名。
