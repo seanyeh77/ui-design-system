@@ -68,7 +68,7 @@
             rows.map(function (r) {
               return [
                 h('span', { key: r[0] + 'k', style: { color: 'var(--ink-muted)' } }, r[0]),
-                h('span', { key: r[0] + 'v', style: { fontFamily: 'var(--font-mono)' } }, r[1]),
+                h('span', { key: r[0] + 'v', style: { fontVariantNumeric: 'tabular-nums' } }, r[1]),
               ];
             }),
           ),

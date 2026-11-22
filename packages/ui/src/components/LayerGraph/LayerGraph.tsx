@@ -13,6 +13,8 @@ import { Icon } from '../../icons/Icon';
 export interface LayerGraphNode {
   id: string;
   name?: string;
+  /** The name is code (a path, a file, a module): Geist Mono. Default: the text font, for names in words (「被追蹤的程式」). */
+  code?: boolean;
   /** 0 is the top layer. */
   layer?: number;
   /** How big it is (functions, files, endpoints): drawn as the size bar. */
@@ -140,6 +142,12 @@ function withNum(label: string | ((n: number) => string) | undefined, n: number,
 function byCount(n: number, one: string, many: string): string {
   const t = n === 1 ? tr(one) : '';
   return t && t !== one ? t : tr(many);
+}
+
+/** A box reached with the keyboard while partly scrolled out of the diagram's frame (phones): scroll it fully into view,
+ *  with its focus outline (scroll-margin in styles.css). The browser scrolls only boxes that are wholly out of view. */
+function showWhole(e: React.FocusEvent<HTMLElement>) {
+  if (e.currentTarget.matches(':focus-visible')) e.currentTarget.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 
 /** The width of text in a font (`600 13px` and mono or sans), measured on a canvas. */
@@ -400,7 +408,7 @@ export function LayerGraph(p: LayerGraphProps) {
     const name = n.name || n.id;
     const tagW = textWidth(n.tag, 12, false) + 12 + (n.tagTone === 'warning' ? 15 : 0);
     const room = NW - (n.external ? 24 : 28) - 6 - tagW;
-    return room < textWidth(name.slice(0, TAG_KEEP), 13, true) + (name.length > TAG_KEEP ? 1 : 0);
+    return room < textWidth(name.slice(0, TAG_KEEP), 13, !!n.code) + (name.length > TAG_KEEP ? 1 : 0);
   });
   const NH = tagLine ? 76 : 60;
   const shared = all.filter((n) => n.shared);
@@ -558,7 +566,7 @@ export function LayerGraph(p: LayerGraphProps) {
     return typeof p.countLabel === 'function' ? p.countLabel(n) : (p.countLabel ?? byCount(n, '1 次', '{n} 次')).replace('{n}', format.number(n));
   };
   // The label a line down gets: its own label for an inferred line, else its count (when related to the selection).
-  // Two or more lines with the same label (「執行 ibmon」 from two boxes) cannot be told apart: each gets its source in
+  // Two or more lines with the same label (「執行 worker」 from two boxes) cannot be told apart: each gets its source in
   // front, 「來自 src/cli，…」.
   // In a language with capitals, 「Passes data…」 after 「From x, 」 starts lower case (not an acronym like 「SHM」).
   const midSentence = (t: string) => (/^[A-Z][a-z]/.test(t) && !/^zh/i.test(format.locale()) ? t[0].toLowerCase() + t.slice(1) : t);
@@ -1136,7 +1144,7 @@ export function LayerGraph(p: LayerGraphProps) {
             hits(x0, x0 + lw, y0 - 4, y1 + 4) ||
             boxRects.some((q) => over(q, y0, y1)) ||
             (withLines && segs.some((g) => (g.idx === m.idx ? cross(g.box, x0, lw, y0, y1) : over(g.box, y0, y1)))) ||
-            // Beside the lane, but not nearer another line: it would read as that line's (codemap round 8).
+            // Beside the lane, but not nearer another line: it would read as that line's.
             (withLines && !isMine(m.idx, x0, lw, y0, y1));
           for (let k = 0; k <= 16; k++)
             for (const dir of k ? [-1, 1] : [0]) {
@@ -1369,12 +1377,13 @@ export function LayerGraph(p: LayerGraphProps) {
         key={n.id}
         type="button"
         className={cx('ui-lg-node', n.external && 'is-external', on && 'is-selected', !near(n.id) && 'is-dim')}
+        onFocus={showWhole}
         style={{ left: boxOf(n.id).x, top: q.y, width: boxOf(n.id).w, height: NH }}
         aria-pressed={p.onSelect ? on : undefined}
         onClick={p.onSelect ? () => pick(n.id, on) : undefined}
       >
         <span className="ui-lg-head">
-          <span className="ui-lg-name">{n.name || n.id}</span>
+          <span className={cx('ui-lg-name', n.code && 'is-code')}>{n.name || n.id}</span>
           {tagLine ? null : tagOf(n)}
           {used ? <span className="ui-lg-use">{monoNums(useText.replace('{n}', '\u0001'), [used])}</span> : null}
         </span>
@@ -1404,11 +1413,12 @@ export function LayerGraph(p: LayerGraphProps) {
         key={s.id}
         type="button"
         className={cx('ui-lg-node', 'ui-lg-chip', on && 'is-selected', dim && 'is-dim')}
+        onFocus={showWhole}
         aria-pressed={p.onSelect ? on : undefined}
         onClick={p.onSelect ? () => pick(s.id, on) : undefined}
       >
         <span className="ui-lg-head">
-          <span className="ui-lg-name">{s.name || s.id}</span>
+          <span className={cx('ui-lg-name', s.code && 'is-code')}>{s.name || s.id}</span>
           {tagOf(s)}
         </span>
         <span className="ui-lg-shared-meta">{monoNums(sharedMeta.replace('{a}', '\u0001').replace('{b}', '\u0002'), [Object.keys(by).length, total])}</span>
@@ -1446,7 +1456,7 @@ export function LayerGraph(p: LayerGraphProps) {
               !near(n.id),
               p.onSelect ? () => pick(n.id, n.id === sel) : undefined,
               <>
-                <span className="ui-lg-code">{n.name || n.id}</span>
+                <span className={cx('ui-lg-liname', n.code && 'ui-lg-code')}>{n.name || n.id}</span>
                 {tagOf(n)}
               </>,
               n.external && !n.shared ? (

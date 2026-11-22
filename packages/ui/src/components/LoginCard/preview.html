@@ -26,7 +26,7 @@
             forgotHref: '#',
             error: e[0],
             onSubmit: function (v) {
-              if (v.account === 'sean' && v.password === '1234') {
+              if (v.account === 'demo' && v.password === '1234') {
                 e[1](null);
                 ok[1](true);
               } else {
@@ -35,7 +35,7 @@
               }
             },
           }),
-          ok[0] ? h('div', { style: { textAlign: 'center', marginTop: -40, fontSize: 13 } }, '登入成功（示範帳號 sean／1234）') : null,
+          ok[0] ? h('div', { style: { textAlign: 'center', marginTop: -40, fontSize: 13 } }, '登入成功（示範帳號 demo／1234）') : null,
         );
       }
       ReactDOM.createRoot(document.getElementById('root')).render(h(D));

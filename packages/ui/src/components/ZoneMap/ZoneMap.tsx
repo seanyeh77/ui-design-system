@@ -30,7 +30,7 @@ export interface Zone {
 
 export interface ZoneMapProps {
   zones: Zone[];
-  /** What the map shows, for screen readers, e.g. 「機房分區」. */
+  /** What the map shows, for screen readers, e.g. 「設施分區」. */
   label: string;
   /** Columns of the grid. Default 4. Where a zone would be narrower than 150 px (phones), fewer columns are used and
    *  `area` placements are dropped, so zones flow in order. */

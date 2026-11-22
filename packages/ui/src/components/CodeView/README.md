@@ -5,7 +5,7 @@
 有行號的程式碼檢視，用在詳細卡片的原始碼、檢查筆記的引用、Workbench 的主畫面。句子裡的一小段程式碼用 InlineCode。
 
 ```tsx
-<CodeView file="src/libibtrace/hooks/ops.c" fileHref="#/file/ops.c" code={source} start={70} target={74} maxHeight="420px" copy />
+<CodeView file="src/server/hooks/ops.c" fileHref="#/file/ops.c" code={source} start={70} target={74} maxHeight="420px" copy />
 ```
 
 - `target`（一行或 `[from, to]`）標出目標行；有 `maxHeight` 時自動捲到目標行。

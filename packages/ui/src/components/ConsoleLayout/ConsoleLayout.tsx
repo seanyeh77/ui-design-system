@@ -15,7 +15,7 @@ export interface ConsoleExtra {
 }
 
 export interface ConsoleLayoutProps {
-  /** The product or screen name, the page's only heading: 「機房監控」. */
+  /** The product or screen name, the page's only heading: 「設施監控」. */
   title: string;
   /** Right after the title: `<Tag variant="demo">示範資料</Tag>`. Same size and color as the text around it. */
   tags?: React.ReactNode;

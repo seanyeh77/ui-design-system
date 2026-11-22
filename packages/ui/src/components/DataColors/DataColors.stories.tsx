@@ -14,13 +14,13 @@ const cell = (token: string, label: string) => (
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      fontFamily: 'var(--font-mono)',
+      fontVariantNumeric: 'tabular-nums',
       fontSize: 13,
       fontWeight: 600,
     }}
   >
     <span>{label}</span>
-    <span style={{ fontSize: 12, fontFamily: 'var(--font-sans)', fontWeight: 500 }}>{token}</span>
+    <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', fontWeight: 500 }}>{token}</span>
   </div>
 );
 

@@ -5,7 +5,7 @@
 第一次使用的導覽：一次介紹一個地方，整頁變暗，只亮出要介紹的地方。
 
 ```tsx
-const tour = useTour('codemap-flow');
+const tour = useTour('first-visit');
 
 <IconButton icon="question" label="導覽" onClick={tour.start} hint={tour.hint('導覽：三個步驟介紹這一頁。')} />
 <Tour
@@ -42,7 +42,7 @@ const tour = useTour('codemap-flow');
 - 步驟最多 3 到 5 步，只介紹第一次看不出用法的地方。
 
 ```js
-const tour = UI.useTour('codemap-flow');
+const tour = UI.useTour('first-visit');
 h(UI.Tour, {
   open: tour.open, onClose: tour.close,
   steps: [

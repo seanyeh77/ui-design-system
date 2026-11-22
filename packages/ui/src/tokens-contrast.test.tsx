@@ -91,6 +91,30 @@ test.each(['light', 'dark', 'teaching'])('%s: setAccent gives every preset swatc
   expect(fails).toEqual([]);
 });
 
+test.each(['light', 'dark', 'teaching'])(
+  '%s: text reaches 4.5:1 and line-strong 3:1 on the accent-soft that setAccent derives for each preset swatch',
+  (theme) => {
+    // A selected row (accent-soft) holds every kind of text: names, meta lines, status text, links.
+    const c = themes[theme];
+    const fails: string[] = [];
+    for (const [name, hex] of ACCENT_SWATCHES) {
+      if (theme === 'teaching') root.setAttribute('data-theme', 'teaching');
+      else setTheme(theme as 'light' | 'dark');
+      setAccent(hex, true);
+      const soft = varOf('--accent-soft');
+      for (const t of TEXTS) {
+        const color = t === 'accent-text' ? varOf('--accent-text') : c[t];
+        const r = contrast(color, soft);
+        if (r < 4.5) fails.push(`${name} ${hex}: ${t} ${color} on accent-soft ${soft}: ${r.toFixed(2)}:1`);
+      }
+      // Control borders (a checkbox in a selected row) need 3:1 there too.
+      const rb = contrast(c['line-strong'], soft);
+      if (rb < 3) fails.push(`${name} ${hex}: line-strong ${c['line-strong']} on accent-soft ${soft}: ${rb.toFixed(2)}:1`);
+    }
+    expect(fails).toEqual([]);
+  },
+);
+
 const DERIVED = ['accent', 'accent-hover', 'accent-press', 'accent-text', 'accent-soft', 'on-accent', 'focus', 'focus-ring'];
 
 test('the token values of every accent token are what setAccent derives from the default accents', () => {

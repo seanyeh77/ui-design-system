@@ -27,14 +27,14 @@
               flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'center',
-              fontFamily: 'var(--font-mono)',
+              fontVariantNumeric: 'tabular-nums',
               fontSize: 13,
               fontWeight: 600,
               boxShadow: extra && extra.warn ? 'inset 0 0 0 4px var(--warning)' : undefined,
             },
           },
           h('span', { style: { whiteSpace: 'nowrap' } }, label),
-          h('span', { style: { fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap' } }, (extra && extra.note) || token),
+          h('span', { style: { fontFamily: extra && extra.note ? undefined : 'var(--font-mono)', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap' } }, (extra && extra.note) || token),
         );
       }
       function row(n, kids, min) {
@@ -108,7 +108,7 @@
           h(
             'div',
             { style: { display: 'flex', gap: 8, alignItems: 'center' } },
-            h('b', null, '機房監控'),
+            h('b', null, '設施監控'),
             h(U.Tag, { variant: 'demo' }, '示範資料'),
             h('span', { style: { flex: 1 } }),
             h(U.Tag, { variant: 'forecast' }, '預測'),

@@ -1,7 +1,6 @@
 import * as React from 'react';
-import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
-import { FieldLabel } from '../../internal/Field';
+import { FieldErrorIcon, FieldLabel, FieldMessage } from '../../internal/Field';
 
 export interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   /** Above the field, always visible. Never only a placeholder. */
@@ -37,19 +36,9 @@ export function TextField({ label, hint, error, id, className, required, disable
           aria-invalid={error ? true : undefined}
           aria-describedby={desc}
         />
-        {error ? <Icon name="warning-circle" className="ui-field-icon" /> : null}
+        {error ? <FieldErrorIcon /> : null}
       </div>
-      {error ? (
-        // Inserted only while there is an error, keyed by its text: a new error is a new alert node, announced once;
-        // the same error on the next render is not read again. The hint is a separate node that never announces.
-        <div key={error} id={desc} className="ui-field-error" role="alert">
-          {error}
-        </div>
-      ) : hint ? (
-        <div id={desc} className="ui-field-hint">
-          {hint}
-        </div>
-      ) : null}
+      {desc ? <FieldMessage id={desc} error={error} hint={hint} /> : null}
     </div>
   );
 }

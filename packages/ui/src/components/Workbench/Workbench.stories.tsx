@@ -88,7 +88,7 @@ function Demo() {
     <div style={{ height: '100vh' }}>
       <UI.Workbench
         id="story"
-        brand={{ mark: <span style={{ display: 'block', width: 20, height: 20, borderRadius: 5, background: 'var(--accent)' }} />, name: 'codemap', href: '#' }}
+        brand={{ mark: <span style={{ display: 'block', width: 20, height: 20, borderRadius: 5, background: 'var(--accent)' }} />, name: 'app', href: '#' }}
         crumbs={[{ label: 'harness' }, { label: 'controller.py' }, { label: 'VirtualRouter._sync_as' }]}
         actions={<Actions />}
         explorerFilter={{ value: filter, onChange: setFilter, label: '篩選檔案與函式' }}

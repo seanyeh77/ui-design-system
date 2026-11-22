@@ -917,7 +917,7 @@ test('LayerGraph list in English: no gap before the comma after a box name', asy
     const { container } = render(<LayerGraph nodes={nodes} edges={edges} onSelect={() => {}} />);
     await user.click(screen.getByRole('tab', { name: 'List' }));
     const li = container.querySelector('.ui-lg-li');
-    const name = li?.querySelector('.ui-lg-libtn .ui-lg-code');
+    const name = li?.querySelector('.ui-lg-libtn .ui-lg-liname');
     const meta = li?.querySelector(':scope > .ui-lg-limeta');
     if (!name || !meta) throw new Error('no list item');
     expect(meta.textContent?.startsWith(',')).toBe(true);

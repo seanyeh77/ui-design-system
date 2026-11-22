@@ -6,7 +6,7 @@
 
 ```js
 h(UI.ZoneMap, {
-  label: '機房分區',
+  label: '設施分區',
   selectedId: sel,
   onSelect: function (z) {
     setSel(z.id);

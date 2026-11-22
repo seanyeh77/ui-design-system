@@ -6,12 +6,12 @@ export default { title: 'Layout/Card', component: UI.Card };
 const items = [
   {
     id: 'f',
-    name: 'ibt_uct_real',
-    path: 'src/libibtrace/uct_table.h:109',
+    name: 'app_uct_real',
+    path: 'src/server/uct_table.h:109',
     children: [
-      { id: 'a', name: 'trace_am_short', path: 'src/libibtrace/hooks/uct.c:181' },
-      { id: 'b', name: 'trace_am_bcopy', path: 'src/libibtrace/hooks/uct.c:210' },
-      { id: 'c', name: 'trace_put_short', path: 'src/libibtrace/hooks/uct.c:246' },
+      { id: 'a', name: 'trace_am_short', path: 'src/server/hooks/uct.c:181' },
+      { id: 'b', name: 'trace_am_bcopy', path: 'src/server/hooks/uct.c:210' },
+      { id: 'c', name: 'trace_put_short', path: 'src/server/hooks/uct.c:246' },
     ],
   },
 ];

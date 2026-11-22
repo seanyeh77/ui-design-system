@@ -18,7 +18,7 @@ function D() {
         forgotHref="#"
         error={e}
         onSubmit={(v) => {
-          if (v.account === 'sean' && v.password === '1234') {
+          if (v.account === 'demo' && v.password === '1234') {
             setE(null);
             setOk(true);
           } else {
@@ -27,7 +27,7 @@ function D() {
           }
         }}
       />
-      {ok ? <div style={{ textAlign: 'center', marginTop: -40, fontSize: 13 }}>登入成功（示範帳號 sean／1234）</div> : null}
+      {ok ? <div style={{ textAlign: 'center', marginTop: -40, fontSize: 13 }}>登入成功（示範帳號 demo／1234）</div> : null}
     </div>
   );
 }

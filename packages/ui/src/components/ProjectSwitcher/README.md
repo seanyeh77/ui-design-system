@@ -6,13 +6,13 @@
 
 ```js
 h(UI.ProjectSwitcher, {
-  project: 'ibtrace',
+  project: 'web-app',
   status: 'live',
   value: env,
   onChange: setEnv,
   options: [
-    { id: 'ib-build', label: 'ibtrace', detail: 'build 環境' },
-    { id: 'ib-rt', label: 'ibtrace', detail: 'runtime 環境' },
+    { id: 'web-build', label: 'web-app', detail: 'build 環境' },
+    { id: 'web-rt', label: 'web-app', detail: 'runtime 環境' },
   ],
   footer: h('a', { href: '/settings/sources' }, '所有資料來源設定'),
 });

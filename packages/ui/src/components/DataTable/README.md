@@ -105,7 +105,7 @@ type Import = { id: string; name: string; status: BadgeStatus; source: string; s
 這幾項沒有固定規定，依資料決定要不要開：
 
 - 同一欄位能不能選多個：預設可以（`multiple: true`），選項互斥時（例如「本月／上個月」）設 `multiple: false`。
-- 合計列 `totals`：有金額或數量需要加總時才開，例如 `{ budget: 'sum', progress: 'avg' }`；第一欄自動寫「合計 n 筆」。
+- 合計列 `totals`：有金額或數量需要加總時才開，例如 `{ budget: 'sum', progress: 'avg' }`；第一欄自動寫「合計 n 筆」。手機上（小於 600 px）合計列不隱藏，改成卡片下方的摘要：「合計 n 筆」一行，之後每個有合計的欄一行，左邊欄名、右邊數值。
 - 固定第一欄 `stickyFirst`：欄位多、常需要橫向捲動時才開。
 - 常用檢視 `views`：有幾組固定的看法（例如「我負責的」、「本週到期」）時才開，表格上方變成分頁，旁邊寫筆數。
 

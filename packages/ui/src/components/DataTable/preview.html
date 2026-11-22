@@ -63,7 +63,7 @@
         return new Date(NOW - h * 3600000).toISOString();
       }
       var JOBS = [
-        { id: 't1', title: '第 12 次週會錄音', status: 'doing', source: 'YouTube', secs: 2802, words: 6120, created: ago(0.4), note: '轉錄中 42%' },
+        { id: 't1', title: '第 12 次週會錄音', status: 'doing', source: 'YouTube', secs: 2802, words: 6120, created: ago(0.4), note: '處理中 42%' },
         { id: 't2', title: '產品訪談：物流業者', status: 'fail', source: '上傳', secs: 6889, words: 0, created: ago(3), note: '音訊格式不支援，請轉成 MP3 後重試' },
         { id: 't3', title: '課程錄影 第 3 週：作業系統排程', status: 'done', source: 'Google Drive', secs: 5410, words: 21980, created: ago(26) },
         { id: 't4', title: '客服通話抽樣', status: 'done', source: '上傳', secs: 1530, words: 5210, created: ago(50) },
@@ -77,7 +77,7 @@
           'div',
           { style: { padding: 20 } },
           h(U.DataTable, {
-            caption: '轉錄紀錄',
+            caption: '處理紀錄',
             rows: JOBS,
             urlKey: 'jobs',
             selectable: true,
@@ -196,9 +196,9 @@
       var CHECKS = [
         {
           id: 'k1',
-          fn: 'ibmon_spawn',
+          fn: 'worker_spawn',
           ok: true,
-          note: '先 fork 再 execve，子行程繼承 IBTRACE_SHM；父行程等到 ring 建好才回傳，避免子行程搶先寫入。',
+          note: '先 fork 再 execve，子行程繼承 APP_SHM；父行程等到 ring 建好才回傳，避免子行程搶先寫入。',
           desc: '預測和實際呼叫順序一致。setenv 在 fork 之前，所以子行程一定看得到環境變數。',
         },
         {
@@ -238,7 +238,7 @@
           }),
         );
       }
-      // codemap's 檢查筆記 summary in English (round 8): four states with counts. On a phone the row scrolls; the
+      // A 檢查筆記 summary in English: four states with counts. On a phone the row scrolls; the
       // selected state scrolls into view.
       function Summary() {
         var many = CHECKS.concat(

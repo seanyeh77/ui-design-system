@@ -299,6 +299,28 @@ body {
   font-size: var(--text-small);
   color: var(--danger-text);
 }
+/* Every field type with an error: the red border (1.5 px, as TextField) and the warning icon. In a field that is a row
+   (password, date, select, multi-select) the icon sits in the row before its own button or caret; in a text area it
+   sits at the top right. */
+.ui-pwfield.is-invalid,
+.ui-datefield.is-invalid,
+.ui-select-trigger.is-invalid,
+.ui-ms.is-invalid {
+  border: 1.5px solid var(--danger);
+}
+.ui-field-icon.is-inline {
+  position: static;
+  flex: none;
+  transform: none;
+}
+.ui-pwfield .ui-field-icon.is-inline,
+.ui-datefield .ui-field-icon.is-inline {
+  margin-left: var(--space-2);
+}
+.ui-field-box > .ui-textarea ~ .ui-field-icon {
+  top: 12px;
+  transform: none;
+}
 .is-disabled .ui-field-label {
   color: var(--ink-muted);
 }
@@ -1502,6 +1524,8 @@ body {
   color: var(--ink);
 }
 .ui-kpi-unit {
+  /* Units are words (個, 人, 天, ms): the text font, not the digits' Geist Mono. */
+  font-family: var(--font-sans);
   margin-left: 4px;
   font-size: 0.5em;
   font-weight: 600;
@@ -1738,12 +1762,19 @@ body {
 .ui-progress.is-done .ui-progress-fill {
   background: var(--success);
 }
+/* In a table row the ground can be a selected row's accent-soft, where the solid green is under 3:1: the text green
+   (4.5:1 there) instead. */
+.ui-dt-row .ui-progress.is-done .ui-progress-fill {
+  background: var(--success-text);
+}
 .ui-progress-text {
   font-family: var(--font-mono);
   font-size: var(--text-small);
   color: var(--ink-muted);
 }
 .ui-progress.is-done .ui-progress-text {
+  /* 「完成 ✓」 is words: the text font; Geist Mono stays on the percentage. */
+  font-family: var(--font-sans);
   color: var(--success-text);
   font-weight: 600;
 }
@@ -2420,6 +2451,12 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+/* A link inside a cut text that has keyboard focus could sit past the cut, out of sight: while focus is inside, the
+   text shows in full (the row grows) so the focused link and its outline are seen. */
+.ui-dt-cell.is-long > .ui-dt-long:has(:focus-visible) {
+  white-space: normal;
+  overflow: visible;
 }
 .ui-dt-more {
   display: none;
@@ -3213,9 +3250,6 @@ html.ui-theme-fade * {
 .ui-datefield.is-open {
   border-color: var(--accent);
 }
-.ui-datefield.is-invalid {
-  border-color: var(--danger);
-}
 .ui-datefield-input,
 .ui-pwfield-input {
   flex: 1 1 auto;
@@ -3664,9 +3698,6 @@ html.ui-theme-fade * {
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-md);
   background: var(--surface-input);
-}
-.ui-pwfield.is-invalid {
-  border-color: var(--danger);
 }
 .ui-login-submit {
   width: 100%;
@@ -4120,8 +4151,35 @@ html.ui-theme-fade * {
   overflow-y: auto;
 }
 @media (max-width: 599px) {
+  /* Phones: the totals stay, as a summary under the cards: 「合計 n 筆」, then one line per total, its column's name on
+     the left and the value on the right. Columns without a total are left out. */
   .ui-dt-total {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-width: 0 !important;
+    min-height: 0;
+    padding: var(--space-3) var(--space-4);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  }
+  .ui-dt-total .ui-dt-cell {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-3);
+    padding: 0;
+    border-right: 0;
+    overflow: visible;
+    white-space: normal;
+  }
+  .ui-dt-total .ui-dt-cell:empty {
     display: none;
+  }
+  .ui-dt-total .ui-dt-cell[data-label]::before {
+    content: attr(data-label);
+    color: var(--ink-muted);
+    font-family: var(--font-sans);
+    font-weight: 400;
   }
   .ui-dt-cell.is-sticky {
     position: static;
@@ -4395,7 +4453,8 @@ html.ui-theme-fade * {
   column-gap: 0.4em;
   font-size: var(--text-small);
   color: var(--ink-muted);
-  font-family: var(--font-mono);
+  /* Dates, counts and sizes in words (「4 個檔案 · 13 小時前」): the text font with digits of one width. */
+  font-variant-numeric: tabular-nums;
 }
 .ui-tree-meta > span {
   white-space: nowrap;
@@ -4404,7 +4463,7 @@ html.ui-theme-fade * {
   flex: 0 0 auto;
   font-size: var(--text-small);
   color: var(--ink-muted);
-  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 .ui-tree-meta .is-new,
@@ -6157,6 +6216,10 @@ html.ui-theme-fade * {
   overflow-x: auto;
   overscroll-behavior-x: contain;
 }
+/* A box scrolled into view by keyboard focus keeps its 2 px outline (2 px away) inside the frame. */
+.ui-lg-node {
+  scroll-margin: 6px;
+}
 /* HC: dragged shorter than the diagram: it scrolls up and down inside the frame. */
 .ui-lg-scroll.is-framed {
   overflow-y: auto;
@@ -6435,9 +6498,11 @@ html.ui-theme-fade * {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: var(--font-mono);
   font-size: var(--text-small);
   font-weight: 600;
+}
+.ui-lg-name.is-code {
+  font-family: var(--font-mono);
 }
 .ui-lg-size {
   display: flex;
@@ -8971,7 +9036,6 @@ html.ui-theme-fade * {
 .ui-cal-day:focus-visible,
 .ui-ms:focus-within,
 .ui-pwfield:focus-within,
-.ui-settings-cat:focus-visible,
 .ui-dt-opt:focus-visible,
 .ui-code.is-link:focus-visible,
 .ui-code.is-link.is-name:focus-visible,
@@ -9012,9 +9076,16 @@ a.ui-wb-brand:focus-visible,
 .ui-noti-item:focus-visible,
 .ui-projsw-opt:focus-visible,
 .ui-nav-item:focus-visible,
+.ui-settings-cat:focus-visible,
 .ui-pal-item.is-active,
+.ui-pal-head:has(.ui-pal-input:focus-visible),
 .ui-cv .ui-iconbtn:focus-visible,
 .ui-wb .ui-iconbtn:focus-visible {
   outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+/* DataTable cells clip what overflows them (a cut long text, a code link in a sentence): anything focusable inside a
+   cell draws the outline inside itself. :is() lifts the rule above the outside-outline list (.ui-code.is-link…). */
+.ui-dt-cell :is(.ui-code.is-link.is-location, *):focus-visible {
   outline-offset: -2px;
 }

@@ -41,3 +41,49 @@ test('Skeleton: hidden from screen readers, one text line tall by default', () =
   expect(sk.style.height).toBe('16px');
   expect(sk.style.width).toBe('100%');
 });
+
+test('ProgressBar in a table row: the done fill reaches 3:1 on a selected row for every theme and swatch', async () => {
+  const { ACCENT_SWATCHES, DEFAULT_ACCENT, setAccent, setTheme } = await import('../../theme');
+  const rgb = (c: string) => (c.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number);
+  const lum = (c: string) =>
+    rgb(c)
+      .map((v) => v / 255)
+      .map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+      .reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
+  const contrast = (a: string, b: string) => {
+    const [x, y] = [lum(a), lum(b)];
+    return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+  };
+  const { container } = render(
+    <div className="ui-dt-row is-selected" style={{ background: 'var(--accent-soft)' }}>
+      <ProgressBar value={100} aria-label="匯入進度" />
+    </div>,
+  );
+  const row = container.firstElementChild as HTMLElement;
+  const fill = container.querySelector('.ui-progress-fill') as HTMLElement;
+  const root = document.documentElement;
+  // Read the end colors, not a step of the theme fade or the fill's color transition.
+  const still = document.createElement('style');
+  still.textContent = '*, *::before, *::after { transition: none !important; }';
+  document.head.append(still);
+  const fails: string[] = [];
+  try {
+    for (const theme of ['light', 'dark', 'teaching'] as const) {
+      for (const [name, hex] of ACCENT_SWATCHES) {
+        if (theme === 'teaching') root.setAttribute('data-theme', 'teaching');
+        else setTheme(theme);
+        setAccent(hex, true);
+        const f = getComputedStyle(fill).backgroundColor;
+        const g = getComputedStyle(row).backgroundColor;
+        const r = contrast(f, g);
+        if (r < 3) fails.push(`${theme} ${name}: fill ${f} on ${g}: ${r.toFixed(2)}:1`);
+      }
+    }
+  } finally {
+    still.remove();
+    root.removeAttribute('data-theme');
+    setTheme('light');
+    setAccent(DEFAULT_ACCENT, true);
+  }
+  expect(fails).toEqual([]);
+});

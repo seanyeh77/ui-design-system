@@ -53,7 +53,7 @@ function D() {
             <span key={r[0] + 'k'} style={{ color: 'var(--ink-muted)' }}>
               {r[0]}
             </span>,
-            <span key={r[0] + 'v'} style={{ fontFamily: 'var(--font-mono)' }}>
+            <span key={r[0] + 'v'} style={{ fontVariantNumeric: 'tabular-nums' }}>
               {r[1]}
             </span>,
           ];

@@ -8,8 +8,8 @@
 import { Workbench, useWorkbench, TreeList, IconButton, SearchField } from '@seanyeh77/ui';
 
 <Workbench
-  id="codemap"
-  brand={{ mark: <Logo />, name: 'codemap', href: '#overview' }}
+  id="app"
+  brand={{ mark: <Logo />, name: 'app', href: '#overview' }}
   crumbs={[{ label: 'harness' }, { label: 'controller.py' }]}
   mainBar={<IconButton variant="quiet" icon="arrow-square-out" label="用 VS Code 開啟" onClick={openInEditor} />}
   actions={<Actions />}
@@ -127,7 +127,7 @@ React.useEffect(() => {
   return () => window.removeEventListener('popstate', open);
 }, []);
 
-<Workbench ref={wb} id="codemap" views={views}>…</Workbench>
+<Workbench ref={wb} id="app" views={views}>…</Workbench>
 ```
 
 ## 讀取目前的版面
@@ -141,7 +141,7 @@ React.useEffect(() => {
 ```tsx
 <Workbench
   ref={wb}
-  id="codemap"
+  id="app"
   views={views}
   onLayoutChange={(l) => {
     const url = new URL(location.href);

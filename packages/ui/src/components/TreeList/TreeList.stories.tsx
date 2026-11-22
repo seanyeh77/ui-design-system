@@ -12,10 +12,10 @@ const items = [
     id: 'rec',
     name: '上課錄影',
     children: [
-      { id: 'r1', name: 'SDNFV_20260917_Lab1說明.mp4', date: now - 33 * D, size: 42.2 * MB },
-      { id: 'r3', name: 'SDNFV_20261022_Lab3說明.mp4', date: now - 13 * D, size: 54.9 * MB },
-      { id: 'r4', name: 'SDNFV_20261029_1.mp4', date: now - 13 * H, size: 137.6 * MB, unseen: true },
-      { id: 'r5', name: 'SDNFV_20261029_2.mp4', date: now - 14 * H, size: 107.7 * MB, unseen: true },
+      { id: 'r1', name: 'Course_20260917_Lab1說明.mp4', date: now - 33 * D, size: 42.2 * MB },
+      { id: 'r3', name: 'Course_20261022_Lab3說明.mp4', date: now - 13 * D, size: 54.9 * MB },
+      { id: 'r4', name: 'Course_20261029_1.mp4', date: now - 13 * H, size: 137.6 * MB, unseen: true },
+      { id: 'r5', name: 'Course_20261029_2.mp4', date: now - 14 * H, size: 107.7 * MB, unseen: true },
     ],
   },
   {

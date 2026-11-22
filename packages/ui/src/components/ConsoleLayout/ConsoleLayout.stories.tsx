@@ -21,7 +21,7 @@ export const Monitoring = {
     const [replaying, setReplaying] = React.useState(false);
     return (
       <UI.ConsoleLayout
-        title="機房監控"
+        title="設施監控"
         tags={<UI.Tag variant="demo">示範資料</UI.Tag>}
         status="AI 最佳化中"
         kpis={[
@@ -30,8 +30,8 @@ export const Monitoring = {
         ]}
         clock={replaying ? '回放中' : '即時'}
         main={
-          <UI.Card title="機房分區">
-            <UI.ZoneMap label="機房分區" zones={ZONES} fill />
+          <UI.Card title="設施分區">
+            <UI.ZoneMap label="設施分區" zones={ZONES} fill />
           </UI.Card>
         }
         side={[

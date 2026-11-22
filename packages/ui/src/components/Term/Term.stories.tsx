@@ -10,7 +10,7 @@ export const Default = {
         {'起點經過 2 個 '}
         <UI.Term text="一個 `.c` 檔加上它 include 的標頭檔，編譯器一次處理的單位。">translation unit</UI.Term>
         {'，其中原本的 post_send 是 '}
-        <UI.Term text="程式啟動時先載入 ibtrace，以同名函式取代原本函式庫的版本。">LD_PRELOAD 攔截</UI.Term>
+        <UI.Term text="程式啟動時先載入追蹤函式庫，以同名函式取代原本函式庫的版本。">LD_PRELOAD 攔截</UI.Term>
         {' 來的。'}
       </p>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

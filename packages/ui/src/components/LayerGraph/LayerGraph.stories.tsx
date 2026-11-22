@@ -4,14 +4,14 @@ import * as UI from '../../index';
 export default { title: 'Data/LayerGraph', component: UI.LayerGraph };
 
 const nodes = [
-  { id: 'cli', name: 'src/cli', layer: 0, size: 34 },
-  { id: 'server', name: 'src/server', layer: 0, size: 88 },
-  { id: 'parser', name: 'src/parser', layer: 1, size: 61 },
-  { id: 'net', name: 'src/net', layer: 1, size: 47 },
-  { id: 'storage', name: 'src/storage', layer: 2, size: 52 },
-  { id: 'metrics', name: 'src/metrics', layer: 2, size: 19 },
-  { id: 'util', name: 'src/util', shared: true },
-  { id: 'inc', name: 'include/common', shared: true },
+  { id: 'cli', name: 'src/cli', code: true, layer: 0, size: 34 },
+  { id: 'server', name: 'src/server', code: true, layer: 0, size: 88 },
+  { id: 'parser', name: 'src/parser', code: true, layer: 1, size: 61 },
+  { id: 'net', name: 'src/net', code: true, layer: 1, size: 47 },
+  { id: 'storage', name: 'src/storage', code: true, layer: 2, size: 52 },
+  { id: 'metrics', name: 'src/metrics', code: true, layer: 2, size: 19 },
+  { id: 'util', name: 'src/util', code: true, shared: true },
+  { id: 'inc', name: 'include/common', code: true, shared: true },
 ];
 const edges = [
   { from: 'cli', to: 'parser', count: 12 },
@@ -31,23 +31,23 @@ const edges = [
 ];
 // two labelled lines into one box: labels split left and right
 const nodes2 = [
-  { id: 'src/ibmon', name: 'src/ibmon', layer: 0, size: 91 },
-  { id: 'src/ucx_ib_test', name: 'src/ucx_ib_test', layer: 0, size: 22 },
-  { id: 'src/libibtrace', name: 'src/libibtrace', layer: 1, size: 114 },
-  { id: 'src/common', name: 'src/common', shared: true },
+  { id: 'src/worker', name: 'src/worker', code: true, layer: 0, size: 91 },
+  { id: 'src/ucx_ib_test', name: 'src/ucx_ib_test', code: true, layer: 0, size: 22 },
+  { id: 'src/server', name: 'src/server', code: true, layer: 1, size: 114 },
+  { id: 'src/common', name: 'src/common', code: true, shared: true },
 ];
 const edges2 = [
-  { from: 'src/ibmon', to: 'src/libibtrace', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
-  { from: 'src/ucx_ib_test', to: 'src/libibtrace', inferred: true, label: '攔截 17 個 `ucp` 呼叫' },
-  { from: 'src/ibmon', to: 'src/common', count: 6 },
+  { from: 'src/worker', to: 'src/server', inferred: true, label: '環境變數 `APP_SHM`' },
+  { from: 'src/ucx_ib_test', to: 'src/server', inferred: true, label: '攔截 17 個 `ucp` 呼叫' },
+  { from: 'src/worker', to: 'src/common', count: 6 },
 ];
 // two labelled lines on the left half of one box: the second label moves up a line
 const nodes3 = [
-  { id: 'a', name: 'src/loader', layer: 0, size: 12 },
-  { id: 'b', name: 'src/hooks', layer: 0, size: 40 },
-  { id: 'c', name: 'src/cli', layer: 0, size: 18 },
-  { id: 'd', name: 'src/tools', layer: 0, size: 9 },
-  { id: 't', name: 'src/runtime', layer: 1, size: 75 },
+  { id: 'a', name: 'src/loader', code: true, layer: 0, size: 12 },
+  { id: 'b', name: 'src/hooks', code: true, layer: 0, size: 40 },
+  { id: 'c', name: 'src/cli', code: true, layer: 0, size: 18 },
+  { id: 'd', name: 'src/tools', code: true, layer: 0, size: 9 },
+  { id: 't', name: 'src/runtime', code: true, layer: 1, size: 75 },
 ];
 const edges3 = [
   { from: 'a', to: 't', inferred: true, label: '經由 `dlsym` 取得' },
@@ -76,17 +76,17 @@ export const Default = { render: () => <Demo /> };
 
 // Click a line (or its label) and the app shows its details beside the diagram. One inferred line and one plain call.
 const nodes4 = [
-  { id: 'ibmon', name: 'src/ibmon', layer: 0, size: 91 },
-  { id: 'cli', name: 'src/cli', layer: 0, size: 18 },
-  { id: 'lib', name: 'src/libibtrace', layer: 1, size: 114 },
+  { id: 'worker', name: 'src/worker', code: true, layer: 0, size: 91 },
+  { id: 'cli', name: 'src/cli', code: true, layer: 0, size: 18 },
+  { id: 'lib', name: 'src/server', code: true, layer: 1, size: 114 },
 ];
 const edges4 = [
-  { id: 'shm', from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
+  { id: 'shm', from: 'worker', to: 'lib', inferred: true, label: '環境變數 `APP_SHM`' },
   { from: 'cli', to: 'lib', count: 7 },
 ];
 const DETAILS: Record<string, { label: string; value: React.ReactNode }[]> = {
   shm: [
-    { label: '關係', value: '環境變數 IBTRACE_SHM' },
+    { label: '關係', value: '環境變數 APP_SHM' },
     { label: '設定', value: <UI.InlineCode href="#child.c:141">child.c:141</UI.InlineCode> },
     { label: '讀取', value: <UI.InlineCode href="#shm.c:58">shm.c:58</UI.InlineCode> },
   ],
@@ -113,7 +113,7 @@ export const SelectEdges = { render: () => <SelectEdge /> };
 
 // Only inferred lines, as in a diagram built from rules: the legend lists 「推測的關係」 alone.
 const edges5 = [
-  { from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
+  { from: 'worker', to: 'lib', inferred: true, label: '環境變數 `APP_SHM`' },
   { from: 'cli', to: 'lib', inferred: true, label: '攔截 17 個 `ucp` 呼叫' },
 ];
 export const InferredOnly = {
@@ -126,12 +126,12 @@ export const InferredOnly = {
 
 // TAW: short tags beside the names; in a 680 px card three boxes in a row cut the names first, never the tags.
 const tagged = [
-  { id: 'ctrl', name: 'controller.py', layer: 0, size: 88, tag: '可修改' },
-  { id: 'route', name: 'routing.py', layer: 0, size: 64, tag: '受保護', tagTone: 'warning' as const },
-  { id: 'topo', name: 'topology_builder.py', layer: 0, size: 41, tag: '可修改' },
-  { id: 'oracle', name: 'harness/oracle.py', layer: 1, size: 120, tag: '受保護', tagTone: 'warning' as const },
-  { id: 'runner', name: 'experiment_runner.py', layer: 1, size: 23 },
-  { id: 'grader', name: 'grader.py', layer: 1, size: 18, tag: '受保護', tagTone: 'warning' as const },
+  { id: 'ctrl', name: 'controller.py', code: true, layer: 0, size: 88, tag: '可修改' },
+  { id: 'route', name: 'routing.py', code: true, layer: 0, size: 64, tag: '受保護', tagTone: 'warning' as const },
+  { id: 'topo', name: 'topology_builder.py', code: true, layer: 0, size: 41, tag: '可修改' },
+  { id: 'oracle', name: 'harness/oracle.py', code: true, layer: 1, size: 120, tag: '受保護', tagTone: 'warning' as const },
+  { id: 'runner', name: 'experiment_runner.py', code: true, layer: 1, size: 23 },
+  { id: 'grader', name: 'grader.py', code: true, layer: 1, size: 18, tag: '受保護', tagTone: 'warning' as const },
 ];
 export const Tags = {
   render: () => (
@@ -159,12 +159,12 @@ export const Narrow = {
 };
 
 // Shared items are boxes under the diagram, selected like the others: the boxes that use it say how often.
-const nodes6 = [...nodes4, { id: 'common', name: 'src/common', shared: true }, { id: 'inc', name: 'include/ibtrace.h', shared: true }];
+const nodes6 = [...nodes4, { id: 'common', name: 'src/common', code: true, shared: true }, { id: 'inc', name: 'include/app.h', code: true, shared: true }];
 const edges6 = [
   ...edges4,
-  { from: 'ibmon', to: 'common', count: 6 },
+  { from: 'worker', to: 'common', count: 6 },
   { from: 'lib', to: 'common', count: 3 },
-  { from: 'ibmon', to: 'inc', count: 2 },
+  { from: 'worker', to: 'inc', count: 2 },
   { from: 'cli', to: 'inc', count: 1 },
   { from: 'lib', to: 'inc', count: 9 },
 ];
@@ -186,15 +186,15 @@ function SharedSelect() {
 }
 export const SharedItems = { render: () => <SharedSelect /> };
 
-// A data channel back up: src/libibtrace hands events to src/ibmon through src/common's ring. The line leaves the
+// A data channel back up: src/server hands events to src/worker through src/common's ring. The line leaves the
 // source's side, runs up a lane beside the boxes and enters the target's side; the diagram widens for it.
 const nodes7 = [
-  { id: 'ibmon', name: 'src/ibmon', layer: 0, size: 91 },
-  { id: 'cli', name: 'src/cli', layer: 0, size: 18 },
-  { id: 'ucx', name: 'src/ucx_ib_test', layer: 0, size: 22 },
-  { id: 'lib', name: 'src/libibtrace', layer: 1, size: 114 },
+  { id: 'worker', name: 'src/worker', code: true, layer: 0, size: 91 },
+  { id: 'cli', name: 'src/cli', code: true, layer: 0, size: 18 },
+  { id: 'ucx', name: 'src/ucx_ib_test', code: true, layer: 0, size: 22 },
+  { id: 'lib', name: 'src/server', code: true, layer: 1, size: 114 },
 ];
-const upLine = { id: 'ring', from: 'lib', to: 'ibmon', inferred: true, label: '經由 `src/common` 傳資料（ring）' };
+const upLine = { id: 'ring', from: 'lib', to: 'worker', inferred: true, label: '經由 `src/common` 傳資料（ring）' };
 function UpLine() {
   const [edge, setEdge] = React.useState<string | null>(null);
   return (
@@ -234,15 +234,15 @@ export const BothDirections = { render: () => <BothWays /> };
 // The same pair both ways in a phone-width box: the label of the line up stays off the line down. It goes on one line
 // when a spot is clear, else on 2 to 4 lines, else the gap between the layers grows.
 const nodes8 = [
-  { id: 'ibmon', name: 'src/ibmon', layer: 0, size: 91 },
-  { id: 'ucx', name: 'src/ucx_ib_test', layer: 0, size: 22 },
-  { id: 'lib', name: 'src/libibtrace', layer: 1, size: 114 },
-  { id: 'common', name: 'src/common', shared: true },
+  { id: 'worker', name: 'src/worker', code: true, layer: 0, size: 91 },
+  { id: 'ucx', name: 'src/ucx_ib_test', code: true, layer: 0, size: 22 },
+  { id: 'lib', name: 'src/server', code: true, layer: 1, size: 114 },
+  { id: 'common', name: 'src/common', code: true, shared: true },
 ];
 const edges8 = [
-  { id: 'env', from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
+  { id: 'env', from: 'worker', to: 'lib', inferred: true, label: '環境變數 `APP_SHM`' },
   { id: 'hook', from: 'ucx', to: 'lib', inferred: true, label: '攔截 17 個 `ucp` 呼叫' },
-  { from: 'ibmon', to: 'common', count: 6 },
+  { from: 'worker', to: 'common', count: 6 },
   upLine,
 ];
 function BothWaysNarrow() {
@@ -259,16 +259,16 @@ export const BothDirectionsNarrow = { render: () => <BothWaysNarrow /> };
 // work like any other; here three intercepted calls into the library, and the library's line back up to the program.
 const nodes9 = [
   { id: 'app', name: '被追蹤的程式', external: true },
-  { id: 'ibmon', name: 'src/ibmon', layer: 0, size: 91 },
-  { id: 'lib', name: 'src/libibtrace', layer: 1, size: 114 },
-  { id: 'common', name: 'src/common', shared: true },
+  { id: 'worker', name: 'src/worker', code: true, layer: 0, size: 91 },
+  { id: 'lib', name: 'src/server', code: true, layer: 1, size: 114 },
+  { id: 'common', name: 'src/common', code: true, shared: true },
 ];
 const edges9 = [
   { id: 'verbs', from: 'app', to: 'lib', inferred: true, label: '攔截 `verbs`' },
   { id: 'ucp', from: 'app', to: 'lib', inferred: true, label: '攔截 `ucp`' },
   { id: 'uct', from: 'app', to: 'lib', inferred: true, label: '攔截 `uct`' },
-  { id: 'env', from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
-  { from: 'ibmon', to: 'common', count: 6 },
+  { id: 'env', from: 'worker', to: 'lib', inferred: true, label: '環境變數 `APP_SHM`' },
+  { from: 'worker', to: 'common', count: 6 },
   { from: 'lib', to: 'common', count: 7 },
 ];
 function External() {

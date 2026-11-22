@@ -4,16 +4,16 @@ import * as UI from '../../index';
 export default { title: 'Data/InlineCode', component: UI.InlineCode };
 
 const rows: { id: number; loc: string; st: 'done' | 'review' | 'fail'; note: string; expl: string }[] = [
-  { id: 3, loc: 'notes.md:3', st: 'done', note: '`ibmon_spawn` 在 `child.c:86` 設定 `IBTRACE_SHM`', expl: '行號存在，該行提到 `IBTRACE_SHM`。' },
+  { id: 3, loc: 'notes.md:3', st: 'done', note: '`worker_spawn` 在 `child.c:86` 設定 `APP_SHM`', expl: '行號存在，該行提到 `APP_SHM`。' },
   {
     id: 4,
     loc: 'notes.md:4',
     st: 'review',
-    note: '`ibt_attach` 是 constructor，在 `trace.c:321-322`',
+    note: '`app_attach` 是 constructor，在 `trace.c:321-322`',
     expl: '行號存在，但該行沒有 constructor 屬性。請確認是否指 `trace.c:318`。',
   },
   { id: 7, loc: 'notes.md:7', st: 'fail', note: '`ring_push` 在 `ring.c:140` 寫入共享記憶體', expl: '`ring.c` 只有 128 行，行號超出檔案。' },
-  { id: 9, loc: 'notes.md:9', st: 'done', note: '`IBTRACE_SHM` 由 `env.c:22` 讀取', expl: '行號存在，該行讀取 `IBTRACE_SHM`。' },
+  { id: 9, loc: 'notes.md:9', st: 'done', note: '`APP_SHM` 由 `env.c:22` 讀取', expl: '行號存在，該行讀取 `APP_SHM`。' },
   {
     id: 12,
     loc: 'notes.md:12',
@@ -31,7 +31,7 @@ function Demo() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <p style={{ margin: 0 }}>
-        <UI.CodeText text="`ibmon_spawn` 在 `child.c:86` 設定 `IBTRACE_SHM`，由 `env.c:22` 讀取。" onRef={open} />
+        <UI.CodeText text="`worker_spawn` 在 `child.c:86` 設定 `APP_SHM`，由 `env.c:22` 讀取。" onRef={open} />
       </p>
       <UI.DataTable
         label="檢查結果"
@@ -111,7 +111,7 @@ export const NameAndLocation = {
       <UI.InlineCode look="location" href="#harness/controller.py:540">
         harness/controller.py:540
       </UI.InlineCode>{' '}
-      每 5 秒同步一次路由；環境變數 <UI.InlineCode>IBTRACE_SHM</UI.InlineCode> 決定共用記憶體的名稱。
+      每 5 秒同步一次路由；環境變數 <UI.InlineCode>APP_SHM</UI.InlineCode> 決定共用記憶體的名稱。
     </p>
   ),
 };

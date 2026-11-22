@@ -5,7 +5,7 @@
 句子裡的程式碼、檔案路徑和 ID。含反引號的整段文字用 CodeText；多行程式碼用 CodeView。
 
 ```tsx
-<InlineCode>IBTRACE_SHM</InlineCode>
+<InlineCode>APP_SHM</InlineCode>
 <InlineCode href="/code/child.c#L86">child.c:86</InlineCode>
 <InlineCode look="name" href="#fn/_sync_as">VirtualRouter._sync_as</InlineCode>
 <InlineCode look="location" onClick={openLine}>harness/controller.py:540</InlineCode>
@@ -51,7 +51,7 @@ h(
 
 ```js
 h(UI.CodeText, {
-  text: '`ibmon_spawn` 在 `child.c:86` 設定 `IBTRACE_SHM`',
+  text: '`worker_spawn` 在 `child.c:86` 設定 `APP_SHM`',
   refHref: function (ref) {
     return '/code/' + ref;
   }, // 或 onRef(ref)

@@ -4,7 +4,7 @@ import { TextField } from '../TextField/TextField';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
-import { FieldLabel } from '../../internal/Field';
+import { FieldErrorIcon, FieldLabel, FieldMessage } from '../../internal/Field';
 
 export interface LoginCardProps {
   /** Logo or product name above the title. */
@@ -49,7 +49,7 @@ export function LoginCard(p: LoginCardProps) {
           autoComplete="username"
           error={uErr}
         />
-        <div className="ui-field">
+        <div className={cx('ui-field', pErr && 'has-error')}>
           <div className="ui-login-pwlabel">
             <FieldLabel htmlFor={pwId}>{tr('密碼')}</FieldLabel>
             {p.forgotHref ? (
@@ -69,6 +69,7 @@ export function LoginCard(p: LoginCardProps) {
               aria-describedby={pErr ? pwId + '-err' : undefined}
               onChange={(e) => setPass(e.target.value)}
             />
+            {pErr ? <FieldErrorIcon inline /> : null}
             <button
               type="button"
               className="ui-datefield-btn"
@@ -79,11 +80,7 @@ export function LoginCard(p: LoginCardProps) {
               <Icon name={show ? 'eye-slash' : 'eye'} size={18} />
             </button>
           </div>
-          {pErr ? (
-            <div id={pwId + '-err'} className="ui-field-hint is-error" role="alert">
-              {pErr}
-            </div>
-          ) : null}
+          <FieldMessage id={pwId + '-err'} error={pErr} />
         </div>
         <Button variant="primary" type="submit" loading={p.loading} className="ui-login-submit">
           {tr('登入')}

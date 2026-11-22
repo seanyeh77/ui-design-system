@@ -5,17 +5,17 @@ export default { title: 'Data/Graph' };
 
 const NODES = [
   { id: 'main', x: 240, y: 16, w: 160 },
-  { id: 'ibmon_reader_open', x: 20, y: 120, w: 180 },
+  { id: 'worker_reader_open', x: 20, y: 120, w: 180 },
   { id: 'trace_post_send', x: 230, y: 120, w: 180 },
-  { id: 'ibmon_stats_create', x: 440, y: 120, w: 180 },
-  { id: 'ibt_span_begin', x: 120, y: 236, w: 170 },
+  { id: 'worker_stats_create', x: 440, y: 120, w: 180 },
+  { id: 'app_span_begin', x: 120, y: 236, w: 170 },
   { id: 'post_send', x: 350, y: 236, w: 170, ext: true },
 ];
 const EDGES: [string, string, number, string][] = [
-  ['main', 'ibmon_reader_open', 0, ''],
+  ['main', 'worker_reader_open', 0, ''],
   ['main', 'trace_post_send', 1, 'LD_PRELOAD'],
-  ['main', 'ibmon_stats_create', 0, ''],
-  ['trace_post_send', 'ibt_span_begin', 0, 'ops.c:73'],
+  ['main', 'worker_stats_create', 0, ''],
+  ['trace_post_send', 'app_span_begin', 0, 'ops.c:73'],
   ['trace_post_send', 'post_send', 1, 'ops.c:74'],
 ];
 const BY_ID = Object.fromEntries(NODES.map((n) => [n.id, n]));

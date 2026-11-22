@@ -41,11 +41,16 @@
 - `chart-1` 到 `chart-4` 在 `bg`、`surface`、`surface-sub`、`surface-chrome` 上至少 3:1。
 - 選中的分頁與分段控制項：白色的底塊加 1 px `line-strong` 框，只靠白底對灰底（約 1.1:1）看不出來。
 
-`tokens-contrast.test.tsx` 逐一檢查以上比例，涵蓋淺色、深色、教材主題與 8 個推薦色票。
+`tokens-contrast.test.tsx` 從 `tokens.json` 和 `setAccent` 計算以上比例，涵蓋淺色、深色與教材主題：
+
+- 文字：`ink`、`ink-muted` 和每個 `*-text` 在 `bg`、`surface`、`surface-sub`、`surface-chrome`、`accent-soft` 上達 4.5:1，狀態文字在自己的 `*-soft` 上也達 4.5:1。
+- 8 個推薦色票逐一用 `setAccent` 套用後：同一組文字 token 在該色票算出的 `accent-soft` 上達 4.5:1，`line-strong` 在上面達 3:1；`accent-text` 在 `bg`、`surface`、`surface-sub`、`surface-chrome` 上達 4.5:1；`accent`、`accent-hover`、`accent-press` 在這些底色與該色票的 `accent-soft` 上達 3:1，`on-accent` 在三者上達 4.5:1。
+- 非文字：`line-strong`、狀態記號（`*-text`、`ink-muted`）在上述底色與表格的列上達 3:1；`success`、`warning`、`danger` 的實色在 `accent-soft` 以外的底色與表格的列上達 3:1；`chart-1` 到 `chart-4` 在 `bg`、`surface`、`surface-sub`、`surface-chrome` 上達 3:1。
+- 選中分頁的白底加框不在這個測試裡。
 
 ## 焦點
 
-所有控制項的鍵盤焦點用同一種樣式：2 px 實線外框，顏色 `focus`，離控制項 2 px（`outline: 2px solid var(--focus); outline-offset: 2px`）。`focus` 等於 `accent-text`，在每種底色上都至少 4.5:1。貼齊會裁切內容的容器時（可以捲動的分頁列、表格、清單、程式碼區、選單項目），外框改畫在內側 2 px（`outline-offset: -2px`），不會被切掉。有錯誤的欄位也用同一種外框，紅框不變。拖曳分隔線（SplitPane、Workbench）在焦點時變成 3 px 的 `accent` 線。
+所有控制項的鍵盤焦點用同一種樣式：2 px 實線外框，顏色 `focus`，離控制項 2 px（`outline: 2px solid var(--focus); outline-offset: 2px`）。`focus` 等於 `accent-text`，在每種底色上都至少 4.5:1。貼齊會裁切內容的容器時（可以捲動的分頁列、表格、清單、程式碼區、選單項目），外框改畫在內側 2 px（`outline-offset: -2px`），不會被切掉。DataTable 格子裡的任何可聚焦元素（程式碼連結、按鈕、勾選框）都畫在內側；截斷的長文字裡的連結取得鍵盤焦點時，整段文字展開，連結和外框都看得到。CommandPalette 的搜尋列在輸入框有焦點時，整列畫內側外框。有錯誤的欄位也用同一種外框，紅框不變。拖曳分隔線（SplitPane、Workbench）在焦點時變成 3 px 的 `accent` 線。
 
 自己寫的可聚焦元素不必另外寫樣式：`styles.css` 對所有 `:focus-visible` 預設同一種外框。`focus-ring` 是舊名稱，數值和 `focus` 相同；`danger-ring` 不再使用，數值等於 `danger-text`。
 

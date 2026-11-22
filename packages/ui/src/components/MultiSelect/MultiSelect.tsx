@@ -3,7 +3,7 @@ import { Combobox } from '@base-ui/react/combobox';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
-import { CheckMark, FieldLabel } from '../../internal/Field';
+import { CheckMark, FieldErrorIcon, FieldLabel, FieldMessage } from '../../internal/Field';
 
 export interface MultiSelectOption {
   value: string;
@@ -23,13 +23,16 @@ export interface MultiSelectProps {
   placeholder?: string;
   /** Default 「找不到符合的選項」. */
   emptyText?: string;
+  /** The cause and the fix (「至少選一個標籤」). Red border, the warning icon and this line under the field, announced when
+   *  it appears. */
+  error?: string;
   className?: string;
 }
 
 const CREATE = '\u0000create:';
 
 /** Pick several options: chips inside the field, type to filter, Backspace removes the last chip. */
-export function MultiSelect({ label, options, value, onChange, creatable, maxChips = 2, placeholder, emptyText, className }: MultiSelectProps) {
+export function MultiSelect({ label, options, value, onChange, creatable, maxChips = 2, placeholder, emptyText, error, className }: MultiSelectProps) {
   const id = React.useId();
   const [query, setQuery] = React.useState('');
   const labels = React.useMemo(() => new Map(options.map((o) => [o.value, o.label])), [options]);
@@ -40,7 +43,7 @@ export function MultiSelect({ label, options, value, onChange, creatable, maxChi
   const shown = value.slice(0, maxChips);
   const more = value.length - shown.length;
   return (
-    <div className={cx('ui-field', className)}>
+    <div className={cx('ui-field', error && 'has-error', className)}>
       {label ? <FieldLabel htmlFor={id}>{label}</FieldLabel> : null}
       <Combobox.Root
         multiple
@@ -55,7 +58,7 @@ export function MultiSelect({ label, options, value, onChange, creatable, maxChi
           setQuery('');
         }}
       >
-        <Combobox.InputGroup className="ui-ms">
+        <Combobox.InputGroup className={cx('ui-ms', error && 'is-invalid')}>
           <Combobox.Chips className="ui-ms-chips">
             {shown.map((v) => (
               <Combobox.Chip key={v} className="ui-chip" aria-label={labelOf(v)}>
@@ -73,6 +76,8 @@ export function MultiSelect({ label, options, value, onChange, creatable, maxChi
             <Combobox.Input
               id={id}
               className="ui-ms-input"
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? id + '-err' : undefined}
               placeholder={value.length ? '' : placeholder || tr('搜尋')}
               onKeyDown={(e) => {
                 // Hidden chips (+n) still count: Backspace removes the last value, not the last visible chip.
@@ -83,6 +88,7 @@ export function MultiSelect({ label, options, value, onChange, creatable, maxChi
               }}
             />
           </Combobox.Chips>
+          {error ? <FieldErrorIcon inline /> : null}
         </Combobox.InputGroup>
         <Combobox.Portal>
           <Combobox.Positioner className="ui-float is-match" align="start" sideOffset={6}>
@@ -108,6 +114,7 @@ export function MultiSelect({ label, options, value, onChange, creatable, maxChi
           </Combobox.Positioner>
         </Combobox.Portal>
       </Combobox.Root>
+      <FieldMessage id={id + '-err'} error={error} />
     </div>
   );
 }

@@ -6,12 +6,12 @@
 
 ```js
 h(UI.ConsoleLayout, {
-  title: '機房監控',
+  title: '設施監控',
   tags: h(UI.Tag, { variant: 'demo' }, '示範資料'),
   status: 'AI 最佳化中',
   kpis: [h(UI.KpiCard, { key: 'e', size: 'compact', label: '預測誤差', value: 0.4, decimals: 1, unit: '°C', target: '目標 ≤ 0.5 °C' })],
   clock: '即時',
-  main: h(UI.Card, { title: '機房分區' }, h(UI.ZoneMap, { label: '機房分區', zones: zones, fill: true })),
+  main: h(UI.Card, { title: '設施分區' }, h(UI.ZoneMap, { label: '設施分區', zones: zones, fill: true })),
   side: [h(UI.Card, { key: 't' }, h(UI.TimeControl, timeProps))],
   bottom: h(UI.Card, null, h(UI.LineChart, chartProps)),
 });
@@ -37,7 +37,7 @@ h(UI.ConsoleLayout, {
 
 ```js
 h(UI.ConsoleLayout, {
-  title: '機房監控',
+  title: '設施監控',
   tags: h(UI.Tag, { variant: 'demo' }, '示範資料'),
   status: 'AI 最佳化中',
   kpis: [
@@ -45,7 +45,7 @@ h(UI.ConsoleLayout, {
     h(UI.KpiCard, { key: 'p', size: 'compact', label: 'PUE', value: 1.42, decimals: 2, target: '目標 ≤ 1.45' }),
   ],
   clock: '即時',
-  main: h(UI.Card, { title: '機房分區' }, h(UI.ZoneMap, { label: '機房分區', zones: zones, fill: true })),
+  main: h(UI.Card, { title: '設施分區' }, h(UI.ZoneMap, { label: '設施分區', zones: zones, fill: true })),
   side: [h(UI.Card, { key: 't' }, h(UI.TimeControl, timeProps)), h(UI.Card, { key: 'e', title: '事件' }, h(UI.EventTimeline, eventProps))],
   bottom: h(UI.Card, null, h(UI.LineChart, chartProps)),
   extras: [{ id: 'meters', minHeight: 1040, node: h(UI.Card, { title: '各區進氣溫度' }, meters) }],

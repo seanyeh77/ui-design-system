@@ -9,5 +9,5 @@
 ```
 
 - 高度 8 px，軌道 `surface-sub`，填色 `accent`。
-- 百分比寫在條的下方，等寬字。
+- 百分比寫在條的下方，Geist Mono；完成時改寫「完成 ✓」，用一般字體。在 DataTable 的列裡，完成的綠色條改用 `success-text`，選中的列（`accent-soft`）上也有 3:1。
 - 到 100% 時條變 `success`，文字變「完成 ✓」。

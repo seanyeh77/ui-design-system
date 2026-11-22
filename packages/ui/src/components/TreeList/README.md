@@ -8,7 +8,7 @@
 h(UI.TreeList, {
   title: '課程教材',
   items: [
-    { id: 'rec', name: '上課錄影', children: [{ id: 'r4', name: 'SDNFV_20261029_1.mp4', date: '2026-11-05T01:16', size: 144284057, unseen: true }] },
+    { id: 'rec', name: '上課錄影', children: [{ id: 'r4', name: 'Course_20261029_1.mp4', date: '2026-11-05T01:16', size: 144284057, unseen: true }] },
     { id: 'f1', name: '課程評分方式.docx', date: '2026-09-22', size: 53248 },
   ],
   defaultOpen: ['rec'],
@@ -51,7 +51,7 @@ h(UI.TreeList, {
 
 - 每層縮排 28 px，左側細線（`line`）。資料夾用 Phosphor 的 folder／folder-open，前面有會轉 90° 的箭頭。
 - 檔案圖示：文件形狀，底部色塊寫副檔名。PDF 紅、影片紫、音訊桃紅、簡報橘、文件藍、試算表綠、圖片青、程式碼深灰、壓縮檔和其他灰。
-- 清單寬 640 px 以上：日期和大小在右側排成欄（Geist Mono）。比較窄：放在名稱下方，寫成「13 小時前 · 137.6 MB」，檔名最多兩行。依照清單本身的寬度切換，不是看整個螢幕；日期照格式規則（一週內用相對時間）。
+- 清單寬 640 px 以上：日期和大小在右側排成欄（一般字體加等寬數字 tabular-nums，「13 小時前」這類有中文的不用 Geist Mono）。比較窄：放在名稱下方，寫成「13 小時前 · 137.6 MB」，檔名最多兩行。依照清單本身的寬度切換，不是看整個螢幕；日期照格式規則（一週內用相對時間）。
 - 新檔案（`unseen`）：日期變 `accent-text` 粗體；資料夾旁寫「2 個新」。
 - 滑過列 `surface-sub`，勾選中的列 `accent-soft`。
 - 展開時子項目往下長出 260 ms；減少動態效果時改成淡入。
@@ -68,9 +68,9 @@ h(UI.TreeList, {
     {
       id: 'root',
       name: 'trace_post_send',
-      path: 'src/libibtrace/hooks/ops.c:55',
+      path: 'src/server/hooks/ops.c:55',
       children: [
-        { id: 'hook_of', name: 'hook_of', path: 'src/libibtrace/hooks/ops.c:58', tags: ['編譯器'] },
+        { id: 'hook_of', name: 'hook_of', path: 'src/server/hooks/ops.c:58', tags: ['編譯器'] },
         { id: 'gettime', name: 'clock_gettime', meta: 'libc.so.6', tags: ['外部'], muted: true },
       ],
     },
@@ -101,7 +101,7 @@ h(UI.TreeList, {
 
 ## 無障礙
 
-- 每一項的名稱是「名稱，標籤，meta，完整路徑」，例如「hook_of，推測（規則），×4，src/libibtrace/hooks/ops.c:58」：展開按鈕不算進名稱，畫面上縮寫的路徑（「…」）也不會被念出來。`ariaLabel` 可以整句換掉。
+- 每一項的名稱是「名稱，標籤，meta，完整路徑」，例如「hook_of，推測（規則），×4，src/server/hooks/ops.c:58」：展開按鈕不算進名稱，畫面上縮寫的路徑（「…」）也不會被念出來。`ariaLabel` 可以整句換掉。
 - 子項目放在 `role="group"` 裡，由上層項目的 `aria-owns` 指向。
 - 展開時 live region 念「已展開，3 個子項目」，收合時念「已收合」。
 - 第 5 層以後名稱前的「L5」標記滑過時顯示「第 5 層」（`title`）；螢幕閱讀器從 `aria-level` 念層數，標記本身不念。

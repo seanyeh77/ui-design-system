@@ -49,7 +49,7 @@
         var rp = React.useState(false);
         var ph = React.useState(15);
         return h(U.ConsoleLayout, {
-          title: '機房監控',
+          title: '設施監控',
           tags: h(U.Tag, { variant: 'demo' }, '示範資料'),
           status: 'AI 最佳化中',
           kpis: [
@@ -60,9 +60,9 @@
           clock: rp[0] ? '回放中' : '即時',
           main: h(
             U.Card,
-            { title: '機房分區' },
+            { title: '設施分區' },
             h(U.ZoneMap, {
-              label: '機房分區',
+              label: '設施分區',
               zones: ZONES,
               fill: true,
               selectedId: sel[0],

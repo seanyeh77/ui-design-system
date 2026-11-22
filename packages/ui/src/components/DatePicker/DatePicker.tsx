@@ -3,7 +3,7 @@ import { fmtDate, parseDate, sameDay } from '../../format';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
-import { FieldLabel } from '../../internal/Field';
+import { FieldErrorIcon, FieldLabel, FieldMessage } from '../../internal/Field';
 import { FloatingPanel } from '../../internal/FloatingPanel';
 import { Calendar } from '../Calendar/Calendar';
 
@@ -14,11 +14,14 @@ export interface DatePickerProps {
   /** Default 「可以直接輸入，例如 2026/11/14」. */
   hint?: string;
   required?: boolean;
+  /** An error from your own check (「請選擇開始日期」): the cause and the fix. Red border, the warning icon and this line
+   *  under the field, announced when it appears. A date typed in the wrong format gets its own error. */
+  error?: string;
   className?: string;
 }
 
 /** A date field: type YYYY/MM/DD, or pick from the calendar button's month grid. */
-export function DatePicker({ label, value, onChange, hint, required, className }: DatePickerProps) {
+export function DatePicker({ label, value, onChange, hint, required, error, className }: DatePickerProps) {
   const id = React.useId();
   const [open, setOpen] = React.useState(false);
   const [typed, setTyped] = React.useState<string | null>(null);
@@ -28,6 +31,8 @@ export function DatePicker({ label, value, onChange, hint, required, className }
   // the date is valid again.
   const [left, setLeft] = React.useState(false);
   const bad = wrong && left;
+  const errText = bad ? tr('日期格式不正確，請寫成 2026/11/14') : error;
+  const msgId = id + '-msg';
   const commit = (d: Date | null) => {
     setTyped(null);
     setLeft(false);
@@ -35,13 +40,13 @@ export function DatePicker({ label, value, onChange, hint, required, className }
     setOpen(false);
   };
   return (
-    <div className={cx('ui-field', className)}>
+    <div className={cx('ui-field', errText && 'has-error', className)}>
       {label ? (
         <FieldLabel htmlFor={id} required={required}>
           {label}
         </FieldLabel>
       ) : null}
-      <div ref={field} className={cx('ui-datefield', bad && 'is-invalid')}>
+      <div ref={field} className={cx('ui-datefield', errText && 'is-invalid')}>
         <input
           id={id}
           className="ui-datefield-input"
@@ -49,7 +54,8 @@ export function DatePicker({ label, value, onChange, hint, required, className }
           placeholder="YYYY/MM/DD"
           // The label's red asterisk is hidden from screen readers; they hear 「必填」 from this.
           aria-required={required || undefined}
-          aria-invalid={bad || undefined}
+          aria-invalid={errText ? true : undefined}
+          aria-describedby={msgId}
           onChange={(e) => {
             const t = e.target.value;
             setTyped(t);
@@ -59,6 +65,7 @@ export function DatePicker({ label, value, onChange, hint, required, className }
           }}
           onBlur={() => (wrong ? setLeft(true) : setTyped(null))}
         />
+        {errText ? <FieldErrorIcon inline /> : null}
         <FloatingPanel
           open={open}
           onOpenChange={setOpen}
@@ -82,9 +89,7 @@ export function DatePicker({ label, value, onChange, hint, required, className }
           </div>
         </FloatingPanel>
       </div>
-      <div className={cx('ui-field-hint', bad && 'is-error')}>
-        {bad ? tr('日期格式不正確，請寫成 2026/11/14') : hint || tr('可以直接輸入，例如 2026/11/14')}
-      </div>
+      <FieldMessage id={msgId} error={errText} hint={hint || tr('可以直接輸入，例如 2026/11/14')} />
     </div>
   );
 }

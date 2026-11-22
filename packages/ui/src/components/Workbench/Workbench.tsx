@@ -33,7 +33,7 @@ export interface WorkbenchLayout {
 }
 
 export interface WorkbenchProps {
-  /** Names the stored layout: one per page, such as 'codemap'. */
+  /** Names the stored layout: one per page, such as 'app'. */
   id: string;
   /** Product at the top left. The name is hidden on phones; the mark stays. */
   brand?: { mark?: React.ReactNode; name: string; href?: string };

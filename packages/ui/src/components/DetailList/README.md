@@ -7,8 +7,8 @@
 ```js
 h(UI.DetailList, {
   items: [
-    { label: '定義', value: h(UI.InlineCode, { href: '/code/ops.c#L55' }, 'src/libibtrace/hooks/ops.c:55') },
-    { label: '元件', value: 'src/libibtrace' },
+    { label: '定義', value: h(UI.InlineCode, { href: '/code/ops.c#L55' }, 'src/server/hooks/ops.c:55') },
+    { label: '元件', value: 'src/server' },
     { label: '關係', value: '1 個 caller · 呼叫 4 個函式' },
   ],
 });

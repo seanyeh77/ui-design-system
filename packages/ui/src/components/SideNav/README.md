@@ -34,7 +34,7 @@ Dashboard 類頁面的左側導覽，可以收合。AppShell 已經內建（側�
 側邊欄最上方的產品名稱。傳 `{ mark, name, href }`：
 
 ```tsx
-<AppShell brand={{ mark: <img src="/logo.svg" alt="" width={24} height={24} />, name: 'codemap', href: '/' }} …>
+<AppShell brand={{ mark: <img src="/logo.svg" alt="" width={24} height={24} />, name: 'app', href: '/' }} …>
 ```
 
 - 收合（72 px，包括沒釘選時平常的圖示列和釘選後收合）：只顯示 `mark`，名稱藏起來。仍是回首頁的連結，Tab 可以停，`aria-label` 是完整的 `name`。

@@ -11,26 +11,26 @@
       var U = window.UI,
         h = React.createElement;
       function Demo() {
-        var s = React.useState('ib-build');
+        var s = React.useState('web-build');
         return h(
           'div',
           { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 4px' } },
           h('strong', { style: { fontSize: 17 } }, '流程'),
           h(U.ProjectSwitcher, {
-            project: 'ibtrace',
+            project: 'web-app',
             status: 'live',
             value: s[0],
             onChange: s[1],
             options: [
-              { id: 'ib-build', label: 'ibtrace', detail: 'build 環境' },
-              { id: 'ib-rt', label: 'ibtrace', detail: 'runtime 環境' },
-              { id: 'cm', label: 'codemap', detail: 'build 環境' },
+              { id: 'web-build', label: 'web-app', detail: 'build 環境' },
+              { id: 'web-rt', label: 'web-app', detail: 'runtime 環境' },
+              { id: 'api', label: 'api-server', detail: 'build 環境' },
             ],
             footer: h('a', { href: '#', style: { color: 'var(--accent-text)' } }, '所有資料來源設定'),
           }),
         );
       }
-      // codemap's top bar (round 8): a page title, search, help and the switcher with a long status. On a phone the
+      // A top bar with a page title, search, help and the switcher with a long status. On a phone the
       // status is the dot and the name stays whole; short of room on a desktop the status gives way first.
       function Bar(props) {
         var s = React.useState('live');
@@ -42,14 +42,14 @@
             { title: '檢查筆記', searchLabel: '搜尋', onSearch: function () {} },
             h(U.IconButton, { icon: 'question', label: '重看導覽' }),
             h(U.ProjectSwitcher, {
-              project: 'ibtrace',
+              project: 'web-app',
               status: s[0] === 'live' ? 'live' : 'stale',
               statusLabel: s[0] === 'live' ? '即時' : '快照 a085bc3',
               value: s[0],
               onChange: s[1],
               options: [
-                { id: 'live', label: 'ibtrace', detail: 'localhost 即時' },
-                { id: 'snap', label: 'ibtrace', detail: '快照 a085bc3' },
+                { id: 'live', label: 'web-app', detail: 'localhost 即時' },
+                { id: 'snap', label: 'web-app', detail: '快照 a085bc3' },
               ],
             }),
           ),

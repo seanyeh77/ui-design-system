@@ -117,7 +117,7 @@ type Job = { id: string; title: string; status: UI.BadgeStatus; source: string; 
 const NOW = Date.now();
 const ago = (h: number) => new Date(NOW - h * 3600000).toISOString();
 const JOBS: Job[] = [
-  { id: 't1', title: '第 12 次週會錄音', status: 'doing', source: 'YouTube', secs: 2802, words: 6120, created: ago(0.4), note: '轉錄中 42%' },
+  { id: 't1', title: '第 12 次週會錄音', status: 'doing', source: 'YouTube', secs: 2802, words: 6120, created: ago(0.4), note: '處理中 42%' },
   { id: 't2', title: '產品訪談：物流業者', status: 'fail', source: '上傳', secs: 6889, words: 0, created: ago(3), note: '音訊格式不支援，請轉成 MP3 後重試' },
   { id: 't3', title: '課程錄影 第 3 週：作業系統排程', status: 'done', source: 'Google Drive', secs: 5410, words: 21980, created: ago(26) },
   { id: 't4', title: '客服通話抽樣', status: 'done', source: '上傳', secs: 1530, words: 5210, created: ago(50) },
@@ -129,7 +129,7 @@ export const Defaults = {
   render: () => (
     <div style={{ padding: 20 }}>
       <UI.DataTable<Job>
-        caption="轉錄紀錄"
+        caption="處理紀錄"
         rows={JOBS}
         urlKey="jobs"
         selectable
@@ -171,12 +171,12 @@ export const Defaults = {
 // A results list on one page: the summary counts carry their unit, and the count above the table is the only count
 // (no 「第 1–6 筆，共 6 筆」 below it).
 const NOTES = [
-  { id: 'n1', loc: 'src/ibmon/main.c:42', text: '找不到 child.c，完整路徑應為 src/ibmon/child.c:86', status: 'fail' },
-  { id: 'n2', loc: 'src/libibtrace/shm.c:58', text: '環境變數 IBTRACE_SHM 由 child.c:141 設定，在這裡讀取', status: 'review' },
+  { id: 'n1', loc: 'src/worker/main.c:42', text: '找不到 child.c，完整路徑應為 src/worker/child.c:86', status: 'fail' },
+  { id: 'n2', loc: 'src/server/shm.c:58', text: '環境變數 APP_SHM 由 child.c:141 設定，在這裡讀取', status: 'review' },
   { id: 'n3', loc: 'src/cli/args.c:17', text: '參數順序與說明文件一致', status: 'done' },
-  { id: 'n4', loc: 'src/libibtrace/hooks/ops.c:74', text: 'ops 表格的第 3 項是 NULL，請在 ops.c:70 加上判斷', status: 'fail' },
-  { id: 'n5', loc: 'include/ibtrace.h:12', text: '巨集名稱重複定義', status: 'review' },
-  { id: 'n6', loc: 'src/ibmon/child.c:141', text: '設定 IBTRACE_SHM', status: 'done' },
+  { id: 'n4', loc: 'src/server/hooks/ops.c:74', text: 'ops 表格的第 3 項是 NULL，請在 ops.c:70 加上判斷', status: 'fail' },
+  { id: 'n5', loc: 'include/app.h:12', text: '巨集名稱重複定義', status: 'review' },
+  { id: 'n6', loc: 'src/worker/child.c:141', text: '設定 APP_SHM', status: 'done' },
 ];
 const NOTE_STATUS: Record<UI.BadgeStatus, string> = { draft: '草稿', doing: '進行中', fail: '錯誤', review: '要確認', done: '通過' };
 export const OnePageSummary = {
@@ -214,10 +214,10 @@ export const OnePageSummary = {
 // A table beside a 440 px detail panel: about 530 px left for five columns. It scrolls, with a fade on the right and a
 // 「左右滑動」 hint under it.
 const CALLERS = [
-  { id: 'c1', fn: 'ibtrace_init', file: 'src/libibtrace/init.c', n: 12, via: '直接呼叫', dist: 1 },
-  { id: 'c2', fn: 'shm_open_ring', file: 'src/libibtrace/shm.c', n: 7, via: '函式指標', dist: 2 },
-  { id: 'c3', fn: 'child_spawn', file: 'src/ibmon/child.c', n: 4, via: '直接呼叫', dist: 1 },
-  { id: 'c4', fn: 'ucp_hook_progress', file: 'src/libibtrace/hooks/ops.c', n: 17, via: '攔截', dist: 3 },
+  { id: 'c1', fn: 'app_init', file: 'src/server/init.c', n: 12, via: '直接呼叫', dist: 1 },
+  { id: 'c2', fn: 'shm_open_ring', file: 'src/server/shm.c', n: 7, via: '函式指標', dist: 2 },
+  { id: 'c3', fn: 'child_spawn', file: 'src/worker/child.c', n: 4, via: '直接呼叫', dist: 1 },
+  { id: 'c4', fn: 'ucp_hook_progress', file: 'src/server/hooks/ops.c', n: 17, via: '攔截', dist: 3 },
 ];
 export const BesidePanel = {
   render: () => (
@@ -242,8 +242,8 @@ export const BesidePanel = {
       >
         <UI.DetailList
           items={[
-            { label: '函式', value: 'ibtrace_init' },
-            { label: '檔案', value: 'src/libibtrace/init.c' },
+            { label: '函式', value: 'app_init' },
+            { label: '檔案', value: 'src/server/init.c' },
           ]}
         />
       </div>
@@ -256,9 +256,9 @@ export const BesidePanel = {
 const CHECKS = [
   {
     id: 'k1',
-    fn: 'ibmon_spawn',
+    fn: 'worker_spawn',
     ok: true,
-    note: '先 fork 再 execve，子行程繼承 IBTRACE_SHM；父行程等到 ring 建好才回傳，避免子行程搶先寫入。',
+    note: '先 fork 再 execve，子行程繼承 APP_SHM；父行程等到 ring 建好才回傳，避免子行程搶先寫入。',
     desc: '預測和實際呼叫順序一致。setenv 在 fork 之前，所以子行程一定看得到環境變數。',
   },
   {

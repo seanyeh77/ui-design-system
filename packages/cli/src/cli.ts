@@ -130,7 +130,11 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
           await run(() =>
             page.evaluate((t) => {
               const r = document.documentElement;
-              if (r.hasAttribute('data-theme') || 'UI' in window) r.setAttribute('data-theme', t);
+              // A page on bundle.js: the system's own setTheme, which also moves the accent's derived colors to the
+              // theme, so the dark pass is dark whatever the page did at load. Other pages: the attribute, if it uses one.
+              const ui = (window as unknown as { UI?: { setTheme?: (t: 'light' | 'dark') => void } }).UI;
+              if (typeof ui?.setTheme === 'function') ui.setTheme(t);
+              else if (r.hasAttribute('data-theme')) r.setAttribute('data-theme', t);
             }, theme),
           );
           await page.waitForTimeout(opts.wait);

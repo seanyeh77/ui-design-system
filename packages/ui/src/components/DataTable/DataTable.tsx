@@ -1197,7 +1197,15 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                 {expander ? <div className={cx('ui-dt-cell', lead('exp').className)} style={lead('exp').style} role="cell" /> : null}
                 {selectable ? <div className={cx('ui-dt-cell', lead('sel').className)} style={lead('sel').style} role="cell" /> : null}
                 {shownCols.map((c, ci) => (
-                  <div key={c.key} role="cell" className={cellClass(c, ci)} style={stickyStyle(ci)} data-col={c.key}>
+                  <div
+                    key={c.key}
+                    role="cell"
+                    className={cellClass(c, ci)}
+                    style={stickyStyle(ci)}
+                    data-col={c.key}
+                    // On a phone the totals row is a summary under the cards: each total as 「label value」.
+                    data-label={ci > 0 && p.totals?.[c.key] ? c.label : undefined}
+                  >
                     {total(c, ci)}
                   </div>
                 ))}

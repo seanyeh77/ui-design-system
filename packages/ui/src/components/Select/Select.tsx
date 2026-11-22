@@ -4,7 +4,7 @@ import { Combobox } from '@base-ui/react/combobox';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
-import { FieldLabel } from '../../internal/Field';
+import { FieldErrorIcon, FieldLabel, FieldMessage } from '../../internal/Field';
 
 export interface SelectOption<V extends string = string> {
   value: V;
@@ -28,6 +28,9 @@ export interface SelectProps<V extends string = string> {
   /** Red asterisk after the label. */
   required?: boolean;
   disabled?: boolean;
+  /** The cause and the fix (「請選擇部門」). Red border, the warning icon and this line under the field, announced when it
+   *  appears. */
+  error?: string;
   /** Form field name; the value is submitted with the form. */
   name?: string;
   className?: string;
@@ -35,7 +38,20 @@ export interface SelectProps<V extends string = string> {
 
 /** Pick one option from a list. Use it instead of a native <select>; a search box appears above 8 options. */
 export function Select<V extends string = string>(props: SelectProps<V>) {
-  const { label, value, onChange, options, searchable = options.length > 8, placeholder, searchPlaceholder, required, disabled, name, className } = props;
+  const {
+    label,
+    value,
+    onChange,
+    options,
+    searchable = options.length > 8,
+    placeholder,
+    searchPlaceholder,
+    required,
+    disabled,
+    error,
+    name,
+    className,
+  } = props;
   const labelId = React.useId();
   const current = options.find((o) => o.value === value) ?? null;
   const head = label ? (
@@ -46,16 +62,25 @@ export function Select<V extends string = string>(props: SelectProps<V>) {
   const trigger = (
     <>
       <span className={cx(!current && 'is-placeholder')}>{current ? current.label : placeholder || tr('請選擇')}</span>
+      {error ? <FieldErrorIcon inline /> : null}
       <Icon name="caret-down" size={16} className="ui-select-chev" />
     </>
   );
+  const errId = labelId + '-err';
+  const message = <FieldMessage id={errId} error={error} />;
   const optionBody = (o: SelectOption<V>, on: boolean) => (
     <>
       <span>{o.label}</span>
       {on ? <Icon name="check" size={16} /> : null}
     </>
   );
-  const labelling = { 'aria-labelledby': label ? labelId : undefined, 'aria-label': label ? undefined : props['aria-label'] };
+  const labelling = {
+    'aria-labelledby': label ? labelId : undefined,
+    'aria-label': label ? undefined : props['aria-label'],
+    'aria-invalid': error ? true : undefined,
+    'aria-describedby': error ? errId : undefined,
+  };
+  const triggerClass = cx('ui-select-trigger', error && 'is-invalid');
 
   if (searchable) {
     return (
@@ -71,7 +96,7 @@ export function Select<V extends string = string>(props: SelectProps<V>) {
           required={required}
           name={name}
         >
-          <Combobox.Trigger className="ui-select-trigger" {...labelling}>
+          <Combobox.Trigger className={triggerClass} {...labelling}>
             {trigger}
           </Combobox.Trigger>
           <Combobox.Portal>
@@ -93,6 +118,7 @@ export function Select<V extends string = string>(props: SelectProps<V>) {
             </Combobox.Positioner>
           </Combobox.Portal>
         </Combobox.Root>
+        {message}
       </div>
     );
   }
@@ -107,7 +133,7 @@ export function Select<V extends string = string>(props: SelectProps<V>) {
         required={required}
         name={name}
       >
-        <BaseSelect.Trigger className="ui-select-trigger" {...labelling}>
+        <BaseSelect.Trigger className={triggerClass} {...labelling}>
           {trigger}
         </BaseSelect.Trigger>
         <BaseSelect.Portal>
@@ -124,6 +150,7 @@ export function Select<V extends string = string>(props: SelectProps<V>) {
           </BaseSelect.Positioner>
         </BaseSelect.Portal>
       </BaseSelect.Root>
+      {message}
     </div>
   );
 }

@@ -32,7 +32,7 @@
 - 取代頁面上「第一次使用」的橫幅。
 
 ```tsx
-const tour = useTour('codemap-flow');
+const tour = useTour('first-visit');
 <IconButton icon="question" label="導覽" onClick={tour.start} hint={tour.hint('導覽：五個步驟介紹各頁。')} />
 <Tour open={tour.open} onClose={tour.close} steps={steps} />
 ```

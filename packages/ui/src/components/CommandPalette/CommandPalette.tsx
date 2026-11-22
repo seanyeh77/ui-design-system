@@ -237,7 +237,7 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
                   </span>
                   <span className="ui-pal-text">
                     <span className="ui-pal-line">
-                      {/* Read as 「環境變數 IBTRACE_SHM」: the kind first, as it is said, then the name. */}
+                      {/* Read as 「環境變數 APP_SHM」: the kind first, as it is said, then the name. */}
                       {it.kind ? <span className="ui-visually-hidden">{it.kind + ' '}</span> : null}
                       {labelOf(it, at)}
                     </span>

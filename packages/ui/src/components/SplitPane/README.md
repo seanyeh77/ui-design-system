@@ -7,7 +7,7 @@
 ```tsx
 <SplitPane
   a={<Card title="架構">…</Card>}
-  b={<CodeView file="src/libibtrace/shm.c" code={code} />}
+  b={<CodeView file="src/server/shm.c" code={code} />}
   defaultB={420}
   minA={360}
   minB={280}
