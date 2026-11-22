@@ -1,12 +1,13 @@
 // Builds the docs site into site/: Storybook at the root, plus the files agents and plain pages load.
 //   /dist/*            bundle.js (window.UI, React included), styles, tokens, fonts, the ES module and its types
 //   /preview/<Name>    each component's plain-HTML preview (the cards of the Design System artifact)
-//   /md/<Name>.md      READMEs and guides as Markdown
+//   /md/<Name>.md      READMEs (用法 block first) and the guides (docs/*.md) as Markdown
 //   /r/<name>.json     the shadcn registry of page templates
 //   /llms.txt          an index of all of the above
 // Run after `pnpm build`: node scripts/site.ts
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { summary } from '../packages/cli/src/usage.ts';
 
 const root = new URL('../', import.meta.url);
 const site = new URL('site/', root);
@@ -61,12 +62,7 @@ for (const name of readdirSync(compDir).sort()) {
   if (existsSync(readme)) {
     const md = readFileSync(readme, 'utf8');
     cpSync(readme, new URL(`md/${name}.md`, site));
-    const summary =
-      md
-        .split('\n')
-        .find((l) => l.trim() && !l.startsWith('#'))
-        ?.trim() ?? '';
-    components.push({ name, group, summary });
+    components.push({ name, group, summary: summary(md) });
   }
 }
 for (const f of readdirSync(at('docs/'))) if (f.endsWith('.md')) cpSync(at(`docs/${f}`), new URL(`md/${f}`, site));
@@ -76,22 +72,30 @@ writeFileSync(new URL('.nojekyll', site), '');
 execFileSync('pnpm', ['exec', 'shadcn', 'build', 'registry.json', '--output', 'site/r'], { stdio: 'inherit', cwd: root });
 const blocks = (JSON.parse(readFileSync(at('registry.json'), 'utf8')) as { items: { name: string; description: string }[] }).items;
 
+// The reading order for an agent: the core rules every page needs, then a topic file only when the page has that topic.
 const guides: [string, string][] = [
-  ['guidelines', 'All confirmed design rules'],
-  ['layout', 'Page structure and breakpoints'],
-  ['motion', 'Animation durations and effects'],
-  ['decisions', 'Original wording of each lab decision'],
+  ['guidelines', 'Core rules every page needs (read first): look, type, controls, layout, formats, copy, status, accessibility, checks'],
+  ['layout', 'Page frames, navigation, search and first-use tours: when you lay out a frame yourself'],
+  ['forms', 'Which input component to use and how to arrange a form'],
+  ['data', 'Tables, result lists, file trees, KPIs and charts'],
+  ['monitoring', 'Full-screen always-on monitoring screens (ConsoleLayout and its parts)'],
+  ['code', 'Code-reading tools: code views, architecture graphs, project docs'],
+  ['theme', 'Every token, theme and accent settings, the accent derivation, the Slidev teaching preset'],
+  ['motion', 'Animation durations and effects, when you animate something yourself'],
 ];
+const guideFiles = readdirSync(at('docs/')).filter((f) => f.endsWith('.md') && f !== 'decisions.md');
+for (const f of guideFiles) if (!guides.some(([g]) => `${g}.md` === f)) throw new Error(`docs/${f}: add it to the guides list in scripts/site.ts`);
 const lines = [
   '# ui-design-system',
   '',
   "> SeanYeh's design system: typed React 19 components (npm @seanyeh77/ui, or window.UI from one script), design tokens, page templates and written rules. " +
-    'Warm-gray neutrals, accent #2457d6, Inter + Noto Sans TC, Geist Mono for numbers, light and dark themes. Read AGENTS.md first.',
+    'Warm-gray neutrals, accent #2457d6, Inter + Noto Sans TC, Geist Mono for numbers, light and dark themes. Read AGENTS.md first, then the core rules (guidelines) and the 用法 block of each component you use.',
   '',
   '## Start here',
   '',
-  `- [AGENTS.md](${BASE}/AGENTS.md): how to build with the system, the checks to run, and how to change it`,
+  `- [AGENTS.md](${BASE}/AGENTS.md): how to build with the system, what to read, the checks to run, and how to change it`,
   ...guides.map(([f, t]) => `- [${f}](${BASE}/md/${f}.md): ${t}`),
+  `- [decisions](${BASE}/md/decisions.md): history: the original wording of each design decision (not needed to build a page)`,
   `- [Storybook](${BASE}/): every component with live examples and its props table`,
   '',
   '## Files to load',
@@ -108,6 +112,8 @@ const lines = [
   ...blocks.map((b) => `- [${b.name}](${BASE}/r/${b.name}.json): ${b.description}`),
   '',
   '## Components',
+  '',
+  'Each README starts with a 用法 block (what it is, a minimal example, the rules most often gotten wrong); read that, the details only when needed.',
   '',
   ...components.map(
     (c) => `- [${c.name}](${BASE}/md/${c.name}.md) (${GROUPS[c.group] ?? c.group}): ${c.summary} Plain-HTML preview: ${BASE}/preview/${c.name}.html`,

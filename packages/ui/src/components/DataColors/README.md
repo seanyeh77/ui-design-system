@@ -1,6 +1,16 @@
 # DataColors
 
-資料用的顏色：圖表的類別色、熱度色階、差值發散色階，以及預測值的斜線紋理；全部有淺色與深色兩套，由 `tokens.css` 提供。
+## 用法
+
+資料用的顏色：圖表的類別色、熱度色階、差值發散色階，以及預測值的斜線紋理；全部有淺色與深色兩套，由 `tokens.css` 提供。用 LineChart、BarChart、ZoneMap 時已經套好；自己畫資料時讀這份。
+
+```js
+h('div', { style: { background: 'var(--' + UI.heatToken(24.6, 20, 30) + ')', color: UI.textOn(UI.heatToken(24.6, 20, 30)) } }, '24.6 °C');
+```
+
+- 色階只用在資料的填色，不當作文字色或邊框色；上面的字用 `textOn(fill)`。
+- 狀態不能只靠顏色：數值一定寫出來；告警加「⚠」文字與 4 px `warning` 或 `danger` 邊框。
+- 類別色依序 `chart-1` 到 `chart-4`；類別超過 3 時，圖例一定有文字。
 
 ## 類別色
 
@@ -29,9 +39,6 @@ UI.divergeToken(-0.4, { zero: 0.2, strong: 1.5 }); // 'diverge-neg'
 ```js
 h('div', { style: { background: 'var(--heat-6)', color: UI.textOn('heat-6') } }, '28.9 °C');
 ```
-
-- 色階只用在資料的填色，不當作文字色或邊框色。
-- 狀態不能只靠顏色：數值一定寫出來；告警加「⚠」文字與 4 px `warning` 或 `danger` 邊框。
 
 ## 預測、非實測
 

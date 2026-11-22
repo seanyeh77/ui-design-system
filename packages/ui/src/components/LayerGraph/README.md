@@ -1,6 +1,34 @@
 # LayerGraph
 
-架構圖：項目（元件、服務、模組）分層排列，箭頭表示關係。給資料就會自己排版和畫線，不用自己畫 SVG。
+## 用法
+
+架構圖：項目（元件、服務、模組）分層排列，箭頭表示關係。給資料就會自己排版和畫線，不用自己畫 SVG。其他種類的方框與箭頭的圖用 Graph 的 class。
+
+```tsx
+<LayerGraph
+  nodes={[
+    { id: 'web', name: 'web', layer: 0, size: 91 },
+    { id: 'api', name: 'api', layer: 1, size: 114 },
+    { id: 'common', name: 'common', shared: true },
+  ]}
+  edges={[
+    { from: 'web', to: 'api', count: 18 },
+    { from: 'web', to: 'common', count: 6 },
+  ]}
+  sizeLabel="{n} 個端點"
+  countLabel="{n} 次請求"
+  selected={selected}
+  onSelect={setSelected}
+/>
+```
+
+- `layer` 0 在最上面；幾乎每個項目都用到的放 `shared: true`，不畫線，排在圖的下方；repo 外的項目放 `external: true`。
+- 推測的關係 `inferred`（細虛線），專案宣告的關係 `declared`（長短交替的虛線）；有依據但不是編譯器看到的呼叫，不要畫成推測。
+- 單位用 `sizeLabel`、`countLabel` 換成專案自己的說法（「{n} 個端點」）。
+- 線要能點時給 `onSelectEdge`，細節面板由 app 自己畫。
+- 放在卡片上；比外框寬時自動縮窄方框、縮小，再不行才左右捲動。
+
+## 細節
 
 - 分層：`layer` 0 在最上面，同一層由左到右照資料順序，置中排列。
 - repo 外的項目（`external: true`，例如被追蹤的程式、外部函式庫）：畫在所有分層的上方，自成一排；虛線外框（1.5 px `line-strong`）、白底、沒有左側色條，名稱下方寫「repo 外」（`externalLabel`），不顯示大小條（`size` 不使用），不算進任何分層。連到其他項目的線和一般的線一樣畫，`inferred`、`label` 都適用；可以和其他方框一樣用 `selected`、`onSelect` 選取。清單檢視也列出它，寫「名稱，repo 外」。清單裡的分隔標點（「，」「：」「（推測）」）經過 `UI.t()`，英文介面是 `, `、`: `、` (Inferred)`。
@@ -41,24 +69,6 @@
 - 圖例預設放在下方，只列出圖上有的線：有一般的線才寫「次數越多線越粗」，有推測的線才寫「推測的關係」，有宣告的線才寫「專案宣告的關係」（`declaredLegend` 換掉、`declaredText` 加說明），沒有線就不顯示；`inferredText` 是推測的說明（Term），`inferredLabel` 換掉「推測」這個詞。
 - 放在卡片上。直接放在頁面底色上時，外層加 `style: { '--ui-graph-bg': 'var(--bg)' }`。
 
-```tsx
-<LayerGraph
-  nodes={[
-    { id: 'web', name: 'web', layer: 0, size: 91 },
-    { id: 'api', name: 'api', layer: 1, size: 114 },
-    { id: 'common', name: 'common', shared: true },
-  ]}
-  edges={[
-    { from: 'web', to: 'api', count: 18 },
-    { from: 'web', to: 'common', count: 6 },
-  ]}
-  sizeLabel="{n} 個端點"
-  countLabel="{n} 次請求"
-  selected={selected}
-  onSelect={setSelected}
-/>
-```
-
 點線在旁邊顯示細節：
 
 ```tsx
@@ -84,3 +94,5 @@ const [edge, setEdge] = useState<string | null>(null);
 ```
 
 從舊版升級：`fns` 改名 `size`，原本寫死的「N 個函式」「被 N 個元件呼叫」改用 `sizeLabel`、`sharedMeta` 傳入。
+- 選取的方框用 `accent-soft` 底、強調色色條和外框。
+- 線上標籤的文字用一般字體，程式名稱、路徑和數字用 Geist Mono。

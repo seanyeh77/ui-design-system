@@ -106,7 +106,7 @@ export function accentText(hex: string, dark: boolean, bg: string, surface: stri
   return text;
 }
 
-/** Derives every accent token from one color (自訂強調色的換算 in docs/guidelines.md).
+/** Derives every accent token from one color (自訂強調色的換算 in docs/theme.md).
  *  Returns false for anything but #rrggbb. quiet: apply without storing. */
 export function setAccent(hex: string, quiet = false): boolean {
   if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return false;

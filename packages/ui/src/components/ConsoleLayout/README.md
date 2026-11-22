@@ -1,6 +1,28 @@
 # ConsoleLayout
 
+## 用法
+
 全螢幕監控畫面的版面：頂列、左邊主視覺、右邊側欄、主視覺下方的底列，填滿整個畫面、整頁不捲動。給常駐在大螢幕上、遠看的監控畫面；一般後台頁用 AppShell。
+
+```js
+h(UI.ConsoleLayout, {
+  title: '機房監控',
+  tags: h(UI.Tag, { variant: 'demo' }, '示範資料'),
+  status: 'AI 最佳化中',
+  kpis: [h(UI.KpiCard, { key: 'e', size: 'compact', label: '預測誤差', value: 0.4, decimals: 1, unit: '°C', target: '目標 ≤ 0.5 °C' })],
+  clock: '即時',
+  main: h(UI.Card, { title: '機房分區' }, h(UI.ZoneMap, { label: '機房分區', zones: zones, fill: true })),
+  side: [h(UI.Card, { key: 't' }, h(UI.TimeControl, timeProps))],
+  bottom: h(UI.Card, null, h(UI.LineChart, chartProps)),
+});
+```
+
+- 頂列的字都是 16 px、同一個顏色：`status` 傳一般文字（例如「AI 最佳化中」），不要用 Badge 或狀態色。
+- `kpis` 放 `KpiCard size="compact"`。
+- 卡片由頁面自己放（Card）；主視覺裡的 ZoneMap 加 `fill` 撐滿卡片。
+- 1440 × 900 以上整個版面等比放大，最多 1.5 倍；以下不縮小。
+
+## 細節
 
 - 頂列：左邊 `title`（整頁唯一的標題）和 `tags`（例如 `Tag variant="demo"`「示範資料」）；右邊依序是 `status`、`kpis`、`clock`、全螢幕按鈕。頂列的字都是 16 px、同一個顏色：`status` 傳一般文字（例如「AI 最佳化中」），不要用 Badge 或狀態色。
 - `kpis` 放 `KpiCard size="compact"`，在頂列裡去掉卡片底色和陰影，中間用 1 px 線分開。

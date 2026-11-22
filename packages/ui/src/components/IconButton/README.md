@@ -1,16 +1,25 @@
 # IconButton
 
-只有圖示的按鈕，一定要有 `label`。
+## 用法
+
+只有圖示的按鈕，一定要有 `label`。有文字的按鈕用 Button。
+
+```tsx
+<IconButton icon="pencil-simple" label="編輯 api-gateway" onClick={edit} />
+<IconButton variant="quiet" icon="magnifying-glass" label="搜尋" />
+```
 
 - `label` 會成為 `aria-label` 與提示（Tooltip），寫成動作：「收合側邊欄」、「關閉」。不需要提示時設 `tooltip={false}`。
+- 一般是 40 px 外框方塊；頂列、分頁列這類一排好幾個的地方用 `variant="quiet"`。
+- 切換類的按鈕（例如收合面板）加 `aria-pressed`，選取中的用 `filled`。
+- 「說明」或「導覽」按鈕的第一次使用提示用 `hint`，不用頁面上的「第一次使用」橫幅。
+
+## 細節
+
 - 外框 `line-strong`，尺寸與 Button 同高（40 px）。
 - 側邊欄的收合按鈕是例外：放在側邊欄左下角，無外框，收合後圖示左右翻轉。
 - `icon`（必填）：Phosphor 圖示名稱，例如 `'trash'`；或自訂圖示的 24 px path。
 - `filled`：用內建圖示的實心版，給按下（`aria-pressed`）或選取中的按鈕，例如 LayerGraph 的標籤按鈕。
-
-```tsx
-<IconButton icon="pencil-simple" label="編輯 api-gateway" onClick={edit} />
-```
 
 ## 第一次使用的提示（hint）
 
@@ -32,10 +41,4 @@ const tour = useTour('codemap-flow');
 
 ## 安靜樣式（variant="quiet"）
 
-頂列、分頁列這類一排好幾個按鈕的地方用 `variant="quiet"`：32 px、沒有外框，滑過、按下或鍵盤焦點時才有底色，圖示是次要文字色。觸控螢幕上點擊範圍仍是 48 px。
-
-```tsx
-<IconButton variant="quiet" icon="magnifying-glass" label="搜尋" />
-```
-
-切換類的按鈕（例如收合面板）加 `aria-pressed`，按下時圖示變成主要文字色。
+32 px、沒有外框，滑過、按下或鍵盤焦點時才有底色，圖示是次要文字色。觸控螢幕上點擊範圍仍是 48 px。切換類的按鈕按下（`aria-pressed`）時圖示變成主要文字色。

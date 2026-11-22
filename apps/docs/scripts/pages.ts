@@ -31,8 +31,13 @@ import readme from '../../../../packages/ui/src/components/${name}/README.md?raw
 }
 
 const guides: [string, string][] = [
-  ['guidelines', '設計規則'],
-  ['layout', '版面'],
+  ['guidelines', '核心規則'],
+  ['layout', '版面與導覽'],
+  ['forms', '表單'],
+  ['data', '表格、清單與圖表'],
+  ['monitoring', '監控畫面'],
+  ['code', '閱讀程式碼的工具'],
+  ['theme', 'Token 與主題'],
   ['motion', '動畫'],
   ['decisions', '決策紀錄'],
 ];

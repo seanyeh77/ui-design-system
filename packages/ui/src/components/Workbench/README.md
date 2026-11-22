@@ -1,6 +1,8 @@
 # Workbench
 
-像 VS Code 那樣閱讀與操作程式碼的工具頁：頂列、檔案總管、主畫面、右側欄、下方面板。邊界可以拖曳改大小，右側欄和下方面板的分頁（view）可以互換位置，版面記在瀏覽器裡。
+## 用法
+
+像 VS Code 那樣閱讀與操作程式碼的工具頁：頂列、檔案總管、主畫面、右側欄、下方面板。邊界可以拖曳改大小，右側欄和下方面板的分頁（view）可以互換位置，版面記在瀏覽器裡。一般後台頁用 AppShell。
 
 ```tsx
 import { Workbench, useWorkbench, TreeList, IconButton, SearchField } from '@seanyeh77/ui';
@@ -24,7 +26,11 @@ import { Workbench, useWorkbench, TreeList, IconButton, SearchField } from '@sea
 </Workbench>
 ```
 
-外層要給高度（例如 `height: 100vh`）；Workbench 填滿它。
+- 外層要給高度（例如 `height: 100vh`）；Workbench 填滿它。
+- `mainBar`（36 px 的列）只放 `IconButton variant="quiet"` 或 `SegmentedControl iconOnly`；不放 40 px 的一般按鈕、輸入框、Select 或 Tabs。
+- 主畫面裡的 CodeView 用 `header="float"`：檔名已經在麵包屑上。
+- 檔案總管的樹用 `TreeList kind="plain" density="compact" bare`；選了東西之後呼叫 `useWorkbench().explorerPicked()`。
+- 要有「還原預設版面」：`useWorkbench().resetLayout()`，按鈕放在 `actions` 或說明選單。
 
 ## 版面
 

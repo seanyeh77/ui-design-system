@@ -1,6 +1,33 @@
 # DataTable
 
-資料表格，有排序、勾選、篩選和分頁。
+## 用法
+
+資料表格，有排序、勾選、篩選和分頁。不用原生 `<table>`。檔案和階層用 TreeList；一個項目的欄位用 DetailList。
+
+```tsx
+type Project = { id: string; name: string; status: BadgeStatus; budget: number; updated: string };
+
+<Card title="專案" padding={false}>
+  <DataTable<Project>
+    label="專案"
+    rows={projects}
+    columns={[
+      { key: 'name', label: '名稱' },
+      { key: 'status', label: '狀態', render: (r) => <Badge status={r.status} />, searchText: (r) => r.status, mobile: 'status' },
+      { key: 'budget', label: '預算', numeric: true, format: 'money' },
+      { key: 'updated', label: '更新', format: 'relative' },
+    ]}
+    filters={[{ key: 'status', label: '狀態' }]}
+  />
+</Card>
+```
+
+- 每列給 `id`。放在 Card 裡時標題寫在 Card 的 `title`，DataTable 給同樣文字的 `label`，不給 `caption`。
+- 數字欄 `numeric: true`；單位寫在欄位的 `unit`（每格數字後面），不寫在標題；表格裡的數字不縮寫。
+- 狀態欄用 Badge；用 `render` 的欄位提供 `searchText`，搜尋才找得到。
+- `rowActions` 只放連結做不到的操作（編輯、刪除）；刪除一樣要先確認。
+- 換成另一份資料（例如切換專案）時給新的 `resetKey`；同一頁有兩個表格時用 `urlKey` 分開網址參數。
+- 合計列、固定第一欄、常用檢視、同一欄位多選看情況開（見下方「看情況決定的功能」）。
 
 ## 外觀
 

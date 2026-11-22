@@ -1,6 +1,21 @@
 # Format
 
-日期、時間、數字、金額的格式，以及介面文字的語系。所有元件都透過 `UI.format` 和 `UI.t` 輸出，不要自己拼字串。
+## 用法
+
+日期、時間、數字、金額的格式，以及介面文字的語系。所有元件都透過 `UI.format` 和 `UI.t` 輸出；頁面自己顯示的日期和數字也經過 `format`，不要自己拼字串。
+
+```tsx
+format.date(d); // 2026/11/04（三）
+format.relative(d); // 2 小時前
+format.money(1280); // NT$ 1,280
+format.fileSize(57586237); // 54.9 MB
+t('已選 {n} 筆', { n: 3 });
+```
+
+- 日期 `2026/11/04（三）`，年份一律顯示，加星期；時間 24 小時制；一週內用相對時間。
+- 大數字只有 KPI 卡片縮寫；表格和明細寫完整數字。
+- 有變數的句子用整句加佔位符，不要把句子拆開拼。
+- 伺服器端只格式化時從 `@seanyeh77/ui/format` 匯入（沒有 `'use client'`）。
 
 ## 規則（zh-TW）
 
@@ -8,6 +23,7 @@
 - 時間：24 小時制 `15:57`。`UI.format.time(d)`、`UI.format.dateTime(d)`。
 - 相對時間：一週內用「2 小時前」、「昨天」、「3 天前」；超過一週寫完整日期時間。`UI.format.relative(d)`。
 - 大數字：只有 KPI 卡片縮寫，單位用萬、億（`1,284 萬`）；表格和明細寫完整數字。`UI.format.compact(v)`。
+- 檔案大小：未滿 1 MB 寫整數 KB（「186 KB」），以上寫一位小數的 MB 或 GB（「54.9 MB」）。`UI.format.fileSize(bytes)`。
 - 金額：`NT$ 1,280`，負數用減號 `-NT$ 1,280`。`UI.format.money(v)`。
 - 小數位數依單位：金額 0 位、百分比 1 位、容量（GB、MB）1 位、數量 0 位。`UI.format.number(v, 'money' | 'percent' | 'size' | 'count')`。
 - 分數和進度：畫面上寫「1 / 1 個」「6 / 6 筆」，`UI.format.fraction(n, total, unit?)`；螢幕閱讀器會把「/」念成「斜線」，所以同時給 `UI.format.fractionLabel(n, total, unit?)`，念「1 個中的 1 個」「6 筆中的 6 筆」（沒有單位時「5 中的 1」，英文「1 of 5」）。用法：顯示的文字加 `aria-hidden="true"`，旁邊放一個 `ui-visually-hidden` 的 `fractionLabel`；或整個元素用 `aria-label={fractionLabel(...)}`。

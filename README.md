@@ -52,7 +52,7 @@ initTheme();
 | `packages/eslint-plugin-ui` | 檢查設計規則的 ESLint 規則 |
 | `packages/cli` | `ui check`：手機寬度、觸控範圍、卡片裡的卡片等自動檢查 |
 | `apps/docs` | Storybook 文件網站 |
-| `docs/` | 設計規則、版面、動畫與決策紀錄 |
+| `docs/` | 核心規則（`guidelines.md`）、各主題的規則（版面、表單、數據、監控畫面、程式碼工具、token、動畫）與決策紀錄 |
 | `labs/` | 實驗室的選項頁面 |
 
 ## 開發
