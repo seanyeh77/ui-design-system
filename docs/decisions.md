@@ -1170,3 +1170,13 @@ AI 定的細節（待確認）：
 - DataTable：合計列一起量寬度；有 `width` 的欄不再算短欄（`width` 只是最小寬度）；只對看得見的表格啟用 `/`；`onRowOpen` 給單頁應用；中鍵和 Ctrl、⌘、Shift＋點列開新分頁；拖曳選字時不開啟；換篩選、排序、每頁筆數後範圍選取重新起算；手機摘要列左右捲動並停在整個分頁上；數字與中文單位分開字型。
 - Card 沒有標題時，`actions` 靠右，不再多一個空白占位。TextField 的錯誤只在出現時插入一次並朗讀，錯誤取代說明文字顯示；說明文件寫明錯誤在離開欄位或送出時顯示。
 - KpiCard 縮寫數字裡的「萬」「億」用一般字型。
+
+AI 定的細節（待確認，第二次 review 之後）：
+
+- 淺色 `warning-text` `#955e0b` → `#945d0b`：紅色色票的 `accent-soft` 上原本 4.49:1。測試改成每個色票都檢查所有文字色在它的 `accent-soft` 上至少 4.5:1、`line-strong` 至少 3:1。
+- 表格格子裡可以聚焦的東西一律內縮焦點框；被截斷的長文字裡的連結取得焦點時，整段展開。SettingsLayout 分類改用內縮焦點框；LayerGraph 方框用鍵盤聚焦時捲動到完整可見。指令面板輸入框聚焦時顯示內縮焦點框。
+- 等寬字型只留在數字和程式碼：KPI 單位、樹狀清單日期與說明行、進度條「完成」改用一般字型；LayerGraph 名稱預設一般字型，程式碼名稱加 `code: true`。
+- 表格列裡的完成進度條用 `success-text`。所有欄位的錯誤都用同一種樣子：1.5 px 紅框、框內警告圖示、下方訊息（TextArea 圖示在右上）；TextArea、Select、MultiSelect、DatePicker 新增 `error`。
+- 手機的表格合計不再隱藏，在卡片下方列出「合計 n 筆」和各欄合計。
+- 文件、範例、story 的專案名稱改成通用的例子（例如 `src/server`、`APP_SHM`、`'app'`、`useTour('first-visit')`）。
+- `ui check` 的深色檢查在有 `window.UI` 的頁面呼叫 `UI.setTheme`，確實用深色檢查。
