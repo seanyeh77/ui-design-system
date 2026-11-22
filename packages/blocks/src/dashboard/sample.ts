@@ -8,7 +8,7 @@ const now = new Date(2026, 10, 4, 15, 0);
 export const sample: DashboardProps = {
   kpis: [
     { label: '本月營收', value: 12840000, format: 'money', delta: 8.2, spark: [8, 9, 9.5, 10, 11, 12.8] },
-    { label: '進行中專案', value: 18, unit: '個', delta: -5.3, good: false },
+    { label: '預算使用率', value: 74.5, format: 'percent', unit: '%', delta: 3.1, deltaUnit: 'pt', good: false },
     { label: '準時完成率', value: 92.4, format: 'percent', unit: '%', delta: 1.8, deltaUnit: 'pt' },
     { label: '平均回應時間', value: 184, unit: 'ms', delta: -12.5, good: true },
   ],

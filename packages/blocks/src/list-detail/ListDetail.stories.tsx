@@ -6,7 +6,13 @@ export default { title: 'Blocks/ListDetail', component: ListDetail, parameters: 
 
 function Demo() {
   const [items, setItems] = React.useState<Item[]>(sample.items);
-  return <ListDetail items={items} owners={sample.owners} onSave={(it) => setItems(items.map((x) => (x.id === it.id ? it : x)))} />;
+  return (
+    <ListDetail
+      items={items}
+      owners={sample.owners}
+      onSave={(it) => setItems(it.id ? items.map((x) => (x.id === it.id ? it : x)) : [{ ...it, id: String(Date.now()) }, ...items])}
+    />
+  );
 }
 
 export const Default = { render: () => <Demo /> };

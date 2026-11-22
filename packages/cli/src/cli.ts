@@ -14,7 +14,8 @@ import { summary, usageBlock } from './usage';
 const HELP = `ui check <file or URL>... [--shots DIR] [--strict] [--wait MS]
   Opens each page at 390 px and 1280 px, light and dark, and fails (exit 1) on:
   console errors, horizontal overflow at 390 px, touch targets under 48 px, touch areas that spill past their control, a card inside a card,
-  raw Markdown, native controls the design system replaces, and wrapped buttons, tabs, headers or headings.
+  raw Markdown, native controls the design system replaces, wrapped buttons, tabs, headers or headings, controls of
+  different heights in one toolbar row, and a status badge with a shadow in a table or card.
   Exits 2 when a page cannot be checked at all: it does not load, or the check itself crashes.
 ui docs [Name] [--full]
   Prints the 用法 block of a component (Button, DataTable…): what it is, a minimal example and the rules most often
@@ -142,6 +143,18 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
           if (res.markdown.length) problems.push('raw Markdown shown: ' + res.markdown.join('; '));
           if (res.native.length) problems.push('native controls: ' + [...new Set(res.native)].join('; '));
           if (res.wrapped.length) problems.push('text that must stay on one line wraps: ' + res.wrapped.join('; '));
+          if (res.mixed.length)
+            problems.push(
+              'controls of different heights in one toolbar row: ' +
+                res.mixed.join('; ') +
+                '. Use the system controls (Button, IconButton, SearchField, Select: 40 px) without your own height or padding.',
+            );
+          if (res.raised.length)
+            problems.push(
+              'status badge with a shadow in a table or card: ' +
+                res.raised.join('; ') +
+                '. Inside a table or card a Badge is a dot and text: remove your own box-shadow or chip styles.',
+            );
           if (phone) {
             if (res.overflow.length) problems.push('horizontal overflow: ' + res.overflow.join('; '));
             if (res.escaped.length) problems.push('touch area larger than its control (covers other controls): ' + res.escaped.join('; '));
