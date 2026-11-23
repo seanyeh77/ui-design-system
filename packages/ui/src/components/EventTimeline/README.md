@@ -15,6 +15,7 @@ h(UI.EventTimeline, {
 - 類型（`kind`）：`alert` 告警、`switch` 切換、`ai` AI、`manual` 人工。
 - 依 `time` 由新到舊排，傳入的順序不影響。
 - 沒有事件時顯示 `empty`。
+- 事件的 `text` 裡反引號包住的文字顯示成行內程式碼（InlineCode），不顯示反引號。
 
 ## 細節
 

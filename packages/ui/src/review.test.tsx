@@ -154,7 +154,8 @@ test('DatePicker: a half-typed date is not an error until the field is left; a v
 test('Calendar: one day in the Tab order; arrows, Home, End and PageDown move it, across months', async () => {
   const user = userEvent.setup();
   render(<Calendar focus={new Date(2026, 10, 30)} />);
-  const day = () => document.activeElement?.getAttribute('aria-label') ?? '';
+  // A day that is today also says （今天）; the test must pass on any date.
+  const day = () => (document.activeElement?.getAttribute('aria-label') ?? '').replace('（今天）', '');
   const stops = [...document.querySelectorAll('.ui-cal-day')].filter((b) => b.getAttribute('tabindex') === '0');
   expect(stops).toHaveLength(1);
   (stops[0] as HTMLElement).focus();

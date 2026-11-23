@@ -588,6 +588,18 @@
 .ui-wb-sheet > .ui-wb-split .ui-wb-split-line {
   display: none;
 }
+/* On touch screens the grip's touch area is 48 px tall: the 20 px grip plus a transparent area above it, over the
+   bottom of the main view, so it never covers the panel's tab row below. */
+@media (pointer: coarse) {
+  .ui-wb-sheet > .ui-wb-split.is-h::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--touch-target);
+  }
+}
 .ui-wb-grab {
   flex: 0 0 20px;
   display: flex;

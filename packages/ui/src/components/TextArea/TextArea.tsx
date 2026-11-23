@@ -3,9 +3,11 @@ import { cx } from '../../internal/util';
 import { FieldErrorIcon, FieldLabel } from '../../internal/Field';
 import { format } from '../../format';
 import { tr } from '../../i18n';
+import { codeText } from '../InlineCode/InlineCode';
 
 export interface TextAreaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange' | 'value'> {
   label?: string;
+  /** One short line under the field; `backticks` are code. */
   hint?: string;
   value: string;
   onChange: (value: string) => void;
@@ -13,7 +15,7 @@ export interface TextAreaProps extends Omit<React.TextareaHTMLAttributes<HTMLTex
   maxLength?: number;
   required?: boolean;
   /** The cause and the fix (「請寫下退款原因」). Red border, the warning icon and this line in place of the hint, announced
-   *  when it appears. Set it when the field is left or the form is sent. */
+   *  when it appears. Set it when the field is left or the form is sent. `backticks` are code. */
   error?: string;
 }
 
@@ -55,11 +57,11 @@ export function TextArea({ label, hint, error, value, onChange, maxLength = 200,
       <div className="ui-field-foot">
         {error ? (
           <span key={error} id={hintId} className="ui-field-error" role="alert">
-            {error}
+            {codeText(error)}
           </span>
         ) : (
           <span id={hintId} className="ui-field-hint">
-            {hint || ''}
+            {codeText(hint || '')}
           </span>
         )}
         <span className="ui-count">

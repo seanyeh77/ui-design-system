@@ -17,7 +17,7 @@ export interface LoginCardProps {
   /** Default 「登入」. */
   title?: string;
   onSubmit: (v: { account: string; password: string }) => void;
-  /** Errors from your sign-in check, shown under each field: the cause and the fix. */
+  /** Errors from your sign-in check, shown under each field: the cause and the fix; `backticks` are code. */
   error?: { account?: string; password?: string } | null;
   /** Adds 「忘記密碼」 beside the password label. */
   forgotHref?: string;

@@ -54,16 +54,21 @@
   min-width: 0;
   white-space: nowrap;
 }
-/* The name keeps its room; the status gives way first, then the name is cut with 「…」. */
+/* The name keeps its room; the status gives way first, then the name is cut with 「…」, never below 3em. A name shorter
+   than 3em keeps its own width: a 3em box would leave a gap before 「·」 (「web   · production」). Browsers without
+   calc-size() keep the 3em box. */
 .ui-projsw-name {
   flex: 0 1 auto;
   min-width: 3em;
+  min-width: calc-size(max-content, min(size, 3em));
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* pre: the status starts with 「 · 」, and a flex item drops its leading space otherwise (「web· production」). */
 .ui-projsw-status {
   flex: 0 1000 auto;
   min-width: 0;
+  white-space: pre;
   overflow: hidden;
   text-overflow: ellipsis;
 }

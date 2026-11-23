@@ -3,6 +3,7 @@ import { CHECK, Icon } from '../icons/Icon';
 import { cx } from './util';
 import { includeIcons } from '../icons/store';
 import phWarningCircle from '../icons/ph/warning-circle';
+import { codeText } from '../components/InlineCode/InlineCode';
 
 includeIcons(phWarningCircle);
 
@@ -63,12 +64,12 @@ export function FieldMessage({ id, error, hint, className }: { id: string; error
   if (error)
     return (
       <div key={error} id={id} className={cx('ui-field-error', className)} role="alert">
-        {error}
+        {codeText(error)}
       </div>
     );
   return hint ? (
     <div id={id} className={cx('ui-field-hint', className)}>
-      {hint}
+      {codeText(hint)}
     </div>
   ) : null;
 }

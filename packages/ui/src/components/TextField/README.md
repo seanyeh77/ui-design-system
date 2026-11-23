@@ -11,6 +11,7 @@
 - 標籤一定要有，不要只靠 placeholder。
 - 錯誤：`error` 給一句原因加修正方式（「Email 格式不正確，例如 name@example.com」）。離開欄位（blur）或送出表單時才設定，不在每次按鍵時設定；改正後立刻清掉。
 - 必填：`required` 會在標籤後加紅色星號（`danger`）。
+- `hint` 與 `error` 裡反引號包住的文字顯示成行內程式碼（InlineCode），不顯示反引號。
 
 ## 細節
 

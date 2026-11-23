@@ -5,12 +5,14 @@ import { cx } from '../../internal/util';
 import { FloatingPanel } from '../../internal/FloatingPanel';
 import { includeIcons } from '../../icons/store';
 import phBell from '../../icons/ph/bell';
+import { codeText } from '../InlineCode/InlineCode';
 
 includeIcons(phBell);
 
 export interface NotificationItem {
   id: string | number;
   title: string;
+  /** One line under the title; `backticks` are code. */
   body?: string;
   /** Relative within a week: format.relative(date). */
   time?: string;
@@ -85,7 +87,7 @@ export function NotificationBell({ items, onOpen, onReadAll, emptyText }: Notifi
                   ) : null}
                   <span className="ui-noti-text">
                     <span className="ui-noti-t">{it.title}</span>
-                    {it.body ? <span className="ui-noti-b">{it.body}</span> : null}
+                    {it.body ? <span className="ui-noti-b">{codeText(it.body)}</span> : null}
                     {it.time ? <span className="ui-noti-time">{it.time}</span> : null}
                   </span>
                 </button>

@@ -54,7 +54,7 @@
 - 檔案大小：未滿 1 MB 寫整數 KB，以上一位小數的 MB 或 GB（`format.fileSize()`）。
 - 時間長度：未滿 1 小時 `46:42`，以上 `1:54:49`，小時不補 0（`format.duration()`）。
 - 日期和數字經過 `format`，介面文字經過 `t()`。
-- 句子裡的程式碼、路徑和 ID 用 `InlineCode`（含反引號的文字用 `CodeText`）；路徑、行號、ID 這類指向某處的文字都是連結。
+- 句子裡的程式碼、路徑和 ID 用 `InlineCode`（含反引號的文字用 `CodeText`；元件收字串的說明 prop，例如 EmptyState 的 `description`，也把反引號裡的文字顯示成行內程式碼）；路徑、行號、ID 這類指向某處的文字都是連結。
 - AI 寫的句子、段落、清單項目或表格格子，最後加 `AiMark`「AI 撰寫」。
 
 ## 文字語氣

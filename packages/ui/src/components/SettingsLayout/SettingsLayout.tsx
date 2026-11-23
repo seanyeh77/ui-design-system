@@ -2,6 +2,7 @@ import * as React from 'react';
 import { tr } from '../../i18n';
 import { cx } from '../../internal/util';
 import { Toast } from '../Toast/Toast';
+import { codeText } from '../InlineCode/InlineCode';
 
 export interface SettingsCategory {
   id: string;
@@ -61,7 +62,7 @@ export function SettingsLayout({ title, categories, value, onChange, toast, clas
 
 export interface SettingsSectionProps {
   title?: string;
-  /** One sentence under the title. */
+  /** One sentence under the title; `backticks` are code. */
   description?: string;
   children?: React.ReactNode;
   className?: string;
@@ -72,7 +73,7 @@ export function SettingsSection({ title, description, children, className }: Set
   return (
     <section className={cx('ui-settings-section', className)}>
       {title ? <h2 className="ui-settings-h">{title}</h2> : null}
-      {description ? <p className="ui-settings-desc">{description}</p> : null}
+      {description ? <p className="ui-settings-desc">{codeText(description)}</p> : null}
       {children}
     </section>
   );

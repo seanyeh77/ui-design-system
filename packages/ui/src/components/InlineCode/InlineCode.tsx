@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { cx } from '../../internal/util';
+import { codeSpans, hasCodeSpan } from '../../internal/codeSpans';
 
 interface InlineCodeBase {
   children?: React.ReactNode;
@@ -82,13 +83,10 @@ export interface CodeTextProps {
 
 /** Text with `backtick` spans: renders them as InlineCode, never as raw backticks. */
 export function CodeText({ text, refHref, onRef, isRef = isCodeRef, as: Tag = 'span', className }: CodeTextProps) {
-  const parts = String(text || '').split(/(`[^`]+`)/);
   return (
     <Tag className={className}>
-      {parts.map((t, i) => {
-        if (!t) return null;
-        if (t[0] !== '`' || t.length < 2) return t;
-        const v = t.slice(1, -1);
+      {codeSpans(text).map(({ code, text: v }, i) => {
+        if (!code) return v;
         const href = refHref && isRef(v) ? refHref(v) || undefined : undefined;
         const link = isRef(v) && (refHref ? !!href : !!onRef);
         if (!link) return <InlineCode key={i}>{v}</InlineCode>;
@@ -117,4 +115,11 @@ export function CodeText({ text, refHref, onRef, isRef = isCodeRef, as: Tag = 's
       })}
     </Tag>
   );
+}
+
+/** A sentence prop that takes a string: `backtick` spans become InlineCode, the backticks are not shown. Text without a
+ *  pair of backticks comes back as it is, and anything that is not a string (an element) is left alone. */
+export function codeText(text: React.ReactNode): React.ReactNode {
+  if (typeof text !== 'string' || !hasCodeSpan(text)) return text;
+  return codeSpans(text).map((s, i) => (s.code ? <InlineCode key={i}>{s.text}</InlineCode> : s.text));
 }

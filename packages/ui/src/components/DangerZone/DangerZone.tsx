@@ -1,11 +1,12 @@
 import { tr } from '../../i18n';
 import { cx } from '../../internal/util';
 import { Button, type DangerConfirm } from '../Button/Button';
+import { codeText } from '../InlineCode/InlineCode';
 
 export interface DangerZoneProps {
   /** Default 「危險操作」. */
   title?: string;
-  /** What the action destroys. */
+  /** What the action destroys; `backticks` are code. */
   description: string;
   /** Default 「刪除」. */
   actionLabel?: string;
@@ -23,7 +24,7 @@ export function DangerZone({ title, description, actionLabel, onAction, confirm,
     <section className={cx('ui-danger', className)}>
       <h2 className="ui-danger-title">{title || tr('危險操作')}</h2>
       <div className="ui-danger-row">
-        <p>{description}</p>
+        <p>{codeText(description)}</p>
         {/* Without a build step nothing enforces confirm: ask anyway. */}
         <Button variant="danger" confirm={confirm ?? { title: tr('{label}？', { label }) }} onClick={onAction}>
           {label}

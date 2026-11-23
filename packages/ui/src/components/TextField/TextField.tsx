@@ -7,10 +7,10 @@ export interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputEleme
   label: string;
   /** Red asterisk after the label. */
   required?: boolean;
-  /** One short line under the field. */
+  /** One short line under the field; `backticks` are code. */
   hint?: string;
   /** The cause and the fix: 「日期格式不正確，請寫成 2026/11/14」. Turns the border red and is announced when it appears.
-   *  Set it when the field is left (blur) or the form is sent, not on every key; clear it as soon as the value is right. */
+   *  Set it when the field is left (blur) or the form is sent, not on every key; clear it as soon as the value is right. `backticks` are code. */
   error?: string;
   ref?: React.Ref<HTMLInputElement>;
 }

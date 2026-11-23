@@ -35,7 +35,7 @@ export interface SelectProps<V extends string = string> {
   required?: boolean;
   disabled?: boolean;
   /** The cause and the fix (「請選擇部門」). Red border, the warning icon and this line under the field, announced when it
-   *  appears. */
+   *  appears. `backticks` are code. */
   error?: string;
   /** Form field name; the value is submitted with the form. */
   name?: string;

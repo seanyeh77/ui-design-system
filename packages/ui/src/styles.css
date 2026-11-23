@@ -16,6 +16,7 @@
 @import './styles/field.css' layer(ui.components);
 @import './styles/motion.css' layer(ui.components);
 @import './styles/chart.css' layer(ui.components);
+@import './components/InlineCode/InlineCode.css' layer(ui.components);
 @import './components/Button/Button.css' layer(ui.components);
 @import './components/Dialog/Dialog.css' layer(ui.components);
 @import './components/TextArea/TextArea.css' layer(ui.components);
@@ -58,7 +59,6 @@
 @import './components/ErrorPage/ErrorPage.css' layer(ui.components);
 @import './components/SettingsLayout/SettingsLayout.css' layer(ui.components);
 @import './components/DangerZone/DangerZone.css' layer(ui.components);
-@import './components/InlineCode/InlineCode.css' layer(ui.components);
 @import './components/AiMark/AiMark.css' layer(ui.components);
 @import './components/Tag/Tag.css' layer(ui.components);
 @import './components/TreeList/TreeList.css' layer(ui.components);

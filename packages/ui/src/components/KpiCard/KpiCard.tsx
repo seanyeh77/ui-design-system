@@ -4,6 +4,7 @@ import { devWarn } from '../../internal/dev';
 import { I18N, tr } from '../../i18n';
 import { kpiText, smoothPath, useCountUp, useFitText, type Point } from '../../internal/chart';
 import { cx, digits } from '../../internal/util';
+import { codeText } from '../InlineCode/InlineCode';
 
 export interface KpiCardProps {
   /** What is measured: 「本月營收」. */
@@ -31,9 +32,9 @@ export interface KpiCardProps {
   /** `compact`: a 22 px number for a top bar, no sparkline; with verdict and target below. Default 'default' (31 px). */
   size?: 'default' | 'compact';
   /** How the figure is judged, in words: 「預測準確」(success), 「偏差變大」(warning), 「需要校正」(danger). Shown only
-   *  when it is not success, in place of the target line and in its color; screen readers always hear it. */
+   *  when it is not success, in place of the target line and in its color; screen readers always hear it. `backticks` are code. */
   verdict?: { tone: 'success' | 'warning' | 'danger'; text: string };
-  /** One gray line under the number, e.g. 「目標 ≤ 0.5 °C（示意）」. */
+  /** One gray line under the number, e.g. 「目標 ≤ 0.5 °C（示意）」; `backticks` are code. */
   target?: string;
   className?: string;
 }
@@ -101,11 +102,13 @@ export function KpiCard(props: KpiCardProps) {
       ) : null}
       {verdict || target ? (
         verdict && verdict.tone !== 'success' ? (
-          <div className={'ui-kpi-target ui-kpi-verdict is-' + verdict.tone}>{target ? tr('{v}（{t}）', { v: verdict.text, t: target }) : verdict.text}</div>
+          <div className={'ui-kpi-target ui-kpi-verdict is-' + verdict.tone}>
+            {codeText(target ? tr('{v}（{t}）', { v: verdict.text, t: target }) : verdict.text)}
+          </div>
         ) : (
           <div className="ui-kpi-target">
-            {verdict ? <span className="ui-visually-hidden">{verdict.text + tr('，')}</span> : null}
-            {target}
+            {verdict ? <span className="ui-visually-hidden">{codeText(verdict.text + tr('，'))}</span> : null}
+            {codeText(target)}
           </div>
         )
       ) : null}

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { afterAll, beforeAll, expect, test } from 'vitest';
 import { cdp, page } from 'vitest/browser';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import * as UI from './index';
 
 // A touch screen (pointer: coarse): controls draw a larger hit area with ::before or ::after, absolutely positioned.
@@ -179,4 +179,41 @@ test('touch: in a LayerGraph scaled down to fit, every box keeps a 48 px touch a
     expect(parseFloat(a.height) * s).toBeGreaterThanOrEqual(47.5);
     expect(parseFloat(a.width) * s).toBeGreaterThanOrEqual(47.5);
   }
+});
+
+test('touch: on a phone the bottom panel grip has a 48 px tall touch area above its tab row', async () => {
+  const { container } = render(
+    <div style={{ width: 390, height: 720 }}>
+      <UI.Workbench
+        id="touch-sheet"
+        brand={{ name: 'codemap', href: '#' }}
+        views={[
+          { id: 'outline', title: '大綱', render: () => <p>大綱內容</p> },
+          { id: 'output', title: '輸出', render: () => <p>輸出內容</p> },
+        ]}
+        defaultLayout={{ side: ['outline'], panel: ['output'] }}
+      >
+        <p>主畫面</p>
+      </UI.Workbench>
+    </div>,
+  );
+  await new Promise((r) => setTimeout(r, 100));
+  screen.getByRole('button', { name: /^下方面板/ }).click();
+  await new Promise((r) => setTimeout(r, 400));
+  const sheet = container.querySelector<HTMLElement>('.ui-wb-sheet.is-open');
+  const split = sheet?.querySelector<HTMLElement>('.ui-wb-split');
+  if (!sheet || !split) throw new Error('no open panel');
+  const r = split.getBoundingClientRect();
+  expect(r.height).toBe(20);
+  const a = getComputedStyle(split, '::after');
+  expect(a.position).toBe('absolute');
+  expect(parseFloat(a.height)).toBeGreaterThanOrEqual(47.5);
+  expect(parseFloat(a.width)).toBeCloseTo(r.width, 0);
+  // The extra area is above the grip (over the main view), not over the tab row below it.
+  expect(document.elementFromPoint(r.left + 100, r.top - 20)).toBe(split);
+  const tabEl = sheet.querySelector<HTMLElement>('[role=tab]');
+  if (!tabEl) throw new Error('no tab');
+  const tab = tabEl.getBoundingClientRect();
+  expect(document.elementFromPoint(tab.left + tab.width / 2, tab.top + 2)?.closest('.ui-wb-split')).toBeNull();
+  localStorage.clear();
 });

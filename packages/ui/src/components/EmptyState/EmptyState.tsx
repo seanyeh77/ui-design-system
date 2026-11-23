@@ -1,11 +1,12 @@
 import type * as React from 'react';
+import { codeText } from '../InlineCode/InlineCode';
 
 export interface EmptyStateProps {
   /** What is empty, stated: 「還沒有專案」. */
   title: string;
-  /** One sentence on what to do. */
+  /** One sentence on what to do; `backticks` are code. */
   description?: string;
-  /** Numbered first steps. */
+  /** Numbered first steps; `backticks` are code. */
   steps?: string[];
   /** Index of the current step. Default 0. */
   current?: number;
@@ -18,13 +19,13 @@ export function EmptyState({ title, description, steps = [], current = 0, action
   return (
     <div className="ui-empty">
       <div className="ui-empty-title">{title}</div>
-      {description ? <p className="ui-empty-desc">{description}</p> : null}
+      {description ? <p className="ui-empty-desc">{codeText(description)}</p> : null}
       {steps.length ? (
         <ol className="ui-steps">
           {steps.map((s, i) => (
             <li key={i} className={i === current ? 'is-current' : undefined} aria-current={i === current ? 'step' : undefined}>
               <span className="ui-step-num">{i + 1}</span>
-              <span>{s}</span>
+              <span>{codeText(s)}</span>
             </li>
           ))}
         </ol>

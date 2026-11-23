@@ -5,6 +5,7 @@ import { Icon } from '../../icons/Icon';
 import { Dialog } from '../Dialog/Dialog';
 import { includeIcons } from '../../icons/store';
 import phX from '../../icons/ph/x';
+import { codeText } from '../InlineCode/InlineCode';
 
 includeIcons(phX);
 
@@ -22,6 +23,7 @@ export interface DrawerProps {
   /** Which edge it slides in from. Default 'right'; 'left' for navigation opened from a menu button at the left. */
   side?: 'right' | 'left';
   confirmTitle?: string;
+  /** The sentence of the close confirmation; `backticks` are code. */
   confirmText?: string;
   children?: React.ReactNode;
 }
@@ -61,7 +63,7 @@ export function Drawer({ open, onClose, title, actions, dirty, width, side = 'ri
               onClose();
             }}
           >
-            {confirmText || tr('關閉後，剛才的修改不會保留。')}
+            {codeText(confirmText || tr('關閉後，剛才的修改不會保留。'))}
           </Dialog>
         </Base.Popup>
       </Base.Portal>

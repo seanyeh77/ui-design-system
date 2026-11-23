@@ -16,3 +16,4 @@
 - 步驟下方放一個次要按鈕（Button `secondary`），不用主要按鈕。
 - 搜尋沒有結果時只顯示一句話：只傳 `title`，不傳 `description` 與 `steps`。
 - 使用者要做的事寫在畫面上：步驟寫下一步怎麼開始。
+- `description` 與 `steps` 裡反引號包住的文字顯示成行內程式碼（InlineCode），不顯示反引號。

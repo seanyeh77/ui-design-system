@@ -1,6 +1,7 @@
 import { tr } from '../../i18n';
 import { cx } from '../../internal/util';
 import { Button } from '../Button/Button';
+import { codeText } from '../InlineCode/InlineCode';
 
 const ERR_COPY: Record<number, [string, string]> = {
   404: ['找不到這個頁面', '網址可能打錯了，或這個頁面已經移除。'],
@@ -12,6 +13,7 @@ export interface ErrorPageProps {
   /** 404, 403 and 500 come with their own title and sentence. */
   code: number;
   title?: string;
+  /** One sentence on what happened and what to do; `backticks` are code. */
   description?: string;
   /** Default: history.back(). */
   onBack?: () => void;
@@ -30,7 +32,7 @@ export function ErrorPage({ code, title, description, onBack, onHome, homeHref =
         {code}
       </div>
       <h1 className="ui-errorpage-title">{title || (copy ? tr(copy[0]) : tr('發生錯誤'))}</h1>
-      <p className="ui-errorpage-desc">{description || (copy ? tr(copy[1]) : '')}</p>
+      <p className="ui-errorpage-desc">{codeText(description || (copy ? tr(copy[1]) : ''))}</p>
       <div className="ui-errorpage-actions">
         <Button onClick={onBack ?? (() => history.back())}>{tr('回上一頁')}</Button>
         <Button variant="primary" onClick={onHome ?? (() => (location.href = homeHref))}>

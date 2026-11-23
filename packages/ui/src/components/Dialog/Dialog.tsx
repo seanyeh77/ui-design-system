@@ -7,6 +7,7 @@ import { devWarn } from '../../internal/dev';
 import { Button } from '../Button/Button';
 import { includeIcons } from '../../icons/store';
 import phX from '../../icons/ph/x';
+import { codeText } from '../InlineCode/InlineCode';
 
 includeIcons(phX);
 
@@ -18,7 +19,7 @@ export interface DialogProps {
   onClose?: () => void;
   /** States the decision; may be a question: 「刪除 api-gateway？」. */
   title: string;
-  /** What happens and whether it can be undone, at most 2 short sentences. */
+  /** What happens and whether it can be undone, at most 2 short sentences; in a string, `backticks` are code. */
   children?: React.ReactNode;
   /** The confirming button's label, a verb: 刪除, 發布. With onConfirm, the dialog draws its own buttons. */
   confirmLabel?: string;
@@ -90,7 +91,7 @@ export function Dialog(props: DialogProps) {
   const content = (
     <>
       {head}
-      {children ? <div className="ui-dialog-body">{children}</div> : null}
+      {children ? <div className="ui-dialog-body">{codeText(children)}</div> : null}
       {footer ? <div className="ui-dialog-actions">{footer}</div> : null}
     </>
   );

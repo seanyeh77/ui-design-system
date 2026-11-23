@@ -17,6 +17,7 @@
 - 用 `onAdd` 收到檔案，自己上傳，再更新 `files` 裡的 `progress`、`status`（`uploading`、`done`、`error`）。
 - 限制（類型、大小）寫在拖放區右邊（`limitText`）。
 - 失敗時給 `error`：一句原因加修正方式，旁邊有「重試」。
+- 檔案的 `error` 裡反引號包住的文字顯示成行內程式碼（InlineCode），不顯示反引號。
 
 ## 細節
 

@@ -17,6 +17,7 @@
 - 自動儲存：使用者改完就存，右下角出現 Toast「已儲存」（`toast`），3 s 後消失。
 - 刪除帳號這類操作放在最後一個分類的最下方，用 `DangerZone` 紅框隔開，按下後先跳確認對話框。
 - 主題與強調色放在「外觀」分類（ThemePicker、AccentPicker）。
+- SettingsSection 的 `description` 裡反引號包住的文字顯示成行內程式碼（InlineCode），不顯示反引號。
 
 ## 細節
 

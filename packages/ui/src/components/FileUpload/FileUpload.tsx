@@ -8,6 +8,7 @@ import { includeIcons } from '../../icons/store';
 import phFile from '../../icons/ph/file';
 import phUploadSimple from '../../icons/ph/upload-simple';
 import phX from '../../icons/ph/x';
+import { codeText } from '../InlineCode/InlineCode';
 
 includeIcons(phFile, phUploadSimple, phX);
 
@@ -19,7 +20,7 @@ export interface UploadFile {
   /** 0 to 100 while uploading. */
   progress?: number;
   status?: 'uploading' | 'done' | 'error';
-  /** The cause and the fix, shown in red. */
+  /** The cause and the fix, shown in red; `backticks` are code. */
   error?: string;
 }
 
@@ -97,7 +98,7 @@ export function FileUpload({ label, files = [], onAdd, onRemove, onRetry, limitT
                     <ProgressBar value={fl.status === 'done' ? 100 : fl.progress || 0} aria-label={tr('{name} 上傳進度', { name: fl.name })} />
                   ) : (
                     <div className="ui-upload-error" role="alert">
-                      {fl.error || tr('上傳失敗，請再試一次。')}
+                      {codeText(fl.error || tr('上傳失敗，請再試一次。'))}
                       {onRetry ? (
                         <button type="button" className="ui-link-btn" onClick={() => onRetry(fl)}>
                           {tr('重試')}

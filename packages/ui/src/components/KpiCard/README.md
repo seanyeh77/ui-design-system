@@ -15,6 +15,7 @@ KPI 卡片，放在 Dashboard 最上方，用 `Grid` 排成一列。本身就是
 - 變化的顏色看好壞、不看方向：`good` 預設為 `delta > 0`；錯誤率這種上升是壞事的指標設 `good={false}`。
 - 單位寫在 `unit`（人、ms、%）；金額用 `format="money"`；百分比的指標，變化用 `deltaUnit="pt"`（「個百分點」）。
 - 監控畫面的頂列用 `size="compact"`（見下方）。
+- `target` 與 `verdict.text` 裡反引號包住的文字顯示成行內程式碼（InlineCode），不顯示反引號。
 
 ## 細節
 

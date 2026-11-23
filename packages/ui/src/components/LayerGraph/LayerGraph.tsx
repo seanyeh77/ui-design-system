@@ -7,6 +7,7 @@ import { tr } from '../../i18n';
 import { format } from '../../format';
 import { cx, monoNums, resizeObserver } from '../../internal/util';
 import { ScrollHint, useScrollHint } from '../../internal/scrollHint';
+import { codeSpans } from '../../internal/codeSpans';
 import { devWarn } from '../../internal/dev';
 import { Icon } from '../../icons/Icon';
 import { includeIcons } from '../../icons/store';
@@ -131,7 +132,19 @@ const scrollMemory = new Map<string, number>();
 
 // Label width before layout: text in the sans font, `code` and numbers in the mono font, as labelParts draws them.
 let measure: CanvasRenderingContext2D | null | undefined;
-const SPLIT = /(`[^`]+`|\d[\d,.]*)/;
+const NUM = /(\d[\d,.]*)/;
+
+/** A label in pieces: `code` (read the same way as CodeText, by codeSpans) and numbers are mono, the rest sans. */
+function labelPieces(text: string): { mono: boolean; text: string }[] {
+  return codeSpans(text).flatMap((s) =>
+    s.code
+      ? [{ mono: true, text: s.text }]
+      : s.text
+          .split(NUM)
+          .map((t, i) => ({ mono: i % 2 === 1, text: t }))
+          .filter((p) => p.text !== ''),
+  );
+}
 
 /** A label with a number: {n} in a string, or a function of the number; the number comes back as \u0001 (monoNums). */
 function withNum(label: string | ((n: number) => string) | undefined, n: number, fallback: (n: number) => string): string {
@@ -242,17 +255,16 @@ function HeightHandle(p: {
 }
 
 function labelWidth(text: string): number {
-  const parts = text.split(SPLIT).filter(Boolean);
+  const parts = labelPieces(text);
   if (measure === undefined) measure = canvas2d();
   const c = measure;
   if (!c) return text.length * 9;
   const cs = getComputedStyle(document.documentElement);
   const sans = cs.getPropertyValue('--font-sans') || 'sans-serif';
   const mono = cs.getPropertyValue('--font-mono') || 'monospace';
-  return parts.reduce((w, t) => {
-    const code = t[0] === '`' || /^\d/.test(t);
-    c.font = '600 12px ' + (code ? mono : sans);
-    return w + c.measureText(t[0] === '`' ? t.slice(1, -1) : t).width;
+  return parts.reduce((w, p) => {
+    c.font = '600 12px ' + (p.mono ? mono : sans);
+    return w + c.measureText(p.text).width;
   }, 0);
 }
 
@@ -309,18 +321,15 @@ function wraps(text: string): string[][] {
 }
 
 function labelParts(text: string): React.ReactNode[] {
-  return text
-    .split(SPLIT)
-    .filter(Boolean)
-    .map((t, i) =>
-      t[0] === '`' || /^\d/.test(t) ? (
-        <span key={i} className="ui-lg-code">
-          {t[0] === '`' ? t.slice(1, -1) : t}
-        </span>
-      ) : (
-        t
-      ),
-    );
+  return labelPieces(text).map((p, i) =>
+    p.mono ? (
+      <span key={i} className="ui-lg-code">
+        {p.text}
+      </span>
+    ) : (
+      p.text
+    ),
+  );
 }
 
 type Pt = [number, number];

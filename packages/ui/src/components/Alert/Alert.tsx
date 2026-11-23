@@ -4,6 +4,7 @@ import { Icon, type CustomIcon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
 import { includeIcons } from '../../icons/store';
 import phX from '../../icons/ph/x';
+import { codeText } from '../InlineCode/InlineCode';
 
 includeIcons(phX);
 
@@ -20,7 +21,7 @@ export interface AlertProps {
   /** Default 'info'. danger is announced at once (role alert). */
   tone?: AlertTone;
   title?: string;
-  /** The cause and the fix, at most 2 short sentences. */
+  /** The cause and the fix, at most 2 short sentences; in a string, `backticks` are code. */
   children?: React.ReactNode;
   /** A verb, such as 重試. */
   actionLabel?: string;
@@ -39,7 +40,7 @@ export function Alert({ tone = 'info', title, children, actionLabel, onAction, o
       <Icon d={ALERT_ICONS[t]} className="ui-alert-icon" />
       <div className="ui-alert-content">
         {title ? <div className="ui-alert-title">{title}</div> : null}
-        {children ? <div className="ui-alert-body">{children}</div> : null}
+        {children ? <div className="ui-alert-body">{codeText(children)}</div> : null}
       </div>
       {actionLabel ? (
         <button type="button" className="ui-btn ui-btn-secondary ui-alert-action" onClick={onAction}>

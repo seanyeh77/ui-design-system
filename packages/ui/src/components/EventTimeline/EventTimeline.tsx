@@ -7,6 +7,7 @@ import phArrowsLeftRight from '../../icons/ph/arrows-left-right';
 import phSparkle from '../../icons/ph/sparkle';
 import phUser from '../../icons/ph/user';
 import phWarning from '../../icons/ph/warning';
+import { codeText } from '../InlineCode/InlineCode';
 
 includeIcons(phArrowsLeftRight, phSparkle, phUser, phWarning);
 
@@ -17,7 +18,7 @@ export interface TimelineEvent {
   time: Date;
   /** alert 告警, switch 切換, ai AI, manual 人工: an icon in front, read aloud as the kind's name. */
   kind: EventKind;
-  /** What happened, one short sentence: 「F 區進氣溫度超過上限 29 °C」. */
+  /** What happened, one short sentence: 「F 區進氣溫度超過上限 29 °C」; `backticks` are code. */
   text: string;
 }
 
@@ -51,7 +52,7 @@ export function EventTimeline({ events, label, empty, className }: EventTimeline
           <span className="ui-events-kind" role="img" aria-label={tr(KIND[e.kind].name)}>
             <Icon name={KIND[e.kind].icon} size={20} />
           </span>
-          <span className="ui-events-text">{e.text}</span>
+          <span className="ui-events-text">{codeText(e.text)}</span>
         </li>
       ))}
     </ol>

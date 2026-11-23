@@ -28,7 +28,7 @@ export interface MultiSelectProps {
   /** Default 「找不到符合的選項」. */
   emptyText?: string;
   /** The cause and the fix (「至少選一個標籤」). Red border, the warning icon and this line under the field, announced when
-   *  it appears. */
+   *  it appears. `backticks` are code. */
   error?: string;
   className?: string;
 }
