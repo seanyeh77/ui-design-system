@@ -1191,3 +1191,11 @@ AI 定的細節（待確認）：
 - `styles.css` 拆成 70 個元件各自的 `<Name>.css` 和 `src/styles/` 下 9 個共用檔；打包時仍輸出一個 `styles.css`。規則順序依「會互相影響的規則保持原本先後」重排，300 張截圖和拆檔前完全相同。刪掉一條從未生效的 `.ui-dt-chipclear` 字級規則，合併 Dialog、Drawer、Term 重複的標題規則。
 - 另外提供按需載入：`css/base.css`、各元件的 `css/<Name>.css`（會 `@import` 它用到的其他元件）、最後 `css/end.css`。只用 Button 的頁面，CSS 從 148 KB 降到 14 KB。說明文件仍以整份 `styles.css` 為預設。
 - JavaScript 改成一個原始檔對一個輸出檔，`'use client'` 加在每個需要的檔案；`@seanyeh77/ui/format` 改指向 `format-entry`。只用 Button 時 JS 幾乎不變：圖示集中在一個表裡、危險按鈕會帶入 Dialog，拆圖示表是另外的決定。
+- 後續修正（同樣交給 agent 決定）：
+  - 每個 `css/<Name>.css` 都帶齊需要的規則。`src/styles.css` 重排成 base 的共用檔在最前、end 的共用檔在最後、元件的檔排在它用到的元件之後（相依的元件一起移動，會互相影響的規則仍保持先後），所以 `styles.css` 正好等於 `base.css` + 各元件 + `end.css`。互相需要的 Button 與 Dialog 合成一組：`Button.css` 帶兩者的規則，`Dialog.css` 只 `@import './Button.css'`。用到的元件排在後面時 build 直接失敗，並說明要怎麼移。
+  - 共用的 class 移到共用檔：`.ui-datefield-btn`（DatePicker 的日曆鈕、LoginCard 的顯示密碼鈕）和 `.ui-check-dash`（Checkbox、DataTable、MultiSelect 共用的勾選記號）移到 `styles/field.css`。`.ui-tour-float` 寫成 `.ui-tour-float.ui-float`，在分檔時也蓋過 `end.css` 裡的 `.ui-float`。
+  - 沒有自己樣式的元件（`LineChart`、`TextField` 等）也輸出 `css/<Name>.css`，只帶入它用到的元件。
+  - 新測試 `css-split.test.tsx`：每個元件的預覽用 `base.css` + 預覽直接用到的元件的檔 + `end.css`（照 postcss-import 的方式展開 `@import`、重複的留第一份）算出的樣式，逐一和 `styles.css` 比對每個元素的 computed style，必須完全相同。
+  - `-webkit-backdrop-filter`、`-webkit-user-select` 移到標準屬性之前（lightningcss 壓縮時只留最後一個，原本會丟掉標準的 `backdrop-filter`）；token 檢查加上「`-webkit-` 屬性要在標準屬性之前、`-webkit-backdrop-filter` 必須有標準屬性」，連 build 出的 CSS 一起檢查。
+  - 頁面沒放進 layer 的重設 CSS 會蓋過元件：保留這個行為（能覆寫正是 layer 的目的），在 AGENTS.md 和 theme.md 寫明重設放進 `@layer base`、刪掉範本附的 CSS；`ui check` 新增一項，列出沒有 layer、用元素或 `*` 選擇器、又以不同的值蓋過元件宣告的規則。
+  - theme.md 改為建議一個 CSS 入口檔依序 `@import` `base.css`、元件的檔、`end.css`，並寫明重複的檔留哪一份依 bundler 而定，不保證和 `styles.css` 完全相同。

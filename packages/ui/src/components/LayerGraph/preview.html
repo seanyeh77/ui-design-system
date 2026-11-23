@@ -178,7 +178,7 @@
       }
       // A code map: the list's relations, one into a shared item, can be selected (1); on a phone
       // it starts at the boxes (4); the line up from src/worker has its label beside it, and runs outside the boxes (5).
-      var nodesIb = [
+      var mapNodes = [
         { id: 'ext', name: '被追蹤的程式', external: true },
         { id: 'analysis', name: 'analysis（Python）', layer: 0 },
         { id: 'cluster', name: 'cluster（Python）', layer: 0 },
@@ -187,7 +187,7 @@
         { id: 'lib', name: 'src/server', code: true, layer: 2, size: 114 },
         { id: 'common', name: 'src/common', code: true, layer: 3, size: 13, shared: true },
       ];
-      var edgesIb = [
+      var mapEdges = [
         { id: 'ib', from: 'ext', to: 'lib', inferred: true, label: '攔截網路呼叫（18 個函式）' },
         { id: 'ucp', from: 'ext', to: 'lib', inferred: true, label: '攔截 `ucp`（11 個函式）' },
         { id: 'uct', from: 'ext', to: 'lib', inferred: true, label: '攔截 `uct`（4 個函式）' },
@@ -200,15 +200,15 @@
         { from: 'worker', to: 'common', count: 6 },
         { from: 'lib', to: 'common', count: 5 },
       ];
-      function Ibtrace() {
+      function CodeMap() {
         var s = React.useState(null);
         var e = React.useState(null);
         return h(
           'div',
           { style: card },
           h(U.LayerGraph, {
-            nodes: nodesIb,
-            edges: edgesIb,
+            nodes: mapNodes,
+            edges: mapEdges,
             selected: s[0],
             onSelect: s[1],
             selectedEdge: e[0],
@@ -236,7 +236,7 @@
           h(BothWays),
           h(External),
           h(HoverLabels),
-          h(Ibtrace),
+          h(CodeMap),
         );
       }
       ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));

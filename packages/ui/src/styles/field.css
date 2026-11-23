@@ -143,3 +143,28 @@
   font: inherit;
   font-size: var(--text-control);
 }
+/* The icon button inside a field (DatePicker's calendar, LoginCard's show password). */
+.ui-datefield-btn {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  margin-right: 4px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.ui-datefield-btn:hover {
+  background: var(--surface-sub);
+}
+/* The dash of a mixed check mark (internal/Field's CheckMark: Checkbox, DataTable, MultiSelect…). */
+.ui-check-dash {
+  width: 10px;
+  height: 3px;
+  border-radius: 2px;
+  background: currentColor;
+}

@@ -66,3 +66,29 @@ test('a status badge with a shadow in a table row or card fails; a flat one pass
   assert.equal(res.raised.length, 2);
   for (const r of res.raised) assert.match(r, /失敗/);
 });
+
+// The system's CSS sits in @layer ui; a page's unlayered reset on element selectors beats it.
+const system = `<style>@layer ui.components { .ui-btn { padding: 0 var(--pad, 16px); margin: 0; border: 1px solid rgb(9, 9, 9); background: rgb(1, 2, 3); color: rgb(255, 255, 255); } .ui-card .ui-title { font-size: 20px; } }</style>`;
+const ui = '<button class="ui-btn">儲存</button><div class="ui-card"><h2 class="ui-title">標題</h2></div>';
+
+test('an unlayered reset on element selectors that overrides a component fails', async (t) => {
+  if (skip) return t.skip(skip);
+  const res = await run(`${system}<style>* { margin: 0; padding: 0; border: 0; } button { background: none; } h2 { font-size: 1em; }</style>${ui}`);
+  assert.equal(res.unlayered.length, 3);
+  assert.match(res.unlayered[0], /^\* \{ padding-top/);
+  assert.match(res.unlayered[0], /\.ui-btn/);
+  assert.match(res.unlayered[1], /^button \{ background-[a-z]+, background-[a-z]+ \} in a <style> element overrides \.ui-btn$/);
+  assert.match(res.unlayered[2], /^h2 \{ font-size \} in a <style> element overrides \.ui-card \.ui-title/);
+});
+
+test('the same reset in @layer base, a rule on a class, an equal value or a plain element passes', async (t) => {
+  if (skip) return t.skip(skip);
+  const layered = await run(`${system}<style>@layer base { * { margin: 0; padding: 0; border: 0; } button { background: none; } }</style>${ui}`);
+  assert.deepEqual(layered.unlayered, []);
+  const own = await run(
+    `${system}<style>.toolbar .ui-btn, :where(button) { background: none; } button { margin: 0; color: rgb(255, 255, 255); }</style>${ui}<p>text</p>`,
+  );
+  assert.deepEqual(own.unlayered, []);
+  const plain = await run(`${system}<style>p, a { margin: 0; color: red; }</style><p>text</p>`);
+  assert.deepEqual(plain.unlayered, []);
+});

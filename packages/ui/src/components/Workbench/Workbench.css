@@ -246,8 +246,8 @@
   border: 0;
   padding: 0;
   background: var(--scrim);
-  backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--dur-toggle) ease;
@@ -359,8 +359,8 @@
 }
 .ui-wb-tabs.is-touch {
   touch-action: none;
-  user-select: none;
   -webkit-user-select: none;
+  user-select: none;
 }
 /* As Tabs: the side with more tabs fades out over 40 px. */
 .ui-wb-tabs.has-more-right {

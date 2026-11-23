@@ -72,20 +72,30 @@
 
   沒寫這一行、又先載入 Tailwind 時，`ui` 排在 `utilities` 之後：元件蓋過 utility class，和沒有 layer 時一樣。`tokens.css` 和 `styles.css` 開頭也宣告同一個順序，所以先載入設計系統時不寫也一樣。
 - 頁面自己的 CSS 放在 layer 裡時，那個 layer 要排在 `ui` 之後才會贏；排在前面（例如先宣告的 `@layer reset`）的規則會輸給元件。
+- 全域的重設 CSS 也一樣會贏：reset、normalize、CMS 或專案範本附的 CSS（例如 `* { margin: 0; padding: 0; border: 0 }`、`button { background: none }`）沒放進 layer 時，會洗掉每個元件的間距、邊框和背景。這類規則放進 `@layer base { … }`（或其他排在 `ui` 之前的 layer）；Vite 等範本產生的 `index.css`、`App.css` 直接刪掉。`ui check` 會列出沒有 layer、用元素或 `*` 選擇器、又蓋過元件宣告的規則。
 - 元件 CSS 裡的 `!important` 在 layer 中比沒有 layer 的 `!important` 優先：要蓋過這些宣告，改用沒有 `!important` 的頁面規則蓋過元件的其他規則，或在 `ui` 之前的 layer 寫 `!important`。
 
 ### 只載入用到的元件的 CSS
 
-`styles.css`（約 200 KB，gzip 後約 39 KB；bundler 壓縮後約 148 KB、gzip 約 25 KB）是預設的載法。很在意大小的專案可以改用 `@seanyeh77/ui/css/` 裡的分檔，三種檔案都要：
+`styles.css`（約 200 KB，gzip 後約 39 KB；bundler 壓縮後約 148 KB、gzip 約 25 KB）是預設的載法。很在意大小的專案可以改用 `@seanyeh77/ui/css/` 裡的分檔：寫一個 CSS 入口檔，依序 `@import` `base.css`、用到的每個元件的檔案、`end.css`，JavaScript 只 import 這一個檔。
 
-```ts
-import '@seanyeh77/ui/css/base.css'; // 先：共用的基礎、表單欄位、圖表、動畫
-import '@seanyeh77/ui/css/Button.css'; // 用到的元件，順序不限
-import '@seanyeh77/ui/css/DataTable.css';
-import '@seanyeh77/ui/css/end.css'; // 最後：觸控目標、焦點外框、浮動層等蓋在元件上的規則
+```css
+/* src/ui.css */
+@import '@seanyeh77/ui/css/base.css'; /* 最前面：共用的基礎、表單欄位、圖表、動畫 */
+@import '@seanyeh77/ui/css/Button.css'; /* 用到的元件，一個一行 */
+@import '@seanyeh77/ui/css/DataTable.css';
+@import '@seanyeh77/ui/css/end.css'; /* 最後面：觸控目標、焦點外框、浮動層等蓋在元件上的規則 */
 ```
 
-元件的檔案用 `@import` 帶入它用到的其他元件的檔案（例如 `DataTable.css` 帶入 `Button.css`），由 bundler 去掉重複並維持和 `styles.css` 相同的先後。沒有自己檔案的元件（`TextField`、`LineChart`）只需要 `base.css`。
+```ts
+import '@seanyeh77/ui/fonts.css';
+import '@seanyeh77/ui/tokens.css';
+import './ui.css';
+```
+
+- 每個元件的檔案用 `@import` 帶入它畫出或借用樣式的其他元件的檔案（例如 `DataTable.css` 帶入 `Button.css`），排在自己前面，所以只列頁面直接用到的元件就夠了。沒有自己樣式的元件（`TextField`、`LineChart`）也有檔案，只帶入它們用到的元件。
+- 同一個檔被帶入兩次時，bundler 展開 `@import` 的方式決定留哪一份：postcss-import（Vite 預設）留第一份，esbuild 和瀏覽器直接載入時以最後一份為準。所以元件之間的先後不保證和 `styles.css` 完全相同；要完全相同就用 `styles.css`。
+- 不要用好幾個 `<link>` 或在瀏覽器裡直接載入這些檔：不經 bundler 時，重複的檔以最後一次出現的位置為準。沒有 build step 的頁面用 `styles.css`。
 
 ## 焦點
 

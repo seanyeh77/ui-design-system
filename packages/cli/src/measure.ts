@@ -13,10 +13,24 @@ export interface Findings {
   mixed: string[];
   /** A status Badge with a shadow inside a table row or a card. */
   raised: string[];
+  /** Page CSS outside any cascade layer, on element or universal selectors (resets, starter CSS), that overrides a declaration of a component. */
+  unlayered: string[];
 }
 
 export function measure(): Findings {
-  const out: Findings = { overflow: [], small: [], inline: [], nested: [], markdown: [], native: [], wrapped: [], escaped: [], mixed: [], raised: [] };
+  const out: Findings = {
+    overflow: [],
+    small: [],
+    inline: [],
+    nested: [],
+    markdown: [],
+    native: [],
+    wrapped: [],
+    escaped: [],
+    mixed: [],
+    raised: [],
+    unlayered: [],
+  };
   const describe = (el: Element) => {
     let s = el.tagName.toLowerCase();
     const cls = [...el.classList].filter((c) => c.startsWith('ui-')).slice(0, 2);
@@ -199,6 +213,115 @@ export function measure(): Findings {
     if (out.raised.length >= 6) break;
     const sh = getComputedStyle(el).boxShadow;
     if (sh && sh !== 'none' && visible(el)) out.raised.push(describe(el));
+  }
+
+  // 9. Page CSS outside a layer that overrides a component. The system's CSS is in @layer ui, so any unlayered rule
+  // wins over it, even `button { background: none }`: a reset, normalize or starter stylesheet (Vite's index.css)
+  // restyles every component. Only rules on element or universal selectors (button, *, h1, ul li) count: a page's own
+  // rule on a class is a deliberate override. A rule counts when a component rule on the same element declares the
+  // same property with another value.
+  interface Rule {
+    selector: string;
+    style: CSSStyleDeclaration;
+    sheet: string;
+  }
+  const page: Rule[] = [];
+  // The ui layer's rules by a class of their last compound (.ui-a .ui-b:hover under ui-b), so an element is matched
+  // only against the rules that can style it; rules without one under ''.
+  const system = new Map<string, Rule[]>();
+  const parts = (sel: string) => sel.split(/,(?![^(]*\))/).map((x) => x.trim());
+  const keys = (sel: string) => {
+    const last =
+      sel
+        .replace(/\([^()]*\)/g, '')
+        .split(/[\s>+~]+/)
+        .pop() ?? '';
+    const cls = [...last.matchAll(/\.([\w-]+)/g)].map((m) => m[1]);
+    return cls.length ? cls.slice(0, 1) : [''];
+  };
+  const applies = (rule: CSSRule) => {
+    if (rule instanceof CSSMediaRule) return matchMedia(rule.conditionText).matches;
+    if (rule instanceof CSSSupportsRule) return CSS.supports(rule.conditionText);
+    return true;
+  };
+  const walk = (rules: CSSRuleList, sheet: string, layer: string | null) => {
+    for (const rule of rules) {
+      if (rule instanceof CSSImportRule) {
+        const name = rule.layerName === null ? layer : [layer, rule.layerName].filter(Boolean).join('.');
+        try {
+          if (rule.styleSheet) walk(rule.styleSheet.cssRules, rule.styleSheet.href?.split('/').pop() || sheet, name);
+        } catch {
+          // a cross-origin sheet (web fonts): its rules cannot be read
+        }
+      } else if (rule instanceof CSSLayerBlockRule) walk(rule.cssRules, sheet, [layer, rule.name].filter(Boolean).join('.'));
+      else if (rule instanceof CSSStyleRule) {
+        if (layer === null) page.push({ selector: rule.selectorText, style: rule.style, sheet });
+        else if (layer === 'ui' || layer.startsWith('ui.'))
+          for (const selector of parts(rule.selectorText))
+            for (const k of keys(selector)) {
+              const list = system.get(k) ?? [];
+              list.push({ selector, style: rule.style, sheet });
+              system.set(k, list);
+            }
+      } else if (rule instanceof CSSGroupingRule && applies(rule)) walk(rule.cssRules, sheet, layer);
+    }
+  };
+  for (const sheet of document.styleSheets) {
+    try {
+      walk(sheet.cssRules, sheet.href?.split('/').pop() || 'a <style> element', null);
+    } catch {
+      // cross-origin
+    }
+  }
+  // Element and universal selectors only: no class, id, attribute or pseudo-class (::before and ::after are fine).
+  const plain = (sel: string) => !/[.#[]|:(?!:)/.test(sel.replace(/::?(before|after|marker|placeholder)\b/g, ''));
+  const matches = (el: Element, sel: string) => {
+    try {
+      return el.matches(sel);
+    } catch {
+      return false;
+    }
+  };
+  // A longhand's value, or that of the shorthand that set it with var() (its longhands then read as '').
+  const valueOf = (style: CSSStyleDeclaration, prop: string) => {
+    const names = [prop];
+    for (let p = prop; p.includes('-');) names.push((p = p.slice(0, p.lastIndexOf('-'))));
+    const side = /^border-(?:top|right|bottom|left)-(color|width|style)$/.exec(prop);
+    if (side) names.splice(2, 0, `border-${side[1]}`);
+    for (const n of names) {
+      const v = style.getPropertyValue(n).trim();
+      if (v) return v;
+    }
+    return '';
+  };
+  const seen = new Set<string>();
+  for (const rule of page) {
+    if (out.unlayered.length >= 6) break;
+    const selectors = parts(rule.selector).filter((x) => plain(x) && !/::/.test(x));
+    if (!selectors.length) continue;
+    const hits = new Map<string, string>(); // property -> component selector it overrides
+    for (const el of document.querySelectorAll(selectors.join(', '))) {
+      const classes = [...el.classList].filter((c) => c.startsWith('ui-'));
+      if (!classes.length) continue;
+      const candidates = [...classes, ''].flatMap((c) => system.get(c) ?? []);
+      for (const prop of rule.style) {
+        if (hits.has(prop)) continue;
+        const value = valueOf(rule.style, prop);
+        const own = candidates.find((r) => {
+          const v = valueOf(r.style, prop);
+          return v !== '' && v !== value && !r.style.getPropertyPriority(prop) && matches(el, r.selector);
+        });
+        if (own) hits.set(prop, own.selector);
+      }
+    }
+    if (!hits.size) continue;
+    const key = rule.sheet + rule.selector;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const props = [...hits.keys()];
+    out.unlayered.push(
+      `${rule.selector} { ${props.slice(0, 4).join(', ')}${props.length > 4 ? ', …' : ''} } in ${rule.sheet} overrides ${[...new Set(hits.values())].slice(0, 2).join(', ')}`,
+    );
   }
   return out;
 }

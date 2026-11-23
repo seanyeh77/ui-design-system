@@ -1,43 +1,46 @@
 /* @seanyeh77/ui: every style file, in cascade order. The build joins them into dist/styles.css inside
    @layer ui.components; Storybook and the tests import this file as it is.
-   Order matters where two files style the same element at the same specificity: the later file wins. A new
-   component's file goes after the files of the components it renders or reuses classes from, and before
-   styles/touch.css when its controls need the touch rules. Shared files: base (page defaults, utilities that come
-   first), field (every form field), chart, motion, table (Markdown and DataTable tools), utilities, touch (48 px
-   targets), floating (positioned popups), focus (the one focus style, last). */
+   Order matters where two files style the same element at the same specificity: the later file wins. Three parts, so
+   that dist/styles.css is exactly dist/css/base.css + every component file + dist/css/end.css:
+   1. The shared files of base.css: base (page defaults), field (every form field, the field icon button and the mixed
+      check mark), motion, chart.
+   2. One file per component. A component's file goes after the files of the components it renders or whose classes
+      it uses: dist/css/<Name>.css imports those, and the build fails when one comes later. Components that need each
+      other (Button and Dialog) stay next to each other.
+   3. The shared files of end.css, which override components: table (Markdown and DataTable tools), utilities, touch
+      (48 px targets), floating (positioned popups), focus (the one focus style, last). */
 /* Layer order: Tailwind's layers (or a page's own of the same names) around the system's; unlayered page CSS wins. */
 @layer theme, base, ui, components, utilities;
 @layer ui.tokens, ui.components;
 @import './styles/base.css' layer(ui.components);
-@import './components/Button/Button.css' layer(ui.components);
-@import './components/IconButton/IconButton.css' layer(ui.components);
-@import './components/TopBar/TopBar.css' layer(ui.components);
 @import './styles/field.css' layer(ui.components);
+@import './styles/motion.css' layer(ui.components);
+@import './styles/chart.css' layer(ui.components);
+@import './components/Button/Button.css' layer(ui.components);
+@import './components/Dialog/Dialog.css' layer(ui.components);
 @import './components/TextArea/TextArea.css' layer(ui.components);
 @import './components/Badge/Badge.css' layer(ui.components);
 @import './components/Alert/Alert.css' layer(ui.components);
 @import './components/Skeleton/Skeleton.css' layer(ui.components);
 @import './components/EmptyState/EmptyState.css' layer(ui.components);
 @import './components/Toast/Toast.css' layer(ui.components);
-@import './components/Dialog/Dialog.css' layer(ui.components);
-@import './components/SideNav/SideNav.css' layer(ui.components);
 @import './components/Breadcrumb/Breadcrumb.css' layer(ui.components);
 @import './components/Tabs/Tabs.css' layer(ui.components);
 @import './components/MobileTabBar/MobileTabBar.css' layer(ui.components);
-@import './styles/motion.css' layer(ui.components);
 @import './components/Checkbox/Checkbox.css' layer(ui.components);
 @import './components/RadioGroup/RadioGroup.css' layer(ui.components);
 @import './components/Switch/Switch.css' layer(ui.components);
 @import './components/Select/Select.css' layer(ui.components);
 @import './components/SearchField/SearchField.css' layer(ui.components);
 @import './components/FormGrid/FormGrid.css' layer(ui.components);
-@import './styles/chart.css' layer(ui.components);
 @import './components/BarChart/BarChart.css' layer(ui.components);
 @import './components/ProgressBar/ProgressBar.css' layer(ui.components);
 @import './components/LoadingBar/LoadingBar.css' layer(ui.components);
 @import './components/ProgressRing/ProgressRing.css' layer(ui.components);
-@import './styles/table.css' layer(ui.components);
 @import './components/Tooltip/Tooltip.css' layer(ui.components);
+@import './components/IconButton/IconButton.css' layer(ui.components);
+@import './components/TopBar/TopBar.css' layer(ui.components);
+@import './components/SideNav/SideNav.css' layer(ui.components);
 @import './components/Menu/Menu.css' layer(ui.components);
 @import './components/Popover/Popover.css' layer(ui.components);
 @import './components/Drawer/Drawer.css' layer(ui.components);
@@ -45,34 +48,31 @@
 @import './components/AccentPicker/AccentPicker.css' layer(ui.components);
 @import './components/LoginCard/LoginCard.css' layer(ui.components);
 @import './components/NotificationBell/NotificationBell.css' layer(ui.components);
+@import './components/Calendar/Calendar.css' layer(ui.components);
 @import './components/DatePicker/DatePicker.css' layer(ui.components);
 @import './components/DataTable/DataTable.css' layer(ui.components);
 @import './components/ProjectSwitcher/ProjectSwitcher.css' layer(ui.components);
 @import './components/DateRangePicker/DateRangePicker.css' layer(ui.components);
-@import './components/Calendar/Calendar.css' layer(ui.components);
 @import './components/FileUpload/FileUpload.css' layer(ui.components);
 @import './components/MultiSelect/MultiSelect.css' layer(ui.components);
 @import './components/ErrorPage/ErrorPage.css' layer(ui.components);
 @import './components/SettingsLayout/SettingsLayout.css' layer(ui.components);
 @import './components/DangerZone/DangerZone.css' layer(ui.components);
-@import './components/TreeList/TreeList.css' layer(ui.components);
 @import './components/InlineCode/InlineCode.css' layer(ui.components);
 @import './components/AiMark/AiMark.css' layer(ui.components);
 @import './components/Tag/Tag.css' layer(ui.components);
+@import './components/TreeList/TreeList.css' layer(ui.components);
 @import './components/Card/Card.css' layer(ui.components);
 @import './components/KpiCard/KpiCard.css' layer(ui.components);
 @import './components/DetailList/DetailList.css' layer(ui.components);
 @import './components/ActionBar/ActionBar.css' layer(ui.components);
-@import './styles/utilities.css' layer(ui.components);
 @import './components/CommandPalette/CommandPalette.css' layer(ui.components);
-@import './components/CodeView/CodeView.css' layer(ui.components);
 @import './components/Suggestion/Suggestion.css' layer(ui.components);
-@import './styles/touch.css' layer(ui.components);
-@import './components/Graph/Graph.css' layer(ui.components);
-@import './components/LayerGraph/LayerGraph.css' layer(ui.components);
-@import './styles/floating.css' layer(ui.components);
 @import './components/Tour/Tour.css' layer(ui.components);
 @import './components/Term/Term.css' layer(ui.components);
+@import './components/CodeView/CodeView.css' layer(ui.components);
+@import './components/Graph/Graph.css' layer(ui.components);
+@import './components/LayerGraph/LayerGraph.css' layer(ui.components);
 @import './components/AppShell/AppShell.css' layer(ui.components);
 @import './components/Grid/Grid.css' layer(ui.components);
 @import './components/SplitPane/SplitPane.css' layer(ui.components);
@@ -86,4 +86,8 @@
 @import './components/EventTimeline/EventTimeline.css' layer(ui.components);
 @import './components/TimeControl/TimeControl.css' layer(ui.components);
 @import './components/ConsoleLayout/ConsoleLayout.css' layer(ui.components);
+@import './styles/table.css' layer(ui.components);
+@import './styles/utilities.css' layer(ui.components);
+@import './styles/touch.css' layer(ui.components);
+@import './styles/floating.css' layer(ui.components);
 @import './styles/focus.css' layer(ui.components);

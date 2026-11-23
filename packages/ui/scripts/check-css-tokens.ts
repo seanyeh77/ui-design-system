@@ -1,9 +1,11 @@
 // Fails when a style file (every file src/styles.css lists) writes a literal where a token exists: a font size in px (the text-* scale), a z-index number
 // (the z-* layers), or a transition or animation duration or easing that equals a dur-* or ease-* token.
 // A deliberate one-off keeps its literal with `/* token-exempt: reason */` on the same line.
-// Also fails when a .css file under src/components or src/styles is missing from src/styles.css.
+// Also fails when a .css file under src/components or src/styles is missing from src/styles.css, and when a rule has a
+// -webkit- property after its standard one, or -webkit-backdrop-filter without backdrop-filter: a minifier
+// (lightningcss) keeps only the last of the pair, so the standard one must come last (checked in the built CSS too).
 // Run: node scripts/check-css-tokens.ts [file] (part of `pnpm test`).
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { styleFiles } from './styles.ts';
 
 interface Token {
@@ -35,6 +37,30 @@ if (!process.argv[2]) {
   for (const p of onDisk) if (!listed.includes(p)) problems.push(`src/${p}: not in src/styles.css, so it is not built`);
 }
 for (const file of files) checkFile(file);
+// The built files, when there are any (pnpm check builds before it tests).
+const css = new URL('dist/css/', root);
+if (!process.argv[2] && existsSync(css))
+  for (const file of [new URL('dist/styles.css', root), ...readdirSync(css).map((n) => new URL(n, css))])
+    checkPrefixes(readFileSync(file, 'utf8'), file.pathname.split('/packages/ui/').pop() ?? '');
+
+/** Each rule block: a -webkit- property comes before its standard one, and -webkit-backdrop-filter has one. */
+function checkPrefixes(
+  css: string,
+  name: string,
+  report: (index: number, message: string) => void = (_index, message) => {
+    problems.push(`${name}: ${message}`);
+  },
+) {
+  const code = css.replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, ' '));
+  for (const block of code.matchAll(/\{[^{}]*\}/g)) {
+    for (const m of block[0].matchAll(/(?<![-\w])-webkit-([\w-]+)\s*:/g)) {
+      const standard = new RegExp(`(?<![-\\w])${m[1]}\\s*:`).exec(block[0]);
+      const at = (block.index ?? 0) + (m.index ?? 0);
+      if (standard && standard.index < (m.index ?? 0)) report(at, `-webkit-${m[1]} after ${m[1]}: put it first, or a minifier drops ${m[1]}`);
+      if (!standard && m[1] === 'backdrop-filter') report(at, '-webkit-backdrop-filter without backdrop-filter: add the standard property after it');
+    }
+  }
+}
 
 function checkFile(file: URL) {
   const css = readFileSync(file, 'utf8');
@@ -46,6 +72,7 @@ function checkFile(file: URL) {
     if (!lines[n - 1].includes('token-exempt:')) problems.push(`${name}:${n}: ${message}`);
   };
 
+  checkPrefixes(css, name ?? '', report);
   // Comments out, same length, so positions still match lines.
   const code = css.replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, ' '));
   for (const m of code.matchAll(/(?<![-\w])(font-size|z-index|transition|transition-duration|animation|animation-duration)\s*:\s*([^;{}]*)/g)) {
@@ -72,8 +99,8 @@ function checkFile(file: URL) {
 
 if (problems.length) {
   console.error(
-    `${problems.length} problem(s) in the style files:\n${problems.join('\n')}\nUse the token, or add /* token-exempt: reason */ on the line for a deliberate one-off.`,
+    `${problems.length} problem(s) in the style files:\n${problems.join('\n')}\nUse the token, or add /* token-exempt: reason */ on the line for a deliberate one-off; put a -webkit- property before its standard one.`,
   );
   process.exit(1);
 }
-console.log(`${files.length} style files: font sizes, z-index, durations and easings use tokens.`);
+console.log(`${files.length} style files: font sizes, z-index, durations and easings use tokens; -webkit- properties come first.`);

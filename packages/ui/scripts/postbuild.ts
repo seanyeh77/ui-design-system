@@ -2,7 +2,7 @@
 // fonts next to the JavaScript in dist/, and the component READMEs and the guides into docs/ so an agent can read them
 // from node_modules/@seanyeh77/ui/docs.
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { styleFiles, LAYER_ORDER, LAYER } from './styles.ts';
+import { componentDependencies, componentSource, styleFiles, LAYER_ORDER, LAYER } from './styles.ts';
 
 const root = new URL('../', import.meta.url);
 const tokens = new URL('../tokens/', root);
@@ -15,11 +15,18 @@ const wrap = (body: string) => `@layer ${LAYER} {\n${body}}\n`;
 const files = styleFiles();
 writeFileSync(new URL('styles.css', dist), `/* @seanyeh77/ui */\n${LAYER_ORDER}\n${wrap(files.map((f) => read(f.path)).join(''))}`);
 
-// dist/css/: base.css (shared, first), <Name>.css per component, end.css (shared, last). A component file imports the
-// files of the components whose classes it uses that come before it, so a bundler keeps the order of styles.css.
+// dist/css/: base.css (shared, first), <Name>.css per component, end.css (shared, last). styles.css is exactly
+// base.css, then every component file in order, then end.css. A component file imports the files of the components it
+// needs (those it renders or whose classes it uses), which come before it in src/styles.css, so on its own it brings
+// everything it needs, in the order of styles.css. The build stops when a needed file comes later.
 const css = new URL('css/', dist);
 rmSync(css, { recursive: true, force: true });
 mkdirSync(css);
+const parts = files.map((f) => f.part).join(' ');
+if (!/^(base )*(component )*(end ?)*$/.test(parts + ' '))
+  throw new Error(
+    'src/styles.css: list the shared files of base.css first and those of end.css last, so styles.css equals base.css + the components + end.css',
+  );
 const shared = (part: 'base' | 'end') => files.filter((f) => f.part === part);
 for (const part of ['base', 'end'] as const)
   writeFileSync(
@@ -31,36 +38,82 @@ for (const part of ['base', 'end'] as const)
     )}`,
   );
 const components = files.filter((f) => f.part === 'component');
-// The component file that first gives each class a rule (as the subject of a selector).
-const owner = new Map<string, string>();
-for (const f of components)
-  for (const m of read(f.path).matchAll(/([^{}]*)\{/g))
-    for (const sel of m[1].split(','))
-      for (const c of (
-        sel
-          .trim()
-          .split(/[\s>+~]+/)
-          .pop() ?? ''
-      ).matchAll(/\.(ui-[\w-]+)/g))
-        if (!owner.has(c[1])) owner.set(c[1], f.name);
 const position = new Map(components.map((f, i) => [f.name, i]));
-const at = (name: string) => position.get(name) ?? Infinity;
+const at = (name: string) => position.get(name) ?? -1;
+const hasCss = new Set(components.map((f) => f.name));
+const componentNames = readdirSync(new URL('components/', src)).filter((n) => existsSync(new URL(`components/${n}/${n}.tsx`, src)));
+const source = (name: string) => componentSource(src, name, hasCss);
+const deps = componentDependencies(files, read, source);
+// Components that need each other (Button opens a Dialog, a Dialog shows Buttons) form a group: the group's first file
+// in src/styles.css carries the rules of every member, and the other members' files import it.
+const reach = (from: string) => {
+  const seen = new Set<string>();
+  const walk = (n: string) => {
+    for (const d of deps.get(n) ?? [])
+      if (!seen.has(d.name)) {
+        seen.add(d.name);
+        walk(d.name);
+      }
+  };
+  walk(from);
+  return seen;
+};
+const reachable = new Map(components.map((f) => [f.name, reach(f.name)]));
+const groupOf = (name: string) => components.map((f) => f.name).filter((n) => n === name || (reachable.get(name)?.has(n) && reachable.get(n)?.has(name)));
+const problems: string[] = [];
 for (const f of components) {
-  const dir = new URL(`components/${f.name}/`, src);
-  const code = readdirSync(dir)
-    .filter((n) => /\.tsx?$/.test(n) && !/\.(test|stories)\./.test(n))
-    .map((n) => readFileSync(new URL(n, dir), 'utf8'))
-    .join('\n');
-  const deps = new Set<string>();
-  for (const m of code.matchAll(/ui-[\w-]+/g)) {
-    const o = owner.get(m[0]);
-    if (o && o !== f.name) deps.add(o);
-  }
-  for (const m of code.matchAll(/from '\.\.\/(\w+)\/\1'/g)) if (position.has(m[1]) && m[1] !== f.name) deps.add(m[1]);
-  const before = [...deps].filter((d) => at(d) < at(f.name)).sort((a, b) => at(a) - at(b));
-  const imports = before.map((d) => `@import './${d}.css';\n`).join('');
-  writeFileSync(new URL(`${f.name}.css`, css), `${LAYER_ORDER}\n${imports}${wrap(read(f.path))}`);
+  const group = groupOf(f.name);
+  const span = group.map(at);
+  if (Math.max(...span) - Math.min(...span) !== group.length - 1)
+    problems.push(`${group.join(', ')} need each other: list them next to each other in src/styles.css`);
+  for (const d of deps.get(f.name) ?? [])
+    if (!group.includes(d.name) && at(d.name) > at(f.name))
+      problems.push(`${f.name} ${d.why}: move ${d.name}'s file before ${f.name}'s in src/styles.css (or move the shared class to a shared file)`);
 }
+if (problems.length) throw new Error(`postbuild: per-component CSS would miss rules:\n  ${[...new Set(problems)].join('\n  ')}`);
+for (const f of components) {
+  const group = groupOf(f.name);
+  const carrier = group[0];
+  let body: string;
+  if (carrier !== f.name) body = `@import './${carrier}.css';\n`;
+  else {
+    const need = new Set(group.flatMap((g) => (deps.get(g) ?? []).map((d) => d.name)).filter((n) => !group.includes(n)));
+    const imports = [...need]
+      .sort((a, b) => at(a) - at(b))
+      .map((d) => `@import './${d}.css';\n`)
+      .join('');
+    const own = group.map((g) => read(components[at(g)].path)).join('');
+    body = imports + wrap(own);
+  }
+  writeFileSync(new URL(`${f.name}.css`, css), `${LAYER_ORDER}\n${body}`);
+}
+// Components without a CSS file of their own (LineChart, TextField…) get one that imports what they render, so a page
+// imports the file of every component it uses.
+const without = componentNames.filter((n) => !hasCss.has(n));
+for (const [name, need] of componentDependencies(files, read, source, without)) {
+  const imports = need
+    .map((d) => d.name)
+    .sort((a, b) => at(a) - at(b))
+    .map((d) => `@import './${d}.css';\n`)
+    .join('');
+  writeFileSync(new URL(`${name}.css`, css), `${LAYER_ORDER}\n${imports}`);
+}
+// The check above in reverse: every file a component's code needs is among the files its CSS imports, directly or
+// through another file.
+const imported = (name: string, seen = new Set<string>()): Set<string> => {
+  for (const m of readFileSync(new URL(`${name}.css`, css), 'utf8').matchAll(/@import '\.\/(\w+)\.css'/g))
+    if (!seen.has(m[1])) {
+      seen.add(m[1]);
+      imported(m[1], seen);
+    }
+  return seen;
+};
+for (const f of components) {
+  const has = imported(f.name);
+  for (const g of groupOf(f.name)) has.add(g);
+  for (const d of deps.get(f.name) ?? []) if (!has.has(d.name)) problems.push(`dist/css/${f.name}.css does not bring ${d.name}'s rules (${f.name} ${d.why})`);
+}
+if (problems.length) throw new Error(`postbuild:\n  ${problems.join('\n  ')}`);
 
 cpSync(new URL('dist/tokens.css', tokens), new URL('tokens.css', dist));
 cpSync(new URL('fonts.css', tokens), new URL('fonts.css', dist));

@@ -182,8 +182,8 @@
   text-align: right;
   color: var(--ink-muted);
   font-variant-numeric: tabular-nums;
-  user-select: none;
   -webkit-user-select: none;
+  user-select: none;
 }
 .ui-cv-line.is-target .ui-cv-num {
   color: var(--ink);
@@ -263,8 +263,8 @@
   line-height: 20px;
 }
 .ui-cv-sr {
-  user-select: none;
   -webkit-user-select: none;
+  user-select: none;
 }
 /* An operator never splits across lines (-> stays ->). */
 .ui-cv-op {

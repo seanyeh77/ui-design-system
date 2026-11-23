@@ -3,8 +3,8 @@
   inset: 0;
   z-index: var(--z-drawer);
   background: var(--scrim);
-  backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
   transition: opacity var(--dur-toggle) ease;
 }
 .ui-drawer-backdrop:is([data-starting-style], [data-ending-style]) {

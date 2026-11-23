@@ -33,7 +33,7 @@ Then:
 - Your own CSS uses tokens only: `var(--surface)`, `var(--space-4)` in CSS; `cssVar('ink-muted')` from `@seanyeh77/tokens` in style props (only token names compile); `bg-surface text-ink-muted` with the Tailwind theme.
 - TypeScript enforces most rules: icon names, `confirm` on danger buttons and menu items, `DataTable` column keys. Fix type errors instead of casting them away. In development the components warn in the console with the cause and the fix.
 - Items marked 看情況 ("situational") are not fixed rules: choose per context and say which way you chose.
-- Before you finish: run `npx @seanyeh77/ui-cli check <file or URL>`. It opens the page at 390 px and 1280 px, light and dark, and fails on console errors, horizontal overflow at 390 px, touch targets under 48 px, touch areas that spill past their control, a card inside a card, raw Markdown, native controls the system replaces, wrapped buttons, tabs, headers or headings, controls of different heights in one toolbar, and a status badge with a shadow in a table or card. Add `--shots shots/` and check the screenshots against the last section of `guidelines.md`.
+- Before you finish: run `npx @seanyeh77/ui-cli check <file or URL>`. It opens the page at 390 px and 1280 px, light and dark, and fails on console errors, horizontal overflow at 390 px, touch targets under 48 px, touch areas that spill past their control, a card inside a card, raw Markdown, native controls the system replaces, wrapped buttons, tabs, headers or headings, controls of different heights in one toolbar, a status badge with a shadow in a table or card, and unlayered page CSS on element selectors (a reset or starter CSS) that overrides a component. Add `--shots shots/` and check the screenshots against the last section of `guidelines.md`.
 
 ### Rules that are easy to miss
 
@@ -69,6 +69,7 @@ export default [ui.configs.recommended];
 ```
 
 - The system's CSS is in the cascade layer `ui` (`ui.tokens`, `ui.components`): your own unlayered CSS always overrides it, no specificity fight and no `!important`. With Tailwind v4, start the main CSS file with `@layer theme, base, ui, components, utilities;` (before `@import 'tailwindcss'`) so utility classes override components. Details and the per-component CSS (`@seanyeh77/ui/css/`) in `theme.md`.
+- Because unlayered CSS always wins, page-wide resets win too: delete the starter CSS of the project template (Vite's `index.css` and `App.css`), and put any reset or normalize CSS (`* { margin: 0 }`, `button { background: none }`, a CMS theme) in `@layer base { … }` or another layer declared before `ui`. `ui check` reports unlayered element or `*` rules that override a component.
 - React 19 is required. The module starts with `'use client'`, so it works in Next.js server components pages as client components. Server code that only formats dates, numbers or text imports from `@seanyeh77/ui/format` (no `'use client'`).
 - The ESLint config reads `.tsx` with the typescript-eslint parser, which needs the `typescript` 5 or 6 API. With TypeScript 7 only, also install `typescript@npm:@typescript/typescript6` as a dev dependency.
 - Components need a browser: run component tests in a browser (Vitest browser mode) or jsdom.

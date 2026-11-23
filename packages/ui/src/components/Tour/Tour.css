@@ -71,7 +71,8 @@
     transition: none;
   }
 }
-.ui-tour-float {
+/* .ui-float too, so it wins over styles/floating.css, which comes after the components in dist/css/. */
+.ui-tour-float.ui-float {
   z-index: calc(var(--z-tour) + 1);
 }
 /* Base UI renders dialog and popover titles as h2: keep the look of the text around them. */

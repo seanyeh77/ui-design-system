@@ -31,7 +31,8 @@ const HELP = `ui check <file or URL>... [--shots DIR] [--strict] [--wait MS]
   Opens each page at 390 px and 1280 px, light and dark, and fails (exit 1) on:
   console errors, horizontal overflow at 390 px, touch targets under 48 px, touch areas that spill past their control, a card inside a card,
   raw Markdown, native controls the design system replaces, wrapped buttons, tabs, headers or headings, controls of
-  different heights in one toolbar row, and a status badge with a shadow in a table or card.
+  different heights in one toolbar row, a status badge with a shadow in a table or card, and page CSS outside a
+  cascade layer on element selectors (a reset, normalize or starter CSS: button, *, h1) that overrides a component.
   Exits 2 when a page cannot be checked at all: it does not load, or the check itself crashes.
 ui docs [Name] [--full]
   Prints the 用法 block of a component (Button, DataTable…): what it is, a minimal example and the rules most often
@@ -258,6 +259,12 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
               'status badge with a shadow in a table or card: ' +
                 res.raised.join('; ') +
                 '. Inside a table or card a Badge is a dot and text: remove your own box-shadow or chip styles.',
+            );
+          if (res.unlayered.length)
+            problems.push(
+              'page CSS outside a layer overrides components: ' +
+                res.unlayered.join('; ') +
+                ". Put page resets and normalize CSS in @layer base (or another layer declared before ui), and delete starter CSS such as Vite's index.css.",
             );
           if (phone) {
             if (res.overflow.length) problems.push('horizontal overflow: ' + res.overflow.join('; '));

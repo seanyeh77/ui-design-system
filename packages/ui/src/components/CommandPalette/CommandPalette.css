@@ -4,8 +4,8 @@
   z-index: var(--z-palette);
   inset: 0;
   background: var(--scrim);
-  backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
   animation: ui-fade var(--dur-hover) ease both;
 }
 .ui-pal {
