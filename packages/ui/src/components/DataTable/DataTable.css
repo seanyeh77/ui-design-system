@@ -176,10 +176,16 @@
   .ui-dt-tools {
     flex-wrap: wrap;
   }
-  .ui-dt-tools > .ui-dt-search,
+  /* The search field takes the room the buttons leave; when both do not fit, the buttons go to the next row,
+     right-aligned, and the field fills its row. */
+  .ui-dt-tools > .ui-dt-search {
+    flex: 1 1 240px;
+    min-width: 200px;
+  }
   .ui-dt-tools > .ui-dt-search + .ui-dt-actions {
-    flex: 1 1 100%;
-    min-width: 0;
+    flex: none;
+    max-width: 100%;
+    margin-left: auto;
   }
 }
 /* Under 480 px: the search field and the buttons back on one row, the field taking the room left. 「排序」 and the
@@ -201,7 +207,11 @@
   }
   .ui-dt-tools > .ui-dt-search {
     flex: 1 1 0;
-    min-width: 120px;
+    min-width: 100px;
+  }
+  /* The summary tabs keep a row of their own above. */
+  .ui-dt-tools.has-summary {
+    flex-wrap: wrap;
   }
   .ui-dt-tools > .ui-dt-search + .ui-dt-actions {
     flex: none;
@@ -222,13 +232,47 @@
     flex-wrap: wrap;
   }
 }
+/* With summary tabs: the tabs first. A row of their own (scrolling sideways when they are wider) unless the tabs, the
+   search field at 240 px and the buttons all fit on one row (DataTable measures it: is-onerow). Every part is 40 px. */
+.ui-dt-tools.has-summary {
+  flex-wrap: wrap;
+  row-gap: var(--space-3);
+}
+.ui-dt-sumwrap {
+  flex: 1 1 100%;
+  min-width: 0;
+  display: flex;
+}
+.ui-dt-tools.is-onerow {
+  flex-wrap: nowrap;
+}
+.ui-dt-tools.is-onerow > .ui-dt-sumwrap {
+  /* Measured to fit: the tabs keep their width, the search field gives way down to 240 px. */
+  flex: none;
+  margin-right: var(--space-2);
+}
+.ui-dt-tools.is-onerow > .ui-dt-search {
+  flex: 1 1 320px;
+  min-width: 240px;
+  max-width: 400px;
+  margin-left: auto;
+}
+.ui-dt-tools.is-onerow > .ui-dt-actions {
+  flex: none;
+}
+.ui-dt-summary .ui-tab {
+  min-width: 0;
+  height: 32px;
+  padding: 0 var(--space-3);
+}
 /* Phones, also for tools that moved into a Card title row (outside the table, so not reached by the container). The
    buttons are as tall as the 48 px search field beside them. */
 @media (max-width: 599px) {
   .ui-dt-sortbtn-text {
     display: none;
   }
-  .ui-dt-tools:has(> .ui-dt-search) > .ui-dt-actions > :is(.ui-dt-filterbtn, .ui-dt-sortbtn) {
+  .ui-dt-tools:has(> .ui-dt-search) > .ui-dt-actions > :is(.ui-dt-filterbtn, .ui-dt-sortbtn),
+  .ui-dt-tools:has(> .ui-dt-search) > .ui-dt-actions > .ui-dt-primary > * {
     height: var(--touch-target);
   }
   .ui-dt-sortbtn-short {
@@ -541,16 +585,14 @@
   .ui-dt-arrow {
     opacity: 1;
   }
-  .ui-dt.has-acts .ui-dt-row:not(.ui-dt-bulk) {
-    padding-right: var(--dt-acts-w, 88px);
-  }
   .ui-dt-body .ui-dt-cell.ui-dt-acts {
-    width: var(--dt-acts-w, 88px);
-    box-sizing: border-box;
-    padding-left: var(--space-2);
-    background: var(--dt-row-bg);
     opacity: 1;
   }
+}
+/* The last cell keeps the row actions' width (--dt-acts-w, measured) free at its end, in the header, the rows and the
+   totals alike: the actions never cover a date or a number, and no empty column is drawn for them. */
+.ui-dt.has-acts .ui-dt-row > .ui-dt-cell.is-lastcol {
+  padding-right: calc(12px + var(--dt-acts-w, 72px));
 }
 .ui-dt-bulk {
   display: flex;
@@ -848,8 +890,8 @@
     background: none;
     opacity: 1;
   }
-  .ui-dt.has-acts .ui-dt-row:not(.ui-dt-bulk) {
-    padding-right: var(--space-4);
+  .ui-dt.has-acts .ui-dt-row > .ui-dt-cell.is-lastcol {
+    padding-right: 0;
   }
   .ui-dt-sel > *,
   .ui-dt-body .ui-dt-sel > * {

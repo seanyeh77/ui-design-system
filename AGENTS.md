@@ -37,7 +37,7 @@ Then:
 
 ### Rules that are easy to miss
 
-- List page: title once (top bar); the list in one `Card`; the page's primary action (新增) in DataTable's `action` (right end of the summary row, or of the toolbar without a summary), not in a Card head of its own and never in the sidebar; the count comes from the DataTable toolbar, not next to the title. Row actions (`rowActions`) take no column: they show over the row's end on hover or focus.
+- List page: title once (top bar); the list in one `Card`; the page's primary action (新增) in DataTable's `action` (right end of the one toolbar row with the summary tabs, search and sort), not in a Card head of its own and never in the sidebar; the count comes from the DataTable toolbar, not next to the title. Row actions (`rowActions`) take no column: they show at the row's end on hover or focus, in room the last cell keeps free.
 - Buttons: `primary` solid, at most one per section; `secondary` outline; `quiet` for low-emphasis and toolbar actions; `danger` always confirmed.
 - Status is a `Badge` (dot + text in tables and cards), never a hand-made colored chip; only states that need attention stand out.
 - Numbers are numbers: `numeric` + `unit`, `format: 'duration'` or `'relative'`, never strings like 「46 分」.

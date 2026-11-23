@@ -44,8 +44,8 @@ export interface DataTableProps<R extends Row = Record<string, unknown>> {
   pageSize?: number;
   /** Change it when the rows become a different data set: search, filters, sort, page, selection and summary reset. */
   resetKey?: string | number;
-  /** The page's primary action, one primary Button (「新增」): at the right end of the summary row, or of the toolbar
-   *  when there is no summary. Use it instead of a Card head that holds only this button. */
+  /** The page's primary action, one primary Button (「新增」): at the right end of the toolbar, on one row with the
+   *  summary tabs and the search field when they fit. Use it instead of a Card head that holds only this button. */
   action?: React.ReactNode;
   /** Checkboxes appear when a row is hovered, and on every row once any row is selected; the header's is always shown. */
   selectable?: boolean;
@@ -54,7 +54,8 @@ export interface DataTableProps<R extends Row = Record<string, unknown>> {
   /** IconButtons over the row's right end, shown while the row is hovered or has keyboard focus (always on touch
    *  screens and phone cards). They take no column of their own. */
   rowActions?: (row: R) => React.ReactNode;
-  /** px kept free at each row's end on touch screens, where the row actions always show. Default 88. */
+  /** px kept free at the end of each row's last cell for the row actions, so they never cover its content. Default:
+   *  the width the actions take, measured. */
   actionsWidth?: number;
   /** Search box (default on; false hides it). Searches every column unless keys is given. */
   search?: false | { placeholder?: string; keys?: RowKey<R>[] };
@@ -121,8 +122,15 @@ const isShort = (c: DataTableColumn<never>) => isNum(c) || !!c.unit || isDateCol
 const TEXT_HUG_MAX = 280;
 // Columns sized by props only, before the first measure (px).
 const HUG_START = 96;
-// Cell padding (12 + 12) and its right border (px), added to the measured content.
-const CELL_PAD = 25;
+// A plain text column that hugs its content is at least this wide (px, 8 em), so a short name does not look cramped.
+const TEXT_HUG_MIN = 128;
+// What the main column and long columns ask for before the room left is shared (px): their content on one line, up
+// to these. They get it only while every column fits; otherwise they share what is left and long text is cut.
+const MAIN_WANT_MAX = 320;
+const LONG_WANT_MAX = 512;
+// The summary tabs, the search field (at least this wide, px) and the buttons share one row when all fit.
+const SEARCH_MIN = 240;
+const TOOL_GAP = 8;
 // <time dateTime>: a date alone for 'date', the moment for the others.
 const isoOf = (d: Date, dateOnly: boolean) =>
   dateOnly ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` : d.toISOString();
@@ -295,6 +303,14 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const [fit, setFit] = React.useState<Record<string, number>>({});
   // Whether a long cell on the page is cut at its column's edge (desktop); null until measured.
   const [clipped, setClipped] = React.useState<boolean | null>(null);
+  // What the main and long columns ask for (px), and whether every column gets it (measured below).
+  const [want, setWant] = React.useState<Record<string, number>>({});
+  const wantRef = React.useRef(want);
+  const [roomy, setRoomy] = React.useState(false);
+  // The row actions' width (px), kept free at the end of the last cell so they never cover its content.
+  const [actsW, setActsW] = React.useState<number | null>(null);
+  // The summary tabs, the search field and the buttons fit on one row.
+  const [onerowState, setOnerow] = React.useState(false);
   // A2: widths readers dragged (px per column key); null = width and grow decide. Remembered under widthKey.
   const [widths, setWidthsState] = React.useState<Record<string, number> | null>(() => {
     if (!p.widthKey) return null;
@@ -333,7 +349,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     devWarn(
       prev?.classList.contains('ui-card-head') && !prev.querySelector('.ui-card-title') && prev.querySelector('.ui-card-actions'),
       'DataTable',
-      "the Card around this table has actions but no title, so its one button takes a row of its own above the table. Pass the page's primary action to DataTable's action instead: it goes at the end of the summary row (or the toolbar).",
+      "the Card around this table has actions but no title, so its one button takes a row of its own above the table. Pass the page's primary action to DataTable's action instead: it goes at the right end of the toolbar.",
     );
   }, []);
   const [resetKey, setResetKey] = React.useState(p.resetKey);
@@ -350,6 +366,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     if (!colsKey) setToggledState({});
     setOpened({});
     setFit({});
+    setWant({});
     setClipped(null);
   }
   const valuesKey = JSON.stringify(values);
@@ -618,7 +635,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   };
 
   const hasAct = !!p.rowActions;
-  const actW = p.actionsWidth || 88;
+  const onerow = onerowState && !narrow;
   const hasTitle = shownCols.some((c) => c.mobile === 'title');
   const mobileClass = (c: DataTableColumn<R>, ci: number) => {
     const m = c.mobile || (!hasTitle && ci === 0 ? 'title' : null);
@@ -638,9 +655,10 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const grows = (c: DataTableColumn<R>) => (c.grow != null ? c.grow > 0 : c.long || c.key === mainKey);
   // A column is at least as wide as content that cannot wrap (a code chip, a link with a path): measured below.
   const minOf = (c: DataTableColumn<R>) => {
-    if (grows(c)) return Math.max(c.width || (isNum(c) ? 96 : 120), fit[c.key] || 0);
-    const cap = c.width == null && !isShort(c) ? TEXT_HUG_MAX : Infinity;
-    return Math.max(c.width || 0, MIN_COL, Math.min(fit[c.key] ?? c.width ?? HUG_START, cap));
+    if (grows(c)) return Math.max(c.width || (isNum(c) ? 96 : 120), fit[c.key] || 0, roomy ? want[c.key] || 0 : 0);
+    const text = c.width == null && !isShort(c);
+    const cap = text ? TEXT_HUG_MAX : Infinity;
+    return Math.max(c.width || 0, MIN_COL, text ? TEXT_HUG_MIN : 0, Math.min(fit[c.key] ?? c.width ?? HUG_START, cap));
   };
   // Dragged widths (A2) fix every shown column in px; a column shown later starts at its least width.
   const layout = (w: Record<string, number> | null) => {
@@ -677,6 +695,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   React.useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root || narrow) return;
+    // A new resetKey (or the table back from phone cards): what the columns ask for is measured afresh.
+    wantRef.current = {};
     const measure = () => {
       const need: Record<string, number> = {};
       for (const el of root.querySelectorAll<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-body .ui-dt-cell[data-col]:not(.is-long):not(.is-hug)')) {
@@ -686,14 +706,30 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
       }
       // Hugging columns: the widest of their heading, cells and total on one line (is-measuring keeps every one
       // unwrapped for this read; the class is gone before the browser paints).
+      // Each cell's own padding counts: the last one keeps the row actions' width free at its end.
+      const pad = (el: HTMLElement) => {
+        const st = getComputedStyle(el);
+        return (parseFloat(st.paddingLeft) || 0) + (parseFloat(st.paddingRight) || 0) + (parseFloat(st.borderRightWidth) || 0);
+      };
       const hugs = root.querySelectorAll<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-cell.is-hug[data-col]');
-      if (hugs.length) {
+      // The main and long columns: their content on one line too, what they ask for before the room is shared.
+      const growCells = root.querySelectorAll<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-cell.is-grow[data-col]');
+      const asks: Record<string, number> = {};
+      if (hugs.length || growCells.length) {
         root.classList.add('is-measuring');
         for (const el of hugs) {
           const key = el.dataset.col;
           const inner = el.querySelector(':scope > .ui-dt-stack > .ui-dt-main') ?? el;
           const w = contentWidth(inner);
-          if (key && w !== null) need[key] = Math.max(need[key] ?? 0, Math.ceil(w + CELL_PAD));
+          if (key && w !== null) need[key] = Math.max(need[key] ?? 0, Math.ceil(w + pad(el)));
+        }
+        for (const el of growCells) {
+          const key = el.dataset.col;
+          const long = el.querySelector<HTMLElement>('.ui-dt-long-text');
+          const w = long ? long.getBoundingClientRect().width : contentWidth(el.querySelector(':scope > .ui-dt-stack > .ui-dt-main') ?? el);
+          if (!key || w === null || !w) continue;
+          const max = el.classList.contains('is-long') ? LONG_WANT_MAX : MAIN_WANT_MAX;
+          asks[key] = Math.max(asks[key] ?? 0, Math.min(max, Math.ceil(w + pad(el))));
         }
         root.classList.remove('is-measuring');
       }
@@ -701,6 +737,45 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         const grow = Object.entries(need).filter(([k, w]) => w > (f[k] ?? 0));
         return grow.length ? { ...f, ...Object.fromEntries(grow) } : f;
       });
+      const head = root.querySelector<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-head');
+      const scroll = root.querySelector<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-scroll');
+      if (head && scroll && scroll.clientWidth > 0) {
+        // Only grows, like fit, until resetKey: paging back and forth does not make columns jump.
+        const before = wantRef.current;
+        const more = Object.entries(asks).filter(([k, w]) => w > (before[k] ?? 0));
+        const merged = more.length ? { ...before, ...Object.fromEntries(more) } : before;
+        wantRef.current = merged;
+        if (more.length) setWant(merged);
+        // Every column gets what it asks for when the hugging columns, the checkbox column and every main or long
+        // column's ask fit in the box (the caret column is left out: it goes when nothing is cut).
+        let used = 0;
+        for (const el of head.children as HTMLCollectionOf<HTMLElement>) {
+          if (el.classList.contains('ui-dt-exp')) continue;
+          const key = el.dataset.col;
+          used += key && el.classList.contains('is-grow') ? Math.max(asks[key] ?? 0, merged[key] ?? 0, 48) : el.getBoundingClientRect().width;
+        }
+        setRoomy(used <= scroll.clientWidth);
+      }
+      // The row actions' width: the widest set of buttons over a row end.
+      let aw = 0;
+      for (const el of root.querySelectorAll<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-body .ui-dt-acts')) {
+        if (el.childElementCount) aw = Math.max(aw, Math.ceil(el.getBoundingClientRect().width));
+      }
+      if (root.querySelector(':scope > .ui-dt-scroller .ui-dt-body .ui-dt-acts')) setActsW((v) => (v !== null && Math.abs(v - aw) <= 1 ? v : aw));
+      // One toolbar row when the summary tabs, the search field at its least width and the buttons fit.
+      const tools = root.querySelector<HTMLElement>(':scope > .ui-dt-tools.has-summary');
+      if (tools && tools.clientWidth > 0) {
+        const tabs = tools.querySelector<HTMLElement>('.ui-dt-summary');
+        const actions = tools.querySelector<HTMLElement>(':scope > .ui-dt-actions');
+        let need2 = (tabs?.scrollWidth ?? 0) + (tools.querySelector(':scope > .ui-dt-search') ? SEARCH_MIN + 2 * TOOL_GAP : TOOL_GAP);
+        const parts = actions ? [...(actions.children as HTMLCollectionOf<HTMLElement>)].filter((e) => getComputedStyle(e).position !== 'absolute') : [];
+        for (const e of parts) {
+          const text = e.querySelector<HTMLElement>('.ui-dt-sortbtn-text');
+          need2 += e.getBoundingClientRect().width + (text ? Math.max(0, text.scrollWidth - text.clientWidth) : 0);
+        }
+        need2 += Math.max(0, parts.length - 1) * TOOL_GAP;
+        setOnerow(need2 <= tools.clientWidth);
+      }
       // A long cell cut at its column's edge: the caret column is needed. Only where layout is real (not jsdom).
       const scroller = root.querySelector<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-scroll');
       if (scroller && scroller.clientWidth > 0) {
@@ -742,6 +817,10 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     };
     // resetKey clears the widths: measured again even when the rows look the same.
   }, [narrow, resetKey]);
+  // A new width for the row actions changes the last cell's padding: measured again.
+  React.useLayoutEffect(() => {
+    measureRef.current();
+  }, [actsW]);
   // The same rows with new content (rows replaced by the app, a search marking text, totals recomputed): once a frame.
   const contentKey = `${visIds.join('\u0001')}|${shownCols.map((c) => c.key).join(',')}|${list.length}|${q}|${!!p.totals}`;
   React.useLayoutEffect(() => {
@@ -752,7 +831,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     cx(
       'ui-dt-cell',
       isNum(c) && 'is-num',
-      !grows(c) && 'is-hug',
+      grows(c) ? 'is-grow' : 'is-hug',
       ci === 0 && sticky && 'is-sticky is-sticky-end',
       ci === shownCols.length - 1 && 'is-lastcol',
       ...more,
@@ -1037,8 +1116,35 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   // Without a search field the title goes on the same row: the caption in front of the tools, or, when the table sits
   // under a Card's title, the tools move into that title row (inHead). How it wraps depends on the table's own width
   // (container query in styles.css).
+  // The summary tabs: the first part of the toolbar (on the same row as the search and buttons when they all fit, see
+  // onerow), or above it when the tools moved into a Card's title row.
+  const summaryView = summary ? (
+    <Tabs
+      className="ui-dt-summary"
+      label={summary.label || tr('依狀態篩選')}
+      unit={summary.unit || '筆'}
+      value={sumVal}
+      onChange={(v) => {
+        capture('sort');
+        setSumVal(v);
+        setPage(0);
+      }}
+      items={[
+        { id: 'all', label: tr('全部'), count: sumAll.length },
+        ...summary.items.map((it) => ({
+          id: String(it.value),
+          label: it.label,
+          count: sumAll.filter((x) => String(get(x.r, summary.key)) === String(it.value)).length,
+        })),
+      ]}
+      hideUnit
+    />
+  ) : null;
+  // With a summary the tabs already give the counts: 「4 / 4 筆」 shows only while a search or filter keeps fewer rows.
+  const showCount = !summary || list.length !== baseCount;
   const toolsView = (inZoom: boolean, inHead = false) => (
-    <div className={cx('ui-dt-tools', inHead && 'is-inhead')}>
+    <div className={cx('ui-dt-tools', inHead && 'is-inhead', summaryView && !inZoom && !inHead && 'has-summary', onerow && !inZoom && !inHead && 'is-onerow')}>
+      {summaryView && !inZoom && !inHead ? <div className="ui-dt-sumwrap">{summaryView}</div> : null}
       {search === false && p.caption && !inZoom && !inHead ? <div className="ui-dt-caption">{p.caption}</div> : null}
       {search !== false ? (
         <div className="ui-dt-search" onFocus={() => setSearchFocus(true)} onBlur={() => setSearchFocus(false)}>
@@ -1075,7 +1181,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
             }}
           />
         ) : null}
-        <span className="ui-dt-result">
+        <span className={cx('ui-dt-result', !showCount && 'ui-visually-hidden')}>
           {/* Shown 「6 / 6 筆」; read 「6 筆中的 6 筆」, not 「6 斜線 6 筆」. The shown one is drawn by CSS, so the page's text
               has only the readable one (no 「6 / 6 筆6 筆中的 6 筆」 when copied or read by a tool). */}
           <span aria-hidden="true">
@@ -1105,7 +1211,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
             onZoom={p.zoom !== false && !inZoom ? () => setZoomed(true) : undefined}
           />
         )}
-        {p.action && !summary && !inZoom ? <div className="ui-dt-primary">{p.action}</div> : null}
+        {p.action && !inZoom ? <div className="ui-dt-primary">{p.action}</div> : null}
         {copied && !narrow ? (
           <span className="ui-dt-copied" aria-hidden="true">
             <Icon name="check" size={16} />
@@ -1316,7 +1422,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     <div
       ref={rootRef}
       className={cx('ui-dt', search === false && 'is-nosearch', selIds.length && 'has-sel', hasAct && 'has-acts', p.className)}
-      style={hasAct ? ({ '--dt-acts-w': actW + 'px' } as React.CSSProperties) : undefined}
+      style={hasAct ? ({ '--dt-acts-w': (p.actionsWidth ?? actsW ?? 72) + 'px' } as React.CSSProperties) : undefined}
     >
       {p.caption && search !== false ? <div className="ui-dt-caption">{p.caption}</div> : null}
       {p.views ? (
@@ -1346,31 +1452,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
           })}
         </div>
       ) : null}
-      {summary ? (
-        <div className="ui-dt-top">
-          <Tabs
-            className="ui-dt-summary"
-            label={summary.label || tr('依狀態篩選')}
-            unit={summary.unit || '筆'}
-            value={sumVal}
-            onChange={(v) => {
-              capture('sort');
-              setSumVal(v);
-              setPage(0);
-            }}
-            items={[
-              { id: 'all', label: tr('全部'), count: sumAll.length },
-              ...summary.items.map((it) => ({
-                id: String(it.value),
-                label: it.label,
-                count: sumAll.filter((x) => String(get(x.r, summary.key)) === String(it.value)).length,
-              })),
-            ]}
-            hideUnit
-          />
-          {p.action ? <div className="ui-dt-primary">{p.action}</div> : null}
-        </div>
-      ) : null}
+      {summaryView && headSlot ? <div className="ui-dt-top">{summaryView}</div> : null}
       {headSlot ? createPortal(toolsView(false, true), headSlot) : toolsView(false)}
       {chipsView(false)}
       {tableView(false)}

@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { Card, DataTable, InlineCode } from '../../index';
+import { Button, Card, DataTable, InlineCode } from '../../index';
 
 const cols = [{ key: 'name' as const, label: '名稱' }];
 type User = ReturnType<typeof userEvent.setup>;
@@ -659,16 +659,23 @@ test('toolbar: one row with 「⋯」 at its end when the table is 760 px or wid
   expect(tools.scrollWidth).toBeLessThanOrEqual(tools.clientWidth);
 });
 
-test('toolbar: under 760 px wide the search field has a row of its own and the buttons share the next', async () => {
+test('toolbar: under 760 px wide the search field takes the room the buttons leave; they go to the next row, right-aligned, only when both do not fit', async () => {
   await page.viewport(1280, 900);
-  for (const w of [700, 520]) {
+  for (const w of [700, 520, 480]) {
     const { container, unmount } = render(<div style={{ width: w }}>{toolbarTable()}</div>);
     const tools = container.querySelector('.ui-dt-tools') as HTMLElement;
     const search = tools.querySelector('.ui-dt-search') as HTMLElement;
-    expect(search.getBoundingClientRect().width).toBe(tools.getBoundingClientRect().width);
     const rest = leaves(tools).filter((e) => e !== search);
+    // The buttons keep one row, end at the toolbar's right edge, and never overlap the field.
     expect(rowsOf(rest)).toBe(1);
-    expect(rest.every((e) => e.getBoundingClientRect().top > search.getBoundingClientRect().bottom)).toBe(true);
+    const last = rest[rest.length - 1].getBoundingClientRect();
+    expect(Math.abs(last.right - tools.getBoundingClientRect().right)).toBeLessThan(2);
+    const sr = search.getBoundingClientRect();
+    const first = rest[0].getBoundingClientRect();
+    const sameRow = first.top < sr.bottom;
+    if (sameRow) expect(first.left).toBeGreaterThanOrEqual(sr.right);
+    else expect(Math.round(sr.width)).toBe(Math.round(tools.getBoundingClientRect().width));
+    expect(sr.width).toBeGreaterThanOrEqual(200);
     unmount();
   }
 });
@@ -751,7 +758,7 @@ test('action: the primary button at the right end of the summary row, or of the 
     { key: 'name' as const, label: '名稱' },
     { key: 'status' as const, label: '狀態' },
   ];
-  const add = <button type="button">新增</button>;
+  const add = <Button variant="primary">新增</Button>;
   const a = render(
     <div style={{ width: 900 }}>
       <Card padding={false}>
@@ -766,13 +773,20 @@ test('action: the primary button at the right end of the summary row, or of the 
       </Card>
     </div>,
   );
-  const top = a.container.querySelector('.ui-dt-top') as HTMLElement;
+  const top = a.container.querySelector('.ui-dt-tools') as HTMLElement;
   const btn = within(top).getByRole('button', { name: '新增' });
   const tabs = within(top).getByRole('tablist');
-  // Same row as the tabs, at its right end; no Card head above.
-  expect(Math.abs(btn.getBoundingClientRect().top + btn.offsetHeight / 2 - (tabs.getBoundingClientRect().top + tabs.offsetHeight / 2))).toBeLessThan(2);
+  const search = within(top).getByRole('searchbox').closest('.ui-searchfield') as HTMLElement;
+  // One toolbar row: the tabs on the left, then the search field and the buttons, 新增 at the right end, all 40 px.
+  await waitFor(() => expect(top.classList.contains('is-onerow')).toBe(true));
+  const mid = (e: Element) => e.getBoundingClientRect().top + e.getBoundingClientRect().height / 2;
+  expect(Math.abs(mid(btn) - mid(tabs))).toBeLessThan(2);
+  expect(Math.abs(mid(search) - mid(tabs))).toBeLessThan(2);
+  for (const e of [btn, tabs, search]) expect(Math.round(e.getBoundingClientRect().height)).toBe(40);
   expect(Math.round(top.getBoundingClientRect().right - parseFloat(getComputedStyle(top).paddingRight) - btn.getBoundingClientRect().right)).toBe(0);
   expect(a.container.querySelector('.ui-card-head')).toBeNull();
+  // The tabs give the counts: no 「2 / 2 筆」 on screen until a search keeps fewer rows.
+  expect((a.container.querySelector('.ui-dt-result') as HTMLElement).classList.contains('ui-visually-hidden')).toBe(true);
   // Counts are numbers only on screen; the unit stays for screen readers.
   const count = tabs.querySelector('.ui-tab-count') as HTMLElement;
   expect(count.textContent).toBe('2 筆');
@@ -859,4 +873,73 @@ test('selectable: the header checkbox is always shown, a row checkbox on hover; 
   expect(getComputedStyle(headBox).opacity).toBe('1');
   expect(getComputedStyle(rowBox).opacity).toBe('0');
   expect(Math.round((container.querySelector('.ui-dt-head .ui-dt-sel') as HTMLElement).getBoundingClientRect().width)).toBe(40);
+});
+
+test('toolbar with a summary: too narrow for one row, the tabs get a row of their own above the search field and buttons', async () => {
+  await page.viewport(1280, 900);
+  const rows = [{ id: 'a', name: 'alpha', status: 'fail' }];
+  const items = ['失敗', '審核中', '進行中', '完成', '草稿', '封存'].map((label, i) => ({ value: String(i), label }));
+  const { container } = render(
+    <div style={{ width: 640 }}>
+      <DataTable
+        label="項目"
+        columns={[{ key: 'name', label: '名稱' }]}
+        rows={rows}
+        urlSync={false}
+        summary={{ key: 'status', items }}
+        action={<Button variant="primary">新增</Button>}
+      />
+    </div>,
+  );
+  const tools = container.querySelector('.ui-dt-tools') as HTMLElement;
+  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  expect(tools.classList.contains('is-onerow')).toBe(false);
+  const tabs = tools.querySelector('[role="tablist"]') as HTMLElement;
+  const search = tools.querySelector('.ui-dt-search') as HTMLElement;
+  expect(search.getBoundingClientRect().top).toBeGreaterThanOrEqual(tabs.getBoundingClientRect().bottom);
+  const btn = within(tools).getByRole('button', { name: '新增' });
+  expect(Math.abs(btn.getBoundingClientRect().top - search.getBoundingClientRect().top)).toBeLessThan(2);
+});
+
+test('columns: a short text column is at least 128 px, a long column does not take more than its text, and the last cell keeps the row actions clear of its content', async () => {
+  await page.viewport(1280, 900);
+  const rows = [
+    { id: 'a', name: '網站改版', owner: '王小明', note: 'node-3 的代理程式版本太舊，需要更新後重新部署。', at: new Date(2026, 10, 3, 13, 0) },
+    { id: 'b', name: '叢集監控', owner: '李小華', note: '已對帳。', at: new Date(2026, 10, 4, 13, 0) },
+  ];
+  const { container } = render(
+    <div style={{ width: 1160 }}>
+      <DataTable
+        label="項目"
+        rows={rows}
+        urlSync={false}
+        columns={[
+          { key: 'name', label: '名稱' },
+          { key: 'owner', label: '負責人' },
+          { key: 'note', label: '備註', long: true },
+          { key: 'at', label: '更新', format: 'datetime' },
+        ]}
+        rowActions={(r) => (
+          <button type="button" aria-label={`編輯 ${r.name}`} className="ui-iconbtn">
+            e
+          </button>
+        )}
+      />
+    </div>,
+  );
+  const w = (k: string) => (container.querySelector(`.ui-dt-head [data-col="${k}"]`) as HTMLElement).getBoundingClientRect().width;
+  await waitFor(() => expect(w('owner')).toBeGreaterThanOrEqual(128));
+  // The note is shown whole (no caret), and the leftover goes to the main column, not all to the note.
+  await waitFor(() => expect(container.querySelector('.ui-dt-exp-btn')).toBeNull());
+  expect(w('name')).toBeGreaterThan(200);
+  expect(w('note')).toBeLessThan(560);
+  // Hovered or not, the date is never cut and the actions sit beside it, not on it.
+  const row = container.querySelector('.ui-dt-body .ui-dt-row') as HTMLElement;
+  within(row).getByRole('button').focus();
+  const time = row.querySelector('time') as HTMLElement;
+  const cell = time.closest('[role="cell"]') as HTMLElement;
+  expect(cell.scrollWidth).toBeLessThanOrEqual(cell.clientWidth + 1);
+  const acts = row.querySelector('.ui-dt-acts') as HTMLElement;
+  await waitFor(() => expect(getComputedStyle(acts).opacity).toBe('1'));
+  expect(acts.getBoundingClientRect().left).toBeGreaterThanOrEqual(time.getBoundingClientRect().right - 1);
 });

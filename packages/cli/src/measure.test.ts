@@ -48,6 +48,16 @@ test('toolbar row with one height passes, and a search field counts as one contr
   assert.deepEqual(res.mixed, []);
 });
 
+test('a tab list counts as one control: 32 px tabs in a 40 px segmented control pass, a 32 px list fails', async (t) => {
+  if (skip) return t.skip(skip);
+  const tabs = (h: number) =>
+    `<div role="tablist" style="height:${h}px;padding:4px;box-sizing:border-box;display:flex"><button role="tab" style="height:32px">全部 4</button><button role="tab" style="height:32px">失敗 1</button></div>`;
+  const ok = await run(`<div class="ui-dt-tools" style="display:flex;gap:8px;align-items:center">${tabs(40)}${btn('排序', 40)}</div>`);
+  assert.deepEqual(ok.mixed, []);
+  const bad = await run(`<div class="ui-dt-tools" style="display:flex;gap:8px;align-items:center">${tabs(32)}${btn('排序', 40)}</div>`);
+  assert.equal(bad.mixed.length, 1);
+});
+
 test('controls that wrapped onto another line are not compared', async (t) => {
   if (skip) return t.skip(skip);
   const res = await run(`<div role="toolbar" style="display:flex;flex-direction:column">${btn('篩選', 40)}${btn('欄位', 32)}</div>`);

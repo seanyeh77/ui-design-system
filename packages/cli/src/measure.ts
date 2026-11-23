@@ -182,10 +182,11 @@ export function measure(): Findings {
   }
 
   // 7. One row of controls with mixed heights: in a toolbar, controls on the same line must share one height.
-  // A field box (search, password) counts as the control instead of its input; controls inside another control
-  // (the clear button of a search field) are part of it. Only the outermost toolbar is measured.
+  // A field box (search, password) counts as the control instead of its input, and a tab list (a segmented control)
+  // instead of its tabs; controls inside another control (the clear button of a search field) are part of it. Only
+  // the outermost toolbar is measured.
   const bars = '.ui-dt-tools, .ui-dt-actions, .ui-card-actions, [role=toolbar]';
-  const boxes = '.ui-searchfield, .ui-pwfield, .ui-datefield, .ui-ms, .ui-select';
+  const boxes = '.ui-searchfield, .ui-pwfield, .ui-datefield, .ui-ms, .ui-select, [role=tablist]';
   const controls = 'button, a[href], input:not([type=hidden]), [role=button], [role=combobox], ' + boxes;
   for (const bar of document.querySelectorAll(bars)) {
     if (out.mixed.length >= 6) break;

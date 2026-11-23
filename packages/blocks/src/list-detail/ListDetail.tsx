@@ -78,7 +78,7 @@ export function ListDetail({ items, owners, onSave }: ListDetailProps) {
     { key: 'name', label: '名稱' },
     { key: 'owner', label: '負責人' },
     { key: 'status', label: '狀態', render: (r) => <Badge status={r.status} />, searchText: (r) => statusLabel(r.status), mobile: 'status' },
-    { key: 'note', label: '備註', long: true, grow: 2 },
+    { key: 'note', label: '備註', long: true },
     { key: 'updated', label: '更新', format: 'relative' },
   ];
   return (
