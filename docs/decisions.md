@@ -1180,3 +1180,14 @@ AI 定的細節（待確認，第二次 review 之後）：
 - 手機的表格合計不再隱藏，在卡片下方列出「合計 n 筆」和各欄合計。
 - 文件、範例、story 的專案名稱改成通用的例子（例如 `src/server`、`APP_SHM`、`'app'`、`useTour('first-visit')`）。
 - `ui check` 的深色檢查在有 `window.UI` 的頁面呼叫 `UI.setTheme`，確實用深色檢查。
+
+## CSS 層、拆檔與按需載入
+
+使用者同意 review 提出的「CSS 沒有 cascade layer」等項目，並把細節交給 agent：「都照你的意見，因為我外來新專案每個前端都會使用 design system…」。
+
+AI 定的細節（待確認）：
+
+- 元件樣式包在 `@layer ui.components`，token 包在 `@layer ui.tokens`；兩個檔案開頭宣告 `@layer theme, base, ui, components, utilities;`，所以 `ui` 在 Tailwind 的 `theme`、`base` 之後，`components`、`utilities` 之前：Tailwind 的工具 class 和頁面沒有放進 layer 的 CSS 都能覆寫元件。宣告在 `ui` 之前的頁面 layer（例如先宣告的 `@layer reset`）會輸給元件。
+- `styles.css` 拆成 70 個元件各自的 `<Name>.css` 和 `src/styles/` 下 9 個共用檔；打包時仍輸出一個 `styles.css`。規則順序依「會互相影響的規則保持原本先後」重排，300 張截圖和拆檔前完全相同。刪掉一條從未生效的 `.ui-dt-chipclear` 字級規則，合併 Dialog、Drawer、Term 重複的標題規則。
+- 另外提供按需載入：`css/base.css`、各元件的 `css/<Name>.css`（會 `@import` 它用到的其他元件）、最後 `css/end.css`。只用 Button 的頁面，CSS 從 148 KB 降到 14 KB。說明文件仍以整份 `styles.css` 為預設。
+- JavaScript 改成一個原始檔對一個輸出檔，`'use client'` 加在每個需要的檔案；`@seanyeh77/ui/format` 改指向 `format-entry`。只用 Button 時 JS 幾乎不變：圖示集中在一個表裡、危險按鈕會帶入 Dialog，拆圖示表是另外的決定。
