@@ -1,5 +1,16 @@
 # @seanyeh77/ui-cli
 
+## 0.42.0
+
+### Patch Changes
+
+- fb81a5d: 分檔 CSS 修正：每個 `css/<Name>.css` 都帶齊它需要的其他元件的檔（DatePicker 帶 Calendar、IconButton 帶 Tooltip、Button 帶 Dialog 等），需要的檔排在後面時 build 直接失敗；`LineChart`、`TextField` 等沒有自己樣式的元件也有 `css/<Name>.css`。`styles.css` 的規則順序跟著調整，畫面不變。`backdrop-filter` 與 `user-select` 的 `-webkit-` 寫法移到標準屬性之前，bundler 壓縮後不再丟掉背景模糊。`ui check` 新增一項：列出頁面沒放進 cascade layer、用元素或 `*` 選擇器、又蓋過元件宣告的 CSS（重設 CSS、範本附的 `index.css`）。每個套件加上 README。
+- c4c3193: 新增 `ui shots`：在 390 px 與 1280 px、亮色與暗色下為頁面拍出可重現的截圖（固定時鐘、停用動畫與游標、等字型載入、縮放 1、整頁）。`--out` 寫出基準圖（像素相同的檔案不改寫，有 oxipng 時無損壓縮，`--prune` 刪除沒有對應頁面的基準圖）；`--compare` 與基準圖比對，色差超過 0.1 的像素多於 0.02 % 或尺寸改變即算改變，在 `--diff` 資料夾寫出差異圖、新截圖與 summary.md，並以 exit 1 結束。改變的截圖會重拍一次，第二次相符就通過。`ui check` 切換主題的方式與 `ui shots` 共用。
+- Updated dependencies [ade4d1d]
+- Updated dependencies [fb81a5d]
+- Updated dependencies [ac4911e]
+  - @seanyeh77/ui@0.42.0
+
 ## 0.41.0
 
 ### Patch Changes
