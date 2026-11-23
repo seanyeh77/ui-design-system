@@ -9,6 +9,10 @@ import { languageOf } from '../CodeView/tokens';
 import { InlineCode, type OnRef, type RefHref } from '../InlineCode/InlineCode';
 import { AiMark } from '../AiMark/AiMark';
 import { findTerms, termNode, termPattern, withTerms, type TermDef, type TermsMark } from '../../internal/terms';
+import { includeIcons } from '../../icons/store';
+import phCaretRight from '../../icons/ph/caret-right';
+
+includeIcons(phCaretRight);
 
 /* A small Markdown reader for project documents and code comments. It builds React elements only: no HTML from the
    source is ever run. HTML tags are dropped and their text kept (MX). */

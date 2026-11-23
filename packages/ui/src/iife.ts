@@ -4,6 +4,8 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import * as ReactDOMClient from 'react-dom/client';
 import * as UI from './index';
+import { ALL } from './icons/all';
+import { addLoadedIcons } from './icons/store';
 
 declare global {
   interface Window {
@@ -12,6 +14,9 @@ declare global {
     ReactDOM: typeof ReactDOM & typeof ReactDOMClient;
   }
 }
+
+// Every icon inline: on a page without a build step an Icon never waits for a module.
+addLoadedIcons(ALL);
 
 window.React = React;
 window.ReactDOM = { ...ReactDOM, ...ReactDOMClient };

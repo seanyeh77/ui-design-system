@@ -8,6 +8,17 @@ import { Tooltip } from '../Tooltip/Tooltip';
 import { FloatingPanel } from '../../internal/FloatingPanel';
 import { CheckMark } from '../../internal/Field';
 import type { DataTableColumn, FilterValue, RangeValue, ResolvedFilter, Row } from './types';
+import { includeIcons } from '../../icons/store';
+import phArrowUUpLeft from '../../icons/ph/arrow-u-up-left';
+import phCaretRight from '../../icons/ph/caret-right';
+import phColumns from '../../icons/ph/columns';
+import phCopy from '../../icons/ph/copy';
+import phCornersOut from '../../icons/ph/corners-out';
+import phDotsThree from '../../icons/ph/dots-three';
+import phFunnel from '../../icons/ph/funnel';
+import phX from '../../icons/ph/x';
+
+includeIcons(phArrowUUpLeft, phCaretRight, phColumns, phCopy, phCornersOut, phDotsThree, phFunnel, phX);
 
 /** Marks the first match of q in text. */
 export function markMatch(text: React.ReactNode, q: string): React.ReactNode {

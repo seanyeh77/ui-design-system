@@ -6,6 +6,10 @@ import { cx } from '../../internal/util';
 import { FieldLabel } from '../../internal/Field';
 import { FloatingPanel } from '../../internal/FloatingPanel';
 import { Calendar } from '../Calendar/Calendar';
+import { includeIcons } from '../../icons/store';
+import phCalendarBlank from '../../icons/ph/calendar-blank';
+
+includeIcons(phCalendarBlank);
 
 export type DateRange = [Date, Date];
 

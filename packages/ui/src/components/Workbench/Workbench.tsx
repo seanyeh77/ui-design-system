@@ -8,6 +8,12 @@ import { cx, IS_MAC, store } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { tr } from '../../i18n';
 import { dropTransition } from '../../motion';
+import { includeIcons } from '../../icons/store';
+import phCaretDown from '../../icons/ph/caret-down';
+import phCaretLeft from '../../icons/ph/caret-left';
+import phCaretRight from '../../icons/ph/caret-right';
+
+includeIcons(phCaretDown, phCaretLeft, phCaretRight);
 
 export type WorkbenchRegion = 'explorer' | 'side' | 'panel';
 type ViewRegion = 'side' | 'panel';

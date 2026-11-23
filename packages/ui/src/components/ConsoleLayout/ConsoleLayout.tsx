@@ -2,6 +2,11 @@ import * as React from 'react';
 import { IconButton } from '../IconButton/IconButton';
 import { cx } from '../../internal/util';
 import { tr } from '../../i18n';
+import { includeIcons } from '../../icons/store';
+import phCornersIn from '../../icons/ph/corners-in';
+import phCornersOut from '../../icons/ph/corners-out';
+
+includeIcons(phCornersIn, phCornersOut);
 
 /** A card that shows only when the screen is tall enough. */
 export interface ConsoleExtra {

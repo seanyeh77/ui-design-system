@@ -3,6 +3,10 @@ import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { browserKey, cx } from '../../internal/util';
 import { ACCENT_SWATCHES, setAccent, storedAccent } from '../../theme';
+import { includeIcons } from '../../icons/store';
+import phCheck from '../../icons/ph/check';
+
+includeIcons(phCheck);
 
 const SWATCHES = ACCENT_SWATCHES;
 const HEX = /^#[0-9a-fA-F]{6}$/;

@@ -3,6 +3,10 @@ import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
 import { FloatingPanel } from '../../internal/FloatingPanel';
+import { includeIcons } from '../../icons/store';
+import phBell from '../../icons/ph/bell';
+
+includeIcons(phBell);
 
 export interface NotificationItem {
   id: string | number;

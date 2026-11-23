@@ -9,6 +9,10 @@ import { cx, store, useMedia, useNarrow } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { ensureAnnouncer } from '../../announce';
 import { focusMain } from '../../internal/focusMain';
+import { includeIcons } from '../../icons/store';
+import phDotsThree from '../../icons/ph/dots-three';
+
+includeIcons(phDotsThree);
 
 export interface AppShellProps {
   /** Sidebar groups. On phones, top-level items with an icon become bottom tabs; pages they cannot reach go under 「更多」. */

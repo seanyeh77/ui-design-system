@@ -1,6 +1,10 @@
 import * as React from 'react';
 import { CHECK, Icon } from '../icons/Icon';
 import { cx } from './util';
+import { includeIcons } from '../icons/store';
+import phWarningCircle from '../icons/ph/warning-circle';
+
+includeIcons(phWarningCircle);
 
 /** A field's label above it, with the red asterisk when required. A <label> when it names one input, otherwise a <span>. */
 export function FieldLabel({ htmlFor, id, required, children }: { htmlFor?: string; id?: string; required?: boolean; children: React.ReactNode }) {

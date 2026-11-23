@@ -11,6 +11,13 @@ import { cx, digits, idPart, reduced, browserKey, nodeText } from '../../interna
 import { announce } from '../../announce';
 import { devWarn } from '../../internal/dev';
 import { CheckMark } from '../../internal/Field';
+import { includeIcons } from '../../icons/store';
+import phCaretRight from '../../icons/ph/caret-right';
+import phDownloadSimple from '../../icons/ph/download-simple';
+import phFolder from '../../icons/ph/folder';
+import phFolderOpen from '../../icons/ph/folder-open';
+
+includeIcons(phCaretRight, phDownloadSimple, phFolder, phFolderOpen);
 
 export interface TreeNode {
   id: string;

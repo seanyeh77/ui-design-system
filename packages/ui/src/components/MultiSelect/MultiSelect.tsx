@@ -4,6 +4,10 @@ import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
 import { CheckMark, FieldErrorIcon, FieldLabel, FieldMessage } from '../../internal/Field';
+import { includeIcons } from '../../icons/store';
+import phX from '../../icons/ph/x';
+
+includeIcons(phX);
 
 export interface MultiSelectOption {
   value: string;

@@ -2,6 +2,13 @@ import { cx } from '../../internal/util';
 import { format } from '../../format';
 import { tr } from '../../i18n';
 import { Icon, type IconName } from '../../icons/Icon';
+import { includeIcons } from '../../icons/store';
+import phArrowsLeftRight from '../../icons/ph/arrows-left-right';
+import phSparkle from '../../icons/ph/sparkle';
+import phUser from '../../icons/ph/user';
+import phWarning from '../../icons/ph/warning';
+
+includeIcons(phArrowsLeftRight, phSparkle, phUser, phWarning);
 
 export type EventKind = 'alert' | 'switch' | 'ai' | 'manual';
 

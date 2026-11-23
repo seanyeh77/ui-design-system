@@ -10,6 +10,11 @@ import { IconButton } from '../IconButton/IconButton';
 import { FloatingPanel } from '../../internal/FloatingPanel';
 import { findTerms, termPattern, withTerms, type TermDef, type TermHit, type TermsMark } from '../../internal/terms';
 import { LANGUAGE_NAMES, languageOf, tokenize as builtIn, type Tokenizer } from './tokens';
+import { includeIcons } from '../../icons/store';
+import phCopy from '../../icons/ph/copy';
+import phKeyboard from '../../icons/ph/keyboard';
+
+includeIcons(phCopy, phKeyboard);
 
 /** A line's indentation, said after its number: a screen reader drops leading spaces, and in Python or YAML
  * the indentation is the structure (which `if` a line belongs to). Tabs and spaces are said apart. */

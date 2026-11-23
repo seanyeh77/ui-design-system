@@ -3,6 +3,10 @@ import { Menu } from '@base-ui/react/menu';
 import { tr } from '../../i18n';
 import { CHECK, Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
+import { includeIcons } from '../../icons/store';
+import phCaretDown from '../../icons/ph/caret-down';
+
+includeIcons(phCaretDown);
 
 export type ProjectStatus = 'live' | 'stale' | 'offline';
 

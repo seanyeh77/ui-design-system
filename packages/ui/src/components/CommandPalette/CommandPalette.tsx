@@ -6,6 +6,15 @@ import { CodeText } from '../InlineCode/InlineCode';
 import { tr } from '../../i18n';
 import { Icon, IconOf, type IconSource } from '../../icons/Icon';
 import { cx } from '../../internal/util';
+import { includeIcons } from '../../icons/store';
+import phCommand from '../../icons/ph/command';
+import phFile from '../../icons/ph/file';
+import phFileCode from '../../icons/ph/file-code';
+import phFileText from '../../icons/ph/file-text';
+import phGear from '../../icons/ph/gear';
+import phMagnifyingGlass from '../../icons/ph/magnifying-glass';
+
+includeIcons(phCommand, phFile, phFileCode, phFileText, phGear, phMagnifyingGlass);
 
 export interface PaletteItem {
   id?: string | number;

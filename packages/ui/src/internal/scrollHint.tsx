@@ -2,6 +2,10 @@ import * as React from 'react';
 import { Icon } from '../icons/Icon';
 import { tr } from '../i18n';
 import { cx, useMedia } from './util';
+import { includeIcons } from '../icons/store';
+import phArrowRight from '../icons/ph/arrow-right';
+
+includeIcons(phArrowRight);
 
 /** A box that may be wider than its container: whether it overflows, whether more is to the right, and whether the
  *  person has scrolled yet. Used by LayerGraph and DataTable for the right-edge fade and the 「左右滑動」 hint. */

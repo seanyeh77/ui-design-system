@@ -5,6 +5,10 @@ import { IconOf, type IconSource } from '../../icons/Icon';
 import { cx } from '../../internal/util';
 import { Dialog } from '../Dialog/Dialog';
 import type { DangerConfirm } from '../Button/Button';
+import { includeIcons } from '../../icons/store';
+import phDotsThree from '../../icons/ph/dots-three';
+
+includeIcons(phDotsThree);
 
 interface MenuItemBase {
   /** A verb: 重新命名, 複製連結. */

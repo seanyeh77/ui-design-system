@@ -6,6 +6,11 @@ import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx, useNarrow } from '../../internal/util';
 import { FloatingPanel } from '../../internal/FloatingPanel';
+import { includeIcons } from '../../icons/store';
+import phQuestion from '../../icons/ph/question';
+import phX from '../../icons/ph/x';
+
+includeIcons(phQuestion, phX);
 
 export interface TermProps {
   /** The word or label that needs explaining. */

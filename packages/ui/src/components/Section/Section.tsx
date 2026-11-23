@@ -3,6 +3,12 @@ import { Icon } from '../../icons/Icon';
 import { tr } from '../../i18n';
 import { cx } from '../../internal/util';
 import { IconButton } from '../IconButton/IconButton';
+import { includeIcons } from '../../icons/store';
+import phArrowsInLineVertical from '../../icons/ph/arrows-in-line-vertical';
+import phArrowsOutLineVertical from '../../icons/ph/arrows-out-line-vertical';
+import phCaretRight from '../../icons/ph/caret-right';
+
+includeIcons(phArrowsInLineVertical, phArrowsOutLineVertical, phCaretRight);
 
 /** What a SectionGroup shares with its sections: the last 「全部展開／全部收合」 and who is open. */
 interface GroupCtx {

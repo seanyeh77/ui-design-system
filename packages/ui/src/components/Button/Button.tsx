@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { IconOf, Spinner, type IconSource } from '../../icons/Icon';
+import { IconOf, type IconSource } from '../../icons/Icon';
+import { Spinner } from '../../icons/Spinner';
 import { cx } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { tr } from '../../i18n';

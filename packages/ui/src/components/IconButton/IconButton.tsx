@@ -3,6 +3,10 @@ import { Tooltip } from '../Tooltip/Tooltip';
 import { Icon, IconOf, type IconSource } from '../../icons/Icon';
 import { cx } from '../../internal/util';
 import { tr } from '../../i18n';
+import { includeIcons } from '../../icons/store';
+import phX from '../../icons/ph/x';
+
+includeIcons(phX);
 
 /** A first-use hint on an icon button: an accent dot on the button and a dark bubble below it. */
 export interface IconButtonHint {

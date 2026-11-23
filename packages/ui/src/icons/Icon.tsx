@@ -1,26 +1,21 @@
-import { PH, PH_ALIAS, PH_FILL, type IconName, type PhosphorName } from './data';
+import { useSyncExternalStore } from 'react';
 import { cx } from '../internal/util';
+import { devWarn } from '../internal/dev';
+import type { IconName, PhosphorName } from './names';
+import { fixedGlyph, isIconName, loadIcon, nameOfMarkup, phosphorName, readyGlyph, subscribeIcons } from './store';
 
-export type { IconName } from './data';
+export type { IconName } from './names';
 
 /** Path data for a custom 24 x 24 stroke icon ('M4 12h16'), or SVG markup on a 256 x 256 viewBox. */
 export type CustomIcon = `M${string}` | `m${string}` | `<${string}`;
 /** What an `icon` prop takes: a built-in name (checked by TypeScript) or a custom icon. */
 export type IconSource = IconName | CustomIcon;
 
-const BY_MARKUP = new Map<string, PhosphorName>();
-for (const k of Object.keys(PH) as PhosphorName[]) {
-  BY_MARKUP.set(PH[k], k);
-  BY_MARKUP.set(PH_FILL[k], k);
-}
-
-const isName = (s: string): s is IconName => s in PH || s in PH_ALIAS;
-
 /** The Phosphor name behind a name, an alias or the markup of a built-in icon. */
 function iconKey(source: string | undefined): PhosphorName | undefined {
   if (!source) return undefined;
-  if (isName(source)) return source in PH ? (source as PhosphorName) : PH_ALIAS[source as keyof typeof PH_ALIAS];
-  return BY_MARKUP.get(source);
+  if (isIconName(source)) return phosphorName(source);
+  return nameOfMarkup(source);
 }
 
 export interface IconProps {
@@ -37,11 +32,25 @@ export interface IconProps {
   className?: string;
 }
 
-/** Phosphor icon, 20 px, inherits the text color. Decorative: label the control that holds it. */
+/**
+ * Phosphor icon, 20 px, inherits the text color. Decorative: label the control that holds it. A name the page has not
+ * shown before loads its module first and is an empty box of the same size until then (on the server too).
+ */
 export function Icon({ name, d, size = 20, strokeWidth = 2, filled, className }: IconProps) {
   const key = iconKey(name ?? d);
+  const glyph = useSyncExternalStore(
+    subscribeIcons,
+    () => readyGlyph(key),
+    () => fixedGlyph(key),
+  );
+  if (name !== undefined && !isIconName(name))
+    devWarn(true, 'Icon', `"${String(name)}" is not a built-in icon name; use a Phosphor name (see \`icons\`) or pass a custom icon as \`d\`.`);
+  // Starts loading in the browser on the first render; the store tells every Icon with this name when it arrives.
+  if (key && !glyph && typeof document !== 'undefined')
+    loadIcon(key).catch((err: unknown) => devWarn(true, 'Icon', `could not load the icon "${key}" (${String(err)}); it shows as an empty box.`));
   const base = { className: cx('ui-icon', className), width: size, height: size, 'aria-hidden': true } as const;
-  if (key) return <svg {...base} viewBox="0 0 256 256" fill="currentColor" dangerouslySetInnerHTML={{ __html: filled ? PH_FILL[key] : PH[key] }} />;
+  if (key || name !== undefined)
+    return <svg {...base} viewBox="0 0 256 256" fill="currentColor" dangerouslySetInnerHTML={glyph ? { __html: filled ? glyph.f : glyph.r } : undefined} />;
   if (d?.startsWith('<')) return <svg {...base} viewBox="0 0 256 256" fill="currentColor" dangerouslySetInnerHTML={{ __html: d }} />;
   return (
     <svg {...base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
@@ -52,34 +61,7 @@ export function Icon({ name, d, size = 20, strokeWidth = 2, filled, className }:
 
 /** Renders an `icon` prop value: a name or a custom icon. */
 export function IconOf({ icon, ...rest }: Omit<IconProps, 'name' | 'd'> & { icon: IconSource }) {
-  return isName(icon) ? <Icon name={icon} {...rest} /> : <Icon d={icon} {...rest} />;
-}
-
-/** Names the first bundle used for a few icons; kept so old pages keep working. Pass the Phosphor name instead. */
-const LEGACY: Record<string, PhosphorName> = {
-  close: 'x',
-  edit: 'pencil-simple',
-  more: 'dots-three',
-  spinner: 'circle-notch',
-  alert: 'warning-circle',
-  warn: 'warning',
-  chevronRight: 'caret-right',
-  chevronDown: 'caret-down',
-  panelClose: 'sidebar-simple',
-  panelOpen: 'sidebar-simple',
-  filter: 'funnel',
-  refresh: 'arrows-clockwise',
-};
-
-/** Markup of every built-in icon by name, aliases included. */
-export const icons: Readonly<Record<IconName, string>> = Object.freeze({
-  ...Object.fromEntries(Object.entries(LEGACY).map(([alias, target]) => [alias, PH[target]])),
-  ...PH,
-  ...Object.fromEntries(Object.entries(PH_ALIAS).map(([alias, target]) => [alias, PH[target as PhosphorName]])),
-} as Record<IconName, string>);
-
-export function Spinner() {
-  return <Icon name="circle-notch" className="ui-spin" size={16} />;
+  return isIconName(icon) ? <Icon name={icon} {...rest} /> : <Icon d={icon} {...rest} />;
 }
 
 /** The check mark of Checkbox and selected options, 24 px path. */

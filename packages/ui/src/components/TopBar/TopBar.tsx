@@ -4,6 +4,11 @@ import { Icon } from '../../icons/Icon';
 import { IS_MAC, SHORTCUT, TOUCH_ONLY, cx, useMedia } from '../../internal/util';
 import { Breadcrumb, type BreadcrumbItem } from '../Breadcrumb/Breadcrumb';
 import { IconButton } from '../IconButton/IconButton';
+import { includeIcons } from '../../icons/store';
+import phListBullets from '../../icons/ph/list-bullets';
+import phMagnifyingGlass from '../../icons/ph/magnifying-glass';
+
+includeIcons(phListBullets, phMagnifyingGlass);
 
 export interface TopBarProps {
   /** The page title, shown once: either here or as the page's own heading. */

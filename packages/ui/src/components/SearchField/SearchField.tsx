@@ -2,6 +2,11 @@ import * as React from 'react';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
+import { includeIcons } from '../../icons/store';
+import phMagnifyingGlass from '../../icons/ph/magnifying-glass';
+import phX from '../../icons/ph/x';
+
+includeIcons(phMagnifyingGlass, phX);
 
 export interface SearchFieldProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
   value: string;

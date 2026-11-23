@@ -3,6 +3,11 @@ import { dayAdd, format, sameDay } from '../../format';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { browserKey, cx } from '../../internal/util';
+import { includeIcons } from '../../icons/store';
+import phCaretLeft from '../../icons/ph/caret-left';
+import phCaretRight from '../../icons/ph/caret-right';
+
+includeIcons(phCaretLeft, phCaretRight);
 
 export interface DayState {
   selected?: boolean;

@@ -4,6 +4,12 @@ import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
 import { FieldLabel } from '../../internal/Field';
 import { ProgressBar } from '../ProgressBar/ProgressBar';
+import { includeIcons } from '../../icons/store';
+import phFile from '../../icons/ph/file';
+import phUploadSimple from '../../icons/ph/upload-simple';
+import phX from '../../icons/ph/x';
+
+includeIcons(phFile, phUploadSimple, phX);
 
 export interface UploadFile {
   id?: string | number;

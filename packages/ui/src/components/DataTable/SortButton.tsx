@@ -4,6 +4,13 @@ import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
 import { FloatingPanel } from '../../internal/FloatingPanel';
 import type { SortLevel } from './filters';
+import { includeIcons } from '../../icons/store';
+import phDotsSixVertical from '../../icons/ph/dots-six-vertical';
+import phPlus from '../../icons/ph/plus';
+import phSortAscending from '../../icons/ph/sort-ascending';
+import phX from '../../icons/ph/x';
+
+includeIcons(phDotsSixVertical, phPlus, phSortAscending, phX);
 
 export interface SortColumn {
   key: string;

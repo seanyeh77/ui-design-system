@@ -9,6 +9,11 @@ import { cx, monoNums } from '../../internal/util';
 import { ScrollHint, useScrollHint } from '../../internal/scrollHint';
 import { devWarn } from '../../internal/dev';
 import { Icon } from '../../icons/Icon';
+import { includeIcons } from '../../icons/store';
+import phLock from '../../icons/ph/lock';
+import phTag from '../../icons/ph/tag';
+
+includeIcons(phLock, phTag);
 
 export interface LayerGraphNode {
   id: string;

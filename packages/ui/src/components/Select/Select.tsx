@@ -5,6 +5,12 @@ import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
 import { FieldErrorIcon, FieldLabel, FieldMessage } from '../../internal/Field';
+import { includeIcons } from '../../icons/store';
+import phCaretDown from '../../icons/ph/caret-down';
+import phCheck from '../../icons/ph/check';
+import phMagnifyingGlass from '../../icons/ph/magnifying-glass';
+
+includeIcons(phCaretDown, phCheck, phMagnifyingGlass);
 
 export interface SelectOption<V extends string = string> {
   value: V;

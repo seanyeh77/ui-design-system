@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'tsdown';
 
 /** Modules without React: no 'use client', so @seanyeh77/ui/format works in server code. */
@@ -33,6 +34,15 @@ export default defineConfig([
     clean: false,
     noExternal: [/.*/],
     define: { 'process.env.NODE_ENV': '"production"', __UI_DEV__: 'true' },
+    // Every icon is inline here: the icon store reads names-inline.ts, which loads nothing, in place of names.ts and its
+    // one dynamic import per icon.
+    plugins: [
+      {
+        name: 'icons-inline',
+        resolveId: (id: string, importer?: string) =>
+          id === './names' && importer?.endsWith('/icons/store.ts') ? fileURLToPath(new URL('src/icons/names-inline.ts', import.meta.url)) : null,
+      },
+    ],
     outputOptions: { entryFileNames: '[name].js' },
   },
 ]);

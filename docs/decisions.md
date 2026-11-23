@@ -1199,3 +1199,17 @@ AI 定的細節（待確認）：
   - `-webkit-backdrop-filter`、`-webkit-user-select` 移到標準屬性之前（lightningcss 壓縮時只留最後一個，原本會丟掉標準的 `backdrop-filter`）；token 檢查加上「`-webkit-` 屬性要在標準屬性之前、`-webkit-backdrop-filter` 必須有標準屬性」，連 build 出的 CSS 一起檢查。
   - 頁面沒放進 layer 的重設 CSS 會蓋過元件：保留這個行為（能覆寫正是 layer 的目的），在 AGENTS.md 和 theme.md 寫明重設放進 `@layer base`、刪掉範本附的 CSS；`ui check` 新增一項，列出沒有 layer、用元素或 `*` 選擇器、又以不同的值蓋過元件宣告的規則。
   - theme.md 改為建議一個 CSS 入口檔依序 `@import` `base.css`、元件的檔、`end.css`，並寫明重複的檔留哪一份依 bundler 而定，不保證和 `styles.css` 完全相同。
+
+## 圖示按需載入
+
+使用者的問題：只用 Button 的 Vite 專案 JS 有 357 KB（React 佔 220 KB），因為所有 Phosphor 圖示都在同一個模組，用到任何一個圖示的元件就帶入全部。使用者的決定：「要改，標準作法不能改變」。
+
+AI 定的細節（待確認）：
+
+- 每個圖示拆成一個模組（`src/icons/ph/<name>.ts`，Regular 與 Fill 放在一起）；`names.ts` 只有名稱、Lucide 別名和每個圖示的 `import()`，`IconName` 型別照舊由名稱推出。用法不變：`<Icon name="house" />`、元件的 `icon` 屬性、`IconName` 型別檢查、自訂圖示、`UI.Icon`、`icons` 都照原樣寫，不需要新的 import 或 build plugin。
+- 元件固定會顯示的圖示（下拉箭頭、關閉的 x、勾號、排序、搜尋等）在元件檔裡靜態 import 並 `includeIcons()`，所以第一次畫面和 server render 都有；測試會檢查元件檔裡寫在 `name`、`icon` 位置的名稱都有這樣帶入。
+- 其他名稱在 `Icon` 第一次 render 時用 `import()` 載入：載入前是同樣大小、同樣 `viewBox` 的空白 `<svg>`，載入後換成圖示，同一個 `<svg>` 元素，版面不動；之後同一個名稱同步顯示。server render 與 hydrate 時只用元件帶入的圖示（`useSyncExternalStore` 的 server snapshot），所以兩邊的 markup 相同，hydrate 後再補上其他圖示。
+- 新增 `preloadIcons(names)`（選用），讓首屏圖示在第一次畫面就出現。
+- `icons` 移到自己的模組，只有 import 它的頁面才帶入全部圖示；import 後所有圖示立即可用，內建圖示的 markup 傳給 `d` 時仍找得到實心版。`bundle.js` 內含全部圖示、不做動態載入（build 時用 `names-inline.ts` 取代 `names.ts`），一律同步顯示。
+- 新增開發警告：`name` 不是內建名稱時提示改用 Phosphor 名稱或 `d`。
+- 結果：只用 Button 的 Vite 專案主程式 357 KB → 303 KB（gzip 112 KB → 97 KB）；用 `Icon name="house"` 加 DataTable 的專案 520 KB → 473 KB（gzip 165 KB → 152 KB）。每個沒用到的圖示仍會輸出成一個不會被下載的小檔（約 100 個）。`bundle.js` 815 KB → 820 KB（gzip 258 KB → 259 KB）。300 張預覽截圖與拆分前完全相同。

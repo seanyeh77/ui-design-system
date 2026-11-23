@@ -5,6 +5,10 @@ import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { Button } from '../Button/Button';
+import { includeIcons } from '../../icons/store';
+import phX from '../../icons/ph/x';
+
+includeIcons(phX);
 
 export interface DialogProps {
   /** Shows the dialog over a blurred backdrop, with focus trapped inside and Esc to close.

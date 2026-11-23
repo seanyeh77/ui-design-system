@@ -2,6 +2,10 @@ import type * as React from 'react';
 import { tr } from '../../i18n';
 import { Icon, type CustomIcon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
+import { includeIcons } from '../../icons/store';
+import phX from '../../icons/ph/x';
+
+includeIcons(phX);
 
 export type AlertTone = 'info' | 'success' | 'warning' | 'danger';
 

@@ -4,6 +4,10 @@ import { CHECK } from '../../icons/Icon';
 import { copyText, cx } from '../../internal/util';
 import { IconButton } from '../IconButton/IconButton';
 import { CodeText, type OnRef, type RefHref } from '../InlineCode/InlineCode';
+import { includeIcons } from '../../icons/store';
+import phCopy from '../../icons/ph/copy';
+
+includeIcons(phCopy);
 
 export interface SuggestionProps {
   /** Default 「建議修正」. */

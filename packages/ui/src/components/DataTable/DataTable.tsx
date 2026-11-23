@@ -17,6 +17,12 @@ import { asDate, cellText, isActive, isDateCol, matches, readSort, readUrl, reso
 import { FilterButton, FilterChips, FullText, LongText, MoreMenu, markMatch, type FilterChip } from './parts';
 import { SortButton, dirWord, sortSentence } from './SortButton';
 import type { DataTableColumn, DataTableFilter, DataTableView, FilterOption, FilterValue, ResolvedFilter, Row, RowKey, Total } from './types';
+import { includeIcons } from '../../icons/store';
+import phCaretRight from '../../icons/ph/caret-right';
+import phCheck from '../../icons/ph/check';
+import phX from '../../icons/ph/x';
+
+includeIcons(phCaretRight, phCheck, phX);
 
 export type { DataTableColumn, DataTableFilter, DataTableView, FilterOption, FilterValue, RangeValue, Row, RowKey, Total } from './types';
 

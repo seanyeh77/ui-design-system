@@ -1,5 +1,9 @@
 import type * as React from 'react';
 import { Icon } from '../../icons/Icon';
+import { includeIcons } from '../../icons/store';
+import phCheck from '../../icons/ph/check';
+
+includeIcons(phCheck);
 
 export interface ToastProps {
   /** What happened, in the past tense: 「已刪除 3 筆」. */

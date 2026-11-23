@@ -3,6 +3,10 @@ import { Dialog as Base } from '@base-ui/react/dialog';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { Dialog } from '../Dialog/Dialog';
+import { includeIcons } from '../../icons/store';
+import phX from '../../icons/ph/x';
+
+includeIcons(phX);
 
 export interface DrawerProps {
   open: boolean;

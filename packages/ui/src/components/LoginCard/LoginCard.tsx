@@ -5,6 +5,11 @@ import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
 import { FieldErrorIcon, FieldLabel, FieldMessage } from '../../internal/Field';
+import { includeIcons } from '../../icons/store';
+import phEye from '../../icons/ph/eye';
+import phEyeSlash from '../../icons/ph/eye-slash';
+
+includeIcons(phEye, phEyeSlash);
 
 export interface LoginCardProps {
   /** Logo or product name above the title. */

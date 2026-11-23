@@ -6,6 +6,12 @@ import { announce } from '../../announce';
 import { cx } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { Tooltip } from '../Tooltip/Tooltip';
+import { includeIcons } from '../../icons/store';
+import phCaretRight from '../../icons/ph/caret-right';
+import phPushPin from '../../icons/ph/push-pin';
+import phSidebarSimple from '../../icons/ph/sidebar-simple';
+
+includeIcons(phCaretRight, phPushPin, phSidebarSimple);
 
 export interface NavItem {
   id: string;

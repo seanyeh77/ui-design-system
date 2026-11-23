@@ -1,6 +1,11 @@
 import type * as React from 'react';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
+import { includeIcons } from '../../icons/store';
+import phInfo from '../../icons/ph/info';
+import phTrendUp from '../../icons/ph/trend-up';
+
+includeIcons(phInfo, phTrendUp);
 
 export interface TagProps {
   children?: React.ReactNode;

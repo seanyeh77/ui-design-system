@@ -5,6 +5,11 @@ import { Dialog } from '../components/Dialog/Dialog';
 import { IconButton } from '../components/IconButton/IconButton';
 import { announce } from '../announce';
 import { copyText, cx } from './util';
+import { includeIcons } from '../icons/store';
+import phCopy from '../icons/ph/copy';
+import phCornersOut from '../icons/ph/corners-out';
+
+includeIcons(phCopy, phCornersOut);
 
 /* What Markdown tables and DataTable share: the column border that drags, the 「放大表格」 dialog, and the
    「複製成 Markdown」 icon. One implementation, so both tables behave and look the same. */
