@@ -248,7 +248,7 @@ export function LineChart({
                 if (e.button !== 0) return;
                 dragging.current = true;
                 try {
-                  e.currentTarget.setPointerCapture(e.pointerId);
+                  e.currentTarget.setPointerCapture?.(e.pointerId);
                 } catch {
                   /* a pointer the browser no longer tracks: dragging still works inside the chart */
                 }

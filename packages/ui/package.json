@@ -45,17 +45,19 @@
     "react-dom": ">=19"
   },
   "devDependencies": {
+    "@seanyeh77/tokens": "workspace:^",
+    "@storybook/react": "^10.6.6",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.8",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitest/browser-playwright": "^5.1.0",
+    "jsdom": "^31.0.1",
     "playwright": "^1.65.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "tsdown": "^0.23.7",
-    "vitest": "^5.1.0",
-    "@seanyeh77/tokens": "workspace:^"
+    "vitest": "^5.1.0"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0"

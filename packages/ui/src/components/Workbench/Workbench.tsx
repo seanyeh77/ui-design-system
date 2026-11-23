@@ -4,7 +4,7 @@ import { IconButton } from '../IconButton/IconButton';
 import { SearchField } from '../SearchField/SearchField';
 import { Breadcrumb, type BreadcrumbItem } from '../Breadcrumb/Breadcrumb';
 import { Icon, type CustomIcon } from '../../icons/Icon';
-import { cx, IS_MAC, store } from '../../internal/util';
+import { cx, IS_MAC, store, resizeObserver } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { tr } from '../../i18n';
 import { dropTransition } from '../../motion';
@@ -330,9 +330,9 @@ function TabRow(p: {
       if (el.offsetLeft < tr2.scrollLeft) tr2.scrollLeft = el.offsetLeft - 4;
       else if (el.offsetLeft + el.offsetWidth > tr2.scrollLeft + tr2.clientWidth) tr2.scrollLeft = el.offsetLeft + el.offsetWidth - tr2.clientWidth + 4;
     }
-    const ro = new ResizeObserver(measure);
-    ro.observe(tr2);
-    return () => ro.disconnect();
+    const ro = resizeObserver(measure);
+    ro?.observe(tr2);
+    return () => ro?.disconnect();
   }, [p.active, p.ids, measure, menu, hold]);
 
   const drag = p.drag;
@@ -570,9 +570,9 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
     const read = () =>
       setDim((d) => (d.measured && d.w === el.clientWidth && d.h === el.clientHeight ? d : { w: el.clientWidth, h: el.clientHeight, measured: true }));
     read();
-    const ro = new ResizeObserver(read);
-    ro.observe(el);
-    return () => ro.disconnect();
+    const ro = resizeObserver(read);
+    ro?.observe(el);
+    return () => ro?.disconnect();
   }, []);
 
   React.useEffect(() => {

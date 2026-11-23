@@ -5,7 +5,7 @@ import { CodeText } from '../InlineCode/InlineCode';
 import { Button } from '../Button/Button';
 import { tr } from '../../i18n';
 import { announce } from '../../announce';
-import { cx, seenOnly, store } from '../../internal/util';
+import { cx, seenOnly, store, resizeObserver } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import type { IconButtonHint } from '../IconButton/IconButton';
 
@@ -301,8 +301,8 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
       setCardW(el.offsetWidth);
     };
     measure();
-    observer.current = new ResizeObserver(measure);
-    observer.current.observe(el);
+    observer.current = resizeObserver(measure);
+    observer.current?.observe(el);
   }, []);
 
   // Make room for the card (per step, again when its height changes: its width, and so its height, depends on where it

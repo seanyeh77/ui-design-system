@@ -72,7 +72,8 @@ export default [ui.configs.recommended];
 - Because unlayered CSS always wins, page-wide resets win too: delete the starter CSS of the project template (Vite's `index.css` and `App.css`), and put any reset or normalize CSS (`* { margin: 0 }`, `button { background: none }`, a CMS theme) in `@layer base { … }` or another layer declared before `ui`. `ui check` reports unlayered element or `*` rules that override a component.
 - React 19 is required. The module starts with `'use client'`, so it works in Next.js server components pages as client components. Server code that only formats dates, numbers or text imports from `@seanyeh77/ui/format` (no `'use client'`).
 - The ESLint config reads `.tsx` with the typescript-eslint parser, which needs the `typescript` 5 or 6 API. With TypeScript 7 only, also install `typescript@npm:@typescript/typescript6` as a dev dependency.
-- Components need a browser: run component tests in a browser (Vitest browser mode) or jsdom.
+- Components need a browser: run component tests in a browser (Vitest browser mode) or jsdom. Every component renders and handles clicks and keys in jsdom with no setup and no polyfills; what needs layout is not computed there (measured column widths, overflow fades, positions of tooltips and popups, sizes that follow the container), so test those in Vitest browser mode.
+- pnpm may refuse a version published less than a day ago (`minimumReleaseAge`, in minutes: 1440 by default in pnpm 11, and set by many pnpm 10 projects). To install a just-released `@seanyeh77/ui`, allow that version in `pnpm-workspace.yaml`, e.g. `minimumReleaseAgeExclude: ['@seanyeh77/ui@0.43.0', '@seanyeh77/tokens@0.43.0']`, and remove the line after a day.
 
 ### Pages without a build step
 
@@ -112,7 +113,7 @@ A pnpm workspace. `pnpm install`, then `pnpm check` builds, type-checks, lints a
 | `docs/` | `guidelines.md` (core rules), the topic files, `decisions.md` (history) |
 
 - Components: TypeScript strict, React 19 (`ref` is a prop), Base UI for anything that floats or traps focus. One JSDoc line per prop (it becomes the props table). Prefer types that make a wrong use fail to compile over a sentence in the README; add a `devWarn` with the cause and the fix for what types cannot catch. Export new components and their types from `src/index.ts`.
-- A new component needs `README.md`, a story and `preview.html` whose first line is `<!-- @dsCard group="Data" height=400 -->`, plus a test when it has behavior (`src/**/*.test.tsx`, Vitest in a real Chromium).
+- A new component needs `README.md`, a story and `preview.html` whose first line is `<!-- @dsCard group="Data" height=400 -->`, plus a test when it has behavior (`src/**/*.test.tsx`, Vitest in a real Chromium). Every story is also rendered, clicked and rendered on the server in jsdom (`src/components.jsdom.test.tsx`): check for browser-only APIs (`ResizeObserver`, Range measuring, canvas, `scrollIntoView`, pointer capture) before calling them, never polyfill a global.
 - A README starts with `## 用法`: one sentence (what it is, when to use it, what to use instead), a minimal example, and the 3 to 6 rules most often gotten wrong. Details follow in later `##` sections. The first sentence is the summary in `llms.txt` and `ui list`.
 - Where a rule goes: one component's rule in its README; a rule every page needs in `docs/guidelines.md` (keep it about 6 KB); a rule for one kind of page in its topic file. Say each rule once. A new topic file goes in the guides lists of `scripts/site.ts` and `apps/docs/scripts/pages.ts`.
 - Names and default texts are generic: no project's terms (no 「函式」 or 「編譯器」 as built-in words). A project passes its own words through props.

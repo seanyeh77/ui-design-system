@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { format } from '../../format';
 import { dropTransition, useMoving } from '../../motion';
-import { cx, browserKey } from '../../internal/util';
+import { cx, browserKey, resizeObserver } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { useFocusRescue } from '../../internal/focus';
 import { announce } from '../../announce';
@@ -82,10 +82,10 @@ export function Tabs<V extends string = string>({ items, value, onChange, label,
     // The selected tab in view, without scrolling the page.
     if (el.offsetLeft < tr.scrollLeft) tr.scrollLeft = el.offsetLeft - 4;
     else if (el.offsetLeft + el.offsetWidth > tr.scrollLeft + tr.clientWidth) tr.scrollLeft = el.offsetLeft + el.offsetWidth - tr.clientWidth + 4;
-    const ro = new ResizeObserver(measure);
-    ro.observe(tr);
-    for (const t of refs.current) if (t) ro.observe(t);
-    return () => ro.disconnect();
+    const ro = resizeObserver(measure);
+    ro?.observe(tr);
+    for (const t of refs.current) if (t) ro?.observe(t);
+    return () => ro?.disconnect();
   }, [idx, items.length, edges]);
   const go = (i: number) => {
     if (i === idx || !items[i]) return;

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Icon } from '../icons/Icon';
 import { tr } from '../i18n';
-import { cx, useMedia } from './util';
+import { cx, useMedia, resizeObserver } from './util';
 import { includeIcons } from '../icons/store';
 import phArrowRight from '../icons/ph/arrow-right';
 
@@ -25,9 +25,9 @@ export function useScrollHint<E extends HTMLElement = HTMLDivElement>() {
     const el = ref.current;
     if (!el) return;
     measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    if (el.firstElementChild) ro.observe(el.firstElementChild);
+    const ro = resizeObserver(measure);
+    ro?.observe(el);
+    if (el.firstElementChild) ro?.observe(el.firstElementChild);
     // Content that changes without resizing the box (a column hidden, rows replaced, text measured again) and web
     // fonts that load late change the scroll width too: measured again after each.
     let raf = 0;
@@ -39,7 +39,7 @@ export function useScrollHint<E extends HTMLElement = HTMLDivElement>() {
     mo.observe(el, { childList: true, subtree: true, characterData: true });
     document.fonts?.ready.then(later).catch(() => {});
     return () => {
-      ro.disconnect();
+      ro?.disconnect();
       mo.disconnect();
       cancelAnimationFrame(raf);
     };

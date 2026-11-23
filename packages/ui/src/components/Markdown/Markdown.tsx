@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Alert, type AlertTone } from '../Alert/Alert';
 import { Icon } from '../../icons/Icon';
 import { ColResize, TableDialog, ZoomButton } from '../../internal/tableTools';
-import { cx } from '../../internal/util';
+import { cx, resizeObserver } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { CodeView } from '../CodeView/CodeView';
 import { languageOf } from '../CodeView/tokens';
@@ -726,9 +726,9 @@ function MdTable(p: {
       setMeasured((old) => (old.length === m.length && old.every((v, i) => v === m[i]) ? old : m));
     };
     update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
+    const ro = resizeObserver(update);
+    ro?.observe(el);
+    return () => ro?.disconnect();
   }, []);
   const body = (resize: boolean) => (
     <table

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { dropTransition } from '../../motion';
-import { cx, browserKey } from '../../internal/util';
+import { cx, browserKey, resizeObserver } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { IconOf, type IconSource } from '../../icons/Icon';
 import { Tooltip } from '../Tooltip/Tooltip';
@@ -45,9 +45,9 @@ export function SegmentedControl<V extends string = string>({ items, value, onCh
     if (!el) return;
     const measure = () => setBox({ left: el.offsetLeft, width: el.offsetWidth });
     measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
+    const ro = resizeObserver(measure);
+    ro?.observe(el);
+    return () => ro?.disconnect();
   }, [idx, items.length]);
   const go = (i: number) => {
     if (i === idx || !items[i]) return;

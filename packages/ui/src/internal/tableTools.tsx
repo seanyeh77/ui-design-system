@@ -56,7 +56,7 @@ export function ColResize(p: {
         if (e.button !== 0) return;
         e.preventDefault();
         e.stopPropagation();
-        e.currentTarget.setPointerCapture(e.pointerId);
+        e.currentTarget.setPointerCapture?.(e.pointerId);
         from.current = { x: e.clientX, w: p.start() };
         drag(true);
       }}

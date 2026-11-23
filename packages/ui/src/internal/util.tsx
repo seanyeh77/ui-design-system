@@ -78,6 +78,11 @@ export function useMedia(query: string): boolean {
   return match;
 }
 
+/** A ResizeObserver, or null where there is none (jsdom, old browsers): the first measure then stays. */
+export function resizeObserver(cb: ResizeObserverCallback): ResizeObserver | null {
+  return typeof ResizeObserver === 'function' ? new ResizeObserver(cb) : null;
+}
+
 /** True under 600 px, the same width where cards stack. */
 export function useNarrow(): boolean {
   return useMedia('(max-width: 599px)');

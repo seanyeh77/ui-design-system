@@ -133,7 +133,7 @@ export function Section(p: SectionProps) {
     const check = () => {
       if (decodeURIComponent(location.hash.slice(1)) !== p.id) return;
       if (!openRef.current) setRef.current(true);
-      requestAnimationFrame(() => head.current?.scrollIntoView({ block: 'start', behavior: reduced() ? 'auto' : 'smooth' }));
+      requestAnimationFrame(() => head.current?.scrollIntoView?.({ block: 'start', behavior: reduced() ? 'auto' : 'smooth' }));
     };
     check();
     window.addEventListener('hashchange', check);

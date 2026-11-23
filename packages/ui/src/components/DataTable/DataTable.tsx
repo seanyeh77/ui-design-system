@@ -120,11 +120,13 @@ const CELL_PAD = 25;
 const isoOf = (d: Date, dateOnly: boolean) =>
   dateOnly ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` : d.toISOString();
 
-/** The width of what an element holds (its text and children, not absolutely placed parts such as the column border). */
-function contentWidth(el: Element): number {
+/** The width of what an element holds (its text and children, not absolutely placed parts such as the column border).
+ *  Null where text cannot be measured (jsdom has no Range#getBoundingClientRect): the column keeps its default width. */
+function contentWidth(el: Element): number | null {
   let left = Infinity;
   let right = -Infinity;
   const range = document.createRange();
+  if (typeof range.getBoundingClientRect !== 'function') return null;
   for (const n of el.childNodes) {
     let r: DOMRect | null = null;
     if (n instanceof HTMLElement) {
@@ -668,7 +670,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         for (const el of hugs) {
           const key = el.dataset.col;
           const inner = el.querySelector(':scope > .ui-dt-stack > .ui-dt-main') ?? el;
-          if (key) need[key] = Math.max(need[key] ?? 0, Math.ceil(contentWidth(inner) + CELL_PAD));
+          const w = contentWidth(inner);
+          if (key && w !== null) need[key] = Math.max(need[key] ?? 0, Math.ceil(w + CELL_PAD));
         }
         root.classList.remove('is-measuring');
       }

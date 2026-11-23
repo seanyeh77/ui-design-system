@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { tr } from '../../i18n';
-import { browserKey, cx } from '../../internal/util';
+import { browserKey, cx, resizeObserver } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 
 export interface SplitPaneProps {
@@ -66,9 +66,9 @@ export function SplitPane({ a, b, defaultB = 420, minA = 360, minB = 280, storag
     if (!el) return;
     const measure = () => setWidth(el.clientWidth);
     measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
+    const ro = resizeObserver(measure);
+    ro?.observe(el);
+    return () => ro?.disconnect();
   }, []);
   const stacked = width > 0 && width < STACK;
   // The side panel's width as it can be now: both areas keep their minimum.
@@ -108,7 +108,7 @@ export function SplitPane({ a, b, defaultB = 420, minA = 360, minB = 280, storag
     e.preventDefault();
     // Keeps getting the moves when the pointer leaves the divider (a fast drag).
     try {
-      e.currentTarget.setPointerCapture(e.pointerId);
+      e.currentTarget.setPointerCapture?.(e.pointerId);
     } catch {
       // No such pointer (a synthetic event): moves still come while over the divider.
     }
@@ -126,7 +126,7 @@ export function SplitPane({ a, b, defaultB = 420, minA = 360, minB = 280, storag
     dragging.current = false;
     setDrag(false);
     try {
-      if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+      if (e.currentTarget.hasPointerCapture?.(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
     } catch {
       // Already released.
     }

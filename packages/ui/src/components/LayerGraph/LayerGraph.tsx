@@ -5,7 +5,7 @@ import { IconButton } from '../IconButton/IconButton';
 import { Switch } from '../Switch/Switch';
 import { tr } from '../../i18n';
 import { format } from '../../format';
-import { cx, monoNums } from '../../internal/util';
+import { cx, monoNums, resizeObserver } from '../../internal/util';
 import { ScrollHint, useScrollHint } from '../../internal/scrollHint';
 import { devWarn } from '../../internal/dev';
 import { Icon } from '../../icons/Icon';
@@ -152,12 +152,17 @@ function byCount(n: number, one: string, many: string): string {
 /** A box reached with the keyboard while partly scrolled out of the diagram's frame (phones): scroll it fully into view,
  *  with its focus outline (scroll-margin in styles.css). The browser scrolls only boxes that are wholly out of view. */
 function showWhole(e: React.FocusEvent<HTMLElement>) {
-  if (e.currentTarget.matches(':focus-visible')) e.currentTarget.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  if (e.currentTarget.matches(':focus-visible')) e.currentTarget.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+}
+
+/** A canvas to measure text on, or null where there is none (jsdom without a canvas package): widths are then estimated. */
+function canvas2d(): CanvasRenderingContext2D | null {
+  return typeof CanvasRenderingContext2D === 'function' ? document.createElement('canvas').getContext('2d') : null;
 }
 
 /** The width of text in a font (`600 13px` and mono or sans), measured on a canvas. */
 function textWidth(text: string, size: number, code: boolean): number {
-  if (measure === undefined) measure = document.createElement('canvas').getContext('2d');
+  if (measure === undefined) measure = canvas2d();
   const c = measure;
   if (!c) return text.length * size * 0.6;
   const cs = getComputedStyle(document.documentElement);
@@ -199,7 +204,7 @@ function HeightHandle(p: {
       onPointerDown={(e) => {
         if (e.button !== 0) return;
         e.preventDefault();
-        e.currentTarget.setPointerCapture(e.pointerId);
+        e.currentTarget.setPointerCapture?.(e.pointerId);
         from.current = { y: e.clientY, d: p.start() };
         setDragging(true);
       }}
@@ -238,7 +243,7 @@ function HeightHandle(p: {
 
 function labelWidth(text: string): number {
   const parts = text.split(SPLIT).filter(Boolean);
-  if (measure === undefined) measure = document.createElement('canvas').getContext('2d');
+  if (measure === undefined) measure = canvas2d();
   const c = measure;
   if (!c) return text.length * 9;
   const cs = getComputedStyle(document.documentElement);
@@ -1543,9 +1548,9 @@ export function LayerGraph(p: LayerGraphProps) {
     if (!el) return;
     const measure = () => setAvail(el.clientWidth);
     measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
+    const ro = resizeObserver(measure);
+    ro?.observe(el);
+    return () => ro?.disconnect();
   }, [scrollRef, showList]);
   React.useLayoutEffect(() => {
     if (!avail || showList) return;

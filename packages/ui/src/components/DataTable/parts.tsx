@@ -2,7 +2,7 @@ import * as React from 'react';
 import { format } from '../../format';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
-import { TOUCH_ONLY, cx, useMedia, useNarrow } from '../../internal/util';
+import { TOUCH_ONLY, cx, useMedia, useNarrow, resizeObserver } from '../../internal/util';
 import { Menu as BaseMenu } from '@base-ui/react/menu';
 import { Tooltip } from '../Tooltip/Tooltip';
 import { FloatingPanel } from '../../internal/FloatingPanel';
@@ -309,9 +309,9 @@ export function LongText({ children }: { children: React.ReactNode }) {
       setCut(!narrow && !touch && outer.scrollWidth > outer.clientWidth + 1 ? (outer.textContent ?? '') : '');
     };
     check();
-    const ro = new ResizeObserver(check);
-    ro.observe(outer);
-    return () => ro.disconnect();
+    const ro = resizeObserver(check);
+    ro?.observe(outer);
+    return () => ro?.disconnect();
   }, [open, children, narrow, touch]);
   const body = (
     <span ref={box} className={cx('ui-dt-long', !!cut && 'is-cut')} tabIndex={cut ? 0 : undefined}>
