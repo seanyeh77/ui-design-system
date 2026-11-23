@@ -13,7 +13,7 @@ Docs site (Storybook, live examples, props tables): https://seanyeh77.github.io/
 | `@seanyeh77/ui` | The components (ES module with types), `styles.css`, `bundle.js` for pages without a build step, and the docs under `docs/` (each README and guide) |
 | `@seanyeh77/tokens` | `tokens.css`, a Tailwind v4 theme (`tailwind.css`), typed token names with `cssVar()`, the fonts |
 | `@seanyeh77/eslint-plugin-ui` | Lint rules: tokens only, no native controls, no card in a card, danger actions confirmed, one primary button, verb labels |
-| `@seanyeh77/ui-cli` | `ui check <page>`, `ui docs <Name> [--full]`, `ui list`. Run it as `npx @seanyeh77/ui-cli …`: plain `npx ui` runs an unrelated npm package. |
+| `@seanyeh77/ui-cli` | `ui check <page>`, `ui shots <page>` (screenshot baselines and comparison), `ui docs <Name> [--full]`, `ui list`. Run it as `npx @seanyeh77/ui-cli …`: plain `npx ui` runs an unrelated npm package. |
 | Registry `…/r/<name>.json` | Page templates to copy into a project: `dashboard`, `list-detail`, `settings`, `login` |
 
 ## Building UI with it
@@ -96,7 +96,7 @@ Scope: web UI and the tokens of SeanYeh's Slidev decks (the `teaching` preset, `
 
 ## Changing the design system
 
-A pnpm workspace. `pnpm install`, then `pnpm check` builds, type-checks, lints and tests everything; CI runs the same plus `ui check` on every preview.
+A pnpm workspace. `pnpm install`, then `pnpm check` builds, type-checks, lints and tests everything; CI runs the same plus `ui check` and the screenshot comparison on every preview.
 
 | Path | Contents |
 | --- | --- |
@@ -104,7 +104,8 @@ A pnpm workspace. `pnpm install`, then `pnpm check` builds, type-checks, lints a
 | `packages/ui/src/components/<Name>/` | `<Name>.tsx`, `README.md`, `<Name>.stories.tsx` (Storybook, module example) and `preview.html` (plain-HTML example; the card of the Design System artifact) |
 | `packages/ui/src/styles.css` | Component styles, token variables only |
 | `packages/blocks/src/` | Page templates; `registry.json` at the root lists them |
-| `packages/eslint-plugin-ui`, `packages/cli` | The lint rules, `ui check` and `ui docs` |
+| `packages/eslint-plugin-ui`, `packages/cli` | The lint rules, `ui check`, `ui shots` and `ui docs` |
+| `tests/visual/baseline/` | Screenshot baselines of every preview: `<Name>-<390 or 1280>-<light or dark>.png` |
 | `apps/docs` | Storybook; `pnpm site` builds the whole docs site into `site/` (with `llms.txt` and `/md/`) |
 | `docs/` | `guidelines.md` (core rules), the topic files, `decisions.md` (history) |
 
@@ -113,6 +114,8 @@ A pnpm workspace. `pnpm install`, then `pnpm check` builds, type-checks, lints a
 - A README starts with `## 用法`: one sentence (what it is, when to use it, what to use instead), a minimal example, and the 3 to 6 rules most often gotten wrong. Details follow in later `##` sections. The first sentence is the summary in `llms.txt` and `ui list`.
 - Where a rule goes: one component's rule in its README; a rule every page needs in `docs/guidelines.md` (keep it about 6 KB); a rule for one kind of page in its topic file. Say each rule once. A new topic file goes in the guides lists of `scripts/site.ts` and `apps/docs/scripts/pages.ts`.
 - Names and default texts are generic: no project's terms (no 「函式」 or 「編譯器」 as built-in words). A project passes its own words through props.
+- Visual regression: CI screenshots every `site/preview/*.html` at 390 px and 1280 px, light and dark, with `ui shots … --compare tests/visual/baseline --diff visual-diff`, and fails when a shot differs from its baseline (a pixel differs past color distance 0.1; more than 0.02 % of the pixels, or a new size, is a change). The job summary lists the changed shots; the `visual-diff` artifact holds `<name>-diff.png` (changes in red), `-expected.png` and `-actual.png`.
+- When the change is intended, or a new preview has no baseline yet: run the **Update visual baselines** workflow on the branch (Actions → Update visual baselines → Run workflow). It takes the shots on the same runner image and browser as CI, commits them as 「更新畫面基準圖」 and starts CI on that commit. Look at the diffs before you run it: it accepts every change. Do not commit baselines made on your own machine: fonts and the Chromium build render text a little differently, and CI then fails. Locally, `node packages/cli/dist/cli.js shots site/preview/<Name>.html --compare tests/visual/baseline --diff visual-diff` after `pnpm build && pnpm site` shows what changed, as far as your machine renders like CI.
 - Releases: `pnpm changeset` for every change to a published package. Merging the "Version packages" pull request publishes to npm through trusted publishing (each package names this repo and `publish.yml` as its Trusted Publisher on npmjs.com; no token). Pushing to `main` rebuilds the docs site.
 - Docs are written in Traditional Chinese with technical terms in English; every number carries its unit.
 - Only record what the user confirmed: the rule in the file above, the original wording of each lab decision in `docs/decisions.md`.

@@ -1,7 +1,7 @@
 {
   "name": "@seanyeh77/ui-cli",
   "version": "0.41.0",
-  "description": "Checks a page against SeanYeh's design system and prints component docs: ui check, ui docs, ui list.",
+  "description": "Checks a page against SeanYeh's design system, compares its screenshots with baselines and prints component docs: ui check, ui shots, ui docs, ui list.",
   "license": "MIT",
   "author": "Hsiu-An Yeh",
   "repository": {
@@ -23,9 +23,14 @@
   },
   "dependencies": {
     "@seanyeh77/ui": "workspace:^",
-    "playwright": "^1.65.0"
+    "pixelmatch": "^8.0.0",
+    "playwright": "^1.65.0",
+    "pngjs": "^7.0.0"
   },
   "engines": {
     "node": ">=22"
+  },
+  "devDependencies": {
+    "@types/pngjs": "^6.0.5"
   }
 }

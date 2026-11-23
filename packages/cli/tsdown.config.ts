@@ -8,5 +8,5 @@ export default defineConfig({
   dts: false,
   clean: true,
   fixedExtension: false,
-  external: ['playwright', /^@seanyeh77\//],
+  external: ['playwright', 'pixelmatch', 'pngjs', /^@seanyeh77\//],
 });

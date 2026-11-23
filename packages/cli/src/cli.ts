@@ -1,15 +1,31 @@
 #!/usr/bin/env node
 /* ui: the command-line tools of @seanyeh77/ui.
      ui check <file or URL>...   the automatic part of "Before you finish"
+     ui shots <file or URL>...   deterministic screenshots: write baselines (--out) or compare with them (--compare)
      ui docs [Name] [--full]     a component's 用法 block (--full: the whole README), a guide, or the list of docs
      ui list                     every guide and component with its one-line description */
-import { existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { measure } from './measure';
 import { summary, usageBlock } from './usage';
+import { DEFAULT_TOLERANCE, type Tolerance } from './compare';
+import {
+  applyTheme,
+  changedShots,
+  compareWithBaselines,
+  jobsFor,
+  optimizePngs,
+  orphanBaselines,
+  shootPage,
+  shotLaunchOptions,
+  summaryMarkdown,
+  writeShots,
+  FIXED_TIME,
+  type ShotResult,
+} from './shots';
 
 const HELP = `ui check <file or URL>... [--shots DIR] [--strict] [--wait MS]
   Opens each page at 390 px and 1280 px, light and dark, and fails (exit 1) on:
@@ -21,6 +37,20 @@ ui docs [Name] [--full]
   Prints the 用法 block of a component (Button, DataTable…): what it is, a minimal example and the rules most often
   gotten wrong. --full prints the whole README. Guides print whole: guidelines (the core rules every page needs),
   layout, forms, data, monitoring, code, theme, motion. Without a name, lists every doc.
+ui shots <file or URL>... (--out DIR [--prune] | --compare DIR --diff DIR) [--settle MS] [--threshold N] [--max-diff PERCENT]
+  Deterministic screenshots at 390 px and 1280 px, light and dark (DIR/<name>-<width>-<theme>.png): fixed clock
+  (${FIXED_TIME}, fake timers), reduced motion, animations stopped, caret hidden, fonts loaded, scale 1, full page.
+  --out DIR        writes the shots (baselines); a file with the same pixels is left as it is. New files are
+                   optimised losslessly with oxipng when it is on PATH. --prune also deletes the PNGs in DIR
+                   that no page of this run produced (a removed or renamed page).
+  --compare DIR    compares with the baselines in DIR and exits 1 when a shot changed or has no baseline. A pixel
+                   differs when its color distance is over --threshold (default ${DEFAULT_TOLERANCE.threshold}, 0 to 1); a shot changed when
+                   over --max-diff percent of its pixels differ (default ${DEFAULT_TOLERANCE.maxDiffPercent} %) or its size changed.
+  --diff DIR       with --compare: <name>-actual.png, -expected.png and -diff.png (differences in red) for each changed
+                   shot, and summary.md.
+  --settle MS      fake time the page runs before the shot (default 1000).
+  A changed shot is taken once more; it passes when the second shot matches.
+  Exits 2 when a page cannot be opened. Uses CHROMIUM_PATH, else Playwright's full Chromium (channel chromium).
 ui list          lists every guide and component with its one-line description`;
 
 function docsDir(): string {
@@ -60,8 +90,101 @@ function list() {
   }
 }
 
+const toUrl = (t: string) => (t.includes('://') ? new URL(t).href : pathToFileURL(resolve(t)).href);
+
 /** The page itself could not be opened: a wrong path, no server, or an HTTP error. */
 class Unreachable extends Error {}
+
+async function shots(targets: string[], opts: { out?: string; compare?: string; diff?: string; prune: boolean; settle: number; tolerance: Tolerance }) {
+  // The argument checks below make sure of these: --out, or --compare with --diff.
+  const out = opts.out ?? '';
+  const diff = opts.diff ?? '';
+  const { chromium } = await import('playwright');
+  const browser = await chromium.launch(shotLaunchOptions()).catch((e: unknown) => {
+    console.error(String(e).split('\n')[0]);
+    console.error('No Chromium for ui shots. Run `npx playwright install chromium`, or set CHROMIUM_PATH to an installed Chrome or Chromium.');
+    process.exit(2);
+  });
+  const jobs = jobsFor(targets, toUrl);
+  // 4 lanes; results print in the order the targets were given.
+  const lanes: Promise<unknown>[] = Array(4).fill(Promise.resolve());
+  const runs = jobs.map((job, i) => {
+    const shoot = async () => {
+      const shots = await shootPage(browser, job, opts.settle);
+      if (!opts.compare) return { shots, retried: [] as string[] };
+      // A changed shot is taken once more, and the page passes if the second shot matches: a rare race in a page
+      // (a measurement that lands one frame late) then does not fail CI, while a real change fails both times.
+      const changed = changedShots(shots, opts.compare, opts.tolerance);
+      if (!changed.length) return { shots, retried: [] };
+      const again = await shootPage(browser, job, opts.settle);
+      for (const n of changed) {
+        const next = again.get(n);
+        if (next) shots.set(n, next);
+      }
+      return { shots, retried: changed };
+    };
+    const r = lanes[i % 4].then(() =>
+      shoot().then(
+        ({ shots, retried }) => ({ job, shots, retried, error: undefined }),
+        (e: unknown) => ({ job, shots: undefined, retried: [], error: String(e).split('\n')[0] }),
+      ),
+    );
+    lanes[i % 4] = r;
+    return r;
+  });
+  const all: ShotResult[] = [];
+  const names = new Set<string>();
+  let unshot = false;
+  for (const r of runs) {
+    const { job, shots, retried, error } = await r;
+    if (!shots) {
+      unshot = true;
+      console.log(`${job.url}\n  could not shoot: ${error}`);
+      continue;
+    }
+    for (const n of shots.keys()) names.add(n);
+    const results = opts.compare ? compareWithBaselines(shots, opts.compare, diff, opts.tolerance) : writeShots(shots, out);
+    all.push(...results);
+    const bad = results.filter((x) => x.status === 'changed' || x.status === 'new');
+    const head = opts.compare ? (bad.length ? '' : 'same') : results.some((x) => x.status === 'written') ? 'written' : 'unchanged';
+    console.log(`${job.url}: ${head}`);
+    for (const x of opts.compare ? bad : results) console.log(`  ${x.name}: ${x.status}${x.detail ? ` (${x.detail})` : ''}`);
+    for (const n of retried) if (!bad.some((x) => x.name === n)) console.log(`  ${n}: same on the second shot (the first differed)`);
+  }
+  await browser.close();
+  if (opts.compare) {
+    const orphans = orphanBaselines(opts.compare, names);
+    const changed = all.filter((x) => x.status === 'changed' || x.status === 'new').length;
+    // A partial run (a few pages) leaves most baselines unused: name them only when they are few.
+    if (orphans.length)
+      console.log(
+        orphans.length <= 12
+          ? `baselines with no page in this run (a removed or renamed page?): ${orphans.join(', ')}`
+          : `${orphans.length} baselines have no page in this run (expected when only some pages are passed).`,
+      );
+    if (changed || orphans.length || unshot) {
+      mkdirSync(diff, { recursive: true });
+      writeFileSync(join(diff, 'summary.md'), summaryMarkdown(all, orphans, opts.compare));
+    }
+    console.log(
+      changed
+        ? `${changed} of ${all.length} screenshots changed or have no baseline. Diffs and new shots: ${opts.diff}`
+        : `${all.length} screenshots match ${opts.compare}.`,
+    );
+    process.exit(unshot ? 2 : changed ? 1 : 0);
+  }
+  const written = all.filter((x) => x.status === 'written').length;
+  const optimized = optimizePngs([]);
+  if (opts.prune && !unshot)
+    for (const f of orphanBaselines(out, names)) {
+      unlinkSync(join(out, f));
+      console.log(`removed ${f} (no page produced it)`);
+    }
+  console.log(
+    `${all.length} screenshots in ${opts.out}: ${written} written${optimized ? ' (oxipng)' : ' (oxipng not found: PNGs as Playwright wrote them)'}, ${all.length - written} kept (same pixels).`,
+  );
+  process.exit(unshot ? 2 : 0);
+}
 
 async function check(targets: string[], opts: { shots?: string; strict: boolean; wait: number }) {
   const { chromium } = await import('playwright');
@@ -70,22 +193,8 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
     console.error('No Chromium for ui check. Run `npx playwright install chromium`, or set CHROMIUM_PATH to an installed Chrome or Chromium.');
     process.exit(2);
   });
-  const stems = new Map<string, number>();
-  const jobs = targets.map((target) => {
-    // Chromium normalizes URLs (trailing slash, case, escapes); compare against the same form.
-    const url = target.includes('://') ? new URL(target).href : pathToFileURL(resolve(target)).href;
-    // Screenshot names come from the file name; a second target with the same name gets -2, -3, …
-    const base = decodeURIComponent(
-      url
-        .replace(/[?#].*$/, '')
-        .replace(/\/$/, '')
-        .split('/')
-        .pop() || 'page',
-    ).replace(/\.[^.]*$/, '');
-    const n = (stems.get(base) ?? 0) + 1;
-    stems.set(base, n);
-    return { url, stem: n > 1 ? `${base}-${n}` : base };
-  });
+  // Chromium normalizes URLs (trailing slash, case, escapes); compare against the same form.
+  const jobs = jobsFor(targets, toUrl);
 
   // One page: 2 widths x 2 themes, each in a fresh context (initTheme reads the color scheme at load).
   const checkOne = async ({ url, stem }: { url: string; stem: string }) => {
@@ -127,16 +236,7 @@ async function check(targets: string[], opts: { shots?: string; strict: boolean;
               }
             }
           };
-          await run(() =>
-            page.evaluate((t) => {
-              const r = document.documentElement;
-              // A page on bundle.js: the system's own setTheme, which also moves the accent's derived colors to the
-              // theme, so the dark pass is dark whatever the page did at load. Other pages: the attribute, if it uses one.
-              const ui = (window as unknown as { UI?: { setTheme?: (t: 'light' | 'dark') => void } }).UI;
-              if (typeof ui?.setTheme === 'function') ui.setTheme(t);
-              else if (r.hasAttribute('data-theme')) r.setAttribute('data-theme', t);
-            }, theme),
-          );
+          await run(() => page.evaluate(applyTheme, theme));
           await page.waitForTimeout(opts.wait);
           await page.waitForLoadState('load');
           const res = await run(() => page.evaluate(measure));
@@ -234,6 +334,44 @@ if (cmd === 'check') {
     process.exit(2);
   }
   await check(positionals, { shots: values.shots, strict: !!values.strict, wait });
+} else if (cmd === 'shots') {
+  const { values, positionals } = parseArgs({
+    args: rest,
+    allowPositionals: true,
+    options: {
+      out: { type: 'string' },
+      compare: { type: 'string' },
+      diff: { type: 'string' },
+      prune: { type: 'boolean', default: false },
+      settle: { type: 'string', default: '1000' },
+      threshold: { type: 'string', default: String(DEFAULT_TOLERANCE.threshold) },
+      'max-diff': { type: 'string', default: String(DEFAULT_TOLERANCE.maxDiffPercent) },
+    },
+  });
+  const fail = (msg: string) => {
+    console.error(msg);
+    process.exit(2);
+  };
+  if (!positionals.length || (!values.out && !values.compare)) fail(HELP);
+  if (values.out && values.compare) fail('Give --out DIR (write baselines) or --compare DIR (check against them), not both.');
+  if (values.prune && !values.out) fail('--prune goes with --out: it deletes the baselines in that folder that no page produced.');
+  if (values.compare && !values.diff) fail('--compare needs --diff DIR: where the diff images and new shots go.');
+  if (values.compare && !existsSync(values.compare)) fail(`${values.compare}: no such baseline folder. Write baselines first with --out.`);
+  for (const t of positionals) if (!t.includes('://') && !existsSync(t)) fail(`${t}: no such file. Pass a file path or a URL.`);
+  const settle = Number(values.settle);
+  const threshold = Number(values.threshold);
+  const maxDiff = Number(values['max-diff']);
+  if (!Number.isFinite(settle) || settle < 0) fail(`--settle ${values.settle}: give milliseconds, e.g. --settle 1000.`);
+  if (!(threshold >= 0 && threshold <= 1)) fail(`--threshold ${values.threshold}: give a color distance from 0 to 1, e.g. 0.1.`);
+  if (!(maxDiff >= 0 && maxDiff <= 100)) fail(`--max-diff ${values['max-diff']}: give a percentage from 0 to 100, e.g. 0.02.`);
+  await shots(positionals, {
+    out: values.out,
+    compare: values.compare,
+    diff: values.diff,
+    prune: !!values.prune,
+    settle,
+    tolerance: { threshold, maxDiffPercent: maxDiff },
+  });
 } else if (cmd === 'docs') {
   const { values, positionals } = parseArgs({ args: rest, allowPositionals: true, options: { full: { type: 'boolean', default: false } } });
   docs(positionals[0], !!values.full);
