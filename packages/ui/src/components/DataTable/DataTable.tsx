@@ -6,7 +6,7 @@ import { Tabs } from '../Tabs/Tabs';
 import { format } from '../../format';
 import { tr, unitFor, type CountUnit } from '../../i18n';
 import { Icon, type CustomIcon } from '../../icons/Icon';
-import { TOUCH_ONLY, copyText, cx, idPart, monoNums, reduced, seenOnly, useMedia, useNarrow } from '../../internal/util';
+import { TOUCH_ONLY, copyText, cx, idPart, monoNums, reduced, resizeObserver, seenOnly, useMedia, useNarrow } from '../../internal/util';
 import { Tooltip } from '../Tooltip/Tooltip';
 import { devWarn } from '../../internal/dev';
 import { CheckMark } from '../../internal/Field';
@@ -23,6 +23,9 @@ import phCheck from '../../icons/ph/check';
 import phX from '../../icons/ph/x';
 
 includeIcons(phCaretRight, phCheck, phX);
+
+// The checkbox column (px): the 22 px box with 9 px on each side.
+const SEL = 40;
 
 export type { DataTableColumn, DataTableFilter, DataTableView, FilterOption, FilterValue, RangeValue, Row, RowKey, Total } from './types';
 
@@ -41,13 +44,17 @@ export interface DataTableProps<R extends Row = Record<string, unknown>> {
   pageSize?: number;
   /** Change it when the rows become a different data set: search, filters, sort, page, selection and summary reset. */
   resetKey?: string | number;
-  /** Checkboxes appear when a row is hovered, and on every row once any row is selected. */
+  /** The page's primary action, one primary Button (「新增」): at the right end of the summary row, or of the toolbar
+   *  when there is no summary. Use it instead of a Card head that holds only this button. */
+  action?: React.ReactNode;
+  /** Checkboxes appear when a row is hovered, and on every row once any row is selected; the header's is always shown. */
   selectable?: boolean;
   /** Buttons for the bar that replaces the header while rows are selected. */
   bulkActions?: (ids: string[], clear: () => void) => React.ReactNode;
-  /** IconButtons at the row's right end, shown when the row is hovered. */
+  /** IconButtons over the row's right end, shown while the row is hovered or has keyboard focus (always on touch
+   *  screens and phone cards). They take no column of their own. */
   rowActions?: (row: R) => React.ReactNode;
-  /** px. Default 88. */
+  /** px kept free at each row's end on touch screens, where the row actions always show. Default 88. */
   actionsWidth?: number;
   /** Search box (default on; false hides it). Searches every column unless keys is given. */
   search?: false | { placeholder?: string; keys?: RowKey<R>[] };
@@ -286,6 +293,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const [sumVal, setSumVal] = React.useState('all');
   // Widths (px) that columns grew to so content that cannot wrap is not cut; see the measuring effect.
   const [fit, setFit] = React.useState<Record<string, number>>({});
+  // Whether a long cell on the page is cut at its column's edge (desktop); null until measured.
+  const [clipped, setClipped] = React.useState<boolean | null>(null);
   // A2: widths readers dragged (px per column key); null = width and grow decide. Remembered under widthKey.
   const [widths, setWidthsState] = React.useState<Record<string, number> | null>(() => {
     if (!p.widthKey) return null;
@@ -318,6 +327,15 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     const prev = noSearch ? rootRef.current?.previousElementSibling : null;
     setHeadSlot(prev instanceof HTMLElement && prev.classList.contains('ui-card-head') && prev.parentElement?.classList.contains('ui-card') ? prev : null);
   }, [noSearch]);
+  // A Card head with only buttons above the table (the old way to place 「新增」) leaves a row of its own for one button.
+  React.useEffect(() => {
+    const prev = rootRef.current?.previousElementSibling;
+    devWarn(
+      prev?.classList.contains('ui-card-head') && !prev.querySelector('.ui-card-title') && prev.querySelector('.ui-card-actions'),
+      'DataTable',
+      "the Card around this table has actions but no title, so its one button takes a row of its own above the table. Pass the page's primary action to DataTable's action instead: it goes at the end of the summary row (or the toolbar).",
+    );
+  }, []);
   const [resetKey, setResetKey] = React.useState(p.resetKey);
   const resetting = resetKey !== p.resetKey;
   if (resetting) {
@@ -332,6 +350,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     if (!colsKey) setToggledState({});
     setOpened({});
     setFit({});
+    setClipped(null);
   }
   const valuesKey = JSON.stringify(values);
   const sortKey = JSON.stringify(sort);
@@ -608,7 +627,9 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   // A caret on the left of each row when there are long columns (desktop; phone cards have 「顯示全部」).
   // Columns whose whole text the row's details show: long ones, and short ones with fullText.
   const longCols = shownCols.filter((c) => c.long || c.fullText);
-  const expander = longCols.length > 0 && !narrow;
+  // A long column only needs the caret while a cell on the page is cut (measured below; null until measured, and where
+  // layout cannot be measured). fullText always says more than the cell, so it keeps the caret. An open row keeps it.
+  const expander = longCols.length > 0 && !narrow && (clipped !== false || longCols.some((c) => c.fullText) || visIds.some((id) => opened[id]));
   const EXP = 40;
   // Widths by default. The main column (the first text column) and long ones take the room left; the others hug their
   // content: numbers, units, dates, durations, status Badges and other short text. A width is a least width for any
@@ -624,9 +645,10 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   // Dragged widths (A2) fix every shown column in px; a column shown later starts at its least width.
   const layout = (w: Record<string, number> | null) => {
     const colW = (c: DataTableColumn<R>) => (w ? `${w[c.key] ?? minOf(c)}px` : grows(c) ? `minmax(${minOf(c)}px, ${c.grow || 1}fr)` : `${minOf(c)}px`);
-    const template = [expander ? EXP + 'px' : null, selectable ? '46px' : null, ...shownCols.map(colW), hasAct ? actW + 'px' : null].filter(Boolean).join(' ');
-    const minW =
-      (expander ? EXP : 0) + (selectable ? 46 : 0) + shownCols.reduce((a, c) => a + (w ? (w[c.key] ?? minOf(c)) : minOf(c)), 0) + (hasAct ? actW : 0);
+    // Row actions take no column: they show over the row's end (see .ui-dt-acts). On touch screens, where they always
+    // show, the rows keep --dt-acts-w free at their end instead.
+    const template = [expander ? EXP + 'px' : null, selectable ? SEL + 'px' : null, ...shownCols.map(colW)].filter(Boolean).join(' ');
+    const minW = (expander ? EXP : 0) + (selectable ? SEL : 0) + shownCols.reduce((a, c) => a + (w ? (w[c.key] ?? minOf(c)) : minOf(c)), 0);
     return { gridTemplateColumns: template, minWidth: minW };
   };
   const pageGrid = layout(widths);
@@ -679,6 +701,14 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         const grow = Object.entries(need).filter(([k, w]) => w > (f[k] ?? 0));
         return grow.length ? { ...f, ...Object.fromEntries(grow) } : f;
       });
+      // A long cell cut at its column's edge: the caret column is needed. Only where layout is real (not jsdom).
+      const scroller = root.querySelector<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-scroll');
+      if (scroller && scroller.clientWidth > 0) {
+        const cut = [...root.querySelectorAll<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-body .ui-dt-long')].some(
+          (el) => el.scrollWidth > el.clientWidth + 1,
+        );
+        setClipped(cut);
+      }
     };
     let frame = 0;
     const later = () => {
@@ -695,8 +725,18 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     const mo = new MutationObserver(later);
     for (const el of root.querySelectorAll(':scope > .ui-dt-scroller .ui-dt-table, :scope > .ui-dt-scroller .ui-dt-body')) mo.observe(el, { childList: true });
     document.fonts?.ready.then(later).catch(() => {});
+    // A wider or narrower table cuts long cells differently: the caret column follows. Only the width: a row growing
+    // taller is not a reason to measure.
+    let lastW = -1;
+    const ro = resizeObserver((entries) => {
+      const w = Math.round(entries[0]?.contentRect.width ?? 0);
+      if (w !== lastW && lastW >= 0) later();
+      lastW = w;
+    });
+    ro?.observe(root);
     return () => {
       mo.disconnect();
+      ro?.disconnect();
       cancelAnimationFrame(frame);
       measureRef.current = () => {};
     };
@@ -707,9 +747,16 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   React.useLayoutEffect(() => {
     measureRef.current();
   }, [contentKey, rows]);
-  const stickyStyle = (ci: number) => (ci === 0 && sticky ? { left: (expander ? EXP : 0) + (selectable ? 46 : 0) } : undefined);
+  const stickyStyle = (ci: number) => (ci === 0 && sticky ? { left: (expander ? EXP : 0) + (selectable ? SEL : 0) } : undefined);
   const cellClass = (c: DataTableColumn<R>, ci: number, ...more: unknown[]) =>
-    cx('ui-dt-cell', isNum(c) && 'is-num', !grows(c) && 'is-hug', ci === 0 && sticky && 'is-sticky is-sticky-end', ...more);
+    cx(
+      'ui-dt-cell',
+      isNum(c) && 'is-num',
+      !grows(c) && 'is-hug',
+      ci === 0 && sticky && 'is-sticky is-sticky-end',
+      ci === shownCols.length - 1 && 'is-lastcol',
+      ...more,
+    );
   // stickyFirst: the caret and checkbox columns before the first column stay too, so nothing scrolls under them.
   const lead = (what: 'exp' | 'sel') =>
     sticky ? { className: 'is-sticky', style: { left: what === 'sel' && expander ? EXP : 0 } } : { className: undefined, style: undefined };
@@ -792,7 +839,6 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
             </div>
           );
         })}
-        {hasAct ? <div className="ui-dt-cell" role="columnheader" aria-label={tr('操作')} /> : null}
       </div>
     );
   };
@@ -831,6 +877,9 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
           {markMatch(cellText({ ...c, unit: undefined }, raw), mark)} <span className="ui-unit">{c.unit}</span>
         </span>
       );
+    else if (raw === null || raw === undefined || raw === '')
+      // Nothing to show: a quiet dash, so an empty cell does not read as content.
+      v = <span className="ui-dt-none">{cellText(c, raw)}</span>;
     else v = markMatch(cellText(c, raw), mark);
     return v;
   };
@@ -1056,6 +1105,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
             onZoom={p.zoom !== false && !inZoom ? () => setZoomed(true) : undefined}
           />
         )}
+        {p.action && !summary && !inZoom ? <div className="ui-dt-primary">{p.action}</div> : null}
         {copied && !narrow ? (
           <span className="ui-dt-copied" aria-hidden="true">
             <Icon name="check" size={16} />
@@ -1098,6 +1148,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                         className={cx(
                           'ui-dt-row',
                           i % 2 && 'is-even',
+                          hasAct && 'has-acts',
                           on && 'is-selected',
                           selectable && 'has-sel',
                           expander && !p.rowHref && 'has-exp',
@@ -1177,7 +1228,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                       </div>
                       {open ? (
                         <div id={detailId} role="row" className={cx('ui-dt-detail', i % 2 && 'is-even')} style={{ minWidth: grid.minWidth }}>
-                          <div role="cell" className="ui-dt-detail-cell" style={{ paddingLeft: EXP + (selectable ? 46 : 0) + 12 }}>
+                          <div role="cell" className="ui-dt-detail-cell" style={{ paddingLeft: EXP + (selectable ? SEL : 0) + 12 }}>
                             {longCols.map((c) => (
                               <div key={c.key} className="ui-dt-detail-item">
                                 <div className="ui-dt-detail-label">{c.label}</div>
@@ -1203,8 +1254,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
             </div>
             {p.totals && list.length ? (
               <div className="ui-dt-row ui-dt-total" role="row" style={grid}>
-                {expander ? <div className={cx('ui-dt-cell', lead('exp').className)} style={lead('exp').style} role="cell" /> : null}
-                {selectable ? <div className={cx('ui-dt-cell', lead('sel').className)} style={lead('sel').style} role="cell" /> : null}
+                {expander ? <div className={cx('ui-dt-cell ui-dt-exp', lead('exp').className)} style={lead('exp').style} role="cell" /> : null}
+                {selectable ? <div className={cx('ui-dt-cell ui-dt-sel', lead('sel').className)} style={lead('sel').style} role="cell" /> : null}
                 {shownCols.map((c, ci) => (
                   <div
                     key={c.key}
@@ -1218,7 +1269,6 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                     {total(c, ci)}
                   </div>
                 ))}
-                {hasAct ? <div className="ui-dt-cell" role="cell" /> : null}
               </div>
             ) : null}
           </div>
@@ -1263,7 +1313,11 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   );
 
   return (
-    <div ref={rootRef} className={cx('ui-dt', search === false && 'is-nosearch', selIds.length && 'has-sel', p.className)}>
+    <div
+      ref={rootRef}
+      className={cx('ui-dt', search === false && 'is-nosearch', selIds.length && 'has-sel', hasAct && 'has-acts', p.className)}
+      style={hasAct ? ({ '--dt-acts-w': actW + 'px' } as React.CSSProperties) : undefined}
+    >
       {p.caption && search !== false ? <div className="ui-dt-caption">{p.caption}</div> : null}
       {p.views ? (
         <div className="ui-dt-views" role="tablist" aria-label={tr('檢視')}>
@@ -1282,9 +1336,10 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                   setPage(0);
                 }}
               >
-                {v.label}
+                {v.label}{' '}
                 <span className="ui-dt-view-n">
-                  {format.number(vn)} <span className="ui-unit">{unitFor('筆', vn)}</span>
+                  {format.number(vn)}
+                  <span className="ui-visually-hidden"> {unitFor('筆', vn)}</span>
                 </span>
               </button>
             );
@@ -1292,25 +1347,29 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         </div>
       ) : null}
       {summary ? (
-        <Tabs
-          className="ui-dt-summary"
-          label={summary.label || tr('依狀態篩選')}
-          unit={summary.unit || '筆'}
-          value={sumVal}
-          onChange={(v) => {
-            capture('sort');
-            setSumVal(v);
-            setPage(0);
-          }}
-          items={[
-            { id: 'all', label: tr('全部'), count: sumAll.length },
-            ...summary.items.map((it) => ({
-              id: String(it.value),
-              label: it.label,
-              count: sumAll.filter((x) => String(get(x.r, summary.key)) === String(it.value)).length,
-            })),
-          ]}
-        />
+        <div className="ui-dt-top">
+          <Tabs
+            className="ui-dt-summary"
+            label={summary.label || tr('依狀態篩選')}
+            unit={summary.unit || '筆'}
+            value={sumVal}
+            onChange={(v) => {
+              capture('sort');
+              setSumVal(v);
+              setPage(0);
+            }}
+            items={[
+              { id: 'all', label: tr('全部'), count: sumAll.length },
+              ...summary.items.map((it) => ({
+                id: String(it.value),
+                label: it.label,
+                count: sumAll.filter((x) => String(get(x.r, summary.key)) === String(it.value)).length,
+              })),
+            ]}
+            hideUnit
+          />
+          {p.action ? <div className="ui-dt-primary">{p.action}</div> : null}
+        </div>
       ) : null}
       {headSlot ? createPortal(toolsView(false, true), headSlot) : toolsView(false)}
       {chipsView(false)}

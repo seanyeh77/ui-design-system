@@ -21,7 +21,7 @@ t('已選 {n} 筆', { n: 3 });
 ## 規則（zh-TW）
 
 - 日期：`2026/11/04（三）`，年份一律顯示，加星期。`UI.format.date(d)`；不要星期時傳 `{ weekday: false }`。
-- 時間：24 小時制 `15:57`。`UI.format.time(d)`、`UI.format.dateTime(d)`。
+- 時間：24 小時制 `15:57`。`UI.format.time(d)`；日期加時間 `2026/11/04（三）15:57`，全形「）」本身已留半個字的空，後面不再加空格（`UI.format.dateTime(d)`）。
 - 相對時間：一週內用「2 小時前」、「昨天」、「3 天前」；超過一週寫完整日期時間。`UI.format.relative(d)`。
 - 大數字：只有 KPI 卡片縮寫，單位用萬、億（`1,284 萬`）；表格和明細寫完整數字。`UI.format.compact(v)`。
 - 檔案大小：未滿 1 MB 寫整數 KB（「186 KB」），以上寫一位小數的 MB 或 GB（「54.9 MB」）。`UI.format.fileSize(bytes)`。

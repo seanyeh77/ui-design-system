@@ -32,7 +32,10 @@ function time(d: Date | null | undefined): string {
 }
 
 function dateTime(d: Date | null | undefined, o?: { weekday?: boolean }): string {
-  return d ? `${date(d, o)} ${time(d)}` : '';
+  if (!d) return '';
+  // zh-TW: the full-width 「）」 already leaves half a character of room, so no space after it: 2026/11/04（三）13:00.
+  const day = date(d, o);
+  return isZhTW() && day.endsWith('）') ? day + time(d) : `${day} ${time(d)}`;
 }
 
 /** Within 7 days: 「2 小時前」、「昨天」. Older: full date and time. Pass now to test. */

@@ -76,12 +76,12 @@
   }
 }
 .ui-tab-count {
-  /* With the space before it: about 6 px from the name. */
+  /* With the space before it: about 6 px from the name. A quiet number: the text font with figures of one width,
+     muted and regular weight on every tab, so the names lead and the counts line up. */
   margin-left: 2px;
-  font-family: var(--font-mono);
-  font-size: var(--text-small);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-compact);
+  font-weight: 400;
   color: var(--ink-muted);
-}
-.ui-tab.is-selected .ui-tab-count {
-  color: var(--ink);
 }

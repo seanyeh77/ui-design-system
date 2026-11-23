@@ -182,9 +182,9 @@
     min-width: 0;
   }
 }
-/* Under 480 px: 「排序」 and the number of levels instead of the whole sort. With copy, columns and zoom as well (not
-   on phones, which hide them), 「篩選」「排序」「欄位」 keep only their icons and counts; the words stay in the
-   accessible names. The buttons wrap only when even that does not fit. */
+/* Under 480 px: the search field and the buttons back on one row, the field taking the room left. 「排序」 and the
+   number of levels instead of the whole sort; 「篩選」「排序」 keep only their icons and counts, the words stay in the
+   accessible names. */
 @container ui-dt (max-width: 479px) {
   .ui-dt-sortbtn-text {
     display: none;
@@ -195,7 +195,19 @@
   .ui-dt-actions > .ui-dt-sortbtn {
     min-width: 0;
   }
-  .ui-dt-actions:has(> .ui-dt-menubtn) .ui-dt-btntext {
+  /* One row: the search field takes the room left, the buttons keep to their icons. */
+  .ui-dt-tools {
+    flex-wrap: nowrap;
+  }
+  .ui-dt-tools > .ui-dt-search {
+    flex: 1 1 0;
+    min-width: 120px;
+  }
+  .ui-dt-tools > .ui-dt-search + .ui-dt-actions {
+    flex: none;
+    flex-wrap: nowrap;
+  }
+  .ui-dt-actions .ui-dt-btntext {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -203,17 +215,21 @@
     clip: rect(0 0 0 0);
     white-space: nowrap;
   }
-  .ui-dt-actions:has(> .ui-dt-menubtn) :is(.ui-dt-filterbtn, .ui-dt-sortbtn) {
+  .ui-dt-actions :is(.ui-dt-filterbtn, .ui-dt-sortbtn) {
     padding-inline: 10px;
   }
   .ui-dt-actions {
     flex-wrap: wrap;
   }
 }
-/* Phones, also for tools that moved into a Card title row (outside the table, so not reached by the container). */
+/* Phones, also for tools that moved into a Card title row (outside the table, so not reached by the container). The
+   buttons are as tall as the 48 px search field beside them. */
 @media (max-width: 599px) {
   .ui-dt-sortbtn-text {
     display: none;
+  }
+  .ui-dt-tools:has(> .ui-dt-search) > .ui-dt-actions > :is(.ui-dt-filterbtn, .ui-dt-sortbtn) {
+    height: var(--touch-target);
   }
   .ui-dt-sortbtn-short {
     display: inline-flex;
@@ -260,14 +276,16 @@
   min-width: min-content;
 }
 .ui-dt-row {
+  /* The row's ground in one variable, so the row actions drawn over its end (.ui-dt-acts) take the same color. */
+  --dt-row-bg: var(--surface);
   display: grid;
   align-items: center;
   min-height: 48px;
   border-bottom: 1px solid var(--line);
-  background: var(--surface);
+  background: var(--dt-row-bg);
 }
 .ui-dt-body .ui-dt-row.is-even {
-  background: var(--dt-zebra);
+  --dt-row-bg: var(--dt-zebra);
 }
 .ui-dt-body {
   position: relative;
@@ -276,7 +294,7 @@
   transition: background-color 0.12s ease;
 }
 .ui-dt-body .ui-dt-row:hover {
-  background: var(--dt-hover);
+  --dt-row-bg: var(--dt-hover);
 }
 /* EC: rows with details or a page (rowHref) are clickable as a whole; the hover above already shows it. */
 .ui-dt-body .ui-dt-row:is(.has-exp, .has-href) {
@@ -293,7 +311,7 @@
 .ui-dt-body .ui-dt-row.is-selected,
 .ui-dt-body .ui-dt-row.is-selected:hover {
   --dt-mark: inset 3px 0 0 var(--accent);
-  background: var(--accent-soft);
+  --dt-row-bg: var(--accent-soft);
 }
 .ui-dt-body .ui-dt-row > .ui-dt-cell:first-child {
   box-shadow: var(--dt-mark);
@@ -372,8 +390,13 @@
   border-right: 1px solid var(--line);
   overflow: hidden;
 }
-.ui-dt-cell:last-child {
+.ui-dt-cell:last-child,
+.ui-dt-cell.is-lastcol {
   border-right: 0;
+}
+/* An empty cell's 「—」: muted, so it does not read as content. */
+.ui-dt-none {
+  color: var(--ink-muted);
 }
 .ui-dt-cell.is-num {
   justify-content: flex-end;
@@ -459,34 +482,73 @@
   padding: 0;
   cursor: pointer;
 }
-.ui-dt-sel > *,
-.ui-dt-acts > * {
-  transition: opacity 0.12s ease;
+/* The checkbox column: 40 px, no border of its own (it belongs to the row, like the caret). The header's checkbox is
+   always shown, so the column reads as a column of checkboxes; a row's shows when the row is hovered or has keyboard
+   focus, and on every row once one is selected. */
+.ui-dt-cell.ui-dt-sel,
+.ui-dt-cell.ui-dt-exp {
+  padding: 0;
+  justify-content: center;
+  border-right: 0;
 }
-.ui-dt-sel > * {
+.ui-dt-body .ui-dt-sel > * {
   opacity: 0;
+  transition: opacity 0.12s ease;
 }
 .ui-dt-row:hover .ui-dt-sel > *,
 .ui-dt-row:focus-within .ui-dt-sel > *,
 .ui-dt.has-sel .ui-dt-sel > * {
   opacity: 1;
 }
-.ui-dt-acts {
+/* Row actions take no column: they are drawn over the row's right end while the row is hovered or has keyboard focus,
+   on the row's own ground (zebra, hover, selected) with a short fade, so the text under them is covered cleanly. */
+.ui-dt-row.has-acts {
+  position: relative;
+}
+.ui-dt-body .ui-dt-cell.ui-dt-acts {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
   justify-content: flex-end;
   gap: 2px;
-  padding: 0 8px;
-}
-.ui-dt-acts > * {
+  padding: 0 var(--space-2) 0 var(--space-6);
+  border-right: 0;
+  background: linear-gradient(to right, transparent, var(--dt-row-bg) var(--space-6));
   opacity: 0;
+  transition: opacity 0.12s ease;
 }
-.ui-dt-row:hover .ui-dt-acts > *,
-.ui-dt-row:focus-within .ui-dt-acts > * {
+.ui-dt-row:hover > .ui-dt-acts,
+.ui-dt-row:focus-within > .ui-dt-acts {
   opacity: 1;
 }
+/* IconButtons in a row are quiet whatever their variant: 32 px, no border, ink-muted until hovered. */
+.ui-dt-acts .ui-iconbtn {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
+}
+.ui-dt-acts .ui-iconbtn:hover {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--dt-row-bg), var(--ink) 8%);
+}
+/* Touch screens have no hover: the actions always show, and every row keeps their width free at its end. */
 @media (hover: none) {
   .ui-dt-sel > *,
-  .ui-dt-acts > *,
+  .ui-dt-body .ui-dt-sel > *,
   .ui-dt-arrow {
+    opacity: 1;
+  }
+  .ui-dt.has-acts .ui-dt-row:not(.ui-dt-bulk) {
+    padding-right: var(--dt-acts-w, 88px);
+  }
+  .ui-dt-body .ui-dt-cell.ui-dt-acts {
+    width: var(--dt-acts-w, 88px);
+    box-sizing: border-box;
+    padding-left: var(--space-2);
+    background: var(--dt-row-bg);
     opacity: 1;
   }
 }
@@ -563,9 +625,22 @@
   cursor: default;
 }
 
+/* The summary tabs and the page's primary action (action) on one row, the action at its right end. */
+.ui-dt-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.ui-dt-primary {
+  flex: none;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
 .ui-dt-summary {
-  margin-bottom: var(--space-3);
-  align-self: flex-start;
+  flex: 0 1 auto;
+  min-width: 0;
   /* Wider than the table (phones): the row scrolls sideways, the edge with more tabs fades (Tabs), and it comes to rest
      on a whole tab rather than in the middle of a word. */
   scroll-snap-type: x mandatory;
@@ -663,6 +738,14 @@
     width: auto;
     min-width: 0;
   }
+  /* In a Card the cards' box is the Card itself: no second shadow, a line between the toolbar and the first row. */
+  .ui-card .ui-dt-scroll {
+    box-shadow: none;
+    border-radius: 0;
+  }
+  .ui-card.is-flush > .ui-dt > .ui-dt-scroller > .ui-dt-scroll {
+    border-top: 1px solid var(--line);
+  }
   .ui-dt-head:not(.ui-dt-bulk) {
     display: none;
   }
@@ -749,17 +832,27 @@
   .ui-dt-body .ui-dt-cell.is-m-hide {
     display: none;
   }
+  /* Phone cards: the actions at the title row's end, always shown; the 32 px quiet buttons (48 px touch area) pull
+     into the card's padding so they do not make the title row taller. */
   .ui-dt-body .ui-dt-cell.ui-dt-acts {
+    position: static;
     grid-column: 4;
     grid-row: 1;
     display: flex;
     justify-content: flex-end;
     align-items: center;
     gap: 4px;
-    margin: 0 0 0 var(--space-2);
+    width: auto;
+    margin: -6px -8px -6px var(--space-1);
+    padding: 0;
+    background: none;
+    opacity: 1;
+  }
+  .ui-dt.has-acts .ui-dt-row:not(.ui-dt-bulk) {
+    padding-right: var(--space-4);
   }
   .ui-dt-sel > *,
-  .ui-dt-acts > * {
+  .ui-dt-body .ui-dt-sel > * {
     opacity: 1;
   }
   .ui-dt-body .ui-dt-cell.is-long > .ui-dt-long {
@@ -769,9 +862,9 @@
   /* Equal widths while every tab fits; else each keeps its text whole and the row scrolls. */
   .ui-dt-summary {
     display: grid;
+    flex: 1 1 auto;
     grid-auto-flow: column;
     grid-auto-columns: minmax(max-content, 1fr);
-    align-self: stretch;
   }
 }
 @media (max-width: 599px) {
@@ -839,9 +932,9 @@
   background: var(--accent);
 }
 .ui-dt-view-n {
-  margin-left: 6px;
-  font-family: var(--font-mono);
-  font-size: var(--text-mini);
+  margin-left: 2px;
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   color: var(--ink-muted);
   font-weight: 400;
 }
@@ -1166,13 +1259,16 @@
 .ui-card.is-flush > .ui-dt:first-child {
   padding-top: var(--space-4);
 }
-.ui-card.is-flush > .ui-dt > :not(.ui-dt-scroller, .ui-dt-summary) {
+.ui-card.is-flush > .ui-dt > :not(.ui-dt-scroller) {
   padding-inline: var(--space-4);
 }
-/* The summary tabs draw their own track: kept off the card's edges by a margin, not padded inside the track. */
-.ui-card.is-flush > .ui-dt > .ui-dt-summary {
-  margin-inline: var(--space-4);
-  max-width: calc(100% - 2 * var(--space-4));
+/* Nothing under the table (no page numbers, no scroll hint): the last row ends at the card's edge, without an empty
+   band and a second line under it. */
+.ui-card.is-flush > .ui-dt:not(:has(> .ui-dt-foot, > .ui-scroll-hint)) {
+  padding-bottom: 0;
+}
+.ui-card.is-flush > .ui-dt:not(:has(> .ui-dt-foot, > .ui-scroll-hint)) > .ui-dt-scroller > .ui-dt-scroll {
+  border-bottom: 0;
 }
 .ui-card.is-flush > .ui-dt .ui-dt-scroll {
   border-inline: 0;

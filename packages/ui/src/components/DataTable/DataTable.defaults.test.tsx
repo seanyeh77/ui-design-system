@@ -452,7 +452,7 @@ test('dates: <time dateTime>, tabular figures; a relative one shows the full dat
   // Not a tab stop.
   expect(times[0].tabIndex).toBe(-1);
   const cell = times[0].closest('[role="cell"]') as HTMLElement;
-  expect(cell.getAttribute('aria-description')).toMatch(/^\d{4}\/\d{2}\/\d{2}（.） \d{2}:\d{2}$/);
+  expect(cell.getAttribute('aria-description')).toMatch(/^\d{4}\/\d{2}\/\d{2}（.）\d{2}:\d{2}$/);
   await userEvent.setup().hover(times[0]);
   await waitFor(() => expect(document.querySelector('.ui-tooltip')?.textContent).toBe(cell.getAttribute('aria-description')));
   // Older than a week: already the full date, no Tooltip and no description.

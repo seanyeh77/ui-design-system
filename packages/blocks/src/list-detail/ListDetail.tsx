@@ -16,9 +16,9 @@ import {
   type NavSection,
 } from '@seanyeh77/ui';
 
-/* A list page: the title once (top bar), the list in one Card, the page's one primary action (新增) in that Card's
-   actions, the count in the table's toolbar. Click a row's pencil to edit it in a drawer; closing with unsaved changes
-   asks first. Replace Item and the fields with yours. */
+/* A list page: the title once (top bar), the list in one Card, the page's one primary action (新增) at the end of the
+   summary row (DataTable's action), the count in the table's toolbar. Hover a row (or tab to it) and click its pencil to
+   edit it in a drawer; closing with unsaved changes asks first. Replace Item and the fields with yours. */
 
 export interface Item {
   id: string;
@@ -84,20 +84,18 @@ export function ListDetail({ items, owners, onSave }: ListDetailProps) {
   return (
     <AppShell nav={NAV} value="items" onNavigate={() => {}} brand="專案中心" title="項目">
       <Page>
-        <Card
-          padding={false}
-          actions={
-            <Button variant="primary" icon="plus" onClick={create}>
-              新增
-            </Button>
-          }
-        >
+        <Card padding={false}>
           <DataTable
             label="項目"
             columns={columns}
             rows={items}
             summary={{ key: 'status', items: SUMMARY }}
-            rowActions={(r) => <IconButton icon="pencil-simple" label={`編輯 ${r.name}`} onClick={() => open(r)} />}
+            action={
+              <Button variant="primary" icon="plus" onClick={create}>
+                新增
+              </Button>
+            }
+            rowActions={(r) => <IconButton variant="quiet" icon="pencil-simple" label={`編輯 ${r.name}`} onClick={() => open(r)} />}
             urlKey="items"
           />
         </Card>

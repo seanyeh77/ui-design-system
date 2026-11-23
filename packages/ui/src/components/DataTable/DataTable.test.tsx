@@ -673,17 +673,21 @@ test('toolbar: under 760 px wide the search field has a row of its own and the b
   }
 });
 
-test('toolbar on phones: the search field keeps its width and nothing overlaps', async () => {
+test('toolbar on phones: the search field and the buttons share one row, the field takes the room left, nothing overlaps', async () => {
   await page.viewport(390, 800);
   const { container } = render(toolbarTable());
   const tools = container.querySelector('.ui-dt-tools') as HTMLElement;
   const search = tools.querySelector('.ui-dt-search') as HTMLElement;
-  expect(search.getBoundingClientRect().width).toBeGreaterThan(300);
+  const sr = search.getBoundingClientRect();
+  expect(sr.width).toBeGreaterThanOrEqual(120);
   const rest = leaves(tools)
     .filter((e) => e !== search)
     .map((e) => e.getBoundingClientRect());
   expect(rest.length).toBeGreaterThan(1);
+  expect(rest[0].left).toBeGreaterThanOrEqual(sr.right);
+  rest.forEach((r) => expect(r.top).toBeLessThan(sr.bottom));
   rest.forEach((r, i) => i && expect(r.left).toBeGreaterThanOrEqual(rest[i - 1].right));
+  expect(Math.max(...rest.map((r) => r.right))).toBeLessThanOrEqual(tools.getBoundingClientRect().right + 1);
   await page.viewport(1280, 900);
 });
 
@@ -735,4 +739,124 @@ test('height: a paged table has no box of its own to scroll in; the wheel always
   const box = b.container.querySelector('.ui-dt-scroll') as HTMLElement;
   expect(getComputedStyle(box).maxHeight).toBe('560px');
   expect(getComputedStyle(box).overscrollBehaviorY).toBe('auto');
+});
+
+test('action: the primary button at the right end of the summary row, or of the toolbar without a summary', async () => {
+  await page.viewport(1280, 900);
+  const rows = [
+    { id: 'a', name: 'alpha', status: 'fail' },
+    { id: 'b', name: 'beta', status: 'done' },
+  ];
+  const columns = [
+    { key: 'name' as const, label: '名稱' },
+    { key: 'status' as const, label: '狀態' },
+  ];
+  const add = <button type="button">新增</button>;
+  const a = render(
+    <div style={{ width: 900 }}>
+      <Card padding={false}>
+        <DataTable
+          label="項目"
+          columns={columns}
+          rows={rows}
+          urlSync={false}
+          summary={{ key: 'status', items: [{ value: 'fail', label: '失敗' }] }}
+          action={add}
+        />
+      </Card>
+    </div>,
+  );
+  const top = a.container.querySelector('.ui-dt-top') as HTMLElement;
+  const btn = within(top).getByRole('button', { name: '新增' });
+  const tabs = within(top).getByRole('tablist');
+  // Same row as the tabs, at its right end; no Card head above.
+  expect(Math.abs(btn.getBoundingClientRect().top + btn.offsetHeight / 2 - (tabs.getBoundingClientRect().top + tabs.offsetHeight / 2))).toBeLessThan(2);
+  expect(Math.round(top.getBoundingClientRect().right - parseFloat(getComputedStyle(top).paddingRight) - btn.getBoundingClientRect().right)).toBe(0);
+  expect(a.container.querySelector('.ui-card-head')).toBeNull();
+  // Counts are numbers only on screen; the unit stays for screen readers.
+  const count = tabs.querySelector('.ui-tab-count') as HTMLElement;
+  expect(count.textContent).toBe('2 筆');
+  expect((count.querySelector('.ui-visually-hidden') as HTMLElement).getBoundingClientRect().width).toBeLessThanOrEqual(1);
+  a.unmount();
+  const b = render(
+    <div style={{ width: 900 }}>
+      <DataTable label="項目" columns={columns} rows={rows} urlSync={false} action={add} />
+    </div>,
+  );
+  const tools = b.container.querySelector('.ui-dt-tools') as HTMLElement;
+  const items = leaves(tools);
+  expect(rowsOf(items)).toBe(1);
+  expect(items[items.length - 1].textContent).toBe('新增');
+  b.unmount();
+});
+
+test('row actions take no column: drawn over the row end on hover or keyboard focus, on the row ground', async () => {
+  await page.viewport(1280, 900);
+  const rows = [
+    { id: 'a', name: 'alpha', note: '' },
+    { id: 'b', name: 'beta', note: 'x' },
+  ];
+  const columns = [
+    { key: 'name' as const, label: '名稱' },
+    { key: 'note' as const, label: '備註' },
+  ];
+  const { container } = render(
+    <div style={{ width: 900 }}>
+      <DataTable label="項目" columns={columns} rows={rows} urlSync={false} rowActions={(r) => <button type="button">{`編輯 ${r.name}`}</button>} />
+    </div>,
+  );
+  const head = container.querySelector('.ui-dt-head') as HTMLElement;
+  // Two columns, no empty one for the actions.
+  expect(head.querySelectorAll('[role="columnheader"]').length).toBe(2);
+  const row = container.querySelector('.ui-dt-body .ui-dt-row') as HTMLElement;
+  const acts = row.querySelector('.ui-dt-acts') as HTMLElement;
+  expect(getComputedStyle(acts).position).toBe('absolute');
+  expect(getComputedStyle(acts).opacity).toBe('0');
+  // Keyboard focus shows it.
+  (within(row).getByRole('button') as HTMLElement).focus();
+  await waitFor(() => expect(getComputedStyle(acts).opacity).toBe('1'));
+  expect(Math.round(acts.getBoundingClientRect().right)).toBe(Math.round(row.getBoundingClientRect().right));
+  // The empty cell's dash is muted.
+  const dash = row.querySelector('.ui-dt-none') as HTMLElement;
+  expect(dash.textContent).toBe('—');
+  expect(getComputedStyle(dash).color).not.toBe(getComputedStyle(row).color);
+});
+
+test('long columns: the caret column shows only while a long cell is cut', async () => {
+  await page.viewport(1280, 900);
+  const columns = [
+    { key: 'fn' as const, label: '函式' },
+    { key: 'note' as const, label: '筆記內容', long: true },
+  ];
+  const rows = [{ id: 'a', fn: 'ibmon_spawn', note: '短的筆記。' }];
+  const { container, rerender } = render(
+    <div style={{ width: 900 }}>
+      <DataTable columns={columns} rows={rows} urlSync={false} />
+    </div>,
+  );
+  await waitFor(() => expect(container.querySelector('.ui-dt-exp-btn')).toBeNull());
+  rerender(
+    <div style={{ width: 900 }}>
+      <DataTable
+        columns={columns}
+        rows={[{ ...rows[0], note: '先 fork 再 execve，子行程繼承 IBTRACE_SHM；父行程等到 ring 建好才回傳。'.repeat(4) }]}
+        urlSync={false}
+      />
+    </div>,
+  );
+  await waitFor(() => expect(container.querySelector('.ui-dt-exp-btn')).not.toBeNull());
+});
+
+test('selectable: the header checkbox is always shown, a row checkbox on hover; the column is 40 px', async () => {
+  await page.viewport(1280, 900);
+  const { container } = render(
+    <div style={{ width: 900 }}>
+      <DataTable columns={cols} rows={[{ id: 'a', name: 'alpha' }]} urlSync={false} selectable />
+    </div>,
+  );
+  const headBox = container.querySelector('.ui-dt-head .ui-dt-check') as HTMLElement;
+  const rowBox = container.querySelector('.ui-dt-body .ui-dt-check') as HTMLElement;
+  expect(getComputedStyle(headBox).opacity).toBe('1');
+  expect(getComputedStyle(rowBox).opacity).toBe('0');
+  expect(Math.round((container.querySelector('.ui-dt-head .ui-dt-sel') as HTMLElement).getBoundingClientRect().width)).toBe(40);
 });

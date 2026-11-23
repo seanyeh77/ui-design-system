@@ -15,7 +15,7 @@ test('format.date: 2026/11/04（三）, the year always shown; weekday: false dr
 test('format.time and dateTime: 24-hour clock', () => {
   expect(format.time(at(2026, 11, 4, 15, 57))).toBe('15:57');
   expect(format.time(at(2026, 11, 4, 0, 5))).toBe('00:05');
-  expect(format.dateTime(at(2026, 11, 4, 9, 3))).toBe('2026/11/04（三） 09:03');
+  expect(format.dateTime(at(2026, 11, 4, 9, 3))).toBe('2026/11/04（三）09:03');
 });
 
 test('format.relative: within a week 「2 小時前」「昨天」「3 天前」; a week or more, or the future, the full date', () => {
@@ -27,8 +27,8 @@ test('format.relative: within a week 「2 小時前」「昨天」「3 天前」
   expect(format.relative(ago(26 * 3600), now)).toBe('昨天');
   expect(format.relative(ago(3 * 86400), now)).toBe('3 天前');
   expect(format.relative(ago(6 * 86400 + 3600), now)).toBe('6 天前');
-  expect(format.relative(ago(7 * 86400), now)).toBe('2026/11/16（一） 12:00');
-  expect(format.relative(new Date(now.getTime() + 3600 * 1000), now)).toBe('2026/11/23（一） 13:00');
+  expect(format.relative(ago(7 * 86400), now)).toBe('2026/11/16（一）12:00');
+  expect(format.relative(new Date(now.getTime() + 3600 * 1000), now)).toBe('2026/11/23（一）13:00');
 });
 
 test('format.money: NT$ 1,280 with a space, minus before NT$, no decimals', () => {

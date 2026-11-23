@@ -83,6 +83,7 @@ export function Dashboard({ kpis, trend, rows, notifications }: DashboardProps) 
                 { value: 'review', label: '審核中' },
                 { value: 'doing', label: '進行中' },
                 { value: 'done', label: '完成' },
+                { value: 'draft', label: '草稿' },
               ],
               unit: '個',
             }}

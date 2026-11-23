@@ -25,11 +25,14 @@ export interface TabsProps<V extends string = string> {
   /** Unit after every count, e.g. 「筆」 or 「個」: a number carries its unit. A function gets the count, for plurals:
    *  `(n) => (n === 1 ? 'item' : 'items')`. */
   unit?: CountUnit;
+  /** Counts show the number only; the unit is still read by screen readers and announced. For a row of status counts
+   *  (DataTable's summary) where the unit is the same on every tab. Default false. */
+  hideUnit?: boolean;
   className?: string;
 }
 
 /** Views of the same content. The underline moves like a droplet; arrow keys move between tabs. */
-export function Tabs<V extends string = string>({ items, value, onChange, label, unit, className }: TabsProps<V>) {
+export function Tabs<V extends string = string>({ items, value, onChange, label, unit, hideUnit = false, className }: TabsProps<V>) {
   const refs = React.useRef<(HTMLButtonElement | null)[]>([]);
   const track = React.useRef<HTMLDivElement>(null);
   const [box, setBox] = React.useState<{ left: number; right: number } | null>(null);
@@ -142,10 +145,14 @@ export function Tabs<V extends string = string>({ items, value, onChange, label,
             <span className="ui-tab-count">
               {format.number(t.count)}
               {t.unit || unit ? (
-                <>
-                  {' '}
-                  <span className="ui-unit">{unitFor(t.unit || unit, t.count)}</span>
-                </>
+                hideUnit ? (
+                  <span className="ui-visually-hidden"> {unitFor(t.unit || unit, t.count)}</span>
+                ) : (
+                  <>
+                    {' '}
+                    <span className="ui-unit">{unitFor(t.unit || unit, t.count)}</span>
+                  </>
+                )
               ) : null}
             </span>
           ) : null}

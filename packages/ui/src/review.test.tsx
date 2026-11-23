@@ -62,7 +62,7 @@ test('DataTable: the caret of a row whose id has a space controls its details', 
         { key: 'name', label: '名稱' },
         { key: 'note', label: '筆記', long: true },
       ]}
-      rows={[{ id: 'a b', name: 'alpha', note: 'long text' }]}
+      rows={[{ id: 'a b', name: 'alpha', note: 'long text, cut at the column edge so the row has a caret. '.repeat(20) }]}
       urlSync={false}
     />,
   );
