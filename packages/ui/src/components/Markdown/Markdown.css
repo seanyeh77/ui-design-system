@@ -77,6 +77,34 @@
   text-underline-offset: 2px;
   cursor: pointer;
 }
+/* A list item that is one link (a reference list): the link fills the row, so the whole row is clickable, with the
+   hover ground of other rows. 32 px with a mouse, 48 px on touch screens. The marker stays outside the row, where the
+   other items' markers are; the text starts where theirs does and the ground reaches 6 px to its left. */
+.ui-md li.ui-md-rowitem + li.ui-md-rowitem {
+  margin-top: 2px;
+}
+.ui-md-link.is-row {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 32px;
+  margin-left: -6px;
+  padding: 3px 8px 3px 6px;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  transition: background-color var(--dur-hover) ease;
+}
+.ui-md-link.is-row:hover {
+  background: var(--surface-sub);
+}
+button.ui-md-link.is-row {
+  width: calc(100% + 6px);
+}
+@media (pointer: coarse) {
+  .ui-md-link.is-row {
+    min-height: var(--touch-target);
+  }
+}
 .ui-md-table-wrap {
   max-width: 100%;
   overflow-x: auto;

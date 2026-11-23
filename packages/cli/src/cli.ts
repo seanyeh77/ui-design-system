@@ -30,7 +30,8 @@ import {
 const HELP = `ui check <file or URL>... [--shots DIR] [--strict] [--wait MS]
   Opens each page at 390 px and 1280 px, light and dark, and fails (exit 1) on:
   console errors, horizontal overflow at 390 px, touch targets under 48 px, touch areas that spill past their control, a card inside a card,
-  raw Markdown, native controls the design system replaces, wrapped buttons, tabs, headers or headings, controls of
+  raw Markdown, native controls the design system replaces, wrapped buttons, tabs, table headers or interface headings (headings in Markdown
+  content may wrap), controls of
   different heights in one toolbar row, a status badge with a shadow in a table or card, and page CSS outside a
   cascade layer on element selectors (a reset, normalize or starter CSS: button, *, h1) that overrides a component.
   Exits 2 when a page cannot be checked at all: it does not load, or the check itself crashes.

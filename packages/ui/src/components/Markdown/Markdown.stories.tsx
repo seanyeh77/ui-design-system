@@ -31,6 +31,27 @@ export const Document = {
   ),
 };
 
+const references = `## 路由器規格、BGP-4 協定與 IPv4 轉送需求的參考資料
+
+- [RFC 1812: Requirements for IP Version 4 Routers](https://www.rfc-editor.org/rfc/rfc1812)
+- [RFC 4271: A Border Gateway Protocol 4 (BGP-4)](https://www.rfc-editor.org/rfc/rfc4271)
+- 規格以 [RFC 1812](https://www.rfc-editor.org/rfc/rfc1812) 為準
+
+\`\`\`sh
+make test
+\`\`\`
+`;
+
+/** A list item that is one link fills its row (48 px on touch screens); a link in a sentence stays inline. Headings
+ *  in document content may wrap. */
+export const References = {
+  render: () => (
+    <div style={{ maxWidth: 720 }}>
+      <UI.Markdown>{references}</UI.Markdown>
+    </div>
+  ),
+};
+
 export const Inline = {
   render: () => <UI.Markdown inline>{'先跑 `make`，再用 **harness/run.sh** 啟動。'}</UI.Markdown>,
 };

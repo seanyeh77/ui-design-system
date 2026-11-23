@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { page } from 'vitest/browser';
+import { cdp, page } from 'vitest/browser';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { Markdown } from '../../index';
@@ -386,4 +386,56 @@ test('terms: termsMark="all" marks every time', () => {
     </Markdown>,
   );
   expect(container.querySelectorAll('.ui-term.is-word').length).toBe(2);
+});
+
+const refs = `- [RFC 1812: Requirements for IP Version 4 Routers](https://www.rfc-editor.org/rfc/rfc1812)
+- [論文](docs/paper.md)
+- 見 [評分](docs/grading.md) 的說明
+- [schemes](fn:a.py:f)
+`;
+
+test('Markdown: a list item that is one link is a row link; a link in a sentence stays inline', async () => {
+  await page.viewport(390, 844);
+  const { container } = render(
+    <div style={{ width: 360 }}>
+      <Markdown schemes={['fn']} onLink={() => {}}>
+        {refs}
+      </Markdown>
+    </div>,
+  );
+  const items = [...container.querySelectorAll('li')];
+  expect(items.map((li) => li.className)).toEqual(['ui-md-rowitem', 'ui-md-rowitem', '', 'ui-md-rowitem']);
+  const rfc = items[0].firstElementChild as HTMLElement;
+  expect(rfc.tagName).toBe('A');
+  expect(rfc.className).toBe('ui-md-link is-row');
+  expect(items[0].childNodes.length).toBe(1);
+  // A scheme of the app's own without an address is a button; it fills the row too.
+  expect(items[3].firstElementChild?.tagName).toBe('BUTTON');
+  expect(items[3].firstElementChild?.className).toBe('ui-md-link is-row');
+  expect(items[2].querySelector('a')?.className).toBe('ui-md-link');
+  // The row fills the item (6 px more to the left for the hover ground), text left-aligned; 32 px with a mouse.
+  for (const li of [items[0], items[3]]) {
+    const row = (li.firstElementChild as HTMLElement).getBoundingClientRect();
+    const box = li.getBoundingClientRect();
+    expect(Math.round(row.right)).toBe(Math.round(box.right));
+    expect(Math.round(box.left - row.left)).toBe(6);
+  }
+  expect(getComputedStyle(rfc).textAlign).toBe('left');
+  expect(Math.round((items[1].firstElementChild as HTMLElement).getBoundingClientRect().height)).toBe(32);
+  // The long title wraps inside the row instead of overflowing it.
+  expect(rfc.getBoundingClientRect().height).toBeGreaterThan(32);
+  await page.viewport(414, 896);
+});
+
+test('Markdown: on a touch screen a row link is at least 48 px tall', async () => {
+  await cdp().send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+  await cdp().send('Emulation.setEmulatedMedia', { features: [{ name: 'pointer', value: 'coarse' }] });
+  try {
+    expect(matchMedia('(pointer: coarse)').matches).toBe(true);
+    const { container } = render(<Markdown>{'- [論文](docs/paper.md)\n- [規格](docs/spec.md)'}</Markdown>);
+    for (const a of container.querySelectorAll('a.is-row')) expect(a.getBoundingClientRect().height).toBeGreaterThanOrEqual(48);
+  } finally {
+    await cdp().send('Emulation.setEmulatedMedia', { features: [] });
+    await cdp().send('Emulation.setTouchEmulationEnabled', { enabled: false });
+  }
 });

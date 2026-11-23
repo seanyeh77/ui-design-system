@@ -12,6 +12,7 @@
 
 - 不執行 HTML：標籤去掉只留文字（`<details>`、`<summary>` 例外）。
 - `#` 顯示成 h4；放在 Section 裡、原文從 `###` 開始寫時用 `topLevel`（見下方）。
+- 標題可以換行：文件裡的標題由作者寫，長度無法控制，截斷會看不到；`ui check` 不檢查 Markdown 標題（`.ui-md-h`）。介面標題（頁面、卡片、對話框）仍不換行。
 - 路徑和行號（`routing.py:108`）用 `refHref`／`onRef` 變成連結；連結文字只有一段行內程式碼的自動用名稱外觀。
 - AI 寫的段落寫 `[AI](ai:)`；提示用 `> [!NOTE]` 這類 GitHub 提示框；可收合的長清單用 `<details><summary>`。
 - .md 檔的「預覽／原始碼」用 `SegmentedControl` 切換（放在 Workbench 的 `mainBar` 時加 `iconOnly`）。
@@ -27,6 +28,8 @@
 - 拖拉邊框、放大對話框和 DataTable 用同一份實作；DataTable 另外能記住欄寬（`widthKey`），Markdown 表格的欄位會隨內容變，沒有固定的欄位名稱可記。表格寬度不到 480 px 時每列變成一張卡片：欄名在上、值在下，列與列之間一條線。
 - 可收合的區塊：`<details><summary>另有 49 處呼叫</summary> … </details>`，和 GitHub 的寫法相同，複製到 GitHub、Notion 也能收合。一開始收合；標題列是按鈕，有 `aria-expanded`，Enter 與空白鍵切換。收合的內容留在頁面上，頁內搜尋（Ctrl+F）找到時自動展開，和 Section 一樣。`<details>` 和 `<summary>` 的屬性一律去掉（`open` 也是）。
 - 提示框：GitHub 的 `> [!NOTE]`、`[!TIP]`、`[!IMPORTANT]`、`[!WARNING]`、`[!CAUTION]` 用 `UI.Alert` 顯示（info、success、info、warning、danger）。一般的 `>` 仍是引用：左邊一條線、次要文字色。
+- 整列連結：清單項目的內容只有一個連結時（參考資料清單，例如「RFC 1812: Requirements for IP Version 4 Routers」），連結撐滿整列，整列都能點，滑過時 `surface-sub` 底色，焦點是一般的 2 px 外框。滑鼠操作時列高至少 32 px，觸控螢幕至少 48 px；文字靠左，太長時在列裡換行。項目符號或編號留在列外、和其他項目對齊，底色從文字左邊 6 px 開始。句子裡的連結不變。
+- 程式碼區塊和表格框可以 Tab 到（為了用鍵盤捲動），但它們是內容不是控制項：`ui check` 不把它們算成觸控目標。
 - 換行：同一段裡的換行接成空格，中文字或全形標點旁邊不加空格；行尾兩個空格或反斜線是強制換行。
 
 ## 安全

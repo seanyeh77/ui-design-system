@@ -16,9 +16,9 @@ before(async () => {
 });
 after(() => browser?.close());
 
-async function run(body: string): Promise<Findings> {
+async function run(body: string, width = 1280): Promise<Findings> {
   if (!browser) throw new Error('no browser');
-  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  const page = await browser.newPage({ viewport: { width, height: 800 } });
   try {
     await page.setContent(`<!doctype html><meta charset="utf-8"><body style="margin:0;font:16px sans-serif">${body}</body>`);
     return await page.evaluate(measure);
@@ -101,4 +101,45 @@ test('the same reset in @layer base, a rule on a class, an equal value or a plai
   assert.deepEqual(own.unlayered, []);
   const plain = await run(`${system}<style>p, a { margin: 0; color: red; }</style><p>text</p>`);
   assert.deepEqual(plain.unlayered, []);
+});
+
+const long = 'Routing between autonomous systems with BGP and the router requirements';
+
+test('a wrapped heading in Markdown content passes; a wrapped interface heading still fails', async (t) => {
+  if (skip) return t.skip(skip);
+  const res = await run(
+    `<div class="ui-md" style="width:200px"><h4 class="ui-md-h">${long}</h4></div>
+     <section class="ui-card" style="width:200px"><h2 class="ui-card-title">${long}</h2></section>`,
+    390,
+  );
+  assert.equal(res.wrapped.length, 1);
+  assert.match(res.wrapped[0], /^h2/);
+});
+
+test('a list item that is one link passes when the link fills a 48 px row, and fails at text height', async (t) => {
+  if (skip) return t.skip(skip);
+  const row = (h: string) =>
+    `<ul class="ui-md"><li class="ui-md-rowitem"><a class="ui-md-link is-row" href="#rfc1812" style="display:flex;align-items:center;min-height:${h}">RFC 1812: IPv4 router requirements</a></li></ul>`;
+  const tall = await run(row('48px'), 390);
+  assert.deepEqual(tall.small, []);
+  assert.deepEqual(tall.inline, []);
+  const short = await run(row('0'), 390);
+  assert.equal(short.small.length, 1);
+  assert.match(short.small[0], /RFC 1812/);
+});
+
+test('a one-line code block and a scrolling table frame are content, not touch targets', async (t) => {
+  if (skip) return t.skip(skip);
+  const res = await run(
+    `<div class="ui-cv"><pre class="ui-cv-body" tabindex="0" style="margin:0;overflow-y:auto;overflow-x:hidden;line-height:20px">make test</pre></div>
+     <div class="ui-md-table-wrap" tabindex="0" role="region" aria-label="測資" style="overflow-x:auto;height:40px">表格</div>`,
+    390,
+  );
+  assert.deepEqual(res.small, []);
+  // A focusable element that does not scroll, or a control that scrolls, is still a target.
+  const still = await run(
+    `<div tabindex="0" style="height:20px">一列</div><div role="slider" tabindex="0" aria-valuenow="1" style="overflow:auto;height:20px">1</div>`,
+    390,
+  );
+  assert.equal(still.small.length, 2);
 });

@@ -68,12 +68,17 @@ export function measure(): Findings {
   // Links and buttons inside a line of text are exempt (WCAG 2.2, 2.5.8 inline exception) and listed apart.
   const sel =
     'a[href], button, input:not([type=hidden]), select, textarea, summary, [role=button], [role=tab], [role=switch], [role=checkbox], [role=radio], [role=option], [role=menuitem], [role=link], [tabindex]:not([tabindex="-1"])';
+  const control = sel.replace(', [tabindex]:not([tabindex="-1"])', '') + ', [role=slider], [role=separator], [role=combobox], [role=treeitem]';
   for (const el of new Set(document.querySelectorAll<HTMLElement>(sel))) {
     if (el.closest('[aria-hidden="true"], [inert]')) continue;
     const cs = getComputedStyle(el);
     if (cs.visibility === 'hidden' || cs.display === 'none' || cs.pointerEvents === 'none') continue;
     const r = el.getBoundingClientRect();
     if (!r.width || !r.height) continue;
+    // A region focusable only so the keyboard can scroll it (a code block, pre.ui-cv-body; a Markdown table,
+    // .ui-md-table-wrap; any scroll box with tabindex="0"): content, not a control. Tapping it does nothing, and a
+    // finger scrolls it anyway. Only an element with no control tag or widget role counts.
+    if (!el.matches(control) && /auto|scroll/.test(cs.overflowX + ' ' + cs.overflowY)) continue;
     const input = el as HTMLInputElement;
     if ((input.type === 'checkbox' || input.type === 'radio') && el.closest('label')) continue;
     // An input inside a field box that focuses it on click uses the box as target.
@@ -166,9 +171,10 @@ export function measure(): Findings {
     // Controls a component renders carry its ui-* class; anything else is hand-written.
     for (const el of document.querySelectorAll(q)) if (visible(el) && !el.matches('[class^="ui-"], [class*=" ui-"]')) out.native.push(`<${q}> → use ${use}`);
 
-  // 6. Text that must stay on one line: buttons, tabs, table headers, labels, headings.
+  // 6. Text that must stay on one line: buttons, tabs, table headers, labels, interface headings. Headings in
+  // Markdown content (.ui-md-h) are written by the document's author, whose length the page cannot control: they wrap.
   for (const el of document.querySelectorAll<HTMLElement>('.ui-btn, .ui-tab, [role=columnheader], .ui-field-label, h1, h2, h3, h4')) {
-    if (out.wrapped.length >= 8 || !visible(el)) continue;
+    if (out.wrapped.length >= 8 || !visible(el) || el.matches('.ui-md-h')) continue;
     // A text node that breaks onto a second line returns rects at different heights.
     const wraps = [...el.querySelectorAll('*'), el].some((node) =>
       [...node.childNodes].some((t) => {

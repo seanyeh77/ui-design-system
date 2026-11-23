@@ -495,6 +495,17 @@ function link(raw: string, children: React.ReactNode, c: Ctx, name?: string): Re
   );
 }
 
+/** A list item whose whole content is one link (a reference list: 「RFC 1812: IPv4 router …」): that link, made a row
+ *  that fills the item, or null. Links inside a sentence stay inline. */
+function rowLink(nodes: React.ReactNode[]): React.ReactElement | null {
+  const parts = nodes.filter((n) => !(typeof n === 'string' && !n.trim()));
+  if (parts.length !== 1) return null;
+  const only = parts[0];
+  if (!React.isValidElement<{ className?: string }>(only) || (only.type !== 'a' && only.type !== 'button') || only.props.className !== 'ui-md-link')
+    return null;
+  return React.cloneElement(only, { className: 'ui-md-link is-row' });
+}
+
 // A fence's language name as CodeView knows it: ```python is py, ```bash is sh; file extensions work too (```ts).
 const FENCE_LANG: Record<string, string> = {
   python: 'py',
@@ -597,7 +608,19 @@ export function Markdown(p: MarkdownProps) {
         case 'quote':
           return <blockquote key={c.k()}>{render(b.blocks)}</blockquote>;
         case 'list': {
-          const items = b.items.map((it) => <li key={c.k()}>{it.length === 1 && it[0].t === 'p' ? inline(it[0].text, block(c)) : render(it)}</li>);
+          const items = b.items.map((it) => {
+            const key = c.k();
+            if (!(it.length === 1 && it[0].t === 'p')) return <li key={key}>{render(it)}</li>;
+            const nodes = inline(it[0].text, block(c));
+            const row = rowLink(nodes);
+            return row ? (
+              <li key={key} className="ui-md-rowitem">
+                {row}
+              </li>
+            ) : (
+              <li key={key}>{nodes}</li>
+            );
+          });
           return b.ordered ? (
             <ol key={c.k()} start={b.start === 1 ? undefined : b.start}>
               {items}
