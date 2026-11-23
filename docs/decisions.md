@@ -1213,3 +1213,13 @@ AI 定的細節（待確認）：
 - `icons` 移到自己的模組，只有 import 它的頁面才帶入全部圖示；import 後所有圖示立即可用，內建圖示的 markup 傳給 `d` 時仍找得到實心版。`bundle.js` 內含全部圖示、不做動態載入（build 時用 `names-inline.ts` 取代 `names.ts`），一律同步顯示。
 - 新增開發警告：`name` 不是內建名稱時提示改用 Phosphor 名稱或 `d`。
 - 結果：只用 Button 的 Vite 專案主程式 357 KB → 303 KB（gzip 112 KB → 97 KB）；用 `Icon name="house"` 加 DataTable 的專案 520 KB → 473 KB（gzip 165 KB → 152 KB）。每個沒用到的圖示仍會輸出成一個不會被下載的小檔（約 100 個）。`bundle.js` 815 KB → 820 KB（gzip 258 KB → 259 KB）。300 張預覽截圖與拆分前完全相同。
+
+## codemap 回報的元件問題：Workbench 把手、ProjectSwitcher 間隔號、反引號
+
+使用者回報 codemap 升到 0.43.1 後檢查發現的問題，並說明「第 1、2、3 項改的是行為或字串，可以直接做」。
+
+AI 定的細節（待確認）：
+
+- Workbench 手機下方面板的把手：看得到的部分維持 20 px，觸控範圍往上延伸到 48 px（蓋在主畫面底部，不蓋住面板的分頁列）。
+- ProjectSwitcher：「audio-demo · 即時」兩邊各一個空格；名稱短於 3 em 時不再留空白（Chrome 用 `calc-size()`，其他瀏覽器暫時仍有小間隙）。
+- 反引號：會出現句子的字串 prop 都把反引號裡的文字顯示成行內程式碼（EmptyState、SettingsSection、各種欄位的說明與錯誤、Alert、Toast、Dialog、Drawer、DangerZone、ErrorPage、EventTimeline、KpiCard、NotificationBell 等）。Tooltip 和 IconButton 的提示泡泡沒有改：深色泡泡裡的程式碼樣式需要另外決定。
