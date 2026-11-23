@@ -1,0 +1,48 @@
+# Regenerates the screenshot baselines (tests/visual/baseline) on GitHub's runner, with the same image, browser and
+# steps as the compare step in CI, and commits them to the branch it runs on. The recommended way to create or
+# update baselines: shots taken on another machine render text slightly differently and fail CI.
+# Run it from Actions → Update visual baselines → Run workflow, choosing the branch.
+name: Update visual baselines
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: update-visual-baselines-${{ github.ref }}
+
+jobs:
+  update:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @seanyeh77/ui exec playwright install --with-deps chromium
+      # Lossless PNG optimisation (about 35 % smaller files); ui shots uses it when it is on PATH.
+      - run: cargo install oxipng --locked --version 10.2.1
+      - run: pnpm build
+      - run: pnpm site
+      # Files with the same pixels stay as they are; --prune removes the baselines of removed or renamed previews.
+      - run: node packages/cli/dist/cli.js shots site/preview/*.html --out tests/visual/baseline --prune
+      - name: Commit the baselines
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git add -A tests/visual/baseline
+          if git diff --cached --quiet; then
+            echo "基準圖沒有改變。" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m '更新畫面基準圖'
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+          git diff --stat HEAD~1 HEAD -- tests/visual/baseline | tail -1 >> "$GITHUB_STEP_SUMMARY"
+          # A push made with the workflow token starts no workflow: start CI on the new commit.
+          gh workflow run ci.yml --ref "${GITHUB_REF_NAME}"
