@@ -41,7 +41,11 @@ export function Tabs<V extends string = string>({ items, value, onChange, label,
     const el = track.current;
     if (!el) return;
     const left = el.scrollLeft > 1;
-    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
+    // The end of the last tab, not scrollWidth: the moving indicator can stick out for a moment and leave a fade on a
+    // row that fits.
+    const last = refs.current.filter(Boolean).pop();
+    const end = last ? last.offsetLeft + last.offsetWidth : el.scrollWidth;
+    const right = el.scrollLeft + el.clientWidth < end - 1;
     setMore((m) => (m.left === left && m.right === right ? m : { left, right }));
   }, []);
   // The focused tab re-rendered away (new items, the app swapped the list): focus goes to the selected tab.
