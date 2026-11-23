@@ -1,0 +1,29 @@
+.ui-crumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-compact);
+  color: var(--ink-muted);
+}
+.ui-crumb li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.ui-crumb a {
+  color: var(--ink-muted);
+  text-decoration: none;
+}
+.ui-crumb a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ui-crumb [aria-current='page'] {
+  color: var(--ink);
+  font-weight: 600;
+}

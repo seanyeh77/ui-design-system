@@ -1,0 +1,83 @@
+/* Tour */
+.ui-tour-layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-tour);
+}
+.ui-tour-block {
+  position: absolute;
+  inset: 0;
+}
+.ui-tour-block.is-dim {
+  background: var(--scrim-strong);
+}
+.ui-tour-spot {
+  position: fixed;
+  border-radius: var(--radius-md);
+  box-shadow:
+    0 0 0 3px var(--accent),
+    0 0 0 9999px var(--scrim-strong);
+  pointer-events: none;
+  transition:
+    left var(--dur-toggle) var(--ease-standard),
+    top var(--dur-toggle) var(--ease-standard),
+    width var(--dur-toggle) var(--ease-standard),
+    height var(--dur-toggle) var(--ease-standard);
+}
+.ui-tour-card {
+  width: 320px;
+  max-width: calc(100vw - 2 * var(--space-3));
+  /* Never taller than the window: the text scrolls, the buttons stay. */
+  max-height: calc(100dvh - 2 * var(--space-3));
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-overlay);
+  font-size: var(--text-control);
+  line-height: 1.55;
+  animation: ui-pop-fade var(--dur-nav) ease both;
+}
+.ui-tour-body {
+  min-height: 0;
+  overflow-y: auto;
+}
+.ui-tour-count {
+  font-size: var(--text-small);
+  color: var(--ink-muted);
+}
+.ui-tour-title {
+  margin: 2px 0 var(--space-1);
+  font-weight: 700;
+}
+.ui-tour-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+.ui-tour-actions .ui-link-btn {
+  min-height: var(--touch-target);
+  white-space: nowrap;
+}
+.ui-tour-gap {
+  flex: 1 1 auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-tour-spot {
+    transition: none;
+  }
+}
+.ui-tour-float {
+  z-index: calc(var(--z-tour) + 1);
+}
+/* Base UI renders dialog and popover titles as h2: keep the look of the text around them. */
+.ui-tour-title:where(h2) {
+  margin-top: 0;
+  margin-inline: 0;
+  font-size: inherit;
+  line-height: inherit;
+}

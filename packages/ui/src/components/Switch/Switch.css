@@ -1,0 +1,42 @@
+.ui-switch {
+  position: relative;
+  flex: 0 0 52px;
+  width: 52px;
+  height: 32px;
+  padding: 0;
+  box-sizing: border-box;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--line-strong);
+  background: var(--surface-sub);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-nav) ease,
+    border-color var(--dur-nav) ease;
+}
+.ui-switch.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.ui-switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ui-switch-thumb {
+  position: absolute;
+  top: 50%;
+  border-radius: var(--radius-full);
+  background: var(--line-strong);
+  color: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ui-switch.is-on .ui-switch-thumb {
+  background: var(--on-solid);
+  color: var(--accent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-switch-thumb {
+    transition: background-color var(--dur-hover) ease !important;
+  }
+}

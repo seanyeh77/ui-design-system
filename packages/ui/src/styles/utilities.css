@@ -1,0 +1,59 @@
+/* Numbers in Geist Mono, units and words in the text font */
+.ui-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.ui-unit {
+  font-family: var(--font-sans);
+}
+
+.ui-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+.ui-scroll-hint {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: var(--space-1);
+  font-size: var(--text-small);
+  line-height: 20px;
+  color: var(--ink-muted);
+  transition: opacity var(--dur-hover) ease;
+}
+.ui-scroll-hint.is-done {
+  visibility: hidden;
+  opacity: 0;
+}
+/* focusMain(): the page heading it moves to has no focus ring. After a key press a 3 px accent bar sits on its left;
+   after a mouse or touch, nothing. */
+[data-ui-main-focus]:focus {
+  outline: none;
+}
+:is(h1, h2, .ui-topbar-title)[data-ui-main-focus='key']:focus {
+  position: relative;
+}
+:is(h1, h2, .ui-topbar-title)[data-ui-main-focus='key']:focus::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 0.2em;
+  bottom: 0.2em;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+/* seenOnly(): text drawn by CSS, out of the page's text and the accessibility tree (empty alt text). */
+.ui-seen::before {
+  content: attr(data-text);
+  content: attr(data-text) / '';
+}

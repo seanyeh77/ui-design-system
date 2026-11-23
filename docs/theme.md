@@ -48,6 +48,45 @@
 - 非文字：`line-strong`、狀態記號（`*-text`、`ink-muted`）在上述底色與表格的列上達 3:1；`success`、`warning`、`danger` 的實色在 `accent-soft` 以外的底色與表格的列上達 3:1；`chart-1` 到 `chart-4` 在 `bg`、`surface`、`surface-sub`、`surface-chrome` 上達 3:1。
 - 選中分頁的白底加框不在這個測試裡。
 
+## CSS 層與覆寫元件樣式
+
+設計系統的 CSS 全部在 cascade layer `ui` 裡：`tokens.css` 在 `ui.tokens`，`styles.css` 在 `ui.components`。頁面自己的 CSS 不放進 layer 就一定贏，不必比 specificity，也不必加 `!important`：
+
+```css
+/* 頁面的 CSS，不加 @layer：蓋過元件的 .ui-btn-primary */
+.save-btn {
+  background: var(--success);
+}
+:root {
+  --accent: #0e827d; /* 也蓋過 tokens.css，不論檔案先後、不論 data-theme */
+}
+```
+
+- Tailwind v4：在主要 CSS 檔的最前面、`@import 'tailwindcss'` 之前寫一行順序，utility class 就能蓋過元件，Tailwind 的 preflight（`base`）不會蓋掉元件：
+
+  ```css
+  @layer theme, base, ui, components, utilities;
+  @import 'tailwindcss';
+  @import '@seanyeh77/tokens/tailwind.css';
+  ```
+
+  沒寫這一行、又先載入 Tailwind 時，`ui` 排在 `utilities` 之後：元件蓋過 utility class，和沒有 layer 時一樣。`tokens.css` 和 `styles.css` 開頭也宣告同一個順序，所以先載入設計系統時不寫也一樣。
+- 頁面自己的 CSS 放在 layer 裡時，那個 layer 要排在 `ui` 之後才會贏；排在前面（例如先宣告的 `@layer reset`）的規則會輸給元件。
+- 元件 CSS 裡的 `!important` 在 layer 中比沒有 layer 的 `!important` 優先：要蓋過這些宣告，改用沒有 `!important` 的頁面規則蓋過元件的其他規則，或在 `ui` 之前的 layer 寫 `!important`。
+
+### 只載入用到的元件的 CSS
+
+`styles.css`（約 200 KB，gzip 後約 39 KB；bundler 壓縮後約 148 KB、gzip 約 25 KB）是預設的載法。很在意大小的專案可以改用 `@seanyeh77/ui/css/` 裡的分檔，三種檔案都要：
+
+```ts
+import '@seanyeh77/ui/css/base.css'; // 先：共用的基礎、表單欄位、圖表、動畫
+import '@seanyeh77/ui/css/Button.css'; // 用到的元件，順序不限
+import '@seanyeh77/ui/css/DataTable.css';
+import '@seanyeh77/ui/css/end.css'; // 最後：觸控目標、焦點外框、浮動層等蓋在元件上的規則
+```
+
+元件的檔案用 `@import` 帶入它用到的其他元件的檔案（例如 `DataTable.css` 帶入 `Button.css`），由 bundler 去掉重複並維持和 `styles.css` 相同的先後。沒有自己檔案的元件（`TextField`、`LineChart`）只需要 `base.css`。
+
 ## 焦點
 
 所有控制項的鍵盤焦點用同一種樣式：2 px 實線外框，顏色 `focus`，離控制項 2 px（`outline: 2px solid var(--focus); outline-offset: 2px`）。`focus` 等於 `accent-text`，在每種底色上都至少 4.5:1。貼齊會裁切內容的容器時（可以捲動的分頁列、表格、清單、程式碼區、選單項目），外框改畫在內側 2 px（`outline-offset: -2px`），不會被切掉。DataTable 格子裡的任何可聚焦元素（程式碼連結、按鈕、勾選框）都畫在內側；截斷的長文字裡的連結取得鍵盤焦點時，整段文字展開，連結和外框都看得到。CommandPalette 的搜尋列在輸入框有焦點時，整列畫內側外框。有錯誤的欄位也用同一種外框，紅框不變。拖曳分隔線（SplitPane、Workbench）在焦點時變成 3 px 的 `accent` 線。

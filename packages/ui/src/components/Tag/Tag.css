@@ -1,0 +1,32 @@
+/* Tag: category, small gray text only */
+.ui-tag {
+  flex: 0 0 auto;
+  font-size: var(--text-mini);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+/* Tag variant="forecast" and "demo": an icon and words, no fill, the size of the text beside them (a mark beside the
+   brand is as large as the brand). Forecast is in the accent text color; demo keeps the color of the text around it. */
+.ui-tag.is-forecast,
+.ui-tag.is-demo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  font-size: inherit;
+  font-weight: 600;
+  line-height: inherit;
+}
+.ui-tag.is-forecast {
+  color: var(--accent-text);
+}
+.ui-tag.is-demo {
+  color: inherit;
+}
+.ui-tag.is-forecast > svg,
+.ui-tag.is-demo > svg {
+  flex: none;
+  width: 1em;
+  height: 1em;
+}

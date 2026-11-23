@@ -1,0 +1,76 @@
+/* Suggestion */
+.ui-sug {
+  position: relative;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-sub);
+  font-size: var(--text-control);
+  line-height: 1.5;
+}
+.ui-sug-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 36px;
+  margin: -6px -6px 6px 0;
+}
+.ui-sug-title {
+  flex: 1 1 auto;
+  font-size: var(--text-compact);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.ui-sug-copy {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-color: transparent;
+}
+.ui-sug-copy:hover {
+  background: var(--surface);
+}
+.ui-sug-copy.is-copied {
+  color: var(--success-text);
+}
+.ui-sug-line {
+  display: flex;
+  gap: var(--space-2);
+  padding: 4px var(--space-2);
+}
+.ui-sug-line.is-del {
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: var(--danger-soft);
+}
+.ui-sug-line.is-add {
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background: var(--success-soft);
+}
+.ui-sug-head + .ui-sug-line.is-add {
+  border-radius: var(--radius-sm);
+}
+.ui-sug-mark {
+  flex: 0 0 auto;
+  width: 12px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+.ui-sug-line.is-del .ui-sug-mark {
+  color: var(--danger-text);
+}
+.ui-sug-line.is-add .ui-sug-mark {
+  color: var(--success-text);
+}
+.ui-sug-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 599px) {
+  .ui-sug-copy {
+    width: var(--touch-target);
+    height: var(--touch-target);
+  }
+  .ui-sug-head {
+    margin-top: -10px;
+    margin-bottom: 2px;
+  }
+}

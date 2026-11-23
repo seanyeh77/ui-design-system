@@ -1,0 +1,132 @@
+.ui-select {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 220px;
+}
+.ui-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  height: var(--control-height);
+  padding: 0 var(--space-3);
+  box-sizing: border-box;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line-strong);
+  background: var(--surface-input);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-control);
+  text-align: left;
+  cursor: pointer;
+}
+.ui-select-trigger[data-popup-open] {
+  border-color: var(--accent);
+}
+.ui-select-chev {
+  color: var(--ink-muted);
+  transition: transform var(--dur-nav) ease;
+}
+.ui-select-trigger[data-popup-open] .ui-select-chev {
+  transform: rotate(180deg);
+}
+.is-placeholder {
+  color: var(--ink-muted);
+}
+@keyframes ui-menu-down {
+  from {
+    opacity: 0;
+    transform: scaleY(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ui-select-menu {
+  width: var(--anchor-width);
+  box-sizing: border-box;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 6px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-overlay);
+  transform-origin: top;
+  animation: ui-menu-down var(--dur-nav) var(--ease-standard) both;
+}
+.ui-select-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 10px;
+  margin-bottom: 4px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sub);
+  color: var(--ink-muted);
+}
+.ui-select-search input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-compact);
+}
+.ui-select-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  height: var(--control-height);
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-control);
+  text-align: left;
+  cursor: pointer;
+}
+.ui-select-opt:hover,
+.ui-select-opt[data-highlighted] {
+  background: var(--surface-sub);
+}
+.ui-select-opt.is-on {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+.ui-select-empty {
+  padding: 10px;
+  font-size: var(--text-compact);
+  color: var(--ink-muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-select-menu {
+    animation: ui-fade var(--dur-hover) ease both;
+  }
+}
+/* ---------- Positioned layers (Base UI) ----------
+   Positioners place popups next to their trigger; dialogs and drawers sit over a backdrop.
+   Popups stay above every panel layer (drawer 800, dialog 900, palette 950, tour 960) and below tooltips (1000). */
+.ui-select-positioner {
+  z-index: var(--z-popover);
+  outline: none;
+}
+/* Base UI renders list items as divs; keep the sizing the old buttons had. */
+.ui-select-opt {
+  box-sizing: border-box;
+}
+.ui-select-empty:empty {
+  display: none;
+}

@@ -1,0 +1,30 @@
+/* ActionBar */
+.ui-actbar {
+  container-type: inline-size;
+}
+.ui-actbar-wide {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.ui-actbar-narrow {
+  display: none;
+  gap: var(--space-2);
+}
+.ui-actbar-main {
+  flex: 1 1 auto;
+  height: 44px;
+}
+.ui-actbar-more {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line-strong);
+}
+@container (max-width: 599px) {
+  .ui-actbar-wide {
+    display: none;
+  }
+  .ui-actbar-narrow {
+    display: flex;
+  }
+}

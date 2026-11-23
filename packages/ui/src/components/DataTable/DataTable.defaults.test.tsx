@@ -234,10 +234,11 @@ function rowVars(dark: boolean): Record<string, string> {
   const out: Record<string, string> = {};
   const walk = (rules: CSSRuleList) => {
     for (const r of rules) {
-      if (r instanceof CSSStyleRule && (r.selectorText === '.ui-dt' || (dark && r.selectorText === `[data-theme="dark"] .ui-dt`)))
-        for (const n of ['--dt-hover', '--dt-zebra'])
-          if (r.style.getPropertyValue(n)) out[n] = r.style.getPropertyValue(n).trim();
-          else if ('cssRules' in r && r instanceof CSSGroupingRule) walk(r.cssRules);
+      if (r instanceof CSSStyleRule && (r.selectorText === '.ui-dt' || (dark && r.selectorText === `[data-theme="dark"] .ui-dt`))) {
+        for (const n of ['--dt-hover', '--dt-zebra']) if (r.style.getPropertyValue(n)) out[n] = r.style.getPropertyValue(n).trim();
+      } else if (r instanceof CSSGroupingRule)
+        walk(r.cssRules); // @layer, @media
+      else if (r instanceof CSSImportRule && r.styleSheet) walk(r.styleSheet.cssRules);
     }
   };
   for (const sh of document.styleSheets) walk(sh.cssRules);

@@ -1,0 +1,149 @@
+.ui-topbar-end > .ui-projsw,
+.ui-projsw-text {
+  min-width: 0;
+}
+
+/* ProjectSwitcher */
+.ui-projsw {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--control-height);
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-compact);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  max-width: 100%;
+}
+.ui-projsw:hover:not(:disabled) {
+  background: var(--surface-sub);
+}
+.ui-projsw[data-popup-open] {
+  background: var(--surface-sub);
+}
+.ui-projsw.is-static {
+  cursor: default;
+  opacity: 1;
+}
+/* PA: the dot's shape tells the status too, not only its colour (phones show the dot alone): live a filled dot,
+   stale a ring, offline a ring with a slash. */
+.ui-projsw-dot {
+  flex: 0 0 10px;
+  width: 10px;
+  height: 10px;
+  box-sizing: border-box;
+  border-radius: var(--radius-full);
+  background: var(--success-text);
+}
+.ui-projsw.is-stale .ui-projsw-dot {
+  background: transparent;
+  border: 2px solid var(--warning-text);
+}
+.ui-projsw.is-offline .ui-projsw-dot {
+  background: linear-gradient(135deg, transparent 42%, var(--ink-muted) 42% 58%, transparent 58%);
+  border: 2px solid var(--ink-muted);
+}
+.ui-projsw-text {
+  display: flex;
+  min-width: 0;
+  white-space: nowrap;
+}
+/* The name keeps its room; the status gives way first, then the name is cut with 「…」. */
+.ui-projsw-name {
+  flex: 0 1 auto;
+  min-width: 3em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ui-projsw-status {
+  flex: 0 1000 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Phones: the dot shows the status; the words are in title and the name read out. */
+@media (max-width: 599px) {
+  .ui-projsw-status {
+    display: none;
+  }
+}
+.ui-projsw-caret {
+  flex: 0 0 auto;
+  color: var(--ink-muted);
+  transition: transform var(--dur-nav) ease;
+}
+.ui-projsw[data-popup-open] .ui-projsw-caret {
+  transform: rotate(180deg);
+}
+.ui-projsw-pop {
+  width: 280px;
+  max-width: calc(100vw - 24px);
+  padding: 8px;
+  box-sizing: border-box;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-overlay);
+  animation: ui-pop-scale var(--dur-nav) var(--ease-spring) both;
+}
+.ui-projsw-title {
+  padding: 4px 8px 8px;
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--ink-muted);
+}
+.ui-projsw-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-compact);
+  text-align: left;
+  cursor: pointer;
+}
+.ui-projsw-opt:hover,
+.ui-projsw-opt:focus-visible {
+  background: var(--surface-sub);
+  outline: none;
+}
+.ui-projsw-opt.is-on {
+  background: var(--accent-soft);
+}
+.ui-projsw-optlabel {
+  font-weight: 600;
+}
+.ui-projsw-optdetail {
+  flex: 1 1 auto;
+  color: var(--ink-muted);
+  font-size: var(--text-small);
+}
+.ui-projsw-check {
+  color: var(--accent-text);
+}
+.ui-projsw-foot {
+  margin-top: 6px;
+  padding: 8px 10px 4px;
+  border-top: 1px solid var(--line);
+  font-size: var(--text-compact);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-projsw-pop {
+    animation: none;
+  }
+}
+/* Base UI renders list items as divs; keep the sizing the old buttons had. */
+.ui-projsw-opt {
+  box-sizing: border-box;
+}

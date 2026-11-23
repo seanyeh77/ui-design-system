@@ -1,0 +1,106 @@
+@keyframes ui-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ui-dialog {
+  box-sizing: border-box;
+  width: 400px;
+  max-width: 100%;
+  padding: var(--space-5);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-overlay);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  animation: ui-dialog-in var(--dur-tooltip) cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+.ui-dialog-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.ui-dialog-close {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  margin: -4px -6px 0 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.ui-dialog-close:hover {
+  background: var(--surface-sub);
+}
+.ui-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--scrim);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+.ui-dialog-title {
+  font-size: var(--text-h4);
+  font-weight: 700;
+  line-height: 28px;
+}
+.ui-dialog-body {
+  font-size: var(--text-compact);
+  color: var(--ink-muted);
+}
+.ui-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-dialog {
+    animation: ui-fade var(--dur-hover) ease both;
+  }
+}
+.ui-drawer-head .ui-dialog-close {
+  margin: 0 -6px 0 0;
+}
+.ui-backdrop {
+  z-index: var(--z-modal);
+}
+.ui-dialog-viewport {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-modal) + 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  box-sizing: border-box;
+  pointer-events: none;
+}
+.ui-dialog-viewport > .ui-dialog {
+  pointer-events: auto;
+}
+/* Base UI renders dialog and popover titles as h2: keep the look of the text around them. */
+.ui-dialog-title:where(h2) {
+  margin: 0;
+  font-size: var(--text-h4);
+  line-height: 28px;
+}
+.ui-dialog.ui-table-dialog {
+  width: min(1200px, calc(100vw - 48px));
+}

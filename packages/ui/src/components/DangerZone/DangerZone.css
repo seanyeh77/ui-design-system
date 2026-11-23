@@ -1,0 +1,27 @@
+.ui-danger {
+  padding: 18px;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ui-danger-title {
+  margin: 0;
+  font-size: var(--text-lead);
+  font-weight: 700;
+  color: var(--danger-text);
+}
+.ui-danger-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ui-danger-row p {
+  margin: 0;
+  font-size: var(--text-compact);
+  color: var(--ink-muted);
+}

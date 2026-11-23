@@ -59,17 +59,20 @@ const block = (selector: string, values: Record<string, string>, base?: Record<s
     .map(([k, v]) => `  --${k}: ${v};`)
     .join('\n')}\n}\n`;
 
-let css = HEADER + block(':root', light) + block('[data-theme="dark"]', dark, light);
+let blocks = block(':root', light) + block('[data-theme="dark"]', dark, light);
 for (const preset of file.presets ?? []) {
   const unknown = Object.keys(preset.values).filter((k) => !(k in light));
   if (unknown.length) throw new Error(`preset ${preset.id}: unknown tokens ${unknown.join(', ')}`);
-  css += block(`[data-theme="${preset.id}"]`, preset.values, light);
+  blocks += block(`[data-theme="${preset.id}"]`, preset.values, light);
 }
+// In the system's layer (ui.tokens, below the component styles): a page's own unlayered :root { --accent: … } always
+// wins, whatever the order of the files. The first statement places Tailwind's layers around it when loaded first.
+const css = `${HEADER}@layer theme, base, ui, components, utilities;\n@layer ui.tokens, ui.components;\n@layer ui.tokens {\n${blocks}}\n`;
 
 // Tailwind v4: colors point at the runtime variables so themes keep working (bg-surface, text-ink-muted).
 // Shadows too: Tailwind copies a plain @theme shadow value into the utility, which would ignore dark and presets.
 // Radius and font names are the same as Tailwind's own namespaces and compile to var(--radius-md), so they get
-// the light value here and tokens.css (unlayered) overrides them per theme. Text sizes (text-body) carry their line
+// the light value here and tokens.css (layer ui, after Tailwind's theme layer) overrides them per theme. Text sizes (text-body) carry their line
 // height; easings are ease-standard and the like. Durations and z layers have no Tailwind namespace: duration-(--dur-hover).
 const twVars = [
   ...groups.color.map((n) => `  --color-${n}: var(--${n});`),
@@ -84,7 +87,7 @@ const twValues = [
   ...groups.motion.filter((n) => n.startsWith('ease-')).map((n) => `  --${n}: ${light[n]};`),
 ];
 // inline: utilities read var(--bg) where they are used, so a nested data-theme still switches them.
-const tailwind = `${HEADER}/* Use after @import "tailwindcss". Also load tokens.css, unlayered: the color, spacing and shadow utilities read its variables. */\n@theme inline {\n${twVars.join('\n')}\n}\n@theme {\n${twValues.join('\n')}\n}\n`;
+const tailwind = `${HEADER}/* Use after @import "tailwindcss". Also load tokens.css: the color, spacing and shadow utilities read its variables. Put @layer theme, base, ui, components, utilities; first, so utilities override the components. */\n@theme inline {\n${twVars.join('\n')}\n}\n@theme {\n${twValues.join('\n')}\n}\n`;
 
 const union = (names: string[]) => names.map((n) => `'${n}'`).join(' | ');
 const dts = `${HEADER.replace('/*', '/**')}

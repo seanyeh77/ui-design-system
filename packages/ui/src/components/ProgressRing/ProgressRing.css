@@ -1,0 +1,15 @@
+.ui-ring-track {
+  fill: none;
+  stroke: var(--surface-sub);
+}
+.ui-ring-fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-linecap: round;
+}
+.ui-ring-text {
+  font-family: var(--font-mono);
+  font-size: var(--text-control);
+  font-weight: 700;
+  fill: var(--ink);
+}

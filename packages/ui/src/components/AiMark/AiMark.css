@@ -1,0 +1,10 @@
+/* AiMark: a small gray 「AI 撰寫」 at the end of a sentence written by AI (A2), the same style as other source marks. */
+.ui-aimark {
+  margin-left: 8px;
+  font-family: var(--font-sans);
+  font-size: var(--text-small);
+  font-weight: 400;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  user-select: none;
+}

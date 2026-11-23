@@ -18,6 +18,7 @@
 - 強調色預設 `#2457d6`，使用者可以自訂；中量使用：主要按鈕、連結、圖示、標籤與選取狀態。
 - 卡片用陰影分層。卡片裡不放卡片：區塊用 `Card`，卡片裡再分區用 `surface-sub` 底色或分隔線。
 - 自己的 CSS 只用 token（`var(--surface)`、`var(--space-4)`；Tailwind 用 `bg-surface`、`text-ink-muted`），不用 Tailwind 內建的顏色、圓角和陰影。強調色的文字讀 `accent-text`，不讀 `accent`。
+- 設計系統的 CSS 在 layer `ui` 裡，頁面不加 layer 的 CSS 一定蓋過元件，不必提高 specificity 或加 `!important`；Tailwind 的順序寫法見 [theme.md](theme.md)。
 - 密度緊密，區塊間距 `space-8` 32 px；圓角 `radius-xs` 4 px（行內程式碼、鍵帽、分段控制）、`radius-sm` 6 px、`radius-md` 10 px、`radius-lg` 14 px。
 
 ## 字體與圖示

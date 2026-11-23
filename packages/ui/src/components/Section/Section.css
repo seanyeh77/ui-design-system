@@ -1,0 +1,110 @@
+/* Section: a part of a page that closes to its title and a one-line summary (SLR4LANG). */
+.ui-sec + .ui-sec {
+  border-top: 1px solid var(--line);
+}
+.ui-sec {
+  container-type: inline-size;
+}
+.ui-sec-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.ui-sec-h {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font: inherit;
+}
+/* Actions right of the summary, outside the button: a click there does not open or close the section. */
+.ui-sec-actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+/* AY: under 480 px the summary goes under the title, whole, lined up with it. */
+@container (max-width: 479px) {
+  .ui-sec-btn {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+  .ui-sec-sum {
+    flex-basis: 100%;
+    padding-left: 26px;
+    white-space: normal;
+  }
+}
+.ui-sec-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 48px;
+  padding: var(--space-2) 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ui-sec-caret {
+  flex: none;
+  color: var(--ink-muted);
+  transition: transform var(--dur-expand) ease;
+}
+.ui-sec.is-open .ui-sec-caret {
+  transform: rotate(90deg);
+}
+.ui-sec-title {
+  flex: none;
+  max-width: 100%;
+  font-size: var(--text-h4);
+  line-height: 28px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ui-sec-sum {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: var(--space-1);
+  color: var(--ink-muted);
+  font-size: var(--text-small);
+  line-height: 20px;
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ui-sec-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur-expand) ease;
+}
+.ui-sec.is-open > .ui-sec-body {
+  grid-template-rows: 1fr;
+}
+.ui-sec-in {
+  min-height: 0;
+  overflow: hidden;
+}
+.ui-sec-content {
+  padding: var(--space-1) 0 var(--space-4);
+}
+.ui-sec-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding-bottom: var(--space-2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-sec-caret,
+  .ui-sec-body {
+    transition: none;
+  }
+}

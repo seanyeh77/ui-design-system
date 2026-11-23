@@ -1,0 +1,39 @@
+/* EventTimeline: newest first; time, kind icon (no fill), what happened. */
+.ui-events {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ui-events > li {
+  display: grid;
+  grid-template-columns: auto 20px minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: baseline;
+  padding: var(--space-2) 4px;
+  border-bottom: 1px solid var(--line);
+}
+.ui-events > li:last-child {
+  border-bottom: 0;
+}
+.ui-events-time {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+.ui-events-kind {
+  display: inline-flex;
+  align-self: center;
+  color: var(--ink-muted);
+}
+.ui-events > li.is-alert .ui-events-kind {
+  color: var(--warning-text);
+}
+.ui-events > li.is-switch .ui-events-kind {
+  color: var(--accent-text);
+}
+.ui-events-empty {
+  margin: 0;
+  padding: var(--space-4) 4px;
+  color: var(--ink-muted);
+}

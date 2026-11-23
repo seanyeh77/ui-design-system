@@ -1,0 +1,65 @@
+/* DetailList */
+.ui-dl {
+  container-type: inline-size;
+  margin: 0;
+}
+.ui-dl-item {
+  display: grid;
+  grid-template-columns: minmax(96px, 30%) minmax(0, 1fr);
+  gap: 12px;
+  padding: 6px 0;
+}
+.ui-dl-item dt {
+  color: var(--ink-muted);
+  font-size: var(--text-small);
+  line-height: 24px;
+  white-space: nowrap;
+}
+.ui-dl-item dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@container (max-width: 599px) {
+  .ui-dl-item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+    padding: 8px 0 0;
+  }
+  .ui-dl-item dt {
+    line-height: 20px;
+  }
+}
+
+/* DetailList labelWidth="auto": the label column as wide as the longest label (at most 40 %), on every row. */
+.ui-dl.is-auto {
+  display: grid;
+  grid-template-columns: fit-content(40%) minmax(0, 1fr);
+  column-gap: var(--space-6);
+}
+.ui-dl.is-auto > .ui-dl-item {
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  column-gap: var(--space-6);
+}
+.ui-dl.is-fixed > .ui-dl-item {
+  grid-template-columns: var(--dl-label) minmax(0, 1fr);
+}
+/* labelSize="body": the label in the value's size and the ink color. */
+.ui-dl.is-body .ui-dl-item dt {
+  color: var(--ink);
+  font-size: inherit;
+  line-height: inherit;
+}
+@container (max-width: 599px) {
+  .ui-dl.is-auto > .ui-dl-item {
+    display: block;
+  }
+  .ui-dl.is-fixed > .ui-dl-item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ui-dl.is-body .ui-dl-item dt {
+    font-size: var(--text-small);
+    line-height: 20px;
+  }
+}

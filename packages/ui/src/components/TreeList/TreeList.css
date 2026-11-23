@@ -1,0 +1,523 @@
+/* TreeList */
+.ui-tree {
+  container-type: inline-size;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  color: var(--ink);
+  font-size: var(--text-control);
+}
+.ui-tree-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-height: 68px;
+  box-sizing: border-box;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.ui-tree-title {
+  margin: 0;
+  font-size: var(--text-h4);
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.ui-tree-head-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-left: auto;
+}
+.ui-tree-bulk {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+.ui-tree-bulk-count {
+  font-weight: 700;
+}
+.ui-tree-bulk-size {
+  margin-left: 8px;
+  font-weight: 400;
+  font-size: var(--text-small);
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+}
+.ui-tree {
+  --tl-base: 12px;
+  --tl-step: 28px;
+}
+.ui-tree.is-selectable {
+  --tl-base: 48px;
+}
+.ui-tree-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  box-sizing: border-box;
+  padding: 6px 12px 6px calc(var(--tl-base) + var(--d, 0) * var(--tl-step));
+  cursor: pointer;
+  outline: none;
+  transition: background-color 0.12s ease;
+}
+.ui-tree-row:hover {
+  background: var(--surface-sub);
+}
+.ui-tree-row.is-selected {
+  background: var(--accent-soft);
+}
+.ui-tree-guide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--tl-base) + var(--g, 0) * var(--tl-step) + 7px);
+  width: 1px;
+  background: var(--line);
+  pointer-events: none;
+}
+.ui-tree-sel {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  margin-top: -18px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ui-tree-sel > * {
+  transition: opacity 0.12s ease;
+  opacity: 0;
+}
+.ui-tree-row:hover .ui-tree-sel > *,
+.ui-tree-row:focus-within .ui-tree-sel > *,
+.ui-tree.has-sel .ui-tree-sel > * {
+  opacity: 1;
+}
+@media (hover: none) {
+  .ui-tree-sel > * {
+    opacity: 1;
+  }
+}
+.ui-tree-caret {
+  flex: 0 0 16px;
+  display: flex;
+  color: var(--ink-muted);
+  transition: transform var(--dur-nav) var(--ease-standard);
+}
+.ui-tree-caret.is-open {
+  transform: rotate(90deg);
+}
+.ui-tree-ficon {
+  flex: 0 0 30px;
+  display: flex;
+  justify-content: center;
+  color: var(--ink-muted);
+}
+.ui-tree-doc {
+  position: relative;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 36px;
+  color: var(--ink-muted);
+  --ext: var(--file-other);
+}
+.ui-tree-doc svg {
+  display: block;
+  fill: var(--surface);
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.ui-tree-ext {
+  position: absolute;
+  /* Centred on the page icon: a 4-letter label at 12 px is a little wider than the 30 px icon. */
+  left: 50%;
+  translate: -50% 0;
+  bottom: 5px;
+  min-width: 22px;
+  padding: 0 2px;
+  box-sizing: border-box;
+  border-radius: 3px;
+  background: var(--ext);
+  color: var(--on-solid);
+  font-family: var(--font-mono);
+  font-size: var(--text-mini);
+  font-weight: 700;
+  line-height: 14px;
+  text-align: center;
+}
+.ui-tree-doc.is-pdf {
+  --ext: var(--file-pdf);
+}
+.ui-tree-doc.is-video {
+  --ext: var(--file-video);
+}
+.ui-tree-doc.is-audio {
+  --ext: var(--file-audio);
+}
+.ui-tree-doc.is-slides {
+  --ext: var(--file-slides);
+}
+.ui-tree-doc.is-doc {
+  --ext: var(--file-doc);
+}
+.ui-tree-doc.is-sheet {
+  --ext: var(--file-sheet);
+}
+.ui-tree-doc.is-image {
+  --ext: var(--file-image);
+}
+.ui-tree-doc.is-code {
+  --ext: var(--file-code);
+}
+.ui-tree-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ui-tree-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.ui-tree-label {
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
+}
+.ui-tree-row.is-folder .ui-tree-label {
+  font-weight: 700;
+}
+.ui-tree-count {
+  flex: 0 0 auto;
+  font-size: var(--text-small);
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+.ui-tree-newcount {
+  flex: 0 0 auto;
+  font-size: var(--text-mini);
+  font-weight: 700;
+  color: var(--accent-text);
+  white-space: nowrap;
+}
+.ui-tree-meta {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 0.4em;
+  font-size: var(--text-small);
+  color: var(--ink-muted);
+  /* Dates, counts and sizes in words (「4 個檔案 · 13 小時前」): the text font with digits of one width. */
+  font-variant-numeric: tabular-nums;
+}
+.ui-tree-meta > span {
+  white-space: nowrap;
+}
+.ui-tree-col {
+  flex: 0 0 auto;
+  font-size: var(--text-small);
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ui-tree-meta .is-new,
+.ui-tree-col.is-new {
+  color: var(--accent-text);
+  font-weight: 700;
+}
+.ui-tree-mc {
+  display: none !important;
+}
+.ui-tree-row.is-folder .ui-tree-size {
+  display: none;
+}
+.ui-tree-act,
+.ui-tree-actsp {
+  flex: 0 0 40px;
+  display: flex;
+  justify-content: center;
+}
+.ui-tree-empty {
+  margin: 0;
+  padding: 32px 20px;
+  color: var(--ink-muted);
+  text-align: center;
+}
+@container (min-width: 640px) {
+  .ui-tree-mb {
+    display: none;
+  }
+  .ui-tree-mc {
+    display: block !important;
+  }
+  .ui-tree-label {
+    display: block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .ui-tree-date {
+    flex-basis: 168px;
+  }
+  .ui-tree-size,
+  .ui-tree-row.is-folder .ui-tree-size {
+    display: block;
+    flex-basis: 76px;
+    text-align: right;
+  }
+}
+@keyframes ui-tree-grow {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    max-height: 80px;
+    transform: none;
+  }
+}
+.ui-tree-in {
+  overflow: hidden;
+  animation: ui-tree-grow var(--dur-expand) var(--ease-standard) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-tree-in {
+    animation: ui-fade var(--dur-hover) ease both;
+  }
+  .ui-tree-caret {
+    transition: none;
+  }
+}
+
+/* TreeList density="compact": 28 px rows on one line, for an explorer. Touch screens keep 48 px. */
+.ui-tree.is-compact {
+  --tl-base: 4px;
+  --tl-step: 14px;
+}
+.ui-tree.is-plain.is-compact .ui-tree-row {
+  min-height: 28px;
+  gap: 4px;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-right: 8px;
+  font-size: var(--text-small);
+  border-radius: var(--radius-sm);
+}
+.ui-tree.is-plain.is-compact .ui-tree-guide {
+  left: calc(var(--tl-base) + var(--g, 0) * var(--tl-step) + 9px);
+}
+.ui-tree.is-plain.is-compact .ui-tree-caretbtn {
+  flex-basis: 18px;
+  width: 18px;
+  height: 18px;
+}
+.ui-tree.is-plain.is-compact .ui-tree-picon {
+  flex-basis: 16px;
+}
+.ui-tree.is-plain.is-compact .ui-tree-main {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.ui-tree.is-plain.is-compact .ui-tree-row:not(.is-muted) .ui-tree-label {
+  font-weight: 400;
+}
+.ui-tree.is-plain.is-compact .ui-tree-row.is-current .ui-tree-label {
+  font-weight: 600;
+}
+.ui-tree.is-plain.is-compact .ui-tree-pmeta {
+  font-size: var(--text-mini);
+}
+@media (pointer: coarse) {
+  .ui-tree.is-plain.is-compact .ui-tree-row {
+    min-height: 48px;
+  }
+}
+/* A mark: a 6 px dot at the row's right end, lined up down the list. Status text colors, 3:1 or more on every row
+   ground (hover, selected). */
+.ui-tree-mark {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin-left: auto;
+  border-radius: var(--radius-full);
+  background: var(--warning-text);
+}
+.ui-tree-mark.is-danger {
+  background: var(--danger-text);
+}
+.ui-tree-mark.is-accent {
+  background: var(--accent-text);
+}
+.ui-tree-mark + .ui-tree-act {
+  margin-left: 4px;
+}
+
+/* TreeList: general trees (kind="plain") and the phone indent */
+.ui-tree.is-plain .ui-tree-row {
+  gap: 6px;
+  min-height: 48px;
+}
+.ui-tree.is-plain .ui-tree-guide {
+  left: calc(var(--tl-base) + var(--g, 0) * var(--tl-step) + 11px);
+}
+.ui-tree-caretbtn {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+}
+.ui-tree-caretbtn.is-leaf {
+  visibility: hidden;
+}
+.ui-tree-picon {
+  flex: 0 0 20px;
+  display: flex;
+  color: var(--ink-muted);
+}
+.ui-tree-row.is-current,
+.ui-tree-row.is-current:hover {
+  background: var(--accent-soft);
+}
+.ui-tree-row.is-muted .ui-tree-label {
+  color: var(--ink-muted);
+}
+.ui-tree-label.is-one {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.ui-tree.is-plain .ui-tree-row:not(.is-muted) .ui-tree-label {
+  font-weight: 500;
+}
+.ui-tree-pmeta {
+  font-size: var(--text-small);
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ui-tree-depth {
+  display: none;
+  flex: 0 0 auto;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--surface-sub);
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-mini);
+  font-weight: 600;
+  line-height: 18px;
+}
+@container (max-width: 599px) {
+  .ui-tree-row {
+    padding-left: calc(var(--tl-base) + min(var(--d, 0), 3) * 16px);
+  }
+  .ui-tree-guide {
+    left: calc(var(--tl-base) + var(--g, 0) * 16px + 7px);
+  }
+  .ui-tree.is-plain .ui-tree-guide {
+    left: calc(var(--tl-base) + var(--g, 0) * 16px + 11px);
+  }
+  .ui-tree-guide.is-deep {
+    display: none;
+  }
+  .ui-tree-depth {
+    display: inline-block;
+  }
+}
+
+/* TreeList: rows while children load, or when loading failed */
+.ui-tree-row.is-extra {
+  cursor: default;
+  min-height: 48px;
+}
+.ui-tree-row.is-extra:hover {
+  background: transparent;
+}
+.ui-tree-row.is-error .ui-tree-main {
+  color: var(--danger-text);
+  font-size: var(--text-compact);
+}
+.ui-tree-row.is-error .ui-link-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* TreeList: fixed height with its own scrolling, and the bare look for use inside another card */
+.ui-tree.has-height {
+  display: flex;
+  flex-direction: column;
+}
+.ui-tree.has-height > .ui-tree-head {
+  flex: 0 0 auto;
+}
+.ui-tree.has-height > .ui-tree-list,
+.ui-tree.has-height > .ui-tree-empty {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.ui-tree.is-bare {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+.ui-tree.is-bare > .ui-tree-head {
+  padding-left: 0;
+  padding-right: 0;
+}
+.ui-tree-titles {
+  min-width: 0;
+}
+.ui-tree-subtitle {
+  margin-top: 2px;
+  font-size: var(--text-small);
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+.ui-tree-pmeta.is-path {
+  font-family: var(--font-mono);
+  font-size: var(--text-mini);
+}
+.ui-tree-pmeta .ui-num {
+  font-family: var(--font-mono);
+  font-size: var(--text-mini);
+}
+:is(.ui-card, .ui-settings-section) .ui-tree {
+  background: transparent;
+  border-radius: 0;
+  overflow: visible;
+}
+:is(.ui-card, .ui-settings-section) .ui-tree > .ui-tree-head {
+  padding-left: 0;
+  padding-right: 0;
+}
+.ui-card.is-flush .ui-tree > .ui-tree-head {
+  padding-left: 20px;
+  padding-right: 20px;
+}

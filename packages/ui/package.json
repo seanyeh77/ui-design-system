@@ -20,10 +20,11 @@
       "default": "./dist/index.js"
     },
     "./format": {
-      "types": "./dist/format.d.ts",
-      "default": "./dist/format.js"
+      "types": "./dist/format-entry.d.ts",
+      "default": "./dist/format-entry.js"
     },
     "./styles.css": "./dist/styles.css",
+    "./css/*": "./dist/css/*",
     "./tokens.css": "./dist/tokens.css",
     "./fonts.css": "./dist/fonts.css",
     "./bundle.js": "./dist/bundle.js",

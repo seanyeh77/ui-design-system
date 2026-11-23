@@ -1,0 +1,75 @@
+.ui-alert {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: calc(var(--space-3) + var(--alert-bar)) var(--space-4) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  font-size: var(--text-compact);
+  line-height: 1.5;
+}
+.ui-alert::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: var(--alert-bar);
+  background: var(--alert-color);
+}
+.ui-alert-info {
+  --alert-color: var(--accent);
+}
+.ui-alert-success {
+  --alert-color: var(--success);
+}
+.ui-alert-warning {
+  --alert-color: var(--warning);
+}
+.ui-alert-danger {
+  --alert-color: var(--danger);
+}
+.ui-alert-icon {
+  margin-top: 1px;
+  color: var(--alert-color);
+}
+/* The info icon sits by its text: accent-text, so a light accent still reads; the bar above keeps the accent. */
+.ui-alert-info .ui-alert-icon {
+  color: var(--accent-text);
+}
+.ui-alert-content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ui-alert-title {
+  font-weight: 700;
+}
+.ui-alert-body {
+  color: var(--ink-muted);
+}
+.ui-alert-action {
+  align-self: center;
+  height: 32px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-small);
+}
+.ui-alert-close {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  margin: -6px -8px -6px 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.ui-alert-close:hover {
+  background: var(--surface-sub);
+}

@@ -1,0 +1,117 @@
+.ui-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+.ui-kpi-label {
+  font-size: var(--text-compact);
+  color: var(--ink-muted);
+}
+.ui-kpi-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-h2);
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  color: var(--ink);
+}
+.ui-kpi-unit {
+  /* Units are words (個, 人, 天, ms): the text font, not the digits' Geist Mono. */
+  font-family: var(--font-sans);
+  margin-left: 4px;
+  font-size: 0.5em;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+.ui-kpi-spark {
+  display: block;
+}
+.ui-kpi-delta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-small);
+}
+.ui-kpi-change {
+  font-weight: 600;
+}
+.ui-kpi-change.is-good {
+  color: var(--success-text);
+}
+.ui-kpi-change.is-bad {
+  color: var(--danger-text);
+}
+.ui-kpi-note {
+  color: var(--ink-muted);
+}
+
+/* KPI count-up: the final value reserves the width, the counting value sits on top of it, right-aligned. */
+.ui-kpi-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ui-kpi-num {
+  display: inline-grid;
+  justify-items: end;
+  vertical-align: bottom;
+}
+.ui-kpi-cjk {
+  font-family: var(--font-sans);
+}
+.ui-kpi-sizer,
+.ui-kpi-live {
+  grid-area: 1 / 1;
+}
+.ui-kpi-sizer {
+  visibility: hidden;
+}
+
+/* KpiCard size="compact": a 22 px number for a top bar, no sparkline, a target line; a verdict that is not success
+   takes the target line's place in its color. */
+.ui-kpi.is-compact {
+  gap: 2px;
+  padding: 10px 14px;
+}
+.ui-kpi.is-compact .ui-kpi-value {
+  font-size: 22px; /* token-exempt: KpiCard compact number, one use */
+  line-height: 30px;
+}
+.ui-kpi-target {
+  font-size: var(--text-small);
+  line-height: 20px;
+  color: var(--ink-muted);
+}
+.ui-kpi-verdict {
+  font-weight: 600;
+}
+.ui-kpi-verdict.is-warning {
+  color: var(--warning-text);
+}
+.ui-kpi-verdict.is-danger {
+  color: var(--danger-text);
+}
+.ui-console-kpis > .ui-kpi {
+  padding: 6px var(--space-4);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  border-left: 1px solid var(--line);
+}
+.ui-console-kpis > .ui-kpi:last-child {
+  border-right: 1px solid var(--line);
+}
+.ui-console.is-stacked .ui-console-kpis > .ui-kpi:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+.ui-console.is-stacked .ui-console-kpis > .ui-kpi:last-child {
+  border-right: 0;
+}

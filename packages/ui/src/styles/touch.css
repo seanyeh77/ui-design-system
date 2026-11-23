@@ -1,0 +1,65 @@
+/* Touch targets: on touch screens every control keeps its look but its hit area grows to at least 48 x 48 px (touch-target).
+   Text links and terms inside a sentence are exempt (WCAG 2.2, 2.5.8 inline exception). */
+@media (pointer: coarse) {
+  :where(
+    button:not(.ui-term):not(.ui-code):not(.ui-cal-day):not(.ui-dt-view),
+    a.ui-link,
+    a.ui-btn,
+    [role='tab']:not(.ui-dt-view),
+    [role='switch'],
+    [role='menuitem'],
+    .ui-crumb a,
+    a.ui-crumb,
+    a.ui-nav-brand-link,
+    a.ui-wb-brand,
+    .ui-code.is-link:not(.is-inline),
+    .ui-term:not(.is-inline):not(.is-word)
+  ) {
+    position: relative;
+  }
+  :where(
+    button:not(.ui-term):not(.ui-code):not(.ui-cal-day):not(.ui-dt-view),
+    a.ui-link,
+    a.ui-btn,
+    [role='tab']:not(.ui-dt-view),
+    [role='switch'],
+    [role='menuitem'],
+    .ui-crumb a,
+    a.ui-crumb,
+    a.ui-nav-brand-link,
+    a.ui-wb-brand,
+    .ui-code.is-link:not(.is-inline),
+    .ui-term:not(.is-inline):not(.is-word)
+  )::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, var(--touch-target));
+    height: max(100%, var(--touch-target));
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* Inputs on phones: 48 px tall so the whole field is a 48 px touch target */
+@media (max-width: 599px) {
+  .ui-input,
+  .ui-select-trigger,
+  .ui-datefield,
+  .ui-pwfield {
+    height: var(--touch-target);
+  }
+}
+@media (max-width: 599px) {
+  .ui-ms {
+    min-height: var(--touch-target);
+  }
+}
+@media (max-width: 599px) {
+  .ui-searchfield-icon {
+    top: 16px;
+  }
+  .ui-searchfield-clear {
+    top: 10px;
+  }
+}

@@ -1,0 +1,66 @@
+.ui-themepick {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  max-width: 360px;
+}
+.ui-themepick-opt {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+.ui-themepick-opt.is-on {
+  border: 2px solid var(--accent);
+  padding: 5px;
+  font-weight: 700;
+}
+.ui-themepick-mini {
+  position: relative;
+  display: block;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.ui-themepick-mini span {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  height: 8px;
+  border-radius: 3px;
+}
+.ui-themepick-mini span:first-child {
+  top: 10px;
+  width: 40%;
+}
+.ui-themepick-mini span:last-child {
+  top: 24px;
+}
+/* The theme previews show the light and dark themes whatever the current one is: their own fixed colors (bg and line
+   of each theme), not tokens. */
+.ui-themepick-mini.is-light {
+  background: #fcfbfb;
+}
+.ui-themepick-mini.is-light span {
+  background: #e2dfdc;
+}
+.ui-themepick-mini.is-dark {
+  background: #2f2a25;
+}
+.ui-themepick-mini.is-dark span {
+  background: #4c4844;
+}
+.ui-themepick-mini.is-auto {
+  background: linear-gradient(135deg, #fcfbfb 50%, #2f2a25 50%);
+}
+.ui-themepick-mini.is-auto span {
+  background: #8c8073;
+}

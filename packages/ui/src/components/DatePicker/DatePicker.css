@@ -1,0 +1,50 @@
+.ui-datefield {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 240px;
+  max-width: 100%;
+  height: var(--control-height);
+  box-sizing: border-box;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-input);
+  color: var(--ink);
+}
+.ui-datefield.is-open {
+  border-color: var(--accent);
+}
+.ui-datefield-input {
+  font-family: var(--font-mono);
+}
+.ui-datefield-btn {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  margin-right: 4px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.ui-datefield-btn:hover {
+  background: var(--surface-sub);
+}
+.ui-datepop {
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-overlay);
+  animation: ui-pop-fade var(--dur-hover) ease both;
+}
+.ui-datepop-foot {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: var(--text-small);
+}

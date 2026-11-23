@@ -1,0 +1,89 @@
+/* ---------- Focus ----------
+   One focus style everywhere: a 2 px outline in --focus (the accent's text color, 3:1 or more on every ground in
+   both themes), 2 px outside the control. Controls that sit flush in a container that clips (a tab row that
+   scrolls, a table, a list, a code view) draw it 2 px inside instead, so it is never cut off. A new focusable part
+   joins one of these two lists rather than drawing its own ring. CommandPalette's active result (focus stays in its
+   input) shows the same outline, since Enter picks it. Anything else focusable (a link in Markdown, a
+   breadcrumb) gets the same outline from the first rule. */
+:where(:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.ui-btn:focus-visible,
+.ui-iconbtn:focus-visible,
+.ui-toast-action:focus-visible,
+.ui-input:focus-visible,
+:is(a, button).ui-nav-brand-link:focus-visible,
+.ui-nav-collapse:focus-visible,
+.ui-check:focus-visible,
+.ui-radio:focus-visible,
+.ui-switch:focus-visible,
+.ui-select-trigger:focus-visible,
+.ui-searchfield-clear:focus-visible,
+.ui-dt-chip:focus-visible,
+.ui-dt-chipclear:focus-visible,
+.ui-dt-bulk-close:focus-visible,
+.ui-dt-more:focus-visible,
+.ui-dt-view:focus-visible,
+.ui-dt-page:focus-visible,
+.ui-dt-check:focus-visible,
+.ui-themepick-opt:focus-visible,
+.ui-swatch:focus-visible,
+.ui-link-btn:focus-visible,
+.ui-datefield:focus-within,
+.ui-cal-day:focus-visible,
+.ui-ms:focus-within,
+.ui-pwfield:focus-within,
+.ui-dt-opt:focus-visible,
+.ui-code.is-link:focus-visible,
+.ui-code.is-link.is-name:focus-visible,
+.ui-code.is-link.is-location:focus-visible,
+.ui-projsw:focus-visible,
+.ui-pal-cancel:focus-visible,
+.ui-term:focus-visible,
+.ui-cv-ref:focus-visible,
+.ui-cv-name:focus-visible,
+.ui-lg-libtn:focus-visible,
+.ui-lg-node:focus-visible,
+.ui-skip:focus,
+.ui-bars:focus-visible,
+.ui-chart-plot:focus-visible,
+.ui-sec-btn:focus-visible,
+a.ui-wb-brand:focus-visible,
+.ui-wb-more:focus-visible,
+.ui-zone:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.ui-tab:focus-visible,
+.ui-dt-rowlink:focus-visible,
+.ui-dt-sort:focus-visible,
+.ui-dt-exp-btn:focus-visible,
+.ui-dt-long.is-cut:focus-visible,
+.ui-dt-sortgrip:focus-visible,
+.ui-dt-sortrm:focus-visible,
+.ui-dt-sortdir button:focus-visible,
+.ui-tree-row:focus-visible,
+.ui-cv-body:focus-visible,
+.ui-wb-exfilter .ui-searchfield .ui-input:focus-visible,
+.ui-wb-tab:focus-visible,
+.ui-seg-item:focus-visible,
+.ui-cv-line.is-target:focus,
+.ui-menu-item:focus-visible,
+.ui-select-opt:focus-visible,
+.ui-noti-item:focus-visible,
+.ui-projsw-opt:focus-visible,
+.ui-nav-item:focus-visible,
+.ui-settings-cat:focus-visible,
+.ui-pal-item.is-active,
+.ui-pal-head:has(.ui-pal-input:focus-visible),
+.ui-cv .ui-iconbtn:focus-visible,
+.ui-wb .ui-iconbtn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+/* DataTable cells clip what overflows them (a cut long text, a code link in a sentence): anything focusable inside a
+   cell draws the outline inside itself. :is() lifts the rule above the outside-outline list (.ui-code.is-link…). */
+.ui-dt-cell :is(.ui-code.is-link.is-location, *):focus-visible {
+  outline-offset: -2px;
+}

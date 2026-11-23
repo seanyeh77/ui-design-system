@@ -1,0 +1,54 @@
+.ui-tooltip {
+  padding: 6px 10px;
+  border-radius: var(--radius-chip);
+  background: var(--ink);
+  color: var(--bg);
+  font-size: var(--text-small);
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: ui-pop-scale var(--dur-tooltip) var(--ease-spring) both;
+}
+.ui-tooltip {
+  transform-origin: var(--transform-origin);
+}
+/* Closing: no animation left to wait for, so the popup leaves at once (an entrance still running kept it on screen). */
+.ui-tooltip[data-ending-style] {
+  animation: none;
+}
+.ui-tooltip.is-wrap {
+  max-width: min(360px, calc(100vw - 2 * var(--space-3)));
+  font-weight: 400;
+  line-height: 20px;
+  white-space: normal;
+}
+.ui-tooltip-arrow {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: inherit;
+  transform: rotate(45deg);
+}
+.ui-tooltip[data-side='top'] .ui-tooltip-arrow {
+  bottom: -4px;
+}
+.ui-tooltip[data-side='bottom'] .ui-tooltip-arrow {
+  top: -4px;
+}
+.ui-tooltip[data-side='right'] .ui-tooltip-arrow {
+  left: -4px;
+}
+.ui-tooltip[data-side='left'] .ui-tooltip-arrow {
+  right: -4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-tooltip {
+    animation: ui-pop-fade var(--dur-hover) ease both;
+  }
+}
+.ui-tooltip-positioner {
+  z-index: var(--z-tooltip);
+  pointer-events: none;
+}

@@ -1,0 +1,294 @@
+/* CodeView: the keys that move inside the code, shown while it has focus. */
+.ui-cv-keys {
+  outline: none;
+  padding: var(--space-2) var(--space-3);
+  max-width: min(320px, calc(100vw - 32px));
+}
+.ui-cv-keylist {
+  margin: 0;
+  display: grid;
+  gap: 4px;
+  font-size: var(--text-small);
+}
+.ui-cv-keylist > div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+.ui-cv-keylist dt {
+  flex: 0 0 64px;
+}
+.ui-cv-keylist dd {
+  margin: 0;
+  color: var(--ink-muted);
+}
+.ui-cv-keylist kbd {
+  padding: 0 var(--space-1);
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-xs);
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: var(--text-mini);
+}
+/* header="float": the language and buttons float at the top right while the pointer is over the code or focus is in
+   it; always on touch screens. */
+.ui-cv {
+  position: relative;
+}
+.ui-cv-tools {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 2px 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--text-mini);
+  opacity: 0;
+  transition: opacity var(--dur-hover) ease;
+}
+.ui-cv:is(:hover, :focus-within) .ui-cv-tools,
+.ui-cv-tools:has([aria-expanded='true']) {
+  opacity: 1;
+}
+@media (pointer: coarse) {
+  .ui-cv-tools {
+    opacity: 1;
+  }
+}
+.ui-cv-keyanchor {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  width: 1px;
+  height: 1px;
+}
+
+/* CodeView */
+.ui-cv {
+  border-radius: var(--radius-md);
+  background: var(--surface-sub);
+  overflow: hidden;
+}
+.ui-cv-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--text-small);
+}
+.ui-cv-file {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+.ui-cv-title {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ui-cv-lang {
+  margin-left: auto;
+  flex: 0 0 auto;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+/* No line numbers: the code starts 16 px in, like the header text. */
+.ui-cv.no-nums .ui-cv-text {
+  margin-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+/* KB: a Markdown code block has a low header (32 px) with no rule under it. */
+.ui-md-code .ui-cv-head {
+  min-height: 32px;
+  padding-left: var(--space-4);
+  border-bottom: 0;
+}
+.ui-md-code .ui-cv-body {
+  padding: 2px 0 10px;
+}
+/* A small copy icon at the right of the header, as in Suggestion; 48 px on phones. */
+.ui-cv-copy {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  margin-right: calc(-1 * var(--space-1));
+  border-color: transparent;
+}
+.ui-cv-lang + .ui-cv-copy {
+  margin-left: 0;
+}
+.ui-cv-copy:first-child,
+.ui-cv-file + .ui-cv-copy,
+.ui-cv-title + .ui-cv-copy {
+  margin-left: auto;
+}
+.ui-cv-copy:hover {
+  background: var(--surface);
+}
+.ui-cv-copy.is-copied {
+  color: var(--success-text);
+}
+@media (max-width: 599px) {
+  .ui-cv-copy {
+    width: var(--touch-target);
+    height: var(--touch-target);
+  }
+}
+.ui-cv-body {
+  margin: 0;
+  padding: 6px 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  line-height: 20px;
+  color: var(--ink);
+  tab-size: 4;
+  outline: none;
+}
+.ui-cv-body code {
+  display: block;
+  font: inherit;
+  background: none;
+  padding: 0;
+}
+.ui-cv-line {
+  display: flex;
+}
+.ui-cv-line.is-peek {
+  /* peek: a line marked for a moment from outside (an item pointing at it); quieter than the target. */
+  background: var(--surface);
+  box-shadow: inset 3px 0 0 var(--line-strong);
+  transition: background var(--dur-hover) ease;
+}
+.ui-cv-line.is-target {
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.ui-cv-num {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  /* VA: off the left edge, and clear of the code. */
+  padding: 0 var(--space-4) 0 var(--space-3);
+  text-align: right;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ui-cv-line.is-target .ui-cv-num {
+  color: var(--ink);
+  font-weight: 600;
+}
+.ui-cv-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0 var(--space-3) 0 4ch;
+  text-indent: -4ch;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  /* Continuation of a wrapped line: a 2 px bar in the 4ch hanging indent, from the second line down, so it never
+     reads as the next line of code. Nothing shows on a line that fits. */
+  background: linear-gradient(var(--line-strong), var(--line-strong)) no-repeat 1.5ch 20px / 2px calc(100% - 20px);
+}
+/* 「第 62 行」 for screen readers only: never selected or copied with the code. */
+/* A path in a comment or string, as a link (refHref, onRef): link colour, underlined; a button looks the same. */
+.ui-cv-ref {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  border-radius: 2px;
+}
+.ui-cv-ref:hover {
+  text-decoration-thickness: 2px;
+}
+.ui-cv-ref:is(button) {
+  cursor: pointer;
+}
+/* A name in the code that is a link (links): keeps its syntax colour, with a faint dotted underline (accent-text at
+   55 %, opaque on the target line's soft background), 3 px below the text so it never merges with an underscore.
+   It only acts while Ctrl or ⌘ is held (is-armed): then hover turns it into a solid 2 px link-coloured underline and a
+   hand cursor. A plain click selects text. Touch screens have no Ctrl: a tap opens it, so the cursor is a hand there. */
+.ui-cv-name {
+  color: inherit;
+  text-decoration: underline dotted color-mix(in srgb, var(--accent-text) 55%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  border-radius: 2px;
+  cursor: text;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  -webkit-user-drag: none;
+}
+.ui-cv-line.is-target .ui-cv-name {
+  text-decoration-color: var(--accent-text);
+}
+.ui-cv-body.is-armed .ui-cv-name:hover,
+.ui-cv-name:focus-visible {
+  color: var(--accent-text);
+  text-decoration-style: solid;
+  text-decoration-color: var(--accent-text);
+  text-decoration-thickness: 2px;
+}
+.ui-cv-body.is-armed .ui-cv-name:hover :is(.is-keyword, .is-constant, .is-string),
+.ui-cv-name:focus-visible :is(.is-keyword, .is-constant, .is-string) {
+  color: inherit;
+}
+.ui-cv-body.is-armed .ui-cv-name:hover {
+  cursor: pointer;
+}
+@media (pointer: coarse) {
+  .ui-cv-name {
+    cursor: pointer;
+  }
+}
+/* The preview card under a name (preview). */
+.ui-cv-preview {
+  max-width: 320px;
+  padding: var(--space-3);
+  font-size: var(--text-small);
+  line-height: 20px;
+}
+.ui-cv-sr {
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* An operator never splits across lines (-> stays ->). */
+.ui-cv-op {
+  white-space: nowrap;
+}
+.ui-cv .is-keyword {
+  color: var(--code-keyword);
+}
+.ui-cv .is-constant {
+  color: var(--code-constant);
+}
+.ui-cv .is-string {
+  color: var(--code-constant);
+}
+.ui-cv .is-comment {
+  color: var(--ink-muted);
+  font-style: italic;
+}
+.ui-cv-more {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  margin: 0 var(--space-3) var(--space-1);
+  font-size: var(--text-compact);
+  font-weight: 600;
+  white-space: nowrap;
+}

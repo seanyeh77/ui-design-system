@@ -1,0 +1,59 @@
+.ui-tabbar {
+  position: relative;
+  box-sizing: border-box;
+  height: 60px;
+  display: flex;
+  background: var(--surface-chrome);
+  border-top: 1px solid var(--line);
+}
+.ui-tabbar-pill {
+  position: absolute;
+  top: 15px;
+  height: 30px;
+  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+  pointer-events: none;
+}
+.ui-tabbar-item {
+  position: relative;
+  flex: 1 1 0;
+  min-height: var(--touch-target);
+  border: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.ui-tabbar-item.is-selected {
+  color: var(--accent-text);
+}
+/* MA: an 11 px label under each icon; the pill sits behind the icon only. */
+.ui-tabbar.has-labels {
+  height: 64px;
+}
+.ui-tabbar.has-labels .ui-tabbar-item {
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 2px;
+}
+.ui-tabbar.has-labels .ui-tabbar-pill {
+  top: 8px;
+}
+.ui-tabbar-label {
+  font-size: var(--text-mini);
+  line-height: 14px;
+  white-space: nowrap;
+}
+.ui-tabbar-item.is-selected .ui-tabbar-label {
+  font-weight: 700;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-tabbar-pill {
+    transition: opacity var(--dur-hover) ease !important;
+  }
+}
+.ui-shell .ui-tabbar {
+  flex: 0 0 auto;
+}

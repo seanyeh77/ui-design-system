@@ -1,0 +1,45 @@
+.ui-table-copy.is-copied {
+  color: var(--success-text);
+}
+.ui-table-zoom {
+  width: 32px;
+  height: 32px;
+  border-color: transparent;
+}
+.ui-table-zoom:hover {
+  background: var(--surface-sub);
+}
+.ui-col-resize {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: -6px;
+  z-index: var(--z-raised);
+  width: 11px;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+}
+.ui-col-resize::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  transform: translateX(-50%);
+  border-radius: 2px;
+  background: var(--accent);
+  transition: width var(--dur-hover) ease;
+}
+.ui-col-resize:hover::after,
+.ui-col-resize.is-dragging::after,
+.ui-col-resize:focus-visible::after {
+  width: 3px;
+}
+/* A finger cannot hit an 11 px border: on touch screens the corner button shows the whole table instead. */
+@media (pointer: coarse) {
+  .ui-col-resize {
+    display: none;
+  }
+}

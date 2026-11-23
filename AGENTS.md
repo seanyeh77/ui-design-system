@@ -10,7 +10,7 @@ Docs site (Storybook, live examples, props tables): https://seanyeh77.github.io/
 
 | Package | What it is |
 | --- | --- |
-| `@seanyeh77/ui` | The components (ES module with types), `styles.css`, `bundle.js` for pages without a build step, and the docs under `docs/` (each README and guide) |
+| `@seanyeh77/ui` | The components (ES modules with types, one file per module so bundlers keep only what a page imports), `styles.css` (or per component in `css/`), `bundle.js` for pages without a build step, and the docs under `docs/` (each README and guide) |
 | `@seanyeh77/tokens` | `tokens.css`, a Tailwind v4 theme (`tailwind.css`), typed token names with `cssVar()`, the fonts |
 | `@seanyeh77/eslint-plugin-ui` | Lint rules: tokens only, no native controls, no card in a card, danger actions confirmed, one primary button, verb labels |
 | `@seanyeh77/ui-cli` | `ui check <page>`, `ui shots <page>` (screenshot baselines and comparison), `ui docs <Name> [--full]`, `ui list`. Run it as `npx @seanyeh77/ui-cli …`: plain `npx ui` runs an unrelated npm package. |
@@ -68,6 +68,7 @@ import ui from '@seanyeh77/eslint-plugin-ui';
 export default [ui.configs.recommended];
 ```
 
+- The system's CSS is in the cascade layer `ui` (`ui.tokens`, `ui.components`): your own unlayered CSS always overrides it, no specificity fight and no `!important`. With Tailwind v4, start the main CSS file with `@layer theme, base, ui, components, utilities;` (before `@import 'tailwindcss'`) so utility classes override components. Details and the per-component CSS (`@seanyeh77/ui/css/`) in `theme.md`.
 - React 19 is required. The module starts with `'use client'`, so it works in Next.js server components pages as client components. Server code that only formats dates, numbers or text imports from `@seanyeh77/ui/format` (no `'use client'`).
 - The ESLint config reads `.tsx` with the typescript-eslint parser, which needs the `typescript` 5 or 6 API. With TypeScript 7 only, also install `typescript@npm:@typescript/typescript6` as a dev dependency.
 - Components need a browser: run component tests in a browser (Vitest browser mode) or jsdom.
@@ -102,7 +103,7 @@ A pnpm workspace. `pnpm install`, then `pnpm check` builds, type-checks, lints a
 | --- | --- |
 | `packages/tokens/tokens.json` | Every token, light and dark, and the presets. `pnpm --filter @seanyeh77/tokens build` writes the CSS, the Tailwind theme and the types. |
 | `packages/ui/src/components/<Name>/` | `<Name>.tsx`, `README.md`, `<Name>.stories.tsx` (Storybook, module example) and `preview.html` (plain-HTML example; the card of the Design System artifact) |
-| `packages/ui/src/styles.css` | Component styles, token variables only |
+| `packages/ui/src/components/<Name>/<Name>.css`, `packages/ui/src/styles/*.css` | Component styles, token variables only: one file per component, plus shared files (`base`, `field`, `chart`, `motion`, `table`, `utilities`, `touch`, `floating`, `focus`). `packages/ui/src/styles.css` lists every file in cascade order; the build joins them into `dist/styles.css` inside `@layer ui.components` and writes the per-component files in `dist/css/`. A new CSS file must be added to that list (`pnpm test` fails otherwise). |
 | `packages/blocks/src/` | Page templates; `registry.json` at the root lists them |
 | `packages/eslint-plugin-ui`, `packages/cli` | The lint rules, `ui check`, `ui shots` and `ui docs` |
 | `tests/visual/baseline/` | Screenshot baselines of every preview: `<Name>-<390 or 1280>-<light or dark>.png` |

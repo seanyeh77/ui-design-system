@@ -1,0 +1,1180 @@
+.ui-dt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  /* The toolbar wraps by the table's own width (a table beside a panel is narrow on a wide screen). As a size
+     container it cannot take its width from its content, so it fills its parent. */
+  container: ui-dt / inline-size;
+  width: 100%;
+  /* Row grounds. Zebra rows are surface-sub; hover is a neutral wash of ink over surface (not accent: selection is
+     accent). Text on each keeps 4.5:1 for ink, ink-muted and every *-text token (DataTable.test.tsx checks it). */
+  --dt-zebra: var(--surface-sub);
+  --dt-hover: color-mix(in srgb, var(--surface), var(--ink) 6%);
+}
+/* Dark: surface-sub rows stood out too much; half-way between surface and surface-sub. A 5 % wash keeps
+   accent-text, danger-text and info-text above 4.5:1 (6 % gave 4.4:1). */
+[data-theme='dark'] .ui-dt {
+  --dt-zebra: color-mix(in srgb, var(--surface), var(--surface-sub) 50%);
+  --dt-hover: color-mix(in srgb, var(--surface), var(--ink) 5%);
+}
+.ui-dt-caption {
+  /* The same size as a Card title: a table's heading is a block heading whether or not it sits in a card. */
+  font-size: var(--text-title);
+  font-weight: 700;
+}
+.ui-dt-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* Search on the left; the count and every button in one group on the right that keeps to one line: when it runs out of
+   room the sort button's text is cut with … first. Every control is 40 px tall. */
+.ui-dt-tools > .ui-dt-search {
+  position: relative;
+  flex: 0 1 320px;
+  min-width: 240px;
+}
+.ui-dt-search .ui-input {
+  padding-left: 40px;
+}
+/* 「/」 focuses the field (searchShortcut): a small key in the empty, unfocused field on desktop. */
+.ui-dt-kbd {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  min-width: 20px;
+  height: 22px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-mini);
+  line-height: 1;
+  pointer-events: none;
+}
+.ui-dt-actions > :is(.ui-dt-filterbtn, .ui-dt-sortbtn) {
+  height: var(--control-height);
+}
+/* 「⋯」 (更多表格操作): quiet, but as tall as the other tools. */
+.ui-dt-actions > .ui-dt-menubtn {
+  width: var(--control-height);
+  height: var(--control-height);
+}
+/* Filters applied: the button says so in accent, besides its count. */
+.ui-dt-filterbtn.is-active {
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+/* 「已複製」 under the 「⋯」 button for 2 s after copying (the menu has closed). */
+.ui-dt-actions {
+  position: relative;
+}
+.ui-dt-copied {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: var(--z-tooltip);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: var(--radius-chip);
+  background: var(--ink);
+  color: var(--bg);
+  font-size: var(--text-small);
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: ui-pop-fade var(--dur-hover) ease both;
+}
+.ui-dt-subcaret {
+  margin-left: auto;
+  color: var(--ink-muted);
+}
+/* The applied conditions under the toolbar: removable chips and 「清除全部」. */
+.ui-dt-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.ui-dt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  max-width: 100%;
+  padding: 0 6px 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-chip);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-compact);
+  cursor: pointer;
+}
+.ui-dt-chip-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ui-dt-chip .ui-icon {
+  color: var(--ink-muted);
+}
+.ui-dt-chip:hover {
+  background: var(--surface-sub);
+}
+.ui-dt-chip:hover .ui-icon {
+  color: var(--ink);
+}
+.ui-dt-actions {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.ui-dt-actions > * {
+  flex: none;
+}
+.ui-dt-actions > .ui-dt-sortbtn {
+  flex: 0 1 auto;
+  min-width: 96px;
+  max-width: 280px;
+}
+/* No search field: the caption on the left of the buttons; they move under it, right-aligned, when the caption would
+   get narrower than about 12 characters. */
+.ui-dt-tools > .ui-dt-caption {
+  flex: 1 1 12em;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ui-dt-tools > .ui-dt-caption + .ui-dt-actions {
+  flex: none;
+  margin-left: auto;
+}
+.ui-dt-sortbtn-short {
+  display: none;
+  align-items: center;
+  gap: 6px;
+}
+/* By the table's own width (a table beside a panel is narrow on a wide screen). Under 760 px: the search field on a row
+   of its own, the buttons on the next. */
+@container ui-dt (max-width: 759px) {
+  .ui-dt-tools {
+    flex-wrap: wrap;
+  }
+  .ui-dt-tools > .ui-dt-search,
+  .ui-dt-tools > .ui-dt-search + .ui-dt-actions {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+}
+/* Under 480 px: 「排序」 and the number of levels instead of the whole sort. With copy, columns and zoom as well (not
+   on phones, which hide them), 「篩選」「排序」「欄位」 keep only their icons and counts; the words stay in the
+   accessible names. The buttons wrap only when even that does not fit. */
+@container ui-dt (max-width: 479px) {
+  .ui-dt-sortbtn-text {
+    display: none;
+  }
+  .ui-dt-sortbtn-short {
+    display: inline-flex;
+  }
+  .ui-dt-actions > .ui-dt-sortbtn {
+    min-width: 0;
+  }
+  .ui-dt-actions:has(> .ui-dt-menubtn) .ui-dt-btntext {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .ui-dt-actions:has(> .ui-dt-menubtn) :is(.ui-dt-filterbtn, .ui-dt-sortbtn) {
+    padding-inline: 10px;
+  }
+  .ui-dt-actions {
+    flex-wrap: wrap;
+  }
+}
+/* Phones, also for tools that moved into a Card title row (outside the table, so not reached by the container). */
+@media (max-width: 599px) {
+  .ui-dt-sortbtn-text {
+    display: none;
+  }
+  .ui-dt-sortbtn-short {
+    display: inline-flex;
+  }
+}
+.ui-card-head > .ui-dt-tools.is-inhead {
+  flex: none;
+  margin-left: auto;
+}
+/* Wider than its box (a narrow container beside a panel): a fade on the right while columns are to the right. */
+.ui-dt-scroller {
+  position: relative;
+}
+.ui-dt-scroller::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  bottom: 1px;
+  width: 48px;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, var(--surface));
+  opacity: 0;
+  transition: opacity var(--dur-hover) ease;
+}
+.ui-dt-scroller.has-more::after {
+  opacity: 1;
+}
+/* A table without page numbers can hold many rows: it scrolls in a box up to 560 px tall, its header staying on top.
+   With page numbers (is-paged) a page is short, so it has no height limit and no box of its own to scroll in. Either
+   way the wheel passes on to the page at the box's end (no overscroll-behavior: contain). */
+.ui-dt-scroll {
+  max-height: var(--dt-max-height, 560px);
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.ui-dt-table {
+  /* As wide as the box, and wider only when the columns' minimum widths do not fit. max-content made a long
+     column grow the table past a box it would fit in. */
+  width: 100%;
+  min-width: min-content;
+}
+.ui-dt-row {
+  display: grid;
+  align-items: center;
+  min-height: 48px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.ui-dt-body .ui-dt-row.is-even {
+  background: var(--dt-zebra);
+}
+.ui-dt-body {
+  position: relative;
+}
+.ui-dt-body .ui-dt-row {
+  transition: background-color 0.12s ease;
+}
+.ui-dt-body .ui-dt-row:hover {
+  background: var(--dt-hover);
+}
+/* EC: rows with details or a page (rowHref) are clickable as a whole; the hover above already shows it. */
+.ui-dt-body .ui-dt-row:is(.has-exp, .has-href) {
+  cursor: pointer;
+}
+/* Selected: accent-soft and a 3 px accent bar on the left. The row a keyboard is in: a 2 px bar only. The bar sits on
+   the first cell, so a sticky first cell (stickyFirst) does not cover it. */
+.ui-dt-body .ui-dt-row {
+  --dt-mark: 0 0 transparent;
+}
+.ui-dt-body .ui-dt-row:has(:focus-visible) {
+  --dt-mark: inset 2px 0 0 var(--accent);
+}
+.ui-dt-body .ui-dt-row.is-selected,
+.ui-dt-body .ui-dt-row.is-selected:hover {
+  --dt-mark: inset 3px 0 0 var(--accent);
+  background: var(--accent-soft);
+}
+.ui-dt-body .ui-dt-row > .ui-dt-cell:first-child {
+  box-shadow: var(--dt-mark);
+}
+/* rowHref: the first cell's text is the row's link. */
+.ui-dt-rowlink {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  min-width: 0;
+}
+.ui-dt-row:hover .ui-dt-rowlink,
+.ui-dt-rowlink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+/* secondary: a second line under the cell's text, smaller and muted, one line cut with …. */
+.ui-dt-stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  max-width: 100%;
+  padding-block: 6px;
+}
+.ui-dt-cell.is-num .ui-dt-stack {
+  align-items: flex-end;
+}
+.ui-dt-main {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+}
+.ui-dt-sub {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-sans);
+  font-size: var(--text-small);
+  line-height: 20px;
+  font-weight: 400;
+  color: var(--ink-muted);
+}
+/* Dates: <time>, figures of one width so a column of times lines up. */
+.ui-dt-time {
+  /* Dates and 「2 小時前」 hold words: the text font, with figures of one width so a column of times lines up. */
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* Hugging columns are measured on one line (DataTable adds is-measuring for the read only). */
+.ui-dt.is-measuring .ui-dt-cell.is-hug {
+  white-space: nowrap;
+}
+
+.ui-dt-body .ui-dt-row:last-child {
+  border-bottom: 0;
+}
+.ui-dt-ghost {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: var(--z-base);
+  pointer-events: none;
+}
+.ui-dt-cell {
+  padding: 0 12px;
+  min-width: 0;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  border-right: 1px solid var(--line);
+  overflow: hidden;
+}
+.ui-dt-cell:last-child {
+  border-right: 0;
+}
+.ui-dt-cell.is-num {
+  justify-content: flex-end;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ui-dt-head {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  min-height: 44px;
+  background: var(--surface-sub);
+  /* Its own level: a stronger line under the headings than between rows. */
+  border-bottom-color: var(--line-strong);
+  font-size: var(--text-compact);
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.ui-dt-head .ui-dt-cell {
+  font-family: var(--font-sans);
+}
+/* A2: the right border of each heading drags (internal/tableTools ColResize, shared with Markdown tables). */
+.ui-dt-head .ui-dt-cell:not(.is-sticky) {
+  position: relative;
+}
+.ui-dt-head .ui-col-resize {
+  right: 0;
+  width: 8px;
+}
+.ui-dt-head .ui-col-resize::after {
+  left: auto;
+  right: -1px;
+  transform: none;
+}
+/* B2: 「放大表格」 above the table's top right, as on Markdown tables. */
+.ui-dt-scroll.is-paged {
+  max-height: none;
+}
+.ui-dt-zoomed .ui-dt-scroll {
+  max-height: calc(100vh - 280px);
+  overflow: auto;
+}
+.ui-dt-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  margin: 0 -4px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ui-dt-cell.is-num .ui-dt-sort {
+  flex-direction: row-reverse;
+}
+.ui-dt-arrow {
+  opacity: 0;
+  color: var(--ink-muted);
+  transition: opacity 0.12s ease;
+}
+.ui-dt-sort:hover .ui-dt-arrow,
+.ui-dt-sort:focus-visible .ui-dt-arrow {
+  opacity: 1;
+}
+.ui-dt-sort.is-on .ui-dt-arrow {
+  color: inherit;
+}
+.ui-dt-sort.is-on {
+  color: var(--accent-text);
+}
+.ui-dt-sort.is-on .ui-dt-arrow {
+  opacity: 1;
+}
+.ui-dt-check {
+  padding: 0;
+  cursor: pointer;
+}
+.ui-dt-sel > *,
+.ui-dt-acts > * {
+  transition: opacity 0.12s ease;
+}
+.ui-dt-sel > * {
+  opacity: 0;
+}
+.ui-dt-row:hover .ui-dt-sel > *,
+.ui-dt-row:focus-within .ui-dt-sel > *,
+.ui-dt.has-sel .ui-dt-sel > * {
+  opacity: 1;
+}
+.ui-dt-acts {
+  justify-content: flex-end;
+  gap: 2px;
+  padding: 0 8px;
+}
+.ui-dt-acts > * {
+  opacity: 0;
+}
+.ui-dt-row:hover .ui-dt-acts > *,
+.ui-dt-row:focus-within .ui-dt-acts > * {
+  opacity: 1;
+}
+@media (hover: none) {
+  .ui-dt-sel > *,
+  .ui-dt-acts > *,
+  .ui-dt-arrow {
+    opacity: 1;
+  }
+}
+.ui-dt-bulk {
+  display: flex;
+  gap: 12px;
+  padding-right: 8px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+.ui-dt-bulk .ui-dt-cell {
+  border-right: 0;
+}
+.ui-dt-bulk-count {
+  font-size: var(--text-compact);
+}
+.ui-dt-bulk-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+.ui-dt-bulk-close {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.ui-dt-empty {
+  padding: 28px 12px;
+  text-align: center;
+  color: var(--ink-muted);
+}
+.ui-dt-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ui-dt-range {
+  font-size: var(--text-small);
+  color: var(--ink-muted);
+}
+.ui-dt-pages {
+  display: flex;
+  gap: 4px;
+}
+.ui-dt-page {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-chip);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  cursor: pointer;
+}
+.ui-dt-page.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.ui-dt-page:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.ui-dt-summary {
+  margin-bottom: var(--space-3);
+  align-self: flex-start;
+  /* Wider than the table (phones): the row scrolls sideways, the edge with more tabs fades (Tabs), and it comes to rest
+     on a whole tab rather than in the middle of a word. */
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 4px;
+}
+.ui-dt-cell.is-long > .ui-dt-long {
+  /* As wide as the column: the text is cut where the column ends, not after a set number of characters. */
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* A link inside a cut text that has keyboard focus could sit past the cut, out of sight: while focus is inside, the
+   text shows in full (the row grows) so the focused link and its outline are seen. */
+.ui-dt-cell.is-long > .ui-dt-long:has(:focus-visible) {
+  white-space: normal;
+  overflow: visible;
+}
+.ui-dt-more {
+  display: none;
+}
+/* A short cell with fullText: as wide as its content, cut at the column's edge. */
+.ui-dt-full {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-width: 0;
+}
+/* The caret that opens a row's long columns in full, below the row (desktop). */
+.ui-dt-exp {
+  padding: 0;
+  justify-content: center;
+}
+.ui-dt-exp-btn {
+  width: 40px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.ui-dt-exp-btn:hover {
+  color: var(--ink);
+}
+.ui-dt-exp-btn .ui-icon {
+  transition: transform var(--dur-nav) ease;
+}
+.ui-dt-exp-btn.is-open .ui-icon {
+  transform: rotate(90deg);
+}
+.ui-dt-detail {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.ui-dt-detail.is-even {
+  background: var(--dt-zebra);
+}
+.ui-dt-detail-cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-4) var(--space-4);
+  max-width: 72em;
+}
+.ui-dt-detail-label {
+  font-size: var(--text-small);
+  line-height: 20px;
+  color: var(--ink-muted);
+}
+.ui-dt-detail-text {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-dt-exp-btn .ui-icon {
+    transition: none;
+  }
+}
+@media (max-width: 599px) {
+  .ui-dt-scroll {
+    max-height: none;
+    overflow: visible;
+    border: 0;
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+  }
+  .ui-dt-table {
+    width: auto;
+    min-width: 0;
+  }
+  .ui-dt-head:not(.ui-dt-bulk) {
+    display: none;
+  }
+  .ui-dt-bulk {
+    position: static;
+    border: 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+  .ui-dt-body .ui-dt-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto !important;
+    align-items: center;
+    min-width: 0 !important;
+    min-height: 0;
+    padding: var(--space-3) var(--space-4);
+    border: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none;
+  }
+  .ui-dt-body .ui-dt-row:first-child {
+    border-top: 0;
+  }
+  .ui-dt-body .ui-dt-row.is-selected {
+    background: var(--accent-soft) !important;
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  .ui-dt-body .ui-dt-row > .ui-dt-cell:first-child {
+    box-shadow: none;
+  }
+  .ui-dt-kbd {
+    display: none;
+  }
+
+  .ui-dt-body .ui-dt-cell {
+    grid-column: 1 / -1;
+    display: block;
+    margin-top: 4px;
+    padding: 0;
+    border-right: 0;
+    text-align: left;
+    overflow: visible;
+    white-space: normal;
+    /* Break a word only when it is wider than the card: 「anywhere」 also let a name in a flex row with tags shrink
+       and break mid-word (「ucp_worker_progre / ss」). */
+    overflow-wrap: break-word;
+  }
+  .ui-dt-body .ui-dt-cell[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 0;
+    color: var(--ink-muted);
+    font-family: var(--font-sans);
+    font-size: var(--text-mini);
+    line-height: 18px;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+  .ui-dt-body .ui-dt-cell.ui-dt-sel {
+    grid-column: 1;
+    grid-row: 1;
+    margin: 0 var(--space-2) 0 0;
+  }
+  .ui-dt-body .ui-dt-cell.is-m-title {
+    grid-column: 2;
+    grid-row: 1;
+    margin-top: 0;
+    font-weight: 600;
+  }
+  /* A title made of a name and tags in a row: the tags go to the next line instead of squeezing the name. */
+  .ui-dt-body .ui-dt-cell.is-m-title > :is(span, div):only-child {
+    flex-wrap: wrap;
+  }
+  .ui-dt-body .ui-dt-cell.is-m-status {
+    grid-column: 3;
+    grid-row: 1;
+    margin: 0 0 0 var(--space-2);
+  }
+  .ui-dt-body .ui-dt-cell.is-m-title::before,
+  .ui-dt-body .ui-dt-cell.is-m-status::before {
+    display: none;
+  }
+  .ui-dt-body .ui-dt-cell.is-m-hide {
+    display: none;
+  }
+  .ui-dt-body .ui-dt-cell.ui-dt-acts {
+    grid-column: 4;
+    grid-row: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 4px;
+    margin: 0 0 0 var(--space-2);
+  }
+  .ui-dt-sel > *,
+  .ui-dt-acts > * {
+    opacity: 1;
+  }
+  .ui-dt-body .ui-dt-cell.is-long > .ui-dt-long {
+    overflow: visible;
+    white-space: normal;
+  }
+  /* Equal widths while every tab fits; else each keeps its text whole and the row scrolls. */
+  .ui-dt-summary {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(max-content, 1fr);
+    align-self: stretch;
+  }
+}
+@media (max-width: 599px) {
+  .ui-dt-body .ui-dt-cell.is-long > .ui-dt-long {
+    max-width: none;
+  }
+  .ui-dt-long-text.is-clamped {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+  .ui-dt-more {
+    display: inline;
+    margin-top: 4px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--accent-text);
+    font: inherit;
+    font-size: var(--text-small);
+    font-weight: 600;
+    cursor: pointer;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-dt-body .ui-dt-row {
+    transition: none;
+  }
+}
+/* A long cell cut off on desktop: focusable, so the keyboard gets its Tooltip too. */
+.ui-dt-long.is-cut {
+  cursor: default;
+  border-radius: var(--radius-sm);
+}
+
+.ui-dt-views {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+}
+.ui-dt-view {
+  position: relative;
+  height: 40px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: var(--text-compact);
+  cursor: pointer;
+}
+.ui-dt-view.is-on {
+  color: var(--ink);
+  font-weight: 700;
+}
+.ui-dt-view.is-on::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: -1px;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--accent);
+}
+.ui-dt-view-n {
+  margin-left: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--text-mini);
+  color: var(--ink-muted);
+  font-weight: 400;
+}
+.ui-dt-filterbtn {
+  height: var(--control-height);
+}
+.ui-dt-result {
+  margin-left: auto;
+  font-size: var(--text-small);
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+.ui-dt-filterpop {
+  width: 520px;
+  /* No wider than its table (the space Base UI leaves inside the boundary), nor the window. */
+  max-width: min(calc(100vw - 16px), var(--available-width, 100vw));
+  padding: 16px;
+  box-sizing: border-box;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-overlay);
+  animation: ui-pop-fade var(--dur-hover) ease both;
+}
+/* S2C: the 「排序」 button writes the current sort (「排序：程式 ↑、ΔT ↓」, cut with … when long); on phones 「排序」 and
+   the number of levels. Its panel looks like the filter panel. */
+.ui-dt-sortbtn {
+  height: var(--control-height);
+}
+.ui-dt-sortbtn-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ui-dt-sortpop {
+  width: 400px;
+  max-width: min(calc(100vw - 16px), var(--available-width, 100vw));
+  padding: 16px;
+  box-sizing: border-box;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-overlay);
+}
+.ui-dt-sortlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ui-dt-sortlvl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  border-radius: var(--radius-sm);
+}
+.ui-dt-sortlvl.is-dragging {
+  opacity: 0.4;
+}
+.ui-dt-sortlvl.is-over {
+  box-shadow: 0 -2px 0 var(--accent);
+}
+.ui-dt-sortgrip,
+.ui-dt-sortrm {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+.ui-dt-sortgrip {
+  cursor: grab;
+}
+.ui-dt-sortgrip:hover,
+.ui-dt-sortrm:hover {
+  background: var(--surface-sub);
+  color: var(--ink);
+}
+.ui-dt-sortn {
+  flex: none;
+  width: 1ch;
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--ink-muted);
+}
+.ui-dt-sortname {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ui-dt-sortdir {
+  flex: none;
+  display: inline-flex;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.ui-dt-sortdir button {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-small);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ui-dt-sortdir button + button {
+  border-left: 1px solid var(--line-strong);
+}
+.ui-dt-sortdir button.is-on {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+.ui-dt-sortnone {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--ink-muted);
+}
+.ui-dt-sortmore {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  margin-top: 4px;
+  font-size: var(--text-compact);
+}
+.ui-dt-sortadd {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+.ui-dt-sortaddhead {
+  display: block;
+  margin-bottom: 4px;
+  font-size: var(--text-small);
+  color: var(--ink-muted);
+}
+.ui-dt-sortadd .ui-dt-opt {
+  color: var(--accent-text);
+}
+/* The heading's place in a multi-column sort, after its arrow. */
+.ui-dt-sortpri {
+  font-family: var(--font-mono);
+  font-size: var(--text-mini);
+  line-height: 1;
+  color: var(--accent-text);
+  margin-left: -2px;
+}
+.ui-dt-filterhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.ui-dt-facets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.ui-dt-facet {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.ui-dt-facet legend {
+  padding: 0;
+  margin-bottom: 6px;
+  font-size: var(--text-small);
+  font-weight: 700;
+}
+.ui-dt-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 34px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-compact);
+  text-align: left;
+  cursor: pointer;
+}
+.ui-dt-opt:hover {
+  background: var(--surface-sub);
+}
+.ui-dt-opt.is-zero {
+  color: var(--ink-muted);
+}
+.ui-dt-opt .ui-check-box,
+.ui-dt-opt .ui-radio-ring {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+}
+.ui-dt-opt-label {
+  flex: 1 1 auto;
+}
+.ui-dt-opt-n {
+  font-family: var(--font-mono);
+  font-size: var(--text-mini);
+  color: var(--ink-muted);
+}
+.ui-dt-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ui-dt-range-inputs .ui-input {
+  height: 36px;
+  min-width: 0;
+  font-family: var(--font-mono);
+}
+.ui-mark {
+  background: var(--mark);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+.ui-dt-empty .ui-btn {
+  margin-top: 10px;
+}
+.ui-dt-total {
+  font-weight: 700;
+  background: var(--surface-sub) !important;
+  border-top: 2px solid var(--line-strong);
+}
+.ui-dt-total .ui-dt-cell.is-num {
+  font-family: var(--font-mono);
+}
+.ui-dt-cell.is-sticky {
+  position: sticky;
+  z-index: var(--z-raised);
+  /* The row's ground (zebra, hover, selected), so nothing shows through while the table scrolls sideways. */
+  background: inherit;
+}
+.ui-dt-cell.is-sticky-end {
+  box-shadow: 6px 0 8px -6px var(--edge-shadow);
+}
+.ui-dt-body .ui-dt-row > .ui-dt-cell.is-sticky-end:first-child {
+  box-shadow:
+    var(--dt-mark),
+    6px 0 8px -6px var(--edge-shadow);
+}
+.ui-dt-head .ui-dt-cell.is-sticky {
+  background: var(--surface-sub);
+}
+.ui-dt-colmenu {
+  min-width: 200px;
+  max-height: min(420px, var(--available-height, 420px));
+  overflow-y: auto;
+}
+@media (max-width: 599px) {
+  /* Phones: the totals stay, as a summary under the cards: 「合計 n 筆」, then one line per total, its column's name on
+     the left and the value on the right. Columns without a total are left out. */
+  .ui-dt-total {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-width: 0 !important;
+    min-height: 0;
+    padding: var(--space-3) var(--space-4);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  }
+  .ui-dt-total .ui-dt-cell {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-3);
+    padding: 0;
+    border-right: 0;
+    overflow: visible;
+    white-space: normal;
+  }
+  .ui-dt-total .ui-dt-cell:empty {
+    display: none;
+  }
+  .ui-dt-total .ui-dt-cell[data-label]::before {
+    content: attr(data-label);
+    color: var(--ink-muted);
+    font-family: var(--font-sans);
+    font-weight: 400;
+  }
+  .ui-dt-cell.is-sticky {
+    position: static;
+    box-shadow: none;
+    background: none;
+  }
+  .ui-dt-facets {
+    grid-template-columns: 1fr;
+  }
+}
+.ui-dt-head .ui-dt-cell.is-sticky {
+  z-index: calc(var(--z-sticky) + 1);
+}
+.ui-dt-filterhead .ui-link-btn {
+  font-size: var(--text-small);
+}
+.ui-card.is-flush > .ui-dt {
+  padding-bottom: var(--space-4);
+}
+.ui-card.is-flush > .ui-dt:first-child {
+  padding-top: var(--space-4);
+}
+.ui-card.is-flush > .ui-dt > :not(.ui-dt-scroller, .ui-dt-summary) {
+  padding-inline: var(--space-4);
+}
+/* The summary tabs draw their own track: kept off the card's edges by a margin, not padded inside the track. */
+.ui-card.is-flush > .ui-dt > .ui-dt-summary {
+  margin-inline: var(--space-4);
+  max-width: calc(100% - 2 * var(--space-4));
+}
+.ui-card.is-flush > .ui-dt .ui-dt-scroll {
+  border-inline: 0;
+  border-radius: 0;
+}

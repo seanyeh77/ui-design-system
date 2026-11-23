@@ -1,0 +1,62 @@
+.ui-bars {
+  position: relative;
+  height: 200px;
+  margin-left: 32px;
+}
+.ui-bars-grid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--line);
+}
+.ui-bars-grid.is-axis {
+  border-top-style: solid;
+}
+.ui-bars-grid .ui-chart-tick {
+  position: absolute;
+  right: calc(100% + 6px);
+  top: -9px;
+}
+.ui-bars-row {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.ui-bar-slot {
+  position: relative;
+  flex: 1 1 0;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+@keyframes ui-bar-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: none;
+  }
+}
+.ui-bar {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  background: var(--chart-1);
+  transform-origin: bottom;
+  animation: ui-bar-grow var(--dur-bar) var(--ease-standard) both;
+  transition: opacity var(--dur-hover) ease;
+}
+.ui-bar-slot .ui-chart-tip {
+  top: auto;
+}
+.ui-bars-labels {
+  margin-left: 32px;
+  gap: 8px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-bar {
+    animation: ui-fade var(--dur-nav) ease both;
+    stroke-dasharray: none;
+  }
+}

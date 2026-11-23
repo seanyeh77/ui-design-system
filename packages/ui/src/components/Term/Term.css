@@ -1,0 +1,154 @@
+/* Term */
+.ui-term {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+}
+.ui-term-q {
+  display: inline-block;
+  margin-left: 2px;
+  vertical-align: -2px;
+  color: var(--ink-muted);
+  transition: color var(--dur-hover) ease;
+}
+.ui-term:hover .ui-term-q,
+.ui-term.is-open .ui-term-q {
+  color: var(--accent-text);
+}
+/* Term variant="inline": a dashed underline inside a sentence, no icon; the card opens after resting on the word. */
+.ui-term.is-word {
+  cursor: help;
+  text-decoration: underline dashed var(--line-strong);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--dur-hover) ease;
+}
+.ui-term.is-word:hover,
+.ui-term.is-word.is-open,
+.ui-term.is-word:focus-visible {
+  text-decoration-color: var(--accent-text);
+}
+.ui-term-pop {
+  width: 340px;
+  /* No wider than the block it explains (see Term), nor the window. */
+  max-width: min(calc(100vw - 16px), var(--available-width, 100vw));
+  box-sizing: border-box;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-overlay);
+  color: var(--ink);
+  font-size: var(--text-compact);
+  font-weight: 400;
+  line-height: 1.55;
+  text-align: left;
+  white-space: normal;
+  animation: ui-pop-scale var(--dur-nav) var(--ease-spring) both;
+  transform-origin: 16px 0;
+}
+.ui-term-pop[data-side='top'] {
+  transform-origin: 16px 100%;
+}
+.ui-term-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-right: -8px;
+}
+.ui-term-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 700;
+}
+.ui-term-close {
+  flex: 0 0 auto;
+}
+.ui-term-body {
+  margin-top: 2px;
+}
+.ui-term-code {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sub);
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  line-height: 1.5;
+  white-space: pre;
+  overflow-x: auto;
+}
+.ui-term-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  margin-top: var(--space-1);
+  font-weight: 600;
+}
+.ui-term-backdrop {
+  position: fixed;
+  z-index: var(--z-modal);
+  inset: 0;
+  background: var(--scrim);
+  animation: ui-fade var(--dur-nav) ease both;
+}
+.ui-term-sheet {
+  position: fixed;
+  z-index: calc(var(--z-modal) + 1);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 70dvh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: var(--space-3) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--surface);
+  box-shadow: var(--shadow-overlay);
+  color: var(--ink);
+  font-size: var(--text-control);
+  font-weight: 400;
+  line-height: 1.6;
+  text-align: left;
+  white-space: normal;
+  animation: ui-sheet-up var(--dur-expand) var(--ease-standard) both;
+}
+.ui-term-sheet .ui-term-title {
+  font-size: var(--text-title);
+}
+.ui-term-sheet .ui-term-close {
+  width: var(--touch-target);
+  height: var(--touch-target);
+}
+.ui-term-sheet .ui-term-action {
+  min-height: var(--touch-target);
+}
+@keyframes ui-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-term-sheet,
+  .ui-term-pop {
+    animation: none;
+  }
+}
+/* Base UI renders dialog and popover titles as h2: keep the look of the text around them. */
+.ui-term-title:where(h2) {
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+.ui-term-sheet .ui-term-title:where(h2) {
+  font-size: var(--text-title);
+}

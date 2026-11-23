@@ -1,0 +1,18 @@
+.ui-field-box > .ui-textarea ~ .ui-field-icon {
+  top: 12px;
+  transform: none;
+}
+
+.ui-textarea {
+  height: auto;
+  min-height: calc(3 * 26px + 22px);
+  padding: 10px var(--space-3);
+  line-height: 1.6;
+  resize: none;
+  overflow-y: auto;
+}
+.ui-count {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--ink-muted);
+}

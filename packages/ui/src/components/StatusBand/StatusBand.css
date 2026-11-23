@@ -1,0 +1,19 @@
+/* StatusBand: a 12 px band of classes along time; under a LineChart it lines up with the points. */
+.ui-statusband-bar {
+  position: relative;
+  height: 12px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--surface-sub);
+}
+.ui-statusband-bar > span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+.ui-statusband.is-attached .ui-statusband-bar {
+  margin-top: 2px;
+}
+.ui-statusband-legend {
+  margin: 8px 0 0;
+}

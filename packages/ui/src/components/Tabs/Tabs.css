@@ -1,0 +1,87 @@
+.ui-tabs {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  background: var(--surface-sub);
+  /* Tabs never wrap or overlap: wider than their box, the row scrolls sideways (the indicator moves with it). */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.ui-tabs::-webkit-scrollbar {
+  display: none;
+}
+/* More tabs past an edge: that edge fades out, so a cut tab reads as 「more this way」 (G0). */
+.ui-tabs.has-more-right {
+  mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+}
+.ui-tabs.has-more-left {
+  mask-image: linear-gradient(to left, #000 calc(100% - 40px), transparent);
+}
+.ui-tabs.has-more-left.has-more-right {
+  mask-image: linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+}
+/* The selected tab's pill: a line-strong border, so it shows the selection at 3:1 on the gray row (surface on
+   surface-sub alone is about 1.1:1). */
+.ui-tabs-ind {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  box-sizing: border-box;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  pointer-events: none;
+}
+.ui-tab {
+  position: relative;
+  flex: none;
+  min-width: 96px;
+  white-space: nowrap;
+  height: 38px;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: var(--text-control);
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--dur-hover) ease;
+}
+.ui-tab.is-selected {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-tabs-ind {
+    transition: opacity var(--dur-hover) ease !important;
+  }
+}
+.ui-dt-summary .ui-tab {
+  white-space: nowrap;
+  scroll-snap-align: start;
+}
+@media (max-width: 599px) {
+  .ui-dt-summary .ui-tab {
+    min-width: 0;
+    padding-left: 6px;
+    padding-right: 6px;
+    font-size: var(--text-compact);
+  }
+}
+.ui-tab-count {
+  /* With the space before it: about 6 px from the name. */
+  margin-left: 2px;
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--ink-muted);
+}
+.ui-tab.is-selected .ui-tab-count {
+  color: var(--ink);
+}

@@ -1,0 +1,45 @@
+.ui-accentpick {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ui-accentpick-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ui-swatch {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.ui-swatch .ui-icon {
+  color: var(--on-solid);
+}
+.ui-swatch.is-on {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px currentColor;
+}
+.ui-accentpick-hex {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ui-accentpick-preview {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-chip);
+  border: 1px solid var(--line);
+}
+.ui-accentpick-hex .ui-input {
+  width: 130px;
+  font-family: var(--font-mono);
+}

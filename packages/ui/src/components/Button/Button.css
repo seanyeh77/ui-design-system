@@ -1,0 +1,80 @@
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: var(--control-height);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: var(--text-control);
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-hover) ease,
+    transform var(--dur-hover) ease,
+    border-color var(--dur-hover) ease;
+}
+.ui-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.ui-btn-primary {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.ui-btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.ui-btn-primary:active:not(:disabled) {
+  background: var(--accent-press);
+}
+.ui-btn-secondary {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+.ui-btn-secondary:hover:not(:disabled) {
+  background: var(--surface-sub);
+}
+/* Quiet: low-emphasis and toolbar actions. Same height and focus ring; no border, muted text, a gray ground on hover. */
+.ui-btn-quiet {
+  background: transparent;
+  color: var(--ink-muted);
+}
+.ui-btn-quiet:hover:not(:disabled) {
+  background: var(--surface-sub);
+  color: var(--ink);
+}
+.ui-btn-danger {
+  background: var(--danger);
+  color: var(--on-danger);
+}
+.ui-btn-danger:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
+/* In dark the danger fill is light (ink text): hover goes lighter, so the fill keeps 3:1 on the page. */
+[data-theme='dark'] .ui-btn-danger:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+.ui-btn:disabled:not(.is-loading) {
+  background: var(--surface-sub);
+  color: var(--ink-muted);
+  border-color: transparent;
+  cursor: not-allowed;
+}
+.ui-btn.is-loading {
+  opacity: 0.85;
+  cursor: progress;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-btn:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+.ui-btn:is(.is-open, [data-popup-open]) {
+  background: var(--surface-sub);
+}

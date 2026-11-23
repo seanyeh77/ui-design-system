@@ -1,0 +1,145 @@
+.ui-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 220px;
+}
+.ui-field-label {
+  font-size: var(--text-compact);
+  font-weight: 600;
+}
+.ui-field-box {
+  position: relative;
+}
+.ui-input {
+  box-sizing: border-box;
+  width: 100%;
+  height: var(--control-height);
+  padding: 0 var(--space-3);
+  font: inherit;
+  font-size: var(--text-control);
+  color: var(--ink);
+  background: var(--surface-input);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition:
+    border-color var(--dur-hover) ease,
+    box-shadow var(--dur-hover) ease;
+}
+.ui-input::placeholder {
+  color: var(--ink-muted);
+}
+.has-error .ui-input {
+  border: 1.5px solid var(--danger);
+  padding-right: 40px;
+}
+.ui-field-icon {
+  position: absolute;
+  right: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--danger);
+}
+.ui-field-hint {
+  font-size: var(--text-small);
+  color: var(--ink-muted);
+}
+.ui-field-error {
+  font-size: var(--text-small);
+  color: var(--danger-text);
+}
+/* Every field type with an error: the red border (1.5 px, as TextField) and the warning icon. In a field that is a row
+   (password, date, select, multi-select) the icon sits in the row before its own button or caret; in a text area it
+   sits at the top right. */
+.ui-pwfield.is-invalid,
+.ui-datefield.is-invalid,
+.ui-select-trigger.is-invalid,
+.ui-ms.is-invalid {
+  border: 1.5px solid var(--danger);
+}
+.ui-field-icon.is-inline {
+  position: static;
+  flex: none;
+  transform: none;
+}
+.ui-pwfield .ui-field-icon.is-inline,
+.ui-datefield .ui-field-icon.is-inline {
+  margin-left: var(--space-2);
+}
+.is-disabled .ui-field-label {
+  color: var(--ink-muted);
+}
+.ui-input:disabled {
+  background: var(--surface-sub);
+  color: var(--ink-muted);
+  border-color: transparent;
+  cursor: not-allowed;
+}
+
+.ui-req {
+  color: var(--danger-text);
+}
+.ui-check,
+.ui-radio {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--control-height);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-control);
+  text-align: left;
+  cursor: pointer;
+}
+.ui-check:disabled,
+.ui-radio:disabled {
+  color: var(--ink-muted);
+  cursor: not-allowed;
+}
+@keyframes ui-draw {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.ui-draw {
+  stroke-dasharray: 24;
+  animation: ui-draw var(--dur-nav) ease-out both;
+}
+.ui-field-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-draw {
+    animation: ui-fade var(--dur-hover) ease both;
+    stroke-dasharray: none;
+  }
+}
+.ui-input.is-invalid {
+  border-color: var(--danger);
+}
+.ui-field-hint.is-error {
+  color: var(--danger-text);
+}
+.ui-datefield-input,
+.ui-pwfield-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  padding: 0 0 0 var(--space-3);
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-control);
+}

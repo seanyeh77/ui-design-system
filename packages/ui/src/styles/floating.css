@@ -1,0 +1,11 @@
+/* ---------- Positioned layers (Base UI) ----------
+   Positioners place popups next to their trigger; dialogs and drawers sit over a backdrop.
+   Popups stay above every panel layer (drawer 800, dialog 900, palette 950, tour 960) and below tooltips (1000). */
+.ui-float {
+  z-index: var(--z-popover);
+  outline: none;
+}
+.ui-float.is-match > * {
+  width: var(--anchor-width);
+  box-sizing: border-box;
+}

@@ -1,0 +1,33 @@
+@keyframes ui-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ui-rise-in > * {
+  animation: ui-rise var(--dur-nav) var(--ease-spring) both;
+}
+.ui-rise-in > *:nth-child(2) {
+  animation-delay: 40ms;
+}
+.ui-rise-in > *:nth-child(3) {
+  animation-delay: 80ms;
+}
+.ui-rise-in > *:nth-child(4) {
+  animation-delay: 120ms;
+}
+.ui-rise-in > *:nth-child(5) {
+  animation-delay: 160ms;
+}
+.ui-rise-in > *:nth-child(6) {
+  animation-delay: 200ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-rise-in > * {
+    animation: ui-fade var(--dur-hover) ease both;
+  }
+}

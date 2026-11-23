@@ -1,0 +1,276 @@
+.ui-sidenav {
+  position: relative;
+  box-sizing: border-box;
+  width: var(--sidebar-width);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 10px;
+  background: var(--surface-chrome);
+  border-right: 1px solid var(--line);
+  transition: width var(--dur-toggle) var(--ease-glide);
+}
+.ui-sidenav.ui-shell-allnav {
+  width: auto;
+  height: auto;
+  padding: 0;
+  background: none;
+  border: 0;
+}
+.ui-sidenav.is-collapsed {
+  width: var(--sidebar-collapsed);
+}
+.ui-nav-brand {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 8px;
+  margin-bottom: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+}
+/* Brand { mark, name }: the mark keeps one place in every state, centred on the item icons below (10 px padding +
+   10 px item padding + half the 22 px icon = 31 px); the name fades in beside it as the sidebar opens, in step with
+   the 300 ms widening, and out in 100 ms as it closes. */
+.ui-nav-brand.has-mark {
+  padding: 0;
+  overflow: visible;
+}
+.ui-nav-brand-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 40px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+}
+:is(a, button).ui-nav-brand-link {
+  cursor: pointer;
+}
+.ui-nav-mark {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+.ui-nav-monogram {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: var(--text-small);
+  line-height: 1;
+}
+.ui-nav-brand-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity var(--dur-toggle) var(--ease-glide) 80ms;
+}
+.ui-sidenav.is-collapsed .ui-nav-brand-name {
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-nav-brand-name,
+  .ui-sidenav.is-collapsed .ui-nav-brand-name {
+    transition: none;
+  }
+}
+.ui-nav-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin: 0 -10px;
+  padding: 0 10px;
+}
+.ui-sidenav.is-collapsed .ui-nav-list {
+  overflow: visible;
+}
+.ui-nav-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ui-nav-row {
+  position: relative;
+}
+.ui-nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: var(--text-control);
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-hover) ease,
+    color var(--dur-hover) ease;
+}
+.ui-nav-item.is-sub {
+  padding-left: 44px;
+  font-size: var(--text-compact);
+}
+.ui-nav-item:hover:not(.is-selected) {
+  background: var(--surface-sub);
+}
+.ui-nav-item.is-selected {
+  color: var(--ink);
+  font-weight: 700;
+}
+.ui-nav-item.is-selected .ui-nav-icon {
+  color: var(--accent-text);
+}
+.ui-nav-label {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ui-nav-chev {
+  transition: transform 0.25s ease;
+}
+.ui-nav-chev.is-open {
+  transform: rotate(90deg);
+}
+.ui-nav-bar {
+  position: absolute;
+  z-index: var(--z-raised);
+  left: 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--accent);
+  transform-origin: left center;
+  pointer-events: none;
+}
+.ui-nav-divider {
+  height: 1px;
+  margin: 8px 6px;
+  background: var(--line);
+}
+.ui-nav-tip {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  z-index: var(--z-float);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--ink);
+  color: var(--bg);
+  font-size: var(--text-small);
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: var(--shadow-overlay);
+  opacity: 0;
+  transform: translate(-4px, -50%);
+  transition:
+    opacity var(--dur-hover) ease,
+    transform var(--dur-hover) ease;
+  pointer-events: none;
+}
+.ui-nav-row:hover .ui-nav-tip,
+.ui-nav-item:focus-visible + .ui-nav-tip {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+.ui-nav-collapse {
+  flex: 0 0 auto;
+  margin-top: 8px;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.ui-nav-collapse:hover {
+  background: var(--surface-sub);
+}
+/* Pin and collapse at the bottom left: side by side at 240 px, one above the other at 72 px. */
+.ui-nav-foot {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+.ui-nav-foot > .ui-nav-collapse {
+  margin-top: 0;
+}
+.ui-nav-pin.is-on {
+  color: var(--accent-text);
+}
+.ui-nav-collapse .ui-icon {
+  transition: transform var(--dur-toggle) ease;
+}
+.ui-nav-collapse .is-flipped {
+  transform: scaleX(-1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-nav-bar {
+    transition: opacity var(--dur-hover) ease !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-sidenav {
+    transition: none;
+  }
+}
+.ui-shell > .ui-sidenav {
+  flex: 0 0 auto;
+}
+.ui-shell-rail > .ui-sidenav {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  transition:
+    width var(--dur-toggle) var(--ease-glide),
+    box-shadow var(--dur-toggle) ease;
+}
+.ui-shell-rail.is-open > .ui-sidenav {
+  box-shadow: var(--shadow-overlay);
+}
+.ui-shell-rail .ui-nav-tip {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-shell-rail > .ui-sidenav {
+    transition: none;
+  }
+}

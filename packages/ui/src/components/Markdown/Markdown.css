@@ -1,0 +1,255 @@
+/* Markdown: project documents and code comments in the system's type; # is an h4 (20 px). */
+.ui-md {
+  font-size: var(--text-body);
+  line-height: 1.65;
+  color: var(--ink);
+  /* break-word, not anywhere: a long word still wraps, but a table does not think every column can shrink to one
+     letter and squash identifiers such as VirtualRouter._probe_neighbor into a letter per line. */
+  overflow-wrap: break-word;
+}
+.ui-md.is-small {
+  font-size: var(--text-small);
+  line-height: 20px;
+}
+.ui-md > :first-child {
+  margin-top: 0;
+}
+.ui-md > :last-child {
+  margin-bottom: 0;
+}
+.ui-md p,
+.ui-md ul,
+.ui-md ol,
+.ui-md blockquote,
+.ui-md hr,
+.ui-md .ui-md-code,
+.ui-md .ui-md-table-wrap {
+  margin: 0 0 var(--space-3);
+}
+.ui-md h4.ui-md-h {
+  margin: var(--space-5) 0 var(--space-2);
+  font-size: var(--text-h4);
+  line-height: 28px;
+  font-weight: 700;
+}
+.ui-md h5.ui-md-h,
+.ui-md h6.ui-md-h,
+.ui-md h3.ui-md-h {
+  margin: var(--space-4) 0 var(--space-1);
+  font-size: 1em;
+  line-height: inherit;
+  font-weight: 700;
+}
+.ui-md h3.ui-md-h {
+  font-size: var(--text-h3);
+  line-height: 32px;
+}
+.ui-md.is-small h4.ui-md-h {
+  font-size: var(--text-small);
+  line-height: 20px;
+}
+.ui-md ul,
+.ui-md ol {
+  padding-left: var(--space-6);
+}
+.ui-md li > ul,
+.ui-md li > ol,
+.ui-md li > p {
+  margin: var(--space-1) 0 0;
+}
+.ui-md blockquote {
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--line);
+  color: var(--ink-muted);
+}
+.ui-md hr {
+  height: 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+.ui-md-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.ui-md-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 1px var(--line);
+}
+.ui-md-table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: var(--text-compact);
+  line-height: 20px;
+}
+.ui-md-table th {
+  background: var(--surface-sub);
+  font-weight: 700;
+  text-align: left;
+  white-space: nowrap;
+}
+.ui-md-table th,
+.ui-md-table td {
+  padding: 10px 12px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.ui-md-table th:last-child,
+.ui-md-table td:last-child {
+  border-right: 0;
+}
+.ui-md-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.ui-md-table tbody tr:nth-child(even) {
+  background: var(--surface-sub);
+}
+.ui-md-table td.is-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* DA: a <details> block in Markdown: the summary is a button with a caret; closed content stays findable. */
+.ui-md-details {
+  margin: 0 0 var(--space-3);
+}
+.ui-md-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.ui-md-caret {
+  flex: none;
+  color: var(--ink-muted);
+  transition: transform var(--dur-expand) ease;
+}
+.ui-md-details.is-open .ui-md-caret {
+  transform: rotate(90deg);
+}
+.ui-md-details-body > :last-child {
+  margin-bottom: 0;
+}
+.ui-md .ui-md-alert {
+  margin: 0 0 var(--space-3);
+}
+.ui-md-alert .ui-alert-body > :last-child {
+  margin-bottom: 0;
+}
+/* Tables in a narrow panel: the table scrolls inside its frame; code in a cell wraps instead of widening it. */
+.ui-md-tablebox {
+  container-type: inline-size;
+  margin: 0 0 var(--space-3);
+}
+.ui-md .ui-md-tablebox .ui-md-table-wrap {
+  margin: 0;
+}
+/* TB: the corner button above the table's right end shows the whole table in a wide dialog. */
+.ui-md-table-tools {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-1);
+}
+.ui-table-dialog .ui-md-table-wrap {
+  max-height: calc(100vh - 200px);
+  overflow: auto;
+}
+/* TA: each header cell's right border drags; the line turns 3 px accent while hovered, dragged or focused. */
+.ui-md-table th {
+  position: relative;
+}
+.ui-md-table th:last-child .ui-col-resize {
+  right: 0;
+  width: 6px;
+}
+.ui-md-table th:last-child .ui-col-resize::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+.ui-md-tablebox.is-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+/* A cell of code that wraps (a command) keeps at least 16 em, so it reads in a few lines instead of a word per line;
+   when the columns do not fit, the table scrolls sideways. */
+.ui-md-table td:has(> .ui-code:not(.is-link)) {
+  min-width: 16em;
+}
+/* TB: under 480 px each row is a card: the column name above each value, rows divided by a line. */
+@container (max-width: 479px) {
+  .ui-md-table,
+  .ui-md-table tbody,
+  .ui-md-table tr,
+  .ui-md-table td {
+    display: block;
+    min-width: 0;
+  }
+  .ui-md-table-tools {
+    display: none;
+  }
+  .ui-col-resize {
+    display: none;
+  }
+  .ui-md-table {
+    width: auto !important;
+  }
+  .ui-md-table colgroup {
+    display: none;
+  }
+  .ui-md-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .ui-md-table tr {
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--line);
+  }
+  .ui-md-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+  .ui-md-table tbody tr:nth-child(even) {
+    background: none;
+  }
+  .ui-md-table td,
+  .ui-md-table td:has(.ui-code) {
+    min-width: 0;
+    padding: var(--space-1) 0;
+    border: 0;
+    text-align: left !important;
+  }
+  .ui-md-table td::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--ink-muted);
+    font-family: var(--font-sans);
+    font-size: var(--text-small);
+    line-height: 20px;
+  }
+}
+/* Headings of Markdown inside a Section stay under the section's 20 px title. */
+.ui-sec-content .ui-md h4.ui-md-h {
+  font-size: var(--text-body);
+  line-height: 24px;
+}

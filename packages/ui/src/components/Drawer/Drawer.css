@@ -1,0 +1,85 @@
+.ui-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-drawer);
+  background: var(--scrim);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: opacity var(--dur-toggle) ease;
+}
+.ui-drawer-backdrop:is([data-starting-style], [data-ending-style]) {
+  opacity: 0;
+}
+.ui-drawer {
+  position: fixed;
+  z-index: calc(var(--z-drawer) + 1);
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 400px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  box-shadow: var(--shadow-overlay);
+  transition: transform var(--dur-drawer) var(--ease-spring);
+}
+.ui-drawer[data-starting-style] {
+  transform: translateX(105%);
+}
+.ui-drawer[data-ending-style] {
+  transform: translateX(105%);
+  transition-timing-function: var(--ease-exit);
+  transition-duration: var(--dur-toggle);
+}
+.ui-drawer.is-left {
+  right: auto;
+  left: 0;
+}
+.ui-drawer.is-left:is([data-starting-style], [data-ending-style]) {
+  transform: translateX(-105%);
+}
+.ui-drawer-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 18px var(--space-5);
+  border-bottom: 1px solid var(--line);
+}
+.ui-drawer-title {
+  font-size: var(--text-h4);
+  font-weight: 700;
+}
+.ui-drawer-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.ui-drawer-foot {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: 14px var(--space-5);
+  border-top: 1px solid var(--line);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-drawer {
+    transition: opacity var(--dur-nav) ease;
+  }
+  .ui-drawer:is([data-starting-style], [data-ending-style]) {
+    transform: none;
+    opacity: 0;
+  }
+}
+/* Base UI renders dialog and popover titles as h2: keep the look of the text around them. */
+.ui-drawer-title:where(h2) {
+  margin: 0;
+  font-size: var(--text-h4);
+  line-height: inherit;
+}

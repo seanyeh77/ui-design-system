@@ -1,0 +1,73 @@
+.ui-shell {
+  display: flex;
+  height: 100dvh;
+  background: var(--bg);
+  color: var(--ink);
+}
+/* Not pinned: the strip keeps 72 px in the layout; the sidebar in it opens to 240 px over the content (above the top
+   bar, below popovers and dialogs) with the overlay shadow, and back to the strip when it closes. The collapsed
+   name tooltips are not needed there: resting on the strip opens the names. */
+.ui-shell-rail {
+  position: relative;
+  z-index: var(--z-rail);
+  flex: 0 0 var(--sidebar-collapsed);
+  height: 100%;
+}
+.ui-shell-body {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.ui-shell-top {
+  position: absolute;
+  z-index: var(--z-header);
+  top: 0;
+  left: 0;
+  right: 0;
+  transition: transform 250ms ease;
+}
+.ui-shell-top.is-hidden {
+  transform: translateY(-100%);
+}
+.ui-skip {
+  position: fixed;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: var(--touch-target);
+  left: var(--space-3);
+  top: var(--space-3);
+  z-index: var(--z-tooltip);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--accent-text);
+  font-weight: 600;
+  /* Off screen until focused. No shadow there: the overlay shadow (0 20px 48px) reached below the top edge and
+     darkened the corner above the sidebar brand. */
+  transform: translateY(calc(-100% - var(--space-6)));
+}
+.ui-skip:focus {
+  transform: none;
+  box-shadow: var(--shadow-overlay);
+}
+.ui-shell-main:focus {
+  outline: none;
+}
+.ui-shell-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: calc(var(--header-height) + var(--space-6)) var(--space-6) var(--space-8);
+  box-sizing: border-box;
+}
+.ui-shell.is-phone .ui-shell-main {
+  padding: calc(var(--header-height) + var(--space-4)) var(--space-4) var(--space-6);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-shell-top {
+    transition: none;
+  }
+}

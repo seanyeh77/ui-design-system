@@ -1,0 +1,41 @@
+.ui-loading {
+  position: relative;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--surface-sub);
+  overflow: hidden;
+}
+@keyframes ui-drop-l {
+  from {
+    left: 0;
+  }
+  to {
+    left: 100%;
+  }
+}
+@keyframes ui-drop-r {
+  from {
+    right: 100%;
+  }
+  to {
+    right: 0;
+  }
+}
+.ui-loading-drop {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  animation:
+    ui-drop-l var(--dur-loop) cubic-bezier(0.65, 0, 0.35, 1) infinite,
+    ui-drop-r var(--dur-loop) var(--ease-standard) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-loading-drop {
+    animation: none;
+    left: 0;
+    right: 0;
+    opacity: 0.5;
+  }
+}

@@ -1,0 +1,40 @@
+.ui-check-box {
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  box-sizing: border-box;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--line-strong);
+  color: var(--on-accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color var(--dur-hover) ease,
+    border-color var(--dur-hover) ease;
+}
+.ui-check.is-on .ui-check-box {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.ui-check-dash {
+  width: 10px;
+  height: 3px;
+  border-radius: 2px;
+  background: currentColor;
+}
+.ui-ms-opt .ui-check-box {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+}
+.ui-check-box.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.ui-tree-sel .ui-check {
+  min-height: 36px;
+  width: 36px;
+  justify-content: center;
+}

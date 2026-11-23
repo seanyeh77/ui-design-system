@@ -1,0 +1,75 @@
+.ui-searchfield {
+  position: relative;
+  min-width: 220px;
+}
+.ui-searchfield-icon {
+  position: absolute;
+  left: 13px;
+  top: 12px;
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+.ui-searchfield .ui-input {
+  padding-left: 38px;
+  padding-right: 40px;
+}
+.ui-searchfield input[type='search']::-webkit-search-cancel-button,
+.ui-searchfield input[type='search']::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+.ui-searchfield-clear {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--surface-sub);
+  color: var(--ink-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.ui-dt-search > .ui-searchfield {
+  min-width: 0;
+}
+/* The search icon at 20 px, as in every input. */
+.ui-dt-search .ui-searchfield-icon {
+  width: 20px;
+  height: 20px;
+  left: 12px;
+  top: 10px;
+}
+.ui-wb-exfilter .ui-searchfield {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ui-wb-exfilter .ui-searchfield .ui-input {
+  height: 28px;
+  min-height: 0;
+  padding: 0 32px 0 30px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: var(--text-small);
+  box-shadow: none;
+}
+.ui-wb-exfilter .ui-searchfield .ui-input:hover,
+.ui-wb-exfilter .ui-searchfield .ui-input:focus {
+  background: var(--surface-sub);
+}
+.ui-wb-exfilter .ui-searchfield-icon {
+  left: 8px;
+  top: 6px;
+}
+.ui-wb-exfilter .ui-searchfield-clear {
+  top: 2px;
+  right: 2px;
+  width: 24px;
+  height: 24px;
+  background: none;
+}

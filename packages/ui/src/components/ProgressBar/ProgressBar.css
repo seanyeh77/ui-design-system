@@ -1,0 +1,38 @@
+.ui-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ui-progress-track {
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--surface-sub);
+  overflow: hidden;
+}
+.ui-progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  transition:
+    width var(--dur-hover) linear,
+    background-color var(--dur-toggle) ease;
+}
+.ui-progress.is-done .ui-progress-fill {
+  background: var(--success);
+}
+/* In a table row the ground can be a selected row's accent-soft, where the solid green is under 3:1: the text green
+   (4.5:1 there) instead. */
+.ui-dt-row .ui-progress.is-done .ui-progress-fill {
+  background: var(--success-text);
+}
+.ui-progress-text {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--ink-muted);
+}
+.ui-progress.is-done .ui-progress-text {
+  /* 「完成 ✓」 is words: the text font; Geist Mono stays on the percentage. */
+  font-family: var(--font-sans);
+  color: var(--success-text);
+  font-weight: 600;
+}

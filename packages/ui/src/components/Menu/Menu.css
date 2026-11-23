@@ -1,0 +1,82 @@
+.ui-menu-trigger {
+  border-color: transparent;
+  color: var(--ink-muted);
+}
+.ui-menu-trigger[data-popup-open] {
+  background: var(--surface-sub);
+}
+.ui-menu {
+  min-width: 190px;
+  padding: 6px;
+  box-sizing: border-box;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-overlay);
+  animation: ui-pop-scale var(--dur-menu) var(--ease-standard) both;
+}
+.ui-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-compact);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ui-menu-item:hover,
+.ui-menu-item:focus-visible,
+.ui-menu-item[data-highlighted] {
+  background: var(--surface-sub);
+  outline: none;
+}
+.ui-menu-item:disabled {
+  color: var(--ink-muted);
+  cursor: not-allowed;
+}
+.ui-menu-item.is-danger {
+  color: var(--danger-text);
+}
+.ui-menu-item .ui-icon,
+.ui-menu-noicon {
+  flex: 0 0 16px;
+}
+.ui-menu-label {
+  flex: 1 1 auto;
+}
+.ui-menu-kbd {
+  margin-left: 16px;
+  font-family: var(--font-mono);
+  font-size: var(--text-mini);
+  color: var(--ink-muted);
+}
+.ui-menu-item.is-danger .ui-menu-kbd {
+  color: inherit;
+  opacity: 0.75;
+}
+.ui-menu-sep {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--line);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-menu {
+    animation: ui-pop-fade var(--dur-hover) ease both;
+  }
+}
+.ui-menu {
+  width: max-content;
+  max-width: var(--available-width, 100vw);
+}
+/* Base UI renders list items as divs; keep the sizing the old buttons had. */
+.ui-menu-item {
+  box-sizing: border-box;
+}

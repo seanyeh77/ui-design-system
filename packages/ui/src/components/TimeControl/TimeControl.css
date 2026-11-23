@@ -1,0 +1,28 @@
+/* TimeControl: a column for a side panel: the clock, two lines, two buttons. */
+.ui-timecontrol {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ui-timecontrol-clock {
+  font-family: var(--font-mono);
+  font-size: 28px; /* token-exempt: TimeControl clock, one use */
+  font-weight: 700;
+  line-height: 36px;
+  font-variant-numeric: tabular-nums;
+}
+.ui-timecontrol-status {
+  margin: 0;
+}
+.ui-timecontrol-detail {
+  margin: 0;
+  font-size: var(--text-small);
+  line-height: 20px;
+  color: var(--ink-muted);
+}
+.ui-timecontrol-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}

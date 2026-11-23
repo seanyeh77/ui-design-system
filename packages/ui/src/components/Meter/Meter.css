@@ -1,0 +1,106 @@
+/* Meter: a value against its levels. The head is a grid so stacked meters line up: the state ends where the value
+   column starts, the value is right-aligned in a fixed column. */
+.ui-meter {
+  --meter-ok: color-mix(in srgb, var(--success) 22%, var(--surface-sub));
+  --meter-warn: color-mix(in srgb, var(--warning) 30%, var(--surface-sub));
+  --meter-over: color-mix(in srgb, var(--danger) 28%, var(--surface-sub));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.ui-meter + .ui-meter {
+  margin-top: var(--space-3);
+}
+.ui-meter-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto var(--meter-value-width, 8ch);
+  align-items: baseline;
+  column-gap: var(--space-3);
+}
+.ui-meter-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ui-meter-state {
+  font-size: var(--text-small);
+  font-weight: 600;
+  white-space: nowrap;
+  text-align: right;
+}
+.ui-meter-state.is-success {
+  color: var(--success-text);
+}
+.ui-meter-state.is-warning {
+  color: var(--warning-text);
+}
+.ui-meter-state.is-danger {
+  color: var(--danger-text);
+}
+.ui-meter-value {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+.ui-meter-track {
+  position: relative;
+  height: 8px;
+  border-radius: 4px;
+}
+.ui-meter-mark {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 16px;
+  margin-left: -1px;
+  border-radius: 1px;
+}
+.ui-meter-mark.is-warning {
+  background: var(--warning-text);
+}
+.ui-meter-mark.is-danger {
+  background: var(--danger-text);
+}
+.ui-meter-dot {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 2px var(--surface);
+  transition: left var(--dur-toggle) ease;
+}
+.ui-meter-dot.is-success {
+  background: var(--success-text);
+}
+.ui-meter-dot.is-warning {
+  background: var(--warning-text);
+}
+.ui-meter-dot.is-danger {
+  background: var(--danger-text);
+}
+.ui-meter-marks {
+  position: relative;
+  height: 18px;
+  font-size: var(--text-mini);
+  line-height: 18px;
+  color: var(--ink-muted);
+}
+.ui-meter-marks > span {
+  position: absolute;
+  top: 0;
+  padding: 0 4px;
+  white-space: nowrap;
+}
+/* Marks close together: the limit label takes a second line. */
+.ui-meter-marks.is-stacked {
+  height: 36px;
+}
+.ui-meter-marks.is-stacked > span.is-danger {
+  top: 18px;
+}

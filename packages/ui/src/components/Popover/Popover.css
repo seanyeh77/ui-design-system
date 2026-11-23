@@ -1,0 +1,52 @@
+.ui-pop-count {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: var(--text-mini);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.ui-popover {
+  min-width: 240px;
+  max-width: 360px;
+  padding: var(--space-4);
+  box-sizing: border-box;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-overlay);
+  animation: ui-pop-fade var(--dur-hover) ease both;
+}
+.ui-popover-arrow {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: var(--surface);
+  transform: rotate(45deg);
+}
+.ui-popover[data-side='bottom'] .ui-popover-arrow {
+  top: -7px;
+  border-left: 1px solid var(--line);
+  border-top: 1px solid var(--line);
+}
+.ui-popover[data-side='top'] .ui-popover-arrow {
+  bottom: -7px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.ui-popover-title {
+  margin-bottom: var(--space-2);
+  font-weight: 700;
+}
+/* Base UI renders dialog and popover titles as h2: keep the look of the text around them. */
+.ui-popover-title:where(h2) {
+  margin-top: 0;
+  margin-inline: 0;
+  font-size: inherit;
+  line-height: inherit;
+}

@@ -1,0 +1,66 @@
+.ui-card-head:has(> .ui-dt-tools.is-inhead) {
+  flex-wrap: wrap;
+  row-gap: var(--space-2);
+}
+/* The title keeps about 12 characters before the tools move to a row of their own under it, right-aligned. */
+.ui-card-head:has(> .ui-dt-tools.is-inhead) > .ui-card-title {
+  flex: 1 1 12em;
+}
+
+/* Card, and no card inside a card: card-styled components inside a Card (or inside another card-styled component) lose their shadow */
+.ui-card {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  color: var(--ink);
+}
+.ui-card.is-flush {
+  padding: 0;
+  overflow: hidden;
+}
+.ui-card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 40px;
+  margin-bottom: var(--space-3);
+}
+.ui-card-head:only-child {
+  margin-bottom: 0;
+}
+/* padding: false: the card has no padding so a table or tree list can reach its edges, but the title row, a
+   DataTable's tools, caption, tabs and footer keep the same 16 px as a padded card. The table keeps its top and bottom
+   lines and loses the side borders and rounded corners that would double the card's edge. */
+.ui-card.is-flush > .ui-card-head {
+  padding: var(--space-4) var(--space-4) 0;
+}
+.ui-card.is-flush > .ui-card-head:only-child {
+  padding-bottom: var(--space-4);
+}
+.ui-card-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ui-card-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 0 0 auto;
+  /* Always at the right end, with or without a title beside them. */
+  margin-left: auto;
+}
+:is(.ui-card, .ui-tree, .ui-settings-section, .ui-dialog, .ui-drawer) :is(.ui-tree, .ui-kpi, .ui-settings-section, .ui-alert) {
+  box-shadow: none;
+}
+:is(.ui-card, .ui-settings-section) :is(.ui-kpi, .ui-alert) {
+  background: var(--surface-sub);
+}

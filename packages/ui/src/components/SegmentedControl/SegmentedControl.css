@@ -1,0 +1,62 @@
+/* SegmentedControl: a 28 px switch between ways of showing the same thing; the selected part is a raised pill. */
+.ui-seg {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  gap: 2px;
+  height: 28px;
+  padding: 2px;
+  box-sizing: border-box;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sub);
+  vertical-align: middle;
+}
+/* Like the tab pill: a line-strong border shows the selection at 3:1 (icon-only items differ in color alone). */
+.ui-seg-ind {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  box-sizing: border-box;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-xs);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.ui-seg-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: none;
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: var(--text-small);
+  line-height: 20px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--dur-hover) ease;
+}
+.ui-seg-item:hover,
+.ui-seg-item.is-selected {
+  color: var(--ink);
+}
+.ui-seg-item.is-selected {
+  font-weight: 600;
+}
+.ui-seg.is-icons .ui-seg-item {
+  width: 28px;
+  padding: 0;
+}
+.ui-seg.is-icons .ui-seg-item.is-selected {
+  color: var(--accent-text);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-seg-ind {
+    transition: none !important;
+  }
+}

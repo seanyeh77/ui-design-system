@@ -1,0 +1,644 @@
+/* Workbench: an editor layout (top bar, explorer, main view, side bar, bottom panel) */
+.ui-wb {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+}
+.ui-wb-top {
+  flex: 0 0 48px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  background: var(--surface-chrome);
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  z-index: calc(var(--z-float) + 1);
+  --hint-ring: var(--surface-chrome);
+}
+.ui-wb-top-l {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.ui-wb-top-r {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.ui-wb-sep {
+  width: 1px;
+  height: 20px;
+  margin: 0 var(--space-1);
+  background: var(--line);
+}
+.ui-wb-toggle {
+  position: relative;
+  display: inline-flex;
+}
+.ui-wb-brand {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 32px;
+  padding: 0 6px;
+  border-radius: var(--radius-sm);
+  color: inherit;
+  font-weight: 700;
+  font-size: var(--text-control);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.ui-wb-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+.ui-wb.is-phone .ui-wb-name {
+  display: none;
+}
+.ui-wb-crumbs {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--text-small);
+}
+.ui-wb-crumbs ol {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  font-size: var(--text-small);
+  min-width: 0;
+}
+/* Too long for the bar: the levels give way, then the current one ends in an ellipsis. */
+/* The levels before the last give way first (down to about three characters), then the last one. */
+.ui-wb-crumbs li {
+  min-width: 3em;
+  flex: 0 1000 auto;
+}
+.ui-wb-crumbs li:last-child {
+  min-width: 0;
+  flex-shrink: 1;
+}
+.ui-wb-crumbs li > :is(a, span):not(.ui-crumb-sep) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ui-wb-body {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.ui-wb-main {
+  position: absolute;
+  top: 0;
+  overflow: auto;
+  background: var(--bg);
+  transition:
+    left var(--dur-toggle) var(--ease-glide),
+    right var(--dur-toggle) var(--ease-glide),
+    bottom var(--dur-toggle) var(--ease-glide);
+}
+/* The bar above the main view: breadcrumb and the page's small buttons, 36 px, in line with the tab rows beside it. */
+.ui-wb-mainbar {
+  position: absolute;
+  top: 0;
+  height: 36px;
+  z-index: var(--z-raised);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 4px 0 var(--space-3);
+  box-sizing: border-box;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  transition:
+    left var(--dur-toggle) var(--ease-glide),
+    right var(--dur-toggle) var(--ease-glide);
+}
+.ui-wb.is-sizing .ui-wb-mainbar {
+  transition: none;
+}
+.ui-wb-mainbar .ui-wb-crumbs,
+.ui-wb-mainbar-fill {
+  flex: 1 1 auto;
+}
+.ui-wb-mainbar-btns {
+  flex: none;
+  display: flex;
+  align-items: center;
+}
+/* The explorer's filter: a 36 px row holding a SearchField without its border, a background only on hover or typing. */
+.ui-wb-exfilter {
+  flex: none;
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--line);
+}
+
+/* Docked regions slide out and in with the main view (300 ms, as the sidebar); overlays are drawers. */
+.ui-wb-ex,
+.ui-wb-side,
+.ui-wb-panel,
+.ui-wb-sheet {
+  box-sizing: border-box;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--surface);
+}
+.ui-wb-ex {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--surface-chrome);
+  border-right: 1px solid var(--line);
+}
+.ui-wb-side {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  border-left: 1px solid var(--line);
+}
+.ui-wb-panel {
+  bottom: 0;
+  border-top: 1px solid var(--line);
+}
+.ui-wb-ex.is-docked,
+.ui-wb-side.is-docked,
+.ui-wb-panel {
+  transition:
+    transform var(--dur-toggle) var(--ease-glide),
+    left var(--dur-toggle) var(--ease-glide),
+    right var(--dur-toggle) var(--ease-glide),
+    visibility 0s;
+}
+.ui-wb-ex.is-docked.is-shut,
+.ui-wb-side.is-docked.is-shut,
+.ui-wb-panel.is-shut {
+  visibility: hidden;
+  transition:
+    transform var(--dur-toggle) var(--ease-glide),
+    left var(--dur-toggle) var(--ease-glide),
+    right var(--dur-toggle) var(--ease-glide),
+    visibility 0s linear var(--dur-toggle);
+}
+.ui-wb-ex.is-shut {
+  transform: translateX(-100%);
+}
+.ui-wb-side.is-shut {
+  transform: translateX(100%);
+}
+.ui-wb-panel.is-shut {
+  transform: translateY(100%);
+}
+/* motion.md 側邊抽屜: elastic in 450 ms, out 300 ms; scrim 300 ms. */
+.ui-wb-ex.is-drawer,
+.ui-wb-side.is-drawer {
+  z-index: calc(var(--z-float) + 3);
+  box-shadow: var(--shadow-overlay);
+  border: 0;
+  transition:
+    transform var(--dur-drawer) var(--ease-spring),
+    visibility 0s;
+}
+.ui-wb-ex.is-drawer.is-shut,
+.ui-wb-side.is-drawer.is-shut {
+  visibility: hidden;
+  transition:
+    transform var(--dur-toggle) var(--ease-exit),
+    visibility 0s linear var(--dur-toggle);
+}
+.ui-wb-ex.is-drawer::before,
+.ui-wb-side.is-drawer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  background: inherit;
+}
+.ui-wb-ex.is-drawer::before {
+  right: 100%;
+}
+.ui-wb-side.is-drawer::after {
+  left: 100%;
+}
+.ui-wb-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: calc(var(--z-float) + 2);
+  border: 0;
+  padding: 0;
+  background: var(--scrim);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-toggle) ease;
+}
+.ui-wb-scrim.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.ui-wb.is-sizing .ui-wb-main,
+.ui-wb.is-sizing .ui-wb-panel,
+.ui-wb.is-sizing .ui-wb-ex,
+.ui-wb.is-sizing .ui-wb-side {
+  transition: none;
+}
+.ui-wb.is-sizing {
+  user-select: none;
+}
+/* Explorer */
+.ui-wb-exhead {
+  flex: none;
+  padding: var(--space-2);
+}
+.ui-wb-exbody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 4px var(--space-2);
+}
+.ui-wb-exfoot {
+  flex: none;
+  padding: 4px;
+  border-top: 1px solid var(--line);
+}
+/* Splitters: 8 px to grab, a 1 px line; a 2 px accent line on hover (after 150 ms), while dragging and on focus. */
+.ui-wb-split {
+  position: absolute;
+  z-index: var(--z-float);
+  outline: none;
+  touch-action: none;
+}
+.ui-wb-split.is-v {
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  margin-left: -4px;
+  cursor: col-resize;
+}
+.ui-wb-split.is-v[style*='right'] {
+  margin-left: 0;
+  margin-right: -4px;
+}
+.ui-wb-split.is-h {
+  height: 8px;
+  margin-bottom: -4px;
+  cursor: row-resize;
+}
+.ui-wb-split-line {
+  position: absolute;
+  background: transparent;
+  transition: background-color var(--dur-hover) ease var(--dur-hover);
+}
+.ui-wb-split.is-v .ui-wb-split-line {
+  top: 0;
+  bottom: 0;
+  left: 3px;
+  width: 2px;
+}
+.ui-wb-split.is-h .ui-wb-split-line {
+  left: 0;
+  right: 0;
+  top: 3px;
+  height: 2px;
+}
+.ui-wb-split:hover .ui-wb-split-line,
+.ui-wb-split.is-on .ui-wb-split-line {
+  background: var(--accent);
+}
+.ui-wb-split:focus-visible .ui-wb-split-line {
+  background: var(--accent);
+  transition: none;
+}
+/* Tab rows */
+.ui-wb-tabbar {
+  flex: none;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  height: 36px;
+  border-bottom: 1px solid var(--line);
+  padding-right: 2px;
+}
+.ui-wb-tabs {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: stretch;
+  padding: 0 4px;
+  overflow: hidden;
+}
+.ui-wb-tabs.is-scroll {
+  overflow-x: auto;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.ui-wb-tabs.is-scroll::-webkit-scrollbar {
+  display: none;
+}
+.ui-wb-tabs.is-touch {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* As Tabs: the side with more tabs fades out over 40 px. */
+.ui-wb-tabs.has-more-right {
+  mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+}
+.ui-wb-tabs.has-more-left {
+  mask-image: linear-gradient(to left, #000 calc(100% - 40px), transparent);
+}
+.ui-wb-tabs.has-more-left.has-more-right {
+  mask-image: linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+}
+.ui-wb-ind {
+  position: absolute;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  pointer-events: none;
+}
+.ui-wb-tab {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 0;
+  background: none;
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: var(--text-small);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ui-wb-tab:hover {
+  color: var(--ink);
+}
+.ui-wb-tab.is-on {
+  color: var(--ink);
+  font-weight: 700;
+}
+.ui-wb-tab:focus-visible {
+  border-radius: var(--radius-sm);
+}
+.ui-wb-tab.is-ghost {
+  opacity: 0.4;
+}
+.ui-wb-tab.is-held {
+  z-index: var(--z-sticky);
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  box-shadow: var(--shadow-overlay);
+  transform: scale(1.06);
+  transition:
+    transform var(--dur-hover) ease,
+    box-shadow var(--dur-hover) ease;
+}
+/* Where a dragged tab lands: a 2 px accent line before (or after the last) tab. */
+.ui-wb-tab.has-line::before,
+.ui-wb-tab.has-line-after::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.ui-wb-tab.has-line::before {
+  left: -3px;
+}
+.ui-wb-tab.has-line-after::after {
+  right: -3px;
+}
+.ui-wb-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--warning-text);
+}
+.ui-wb-dot.is-on-button {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 8px;
+  height: 8px;
+  box-shadow: 0 0 0 2px var(--surface-chrome);
+  pointer-events: none;
+}
+.ui-wb-more {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 28px;
+  padding: 0 6px 0 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: var(--text-small);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ui-wb-more:hover,
+.ui-wb-more[data-popup-open] {
+  background: var(--surface-sub);
+  color: var(--ink);
+}
+.ui-wb-tabbtns {
+  flex: none;
+  display: flex;
+  align-items: center;
+}
+.ui-wb-panebox {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+/* motion.md 內容切換: the new view's blocks rise one after another, 40 ms apart. */
+.ui-wb-pane > * {
+  animation: ui-wb-rise var(--dur-toggle) var(--ease-standard) both;
+}
+.ui-wb-pane > :nth-child(2) {
+  animation-delay: 40ms;
+}
+.ui-wb-pane > :nth-child(3) {
+  animation-delay: 80ms;
+}
+.ui-wb-pane > :nth-child(4) {
+  animation-delay: 120ms;
+}
+.ui-wb-pane > :nth-child(n + 5) {
+  animation-delay: 160ms;
+}
+@keyframes ui-wb-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+/* Drag and drop */
+.ui-wb-side.is-dropping,
+.ui-wb-panel.is-dropping {
+  background: var(--accent-soft);
+}
+.ui-wb-dropframe {
+  position: absolute;
+  inset: 4px;
+  z-index: calc(var(--z-float) - 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius-md);
+  pointer-events: none;
+}
+.ui-wb-dropframe span,
+.ui-wb-dropzone {
+  font-size: var(--text-small);
+  font-weight: 700;
+}
+.ui-wb-dropframe span {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--accent-text);
+  box-shadow: var(--shadow-sm);
+}
+.ui-wb-dropzone {
+  position: absolute;
+  z-index: calc(var(--z-float) + 4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  text-align: center;
+  border: 2px dashed var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-sub);
+  color: var(--ink-muted);
+}
+.ui-wb-dropzone.is-side {
+  top: 8px;
+  right: 8px;
+  width: 96px;
+}
+.ui-wb-dropzone.is-panel {
+  bottom: 8px;
+  height: 64px;
+}
+.ui-wb-dropzone.is-over {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+/* Phone: one panel docked under the main view, resized by its grip. */
+.ui-wb-sheet {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-float);
+  border-top: 1px solid var(--line);
+  transition:
+    transform var(--dur-toggle) var(--ease-standard),
+    visibility 0s;
+}
+.ui-wb-sheet.is-shut {
+  visibility: hidden;
+  transform: translateY(100%);
+  transition:
+    transform var(--dur-toggle) var(--ease-exit),
+    visibility 0s linear var(--dur-toggle);
+}
+.ui-wb-sheet > .ui-wb-split.is-h {
+  height: 20px;
+  margin: 0;
+}
+.ui-wb-sheet > .ui-wb-split .ui-wb-split-line {
+  display: none;
+}
+.ui-wb-grab {
+  flex: 0 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.ui-wb-grab::before {
+  content: '';
+  width: 36px;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--line-strong);
+  opacity: 0.6;
+}
+.ui-wb-sheet:has(> .ui-wb-split:is(:hover, :focus-visible, .is-on)) .ui-wb-grab::before {
+  background: var(--accent);
+  opacity: 1;
+}
+.ui-wb-dots {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 0 8px;
+}
+.ui-wb-pagedot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--line);
+}
+.ui-wb-pagedot.is-on {
+  background: var(--accent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-wb-main,
+  .ui-wb-ex,
+  .ui-wb-side,
+  .ui-wb-panel,
+  .ui-wb-sheet,
+  .ui-wb-ind {
+    transition: none !important;
+  }
+  .ui-wb-pane > * {
+    animation: none;
+  }
+  .ui-wb-ex.is-drawer.is-shut,
+  .ui-wb-side.is-drawer.is-shut,
+  .ui-wb-sheet.is-shut {
+    transform: none;
+    opacity: 0;
+  }
+}
