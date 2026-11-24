@@ -1,5 +1,21 @@
 # @seanyeh77/ui
 
+## 0.44.0
+
+### Minor Changes
+
+- 1e25908: 清單頁的外觀整理：DataTable 新增 `action`，頁面的主要操作（「新增」）放在摘要那一列的右端（沒有摘要時在工具列右端），不再單獨占一列；Card 只有按鈕沒有標題、包著表格時開發模式會提醒改用 `action`。`rowActions` 不再占一欄：滑過或鍵盤移到列上時疊在列的右端，底色跟著列（新的 CSS 變數 `--dt-row-bg`），觸控螢幕一直顯示並在列尾留 `actionsWidth` 的空位，列裡的 IconButton 一律是安靜樣式。展開箭頭欄只在這一頁有 `long` 格子被截掉（或有 `fullText`）時出現；勾選欄改成 40 px、沒有邊框，表頭的全選框一直顯示。摘要分段上的筆數只寫數字（單位仍給螢幕閱讀器，Tabs 新增 `hideUnit`），Tabs 的筆數改用一般字體的等寬數字、次要文字色。空的格子寫灰色的「—」。`format.dateTime` 在「）」後面不再加空格（`2026/11/04（三）13:00`）。放在 `padding={false}` Card 裡、沒有頁碼的表格，最後一列直接到卡片底邊。手機上搜尋框、篩選、筆數和排序同一列，Card 裡的卡片清單不再有第二層陰影。
+- e4cc89a: DataTable 的工具列變成一個完整的結構：摘要分段、搜尋框、「篩選」「排序」「⋯」和 `action`（「新增」）放得下時同一列（摘要靠左，可伸縮的搜尋框和按鈕靠右，全部 40 px），放不下時摘要自己一列；有摘要且沒有搜尋或篩選時不再重複顯示「4 / 4 筆」。欄寬重新分配：只貼合內容的文字欄最窄 128 px，主要欄和 `long` 欄各一份剩下的寬度，放得下時先各拿到一行的寬度（`long` 最多 512 px），不再讓長文字吃掉整張表。列操作不再蓋住最後一欄：最後一格右邊留好按鈕的寬度（量出來的，`actionsWidth` 可指定），日期和數字永遠完整。`ui check` 量工具列高度時把分段控制當成一個控制項。
+
+### Patch Changes
+
+- d988360: 修正 codemap 升級後回報的三個問題：
+  
+  - Workbench：手機上下方面板的拖曳把手在觸控螢幕上有 48 px 高的觸控範圍（看得到的部分仍是 20 px，往上延伸一塊透明範圍，不蓋住下面的分頁列），`ui check` 不再回報 `Panel height 390 x 20 px`。
+  - ProjectSwitcher：「專案 · 狀態」的「·」前面少了空格（顯示成「audio-demo· 即時」），現在兩邊各一個空格。
+  - 收字串的說明 prop 把反引號裡的文字顯示成行內程式碼（InlineCode），不顯示反引號；只有一個反引號時照原樣顯示。適用：EmptyState 的 `description`、`steps`，SettingsSection 的 `description`，TextField、TextArea、DatePicker 的 `hint`、`error`，Select、MultiSelect、LoginCard、FileUpload 檔案的 `error`，Alert、Toast、Dialog 字串內容，Drawer 的 `confirmText`，DangerZone、ErrorPage 的 `description`，EventTimeline 事件的 `text`，KpiCard 的 `target`、`verdict.text`，NotificationBell 通知的 `body`（Term 的 `text` 原本就支援）。CodeText 和 LayerGraph 標籤改用同一個解析函式；CodeText 開頭單獨一個反引號時不再被當成程式碼。
+- 8bf7f6e: Markdown：清單項目只有一個連結時（例如參考資料清單），連結撐滿整列，整列都能點，滑過有 `surface-sub` 底色；觸控螢幕上至少 48 px，滑鼠操作時 32 px。`ui check`：Markdown 內容裡的標題（`.ui-md-h`）可以換行，介面標題仍不能換行；程式碼區塊、表格框這類只為了用鍵盤捲動才能聚焦的內容不算觸控目標。
+
 ## 0.43.1
 
 ### Patch Changes
