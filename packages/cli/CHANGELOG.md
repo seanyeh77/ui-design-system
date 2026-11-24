@@ -1,5 +1,17 @@
 # @seanyeh77/ui-cli
 
+## 0.44.0
+
+### Patch Changes
+
+- e4cc89a: DataTable 的工具列變成一個完整的結構：摘要分段、搜尋框、「篩選」「排序」「⋯」和 `action`（「新增」）放得下時同一列（摘要靠左，可伸縮的搜尋框和按鈕靠右，全部 40 px），放不下時摘要自己一列；有摘要且沒有搜尋或篩選時不再重複顯示「4 / 4 筆」。欄寬重新分配：只貼合內容的文字欄最窄 128 px，主要欄和 `long` 欄各一份剩下的寬度，放得下時先各拿到一行的寬度（`long` 最多 512 px），不再讓長文字吃掉整張表。列操作不再蓋住最後一欄：最後一格右邊留好按鈕的寬度（量出來的，`actionsWidth` 可指定），日期和數字永遠完整。`ui check` 量工具列高度時把分段控制當成一個控制項。
+- 8bf7f6e: Markdown：清單項目只有一個連結時（例如參考資料清單），連結撐滿整列，整列都能點，滑過有 `surface-sub` 底色；觸控螢幕上至少 48 px，滑鼠操作時 32 px。`ui check`：Markdown 內容裡的標題（`.ui-md-h`）可以換行，介面標題仍不能換行；程式碼區塊、表格框這類只為了用鍵盤捲動才能聚焦的內容不算觸控目標。
+- Updated dependencies [d988360]
+- Updated dependencies [1e25908]
+- Updated dependencies [e4cc89a]
+- Updated dependencies [8bf7f6e]
+  - @seanyeh77/ui@0.44.0
+
 ## 0.43.1
 
 ### Patch Changes
