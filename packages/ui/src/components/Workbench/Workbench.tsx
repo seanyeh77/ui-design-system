@@ -7,6 +7,8 @@ import { Icon, type CustomIcon } from '../../icons/Icon';
 import { cx, IS_MAC, resizeObserver } from '../../internal/util';
 import { readStored, useStored } from '../../internal/stored';
 import { devWarn } from '../../internal/dev';
+import { announce } from '../../announce';
+import { DRAG_MIN, nextPreset } from '../../internal/clickSteps';
 import { tr } from '../../i18n';
 import { dropTransition } from '../../motion';
 import { includeIcons } from '../../icons/store';
@@ -169,13 +171,16 @@ function restore(raw: string, def: WorkbenchLayout): WorkbenchLayout {
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Math.round(v)));
 const inField = (t: EventTarget | null) => t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
 
-/** A draggable border between two regions: role="separator", arrows 16 px, Shift 64 px, Home/End, double-click resets. */
+/** A draggable border between two regions: role="separator", arrows 16 px, Shift 64 px, Home/End, double-click resets.
+ *  A click without dragging (WCAG 2.5.7) steps through the narrowest size, the default and 1.5 times the default. */
 function Splitter(p: {
   label: string;
   vertical: boolean;
   value: number;
   min: number;
   max: number;
+  /** The size a double-click goes back to; the middle click step. */
+  def: number;
   /** +1: dragging right or down grows the region; -1: left or up grows it. */
   grow: 1 | -1;
   onChange: (v: number) => void;
@@ -183,9 +188,14 @@ function Splitter(p: {
   onDrag: (on: boolean) => void;
   style: React.CSSProperties;
 }) {
-  const start = React.useRef<{ at: number; v: number } | null>(null);
+  const start = React.useRef<{ at: number; v: number; moved: boolean } | null>(null);
   const [on, setOn] = React.useState(false);
   const pos = (e: React.PointerEvent) => (p.vertical ? e.clientX : e.clientY);
+  const end = () => {
+    start.current = null;
+    setOn(false);
+    p.onDrag(false);
+  };
   return (
     <div
       className={cx('ui-wb-split', p.vertical ? 'is-v' : 'is-h', on && 'is-on')}
@@ -195,28 +205,31 @@ function Splitter(p: {
       aria-valuenow={p.value}
       aria-valuemin={p.min}
       aria-valuemax={p.max}
+      aria-description={tr('拖曳或按方向鍵調整；按一下切換預設大小，按兩下還原')}
       tabIndex={0}
       style={p.style}
       onPointerDown={(e) => {
+        if (e.button !== 0) return;
         e.currentTarget.setPointerCapture?.(e.pointerId);
-        start.current = { at: pos(e), v: p.value };
+        start.current = { at: pos(e), v: p.value, moved: false };
         setOn(true);
         p.onDrag(true);
       }}
       onPointerMove={(e) => {
         const s = start.current;
-        if (s) p.onChange(clamp(s.v + (pos(e) - s.at) * p.grow, p.min, p.max));
+        if (!s || (!s.moved && Math.abs(pos(e) - s.at) < DRAG_MIN)) return;
+        s.moved = true;
+        p.onChange(clamp(s.v + (pos(e) - s.at) * p.grow, p.min, p.max));
       }}
       onPointerUp={() => {
-        start.current = null;
-        setOn(false);
-        p.onDrag(false);
+        const clicked = start.current && !start.current.moved;
+        end();
+        if (!clicked) return;
+        const v = clamp(nextPreset(p.value, [p.min, p.def, p.def * 1.5]), p.min, p.max);
+        p.onChange(v);
+        announce(tr('{label} {n} px', { label: p.label, n: v }));
       }}
-      onPointerCancel={() => {
-        start.current = null;
-        setOn(false);
-        p.onDrag(false);
-      }}
+      onPointerCancel={end}
       onDoubleClick={p.onReset}
       onKeyDown={(e) => {
         const step = e.shiftKey ? STEP * 4 : STEP;
@@ -621,7 +634,8 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
   const sideW = phone ? w : Math.min(clamp(lay.size.side, LIM.side[0], LIM.side[1]), w - 48);
   const panelH = clamp(lay.size.panel, LIM.panel[0], panelMax);
   const sheetMax = Math.round(bodyH * 0.75);
-  const sheetSize = clamp(sheetH ?? bodyH * 0.45, 120, Math.max(120, sheetMax));
+  const sheetDefault = clamp(bodyH * 0.45, 120, Math.max(120, sheetMax));
+  const sheetSize = clamp(sheetH ?? sheetDefault, 120, Math.max(120, sheetMax));
 
   const exOpen = exOverlay ? ov.explorer : lay.open.explorer;
   const sideHas = lay.side.length > 0;
@@ -946,6 +960,7 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
                   value={exW}
                   min={LIM.explorer[0]}
                   max={LIM.explorer[1]}
+                  def={def.size.explorer}
                   onChange={(v) => update((l) => ({ ...l, size: { ...l.size, explorer: v } }))}
                   onReset={() => update((l) => ({ ...l, size: { ...l.size, explorer: def.size.explorer } }))}
                   onDrag={setSizing}
@@ -974,6 +989,7 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
                   value={panelH}
                   min={LIM.panel[0]}
                   max={panelMax}
+                  def={def.size.panel}
                   onChange={(v) => update((l) => ({ ...l, size: { ...l.size, panel: v } }))}
                   onReset={() => update((l) => ({ ...l, size: { ...l.size, panel: def.size.panel } }))}
                   onDrag={setSizing}
@@ -1016,6 +1032,7 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
                   value={sideW}
                   min={LIM.side[0]}
                   max={LIM.side[1]}
+                  def={def.size.side}
                   onChange={(v) => update((l) => ({ ...l, size: { ...l.size, side: v } }))}
                   onReset={() => update((l) => ({ ...l, size: { ...l.size, side: def.size.side } }))}
                   onDrag={setSizing}
@@ -1058,6 +1075,7 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
                 value={sheetSize}
                 min={120}
                 max={Math.max(120, sheetMax)}
+                def={sheetDefault}
                 onChange={setSheetH}
                 onReset={() => setSheetH(null)}
                 onDrag={setSizing}

@@ -49,11 +49,11 @@ test('format.relative: across midnight it counts calendar days, not 24-hour span
 });
 
 test('format.money: NT$ 1,280 with a space, minus before NT$, no decimals', () => {
-  expect(format.money(1280)).toBe('NT$ 1,280');
-  expect(format.money(-1280)).toBe('-NT$ 1,280');
-  expect(format.money(1280.6)).toBe('NT$ 1,281');
-  expect(format.money(0)).toBe('NT$ 0');
-  expect(format.money(12_840_000, { compact: true })).toBe('NT$ 1,284 萬');
+  expect(format.money(1280)).toBe('NT$\u00a01,280');
+  expect(format.money(-1280)).toBe('-NT$\u00a01,280');
+  expect(format.money(1280.6)).toBe('NT$\u00a01,281');
+  expect(format.money(0)).toBe('NT$\u00a00');
+  expect(format.money(12_840_000, { compact: true })).toBe('NT$\u00a01,284\u00a0萬');
 });
 
 test('format.number: decimals by unit (money 0, percent 1, size 1, count 0)', () => {
@@ -66,33 +66,33 @@ test('format.number: decimals by unit (money 0, percent 1, size 1, count 0)', ()
 });
 
 test('format.fileSize: whole KB under 1 MB, one decimal in MB and GB', () => {
-  expect(format.fileSize(186 * 1024)).toBe('186 KB');
-  expect(format.fileSize(Math.round(54.9 * 1048576))).toBe('54.9 MB');
-  expect(format.fileSize(1.2 * 1073741824)).toBe('1.2 GB');
-  expect(format.fileSize(1048576)).toBe('1.0 MB');
+  expect(format.fileSize(186 * 1024)).toBe('186\u00a0KB');
+  expect(format.fileSize(Math.round(54.9 * 1048576))).toBe('54.9\u00a0MB');
+  expect(format.fileSize(1.2 * 1073741824)).toBe('1.2\u00a0GB');
+  expect(format.fileSize(1048576)).toBe('1.0\u00a0MB');
   expect(format.fileSize(null)).toBe('');
   expect(format.fileSize(Number.NaN)).toBe('');
 });
 
 test('format.fileSize: a size that rounds to 1,024 KB or 1,024.0 MB moves up a unit', () => {
-  expect(format.fileSize(1047551)).toBe('1,023 KB');
-  expect(format.fileSize(1048500)).toBe('1.0 MB');
-  expect(format.fileSize(1073741823)).toBe('1.0 GB');
+  expect(format.fileSize(1047551)).toBe('1,023\u00a0KB');
+  expect(format.fileSize(1048500)).toBe('1.0\u00a0MB');
+  expect(format.fileSize(1073741823)).toBe('1.0\u00a0GB');
 });
 
 test('format.compact: KPI abbreviations 萬 and 億; under 10,000 the full number', () => {
   expect(format.compact(9999)).toBe('9,999');
-  expect(format.compact(12_840_000)).toBe('1,284 萬');
-  expect(format.compact(12_345)).toBe('1.2 萬');
-  expect(format.compact(123_456_789)).toBe('1.23 億');
-  expect(format.compact(-12_840_000)).toBe('-1,284 萬');
+  expect(format.compact(12_840_000)).toBe('1,284\u00a0萬');
+  expect(format.compact(12_345)).toBe('1.2\u00a0萬');
+  expect(format.compact(123_456_789)).toBe('1.23\u00a0億');
+  expect(format.compact(-12_840_000)).toBe('-1,284\u00a0萬');
   // like keeps the decimals of the final value while counting up.
-  expect(format.compact(10_000, 12_345)).toBe('1.0 萬');
+  expect(format.compact(10_000, 12_345)).toBe('1.0\u00a0萬');
 });
 
 test('format.compact: a value that rounds to 10,000 萬 is written 1 億', () => {
-  expect(format.compact(99_999_999)).toBe('1 億');
-  expect(format.compact(99_940_000)).toBe('9,994 萬');
+  expect(format.compact(99_999_999)).toBe('1\u00a0億');
+  expect(format.compact(99_940_000)).toBe('9,994\u00a0萬');
 });
 
 test('format.path keeps the first segment and the last two', () => {

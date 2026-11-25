@@ -24,8 +24,8 @@ import {
 // Whole-repo review fixes, one test each.
 
 test('format.fileSize: an empty file is 0 KB, a tiny one 1 KB', () => {
-  expect(format.fileSize(0)).toBe('0 KB');
-  expect(format.fileSize(10)).toBe('1 KB');
+  expect(format.fileSize(0)).toBe('0\u00a0KB');
+  expect(format.fileSize(10)).toBe('1\u00a0KB');
 });
 
 test('tr: Simplified Chinese uses the messages an app adds for it; zh-TW stays the source text', () => {

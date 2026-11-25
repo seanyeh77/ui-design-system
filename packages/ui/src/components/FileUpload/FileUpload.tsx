@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
-import { cx } from '../../internal/util';
+import { cx, keepUnits } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { FieldLabel } from '../../internal/Field';
 import { ProgressBar } from '../ProgressBar/ProgressBar';
@@ -83,7 +83,7 @@ export function FileUpload({ label, files = [], onAdd, onRemove, onRetry, limitT
             {tr('選擇檔案')}
           </button>
         </span>
-        {limitText ? <span className="ui-dropline-limit">{limitText}</span> : null}
+        {limitText ? <span className="ui-dropline-limit">{keepUnits(limitText)}</span> : null}
         <input
           ref={input}
           type="file"

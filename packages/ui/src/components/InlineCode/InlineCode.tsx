@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cx } from '../../internal/util';
+import { cx, keepUnits } from '../../internal/util';
 import { codeSpans, hasCodeSpan } from '../../internal/codeSpans';
 
 interface InlineCodeBase {
@@ -123,9 +123,10 @@ export function CodeText({ text, refHref, onRef, isRef = isCodeRef, as: Tag = 's
   );
 }
 
-/** A sentence prop that takes a string: `backtick` spans become InlineCode, the backticks are not shown. Text without a
- *  pair of backticks comes back as it is, and anything that is not a string (an element) is left alone. */
+/** A sentence prop that takes a string: `backtick` spans become InlineCode, the backticks are not shown; a number and its
+ *  unit outside them never break apart (「100 MB」). Anything that is not a string (an element) is left alone. */
 export function codeText(text: React.ReactNode): React.ReactNode {
-  if (typeof text !== 'string' || !hasCodeSpan(text)) return text;
-  return codeSpans(text).map((s, i) => (s.code ? <InlineCode key={i}>{s.text}</InlineCode> : s.text));
+  if (typeof text !== 'string') return text;
+  if (!hasCodeSpan(text)) return keepUnits(text);
+  return codeSpans(text).map((s, i) => (s.code ? <InlineCode key={i}>{s.text}</InlineCode> : keepUnits(s.text)));
 }

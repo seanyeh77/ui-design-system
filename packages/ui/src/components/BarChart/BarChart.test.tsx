@@ -35,6 +35,6 @@ test('large values: the y labels fit inside the chart; compact writes 萬; the u
   expect(screen.getByRole('application', { name: '請求數' })).toBeTruthy();
   a.unmount();
   const b = render(<BarChart label="請求數" unit="次" format="compact" data={data} />);
-  expect([...b.container.querySelectorAll('.ui-chart-tick')].map((t) => t.textContent)).toEqual(['0', '50 萬', '100 萬', '150 萬']);
+  expect([...b.container.querySelectorAll('.ui-chart-tick')].map((t) => t.textContent)).toEqual(['0', '50\u00a0萬', '100\u00a0萬', '150\u00a0萬']);
   await page.viewport(1280, 900);
 });

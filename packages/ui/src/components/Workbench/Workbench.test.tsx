@@ -90,6 +90,25 @@ test('splitters: role separator with value and limits, 16 px per arrow, double-c
   expect(side.getAttribute('aria-valuenow')).toBe('336');
 });
 
+test('splitters: a click without dragging steps through the narrowest, default and 1.5 times the default (WCAG 2.5.7)', async () => {
+  render(shell(1440));
+  const sep = await screen.findByRole('separator', { name: '檔案總管寬度' });
+  expect(sep.getAttribute('aria-description')).toContain('按一下');
+  const click = () => {
+    const x = sep.getBoundingClientRect().left + 2;
+    sep.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerId: 1, clientX: x }));
+    sep.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerId: 1, clientX: x + 2 }));
+    sep.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 1, clientX: x + 2 }));
+  };
+  click();
+  await waitFor(() => expect(sep.getAttribute('aria-valuenow')).toBe('390'));
+  await waitFor(() => expect(document.querySelector('[data-ui-announcer]')?.textContent).toBe('檔案總管寬度 390 px'));
+  click();
+  await waitFor(() => expect(sep.getAttribute('aria-valuenow')).toBe('180'));
+  click();
+  await waitFor(() => expect(sep.getAttribute('aria-valuenow')).toBe('260'));
+});
+
 test('a view moves to the other region with the tab-row button, and 「還原預設版面」 puts it back', async () => {
   render(shell(1440));
   const side = region('右側欄');

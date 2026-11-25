@@ -118,13 +118,9 @@ export function ZoneMap({ zones, label, columns = 4, rowHeight = 120, fill = fal
             </span>
             <span className="ui-zone-value">
               {figure}
-              {/* A real space before the unit: the shown text is 「23.1 °C」, the same as the button's name (WCAG 2.5.3). */}
-              {z.unit ? (
-                <>
-                  {' '}
-                  <span className="ui-zone-unit">{z.unit}</span>
-                </>
-              ) : null}
+              {/* The space before the unit sits in the unit's text font (a Geist Mono space at h2 size is about 20 px wide)
+                  and does not break: the shown text is 「23.1 °C」, the same as the button's name (WCAG 2.5.3). */}
+              {z.unit ? <span className="ui-zone-unit">{'\u00a0' + z.unit}</span> : null}
             </span>
             {z.detail ? <span className="ui-zone-detail">{z.detail}</span> : null}
           </button>
