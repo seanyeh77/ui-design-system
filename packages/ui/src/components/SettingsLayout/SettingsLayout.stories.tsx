@@ -27,14 +27,7 @@ function D() {
             label: '個人資料',
             content: (
               <UI.SettingsSection title="個人資料">
-                <UI.TextField
-                  label="名稱"
-                  value={n}
-                  onChange={(e) => {
-                    setN(e.target.value);
-                  }}
-                  onBlur={saved}
-                />
+                <UI.TextField label="名稱" value={n} onChange={setN} onBlur={saved} />
               </UI.SettingsSection>
             ),
           },

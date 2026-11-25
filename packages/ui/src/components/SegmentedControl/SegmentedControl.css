@@ -1,11 +1,12 @@
-/* SegmentedControl: a 28 px switch between ways of showing the same thing; the selected part is a raised pill. */
+/* SegmentedControl: a 40 px switch between ways of showing the same thing (the height of a toolbar's controls);
+   the selected part is a raised pill. */
 .ui-seg {
   position: relative;
   display: inline-flex;
   flex: none;
   gap: 2px;
-  height: 28px;
-  padding: 2px;
+  height: var(--control-height);
+  padding: 3px;
   box-sizing: border-box;
   border-radius: var(--radius-sm);
   background: var(--surface-sub);
@@ -14,8 +15,8 @@
 /* Like the tab pill: a line-strong border shows the selection at 3:1 (icon-only items differ in color alone). */
 .ui-seg-ind {
   position: absolute;
-  top: 2px;
-  bottom: 2px;
+  top: 3px;
+  bottom: 3px;
   box-sizing: border-box;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-xs);
@@ -28,14 +29,14 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 24px;
-  padding: 0 10px;
+  height: 100%;
+  padding: 0 var(--space-3);
   border: 0;
   border-radius: var(--radius-xs);
   background: none;
   color: var(--ink-muted);
   font: inherit;
-  font-size: var(--text-small);
+  font-size: var(--text-control);
   line-height: 20px;
   white-space: nowrap;
   cursor: pointer;
@@ -49,11 +50,38 @@
   font-weight: 600;
 }
 .ui-seg.is-icons .ui-seg-item {
-  width: 28px;
+  width: 34px;
   padding: 0;
 }
+/* Icons only: the selected one is marked like the words are, ink in the outlined pill (not a color of its own). */
 .ui-seg.is-icons .ui-seg-item.is-selected {
-  color: var(--accent-text);
+  color: var(--ink);
+}
+/* Workbench's mainBar is 36 px: the compact 28 px switch, like the bar's other buttons. */
+.ui-wb-mainbar .ui-seg {
+  height: 28px;
+  padding: 2px;
+}
+.ui-wb-mainbar .ui-seg-ind {
+  top: 2px;
+  bottom: 2px;
+}
+.ui-wb-mainbar .ui-seg-item {
+  font-size: var(--text-small);
+}
+.ui-wb-mainbar .ui-seg.is-icons .ui-seg-item {
+  width: 28px;
+}
+/* Touch screens: each part is a 48 px target (the whole switch 48 px tall). */
+@media (pointer: coarse) {
+  .ui-seg,
+  .ui-wb-mainbar .ui-seg {
+    height: var(--touch-target);
+  }
+  .ui-seg.is-icons .ui-seg-item,
+  .ui-wb-mainbar .ui-seg.is-icons .ui-seg-item {
+    width: 42px;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .ui-seg-ind {

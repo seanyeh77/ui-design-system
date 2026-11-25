@@ -12,7 +12,7 @@ function Page({ withHint, k }: { withHint: boolean; k: string }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'flex-end', paddingRight: 16 }}>
       <IconButton label="導覽" icon="question" onClick={tour.start} hint={withHint ? tour.hint('導覽：一個步驟介紹這頁。') : undefined} />
-      <Tour open={tour.open} onClose={tour.close} steps={steps} />
+      <Tour open={tour.open} onOpenChange={tour.onOpenChange} steps={steps} />
     </div>
   );
 }

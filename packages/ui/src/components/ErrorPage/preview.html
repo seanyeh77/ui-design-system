@@ -22,19 +22,18 @@
           { style: { height: 420, display: 'flex', flexDirection: 'column' } },
           h(
             'div',
-            { style: { display: 'flex', gap: 6, padding: 12 } },
-            [404, 500, 403].map(function (x) {
-              return h(
-                U.Button,
-                {
-                  key: x,
-                  variant: x === c[0] ? 'primary' : 'secondary',
-                  onClick: function () {
-                    c[1](x);
-                  },
-                },
-                String(x),
-              );
+            { style: { padding: 12 } },
+            h(U.SegmentedControl, {
+              label: '狀態碼',
+              value: String(c[0]),
+              onChange: function (v) {
+                c[1](Number(v));
+              },
+              options: [
+                { value: '404', label: '404' },
+                { value: '500', label: '500' },
+                { value: '403', label: '403' },
+              ],
             }),
           ),
           h('div', { style: { flex: '1 1 auto' } }, h(U.ErrorPage, { code: c[0], onBack: function () {}, onHome: function () {} })),

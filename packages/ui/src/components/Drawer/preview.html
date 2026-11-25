@@ -42,7 +42,9 @@
             U.Drawer,
             {
               open: o[0],
-              onClose: close,
+              onOpenChange: function (open) {
+                if (!open) close();
+              },
               title: '編輯專案',
               dirty: d[0],
               actions: function (requestClose) {
@@ -53,8 +55,8 @@
               label: '名稱',
               required: true,
               value: n[0],
-              onChange: function (e) {
-                n[1](e.target.value);
+              onChange: function (v) {
+                n[1](v);
                 d[1](true);
               },
             }),

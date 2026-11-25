@@ -25,6 +25,7 @@ const [open, setOpen] = React.useState(false);
 - 名稱是程式碼（函式、路徑、變數）時給 `code: true`；說明裡的程式碼用反引號包起來。
 - 資料要從伺服器搜尋時給 `filter: false`，在 `onQueryChange` 裡更新 `items`，等待時給 `loading`。
 - 找不到時的提示用 `noResultsText`，不要插入一筆假的項目。
+- `open` 和 `onOpenChange(open, reason)` 控制開關（`reason` 是 `'hotkey'`、`'select'`、`'escape'`…）；不給 `open` 時它自己管，Ctrl K 一樣能打開。
 
 ## 細節
 

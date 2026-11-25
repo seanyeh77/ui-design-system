@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { cx, browserKey } from '../../internal/util';
+import { cx } from '../../internal/util';
+import { useRovingRadio } from '../../internal/roving';
 
 export interface RadioOption<V extends string = string> {
   value: V;
@@ -7,60 +8,92 @@ export interface RadioOption<V extends string = string> {
   disabled?: boolean;
 }
 
-export interface RadioGroupProps<V extends string = string> {
-  /** Shown above the options and used as the group's name. */
-  label?: string;
+interface RadioGroupBase<V extends string> {
+  /** Controlled: the chosen value. */
   value?: V;
-  onChange?: (value: V) => void;
+  /** Uncontrolled: the value chosen at first; the group then keeps its own state. */
+  defaultValue?: V;
+  /** Receives the chosen value, then the event (a click or the arrow key that picked it). */
+  onChange?: (value: V, event: React.SyntheticEvent<HTMLButtonElement>) => void;
   /** 2 to 5 options, all visible. Use Select for more. */
   options: RadioOption<V>[];
+  /** Grayed out and skipped by Tab. */
   disabled?: boolean;
+  /** Form field name: the chosen value is sent with a native form. */
+  name?: string;
   className?: string;
 }
 
-/** One choice out of a few visible options. Arrow keys move between them. */
-export function RadioGroup<V extends string = string>({ label, value, onChange, options, disabled, className }: RadioGroupProps<V>) {
-  const refs = React.useRef<(HTMLButtonElement | null)[]>([]);
-  const enabled = options.map((o) => !(disabled || o.disabled));
-  const selected = options.findIndex((o) => o.value === value);
-  const tabStop = selected >= 0 ? selected : enabled.indexOf(true);
-  const move = (from: number, dir: 1 | -1) => {
-    for (let k = 1; k <= options.length; k++) {
-      const i = (from + dir * k + options.length) % options.length;
-      if (enabled[i]) {
-        refs.current[i]?.focus();
-        onChange?.(options[i].value);
-        return;
+export type RadioGroupProps<V extends string = string> = RadioGroupBase<V> &
+  (
+    | {
+        /** Shown above the options and used as the group's name. */
+        label: string;
+        'aria-label'?: never;
       }
-    }
+    | {
+        label?: never;
+        /** The group's name when no label is shown. */
+        'aria-label': string;
+      }
+  );
+
+/** One choice out of a few visible options. Arrow keys move between them. */
+export function RadioGroup<V extends string = string>({
+  label,
+  value,
+  defaultValue,
+  onChange,
+  options,
+  disabled,
+  name,
+  className,
+  ...aria
+}: RadioGroupProps<V>) {
+  const labelId = React.useId();
+  const [own, setOwn] = React.useState<V | undefined>(defaultValue);
+  const cur = value !== undefined ? value : own;
+  const enabled = options.map((o) => !(disabled || o.disabled));
+  const selected = options.findIndex((o) => o.value === cur);
+  const tabStop = selected >= 0 ? selected : enabled.indexOf(true);
+  const pick = (i: number, e: React.SyntheticEvent<HTMLButtonElement>) => {
+    if (value === undefined) setOwn(options[i].value);
+    onChange?.(options[i].value, e);
   };
+  const lastKey = React.useRef<React.SyntheticEvent<HTMLButtonElement> | null>(null);
+  const roving = useRovingRadio(
+    options.length,
+    (i) => lastKey.current && pick(i, lastKey.current),
+    (i) => enabled[i],
+  );
   return (
-    <div role="radiogroup" aria-label={label} className={cx('ui-radios', className)}>
-      {label ? <div className="ui-field-label">{label}</div> : null}
+    <div
+      role="radiogroup"
+      aria-labelledby={label ? labelId : undefined}
+      aria-label={label ? undefined : aria['aria-label']}
+      className={cx('ui-radios', className)}
+    >
+      {label ? (
+        <div id={labelId} className="ui-field-label">
+          {label}
+        </div>
+      ) : null}
       {options.map((o, i) => {
-        const on = value === o.value;
+        const on = cur === o.value;
         return (
           <button
             key={o.value}
-            ref={(el) => {
-              refs.current[i] = el;
-            }}
+            ref={roving.ref(i)}
             type="button"
             role="radio"
             aria-checked={on}
             tabIndex={i === tabStop ? 0 : -1}
             disabled={!enabled[i]}
             className={cx('ui-radio', on && 'is-on')}
-            onClick={() => onChange?.(o.value)}
+            onClick={(e) => pick(i, e)}
             onKeyDown={(e) => {
-              if (browserKey(e)) return;
-              if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-                e.preventDefault();
-                move(i, 1);
-              } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-                e.preventDefault();
-                move(i, -1);
-              }
+              lastKey.current = e;
+              roving.onKeyDown(i)(e);
             }}
           >
             <span className="ui-radio-ring" aria-hidden="true">
@@ -70,6 +103,7 @@ export function RadioGroup<V extends string = string>({ label, value, onChange, 
           </button>
         );
       })}
+      {name ? <input type="hidden" name={name} value={cur ?? ''} /> : null}
     </div>
   );
 }

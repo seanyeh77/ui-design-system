@@ -32,3 +32,21 @@
   width: 36px;
   justify-content: center;
 }
+/* Forced colors (Windows high contrast): backgrounds are dropped, so the checked fill and the mixed dash use system
+   colors that stay visible. */
+@media (forced-colors: active) {
+  .ui-check-box {
+    border-color: CanvasText;
+  }
+  .ui-check.is-on .ui-check-box,
+  .ui-check-box.is-on {
+    forced-color-adjust: none;
+    background: Highlight;
+    border-color: Highlight;
+    color: HighlightText;
+  }
+  .ui-check-dash {
+    forced-color-adjust: none;
+    background: HighlightText;
+  }
+}

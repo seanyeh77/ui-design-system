@@ -3,7 +3,7 @@ import { fmtDate, parseDate, sameDay } from '../../format';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
-import { FieldErrorIcon, FieldLabel, FieldMessage } from '../../internal/Field';
+import { FieldErrorIcon, FieldLabel, FieldMessage, type FieldProps } from '../../internal/Field';
 import { FloatingPanel } from '../../internal/FloatingPanel';
 import { Calendar } from '../Calendar/Calendar';
 import { includeIcons } from '../../icons/store';
@@ -11,13 +11,16 @@ import phCalendarBlank from '../../icons/ph/calendar-blank';
 
 includeIcons(phCalendarBlank);
 
-export interface DatePickerProps {
-  label?: string;
+/** 2026-11-14: the date a form sends, in the local calendar. */
+export const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+export interface DatePickerProps extends FieldProps {
+  /** The date, or null for none. */
   value: Date | null;
-  onChange: (d: Date | null) => void;
+  /** Receives the new date, or null when the field is cleared. */
+  onChange: (value: Date | null) => void;
   /** Default 「可以直接輸入，例如 2026/11/14」; `backticks` are code. */
   hint?: string;
-  required?: boolean;
   /** An error from your own check (「請選擇開始日期」): the cause and the fix. Red border, the warning icon and this line
    *  under the field, announced when it appears. A date typed in the wrong format gets its own error. `backticks` are code. */
   error?: string;
@@ -25,7 +28,7 @@ export interface DatePickerProps {
 }
 
 /** A date field: type YYYY/MM/DD, or pick from the calendar button's month grid. */
-export function DatePicker({ label, value, onChange, hint, required, error, className }: DatePickerProps) {
+export function DatePicker({ label, hideLabel, value, onChange, hint, required, disabled, name, error, className }: DatePickerProps) {
   const id = React.useId();
   const [open, setOpen] = React.useState(false);
   const [typed, setTyped] = React.useState<string | null>(null);
@@ -44,15 +47,15 @@ export function DatePicker({ label, value, onChange, hint, required, error, clas
     setOpen(false);
   };
   return (
-    <div className={cx('ui-field', errText && 'has-error', className)}>
-      {label ? (
-        <FieldLabel htmlFor={id} required={required}>
-          {label}
-        </FieldLabel>
-      ) : null}
+    <div className={cx('ui-field', errText && 'has-error', disabled && 'is-disabled', className)}>
+      <FieldLabel htmlFor={id} required={required} hidden={hideLabel}>
+        {label}
+      </FieldLabel>
       <div ref={field} className={cx('ui-datefield', errText && 'is-invalid')}>
+        {name ? <input type="hidden" name={name} value={value ? isoDay(value) : ''} /> : null}
         <input
           id={id}
+          disabled={disabled}
           className="ui-datefield-input"
           value={typed ?? fmtDate(value)}
           placeholder="YYYY/MM/DD"
@@ -77,12 +80,12 @@ export function DatePicker({ label, value, onChange, hint, required, error, clas
           className="ui-datepop"
           aria-label={tr('選擇日期')}
           trigger={
-            <button type="button" className="ui-datefield-btn" aria-label={tr('開啟日曆')}>
+            <button type="button" className="ui-datefield-btn" aria-label={tr('開啟日曆')} disabled={disabled}>
               <Icon name="calendar-blank" size={18} />
             </button>
           }
         >
-          <Calendar focus={value} dayState={(d) => ({ selected: sameDay(d, value) })} onPick={commit} />
+          <Calendar month={value} dayState={(d) => ({ selected: sameDay(d, value) })} onPick={commit} />
           <div className="ui-datepop-foot">
             <button type="button" className="ui-link-btn" onClick={() => commit(new Date(new Date().setHours(0, 0, 0, 0)))}>
               {tr('今天')}

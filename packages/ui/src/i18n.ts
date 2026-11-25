@@ -14,7 +14,6 @@ export const I18N: I18nState = {
   messages: {
     en: {
       'Email 或帳號': 'Email or username',
-      '{label}：{a} 到 {b}': '{label}: {a} to {b}',
       '{n} 個百分點': '{n} pts',
       上一頁: 'Previous page',
       上個月: 'Previous month',
@@ -186,6 +185,10 @@ export const I18N: I18nState = {
       '第 {a}–{b} 筆，共 {n} 筆': '{a}–{b} of {n}',
       繼續編輯: 'Keep editing',
       '自訂強調色（色碼）': 'Custom accent color (hex)',
+      '已達 {n} 字上限': 'Reached the {n}-character limit',
+      '另外 {n} 個：{list}': '{n} more: {list}',
+      關閉通知: 'Close notification',
+      '色碼格式不正確，請輸入 # 加 6 碼，例如 #2457d6': 'Not a color code. Type # and 6 digits, e.g. #2457d6',
       '色碼格式不正確，例如 #2457d6': 'Invalid hex, e.g. #2457d6',
       設定分類: 'Settings sections',
       請輸入密碼: 'Enter your password',

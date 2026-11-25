@@ -13,6 +13,7 @@ initTheme(); // 頁面載入時一次
 - 不傳 `onChange` 時直接呼叫 `setTheme()`：在根元素設 `data-theme`，選擇存在 localStorage。伺服器渲染和瀏覽器第一次渲染都先選「自動」，接手後才顯示存下的選擇，不會有 hydration 不一致。
 - 用了 preset（`initTheme({ preset: 'teaching' })`）時，preset 只有淺色：選擇會記住，畫面維持 preset。
 - 頁面載入時呼叫一次 `initTheme()`。
+- 上方有看得見的標籤「主題」（`label` 可改），也是整組的名稱，和其他欄位一樣。
 - 自動：跟著系統的 `prefers-color-scheme`，系統改變時也會跟著換。
 
 ## 細節

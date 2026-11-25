@@ -8,7 +8,7 @@
 <ErrorPage code={404} onBack={() => history.back()} homeHref="/" />
 ```
 
-- 大號錯誤碼：等寬字 96 px，用強調文字色；下面是標題和一句說明。
+- 大號錯誤碼：96 px，用 Inter 的等寬數字（tabular-nums，不是 Geist Mono，零沒有斜線），強調文字色；下面是標題和一句說明。
 - 按鈕：「回上一頁」（次要）和「回首頁」（主要）。
 - 預設文字：404 找不到這個頁面；500 伺服器暫時無法回應；403 沒有權限查看這個頁面。可以用 `title`、`description` 改。
 - `description` 裡反引號包住的文字顯示成行內程式碼（InlineCode），不顯示反引號。

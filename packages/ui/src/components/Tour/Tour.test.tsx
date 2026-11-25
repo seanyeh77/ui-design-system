@@ -1,6 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { render, screen, waitFor } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import { Tour } from '../../index';
 
 afterEach(() => page.viewport(1280, 900));
@@ -200,7 +201,7 @@ test('Tour: the step count is shown 「1 / 2」 but its text is only 「第 1 �
           { target: 'a', title: 'A', text: 'a' },
           { target: 'a', title: 'B', text: 'b' },
         ]}
-        onClose={() => {}}
+        onOpenChange={() => {}}
       />
     </>,
   );
@@ -219,7 +220,7 @@ test('Tour: warns in development when a target is taller than most of the window
   render(
     <>
       <div data-tour="page" style={{ height: '200vh' }} />
-      <Tour open steps={[{ target: 'page', title: '整頁', text: 'x' }]} onClose={() => {}} />
+      <Tour open steps={[{ target: 'page', title: '整頁', text: 'x' }]} onOpenChange={() => {}} />
     </>,
   );
   await waitFor(() => expect(warn.mock.calls.some((c) => String(c[0]).includes('taller than 70% of the window'))).toBe(true));
@@ -277,4 +278,22 @@ test('Tour: no room above or below and the page cannot scroll: right of the targ
   };
   expect(await sideOf({ left: 24, width: 600 })).toBe('right');
   expect(await sideOf({ right: 24, width: 600 })).toBe('left');
+});
+
+test('Tour: onOpenChange(false, reason) tells done from skip; uncontrolled with defaultOpen', async () => {
+  const onOpenChange = vi.fn();
+  const user = userEvent.setup();
+  const two = [
+    { title: '一', text: 'a' },
+    { title: '二', text: 'b' },
+  ];
+  const { unmount } = render(<Tour defaultOpen steps={two} onOpenChange={onOpenChange} />);
+  await user.click(await screen.findByRole('button', { name: '略過' }));
+  expect(onOpenChange).toHaveBeenLastCalledWith(false, 'skip');
+  // Uncontrolled: it closed itself.
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  unmount();
+  render(<Tour open steps={two.slice(0, 1)} onOpenChange={onOpenChange} />);
+  await user.click(await screen.findByRole('button', { name: '完成' }));
+  expect(onOpenChange).toHaveBeenLastCalledWith(false, 'done');
 });

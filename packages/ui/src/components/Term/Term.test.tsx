@@ -32,7 +32,7 @@ test('Term: the explanation stays inside its card, not over the panel beside it'
   });
 });
 
-test('Term inline: read as the word then 「有說明」, opens on keyboard focus, Esc keeps focus on the word', async () => {
+test('Term inline: read as the word then 「有說明」; focus alone does not open it, Enter does; Esc keeps focus on the word', async () => {
   await page.viewport(1280, 800);
   render(
     <p>
@@ -48,6 +48,11 @@ test('Term inline: read as the word then 「有說明」, opens on keyboard focu
   const user = userEvent.setup();
   await user.tab();
   expect(document.activeElement).toBe(word);
+  // Tabbing past a word does not open its card (nor read it).
+  await new Promise((r) => setTimeout(r, 150));
+  expect(document.querySelector('.ui-term-pop')).toBeNull();
+  expect(word.getAttribute('aria-describedby')).toBeNull();
+  await user.keyboard('{Enter}');
   const pop = await waitFor(() => {
     const el = document.querySelector<HTMLElement>('.ui-term-pop');
     if (!el) throw new Error('not open');
@@ -81,4 +86,18 @@ test('Term inline: the pointer resting 500 ms opens it, passing over does not', 
   expect(document.querySelector('.ui-term-pop')).toBeNull();
   await user.hover(word);
   await waitFor(() => expect(document.querySelector('.ui-term-pop')).not.toBeNull(), { timeout: 1500 });
+});
+
+test('Term inline with openOnFocus: keyboard focus opens the card', async () => {
+  await page.viewport(1280, 800);
+  render(
+    <p>
+      寫入{' '}
+      <Term variant="inline" openOnFocus text="說明。">
+        cookie
+      </Term>
+    </p>,
+  );
+  await userEvent.setup().tab();
+  await waitFor(() => expect(document.querySelector('.ui-term-pop')).not.toBeNull());
 });

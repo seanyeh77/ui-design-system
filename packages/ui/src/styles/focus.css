@@ -12,6 +12,7 @@
 .ui-btn:focus-visible,
 .ui-iconbtn:focus-visible,
 .ui-toast-action:focus-visible,
+.ui-toast-close:focus-visible,
 .ui-input:focus-visible,
 :is(a, button).ui-nav-brand-link:focus-visible,
 .ui-nav-collapse:focus-visible,

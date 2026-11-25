@@ -38,13 +38,18 @@ test('AccentPicker: a swatch applies the accent to the root and stores it', asyn
   expect(screen.getByRole('radio', { name: '綠' }).getAttribute('aria-checked')).toBe('true');
 });
 
-test('AccentPicker: the hex field applies a full #rrggbb at once and explains a wrong one', async () => {
+test('AccentPicker: the hex field applies a full #rrggbb at once; a wrong one is explained on blur or Enter, not while typing', async () => {
   render(<AccentPicker />);
   const user = userEvent.setup();
   const input = screen.getByRole('textbox', { name: '自訂強調色（色碼）' });
   await user.type(input, '#12');
+  // Still typing: not an error yet.
+  expect(input.getAttribute('aria-invalid')).toBeNull();
+  await user.keyboard('{Enter}');
   expect(input.getAttribute('aria-invalid')).toBe('true');
-  expect(screen.getByText('色碼格式不正確，例如 #2457d6')).toBeTruthy();
+  const msg = screen.getByText('色碼格式不正確，請輸入 # 加 6 碼，例如 #2457d6');
+  // The error is the field's description.
+  expect(input.getAttribute('aria-describedby')).toBe(msg.id);
   expect(accent()).toBe(DEFAULT_ACCENT);
   await user.clear(input);
   await user.type(input, '#AA3366');

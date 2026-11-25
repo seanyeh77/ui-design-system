@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { Popover } from '@base-ui/react/popover';
+import { baseReason, type OpenChangeReason } from './open';
 
 export interface FloatingPanelProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: (open: boolean, reason?: OpenChangeReason) => void;
   /** The element that opens the panel; it must accept a ref (a native element or a component that passes ref on). */
   trigger: React.ReactElement;
   side?: 'top' | 'bottom';
@@ -49,7 +50,7 @@ export function FloatingPanel({
 }: FloatingPanelProps) {
   const within = boundary?.current ?? undefined;
   return (
-    <Popover.Root open={open} onOpenChange={onOpenChange}>
+    <Popover.Root open={open} onOpenChange={(next, details) => onOpenChange(next, baseReason(details?.reason))}>
       <Popover.Trigger render={trigger} openOnHover={openOnHover} delay={delay} closeDelay={150} />
       <Popover.Portal>
         <Popover.Positioner

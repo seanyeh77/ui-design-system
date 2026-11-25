@@ -7,6 +7,7 @@ import { tr } from '../../i18n';
 import { Icon, IconOf, type IconSource } from '../../icons/Icon';
 import { cx } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
+import { baseReason, useOpenState, type OpenChangeReason } from '../../internal/open';
 import { includeIcons } from '../../icons/store';
 import phCommand from '../../icons/ph/command';
 import phFile from '../../icons/ph/file';
@@ -57,8 +58,13 @@ function kindOf(kind: string, kinds: Record<string, IconSource> | undefined): { 
 }
 
 export interface CommandPaletteProps<T extends PaletteItem = PaletteItem> {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  /** Controlled: shown while true. Leave it out to let the palette keep its own state (Ctrl K still opens it). */
+  open?: boolean;
+  /** Uncontrolled: whether it starts open. */
+  defaultOpen?: boolean;
+  /** Called with the new state and why: 'hotkey' (Ctrl K), 'select' (a result was chosen), 'escape', 'outside'. */
+  onOpenChange?: (open: boolean, reason?: OpenChangeReason) => void;
+  /** Every item that can be found. */
   items: T[];
   onSelect?: (item: T) => void;
   /** Default 「搜尋」. */
@@ -103,8 +109,9 @@ function score(it: PaletteItem, q: string): [rank: number, at: number] | null {
 /** One search for everything, opened with Ctrl K (⌘K). A panel in the middle of the screen; results sorted by relevance. */
 export function CommandPalette<T extends PaletteItem = PaletteItem>(props: CommandPaletteProps<T>) {
   const {
-    open,
-    onOpenChange,
+    open: openProp,
+    defaultOpen,
+    onOpenChange: reportOpen,
     items,
     onSelect,
     placeholder,
@@ -122,6 +129,7 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
     defaultQuery = '',
     label,
   } = props;
+  const [open, onOpenChange] = useOpenState({ open: openProp, defaultOpen, onOpenChange: reportOpen });
   const [q, setQ] = React.useState(defaultQuery);
   const [active, setActive] = React.useState(0);
   useReturnFocus(open);
@@ -150,7 +158,7 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
     const key = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        toggle.current(!open);
+        toggle.current(!open, 'hotkey');
       }
     };
     document.addEventListener('keydown', key);
@@ -175,7 +183,7 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
     list.current?.querySelector('.is-active')?.scrollIntoView?.({ block: 'nearest' });
   }, [act, open]);
   const pick = (it: T) => {
-    onOpenChange(false);
+    onOpenChange(false, 'select');
     onSelect?.(it);
   };
   const onKey = (e: React.KeyboardEvent) => {
@@ -222,7 +230,7 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
     return () => clearTimeout(t);
   }, [said, query, loading]);
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+    <Dialog.Root open={open} onOpenChange={(next, details) => onOpenChange(next, baseReason(details?.reason))}>
       <Dialog.Portal>
         <Dialog.Backdrop className="ui-pal-backdrop" />
         <Dialog.Popup className="ui-pal" aria-label={label || tr('搜尋')}>

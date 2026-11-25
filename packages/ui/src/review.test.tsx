@@ -104,7 +104,7 @@ test('Menu: a danger item asks 「Delete?」 in English, with a half-width quest
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: 'More actions' }));
     await user.click(await screen.findByRole('menuitem', { name: 'Delete' }));
-    await waitFor(() => expect(screen.getByRole('dialog').textContent).toContain('Delete?'));
+    await waitFor(() => expect(screen.getByRole('alertdialog').textContent).toContain('Delete?'));
   } finally {
     setLocale('zh-TW');
   }
@@ -125,7 +125,7 @@ test('DateRangePicker: dates follow the language', () => {
   setLocale('en');
   try {
     render(<DateRangePicker label="Period" value={[new Date(2026, 10, 4), new Date(2026, 10, 9)]} onChange={() => {}} />);
-    const btn = screen.getByRole('button', { name: /^Period: / });
+    const btn = screen.getByRole('button', { name: /^Period / });
     expect(btn.textContent).toBe(`${format.date(new Date(2026, 10, 4), { weekday: false })} – ${format.date(new Date(2026, 10, 9), { weekday: false })}`);
     expect(btn.textContent).not.toContain('2026/11/04');
   } finally {

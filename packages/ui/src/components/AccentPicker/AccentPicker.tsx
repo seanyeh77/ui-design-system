@@ -1,8 +1,10 @@
 import * as React from 'react';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
-import { browserKey, cx } from '../../internal/util';
+import { cx } from '../../internal/util';
 import { useStored } from '../../internal/stored';
+import { useRovingRadio } from '../../internal/roving';
+import { FieldErrorIcon, FieldMessage } from '../../internal/Field';
 import { ACCENT_KEY, ACCENT_SWATCHES, DEFAULT_ACCENT, defaultAccent, parseAccent, setAccent } from '../../theme';
 import { includeIcons } from '../../icons/store';
 import phCheck from '../../icons/ph/check';
@@ -37,24 +39,33 @@ export function AccentPicker({ value, onChange, label, className }: AccentPicker
     if (onChange) onChange(c);
     else setAccent(c);
   };
-  const bad = !!hexIn && !HEX.test(hexIn);
-  const refs = React.useRef<(HTMLButtonElement | null)[]>([]);
+  // Checked when the field is left or Enter is pressed, not on every key: 「#2」 is not wrong yet while typing.
+  const [checked, setChecked] = React.useState(false);
+  const bad = checked && !!hexIn && !HEX.test(hexIn);
+  const ids = React.useId();
+  const roving = useRovingRadio(SWATCHES.length, (i) => {
+    setHexIn('');
+    setChecked(false);
+    pick(SWATCHES[i][1]);
+  });
   // One Tab stop in the swatches (the chosen one, or the first for a custom color); arrow keys move and choose.
   const tabStop = Math.max(
     0,
     SWATCHES.findIndex(([, hex]) => hex === cur),
   );
   return (
-    <div className={cx('ui-accentpick', className)}>
-      <div role="radiogroup" aria-label={label || tr('強調色')} className="ui-accentpick-swatches">
+    <div className={cx('ui-field', 'ui-accentpick', className)}>
+      {/* A visible label, as every field has. */}
+      <div id={ids + '-label'} className="ui-field-label">
+        {label || tr('強調色')}
+      </div>
+      <div role="radiogroup" aria-labelledby={ids + '-label'} className="ui-accentpick-swatches">
         {SWATCHES.map(([name, hex], i) => {
           const on = cur === hex;
           return (
             <button
               key={hex}
-              ref={(el) => {
-                refs.current[i] = el;
-              }}
+              ref={roving.ref(i)}
               type="button"
               role="radio"
               aria-checked={on}
@@ -67,38 +78,41 @@ export function AccentPicker({ value, onChange, label, className }: AccentPicker
                 setHexIn('');
                 pick(hex);
               }}
-              onKeyDown={(e) => {
-                if (browserKey(e)) return;
-                const n = SWATCHES.length;
-                const to = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? (i + 1) % n : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? (i - 1 + n) % n : -1;
-                if (to < 0) return;
-                e.preventDefault();
-                refs.current[to]?.focus();
-                setHexIn('');
-                pick(SWATCHES[to][1]);
-              }}
+              onKeyDown={roving.onKeyDown(i)}
             >
               {on ? <Icon name="check" size={14} /> : null}
             </button>
           );
         })}
       </div>
-      <div className="ui-accentpick-hex">
-        <span className="ui-accentpick-preview" style={{ background: !bad && hexIn ? hexIn : cur }} />
-        <input
-          className={cx('ui-input', bad && 'is-invalid')}
-          aria-label={tr('自訂強調色（色碼）')}
-          aria-invalid={bad || undefined}
-          value={hexIn}
-          placeholder={cur}
-          onChange={(e) => {
-            const x = e.target.value.trim();
-            setHexIn(x);
-            if (HEX.test(x)) pick(x.toLowerCase());
-          }}
-        />
-        <span className={cx('ui-field-hint', bad && 'is-error')}>{bad ? tr('色碼格式不正確，例如 #2457d6') : tr('輸入 # 加 6 碼')}</span>
+      <div className={cx('ui-accentpick-hex', bad && 'has-error')}>
+        <span className="ui-accentpick-preview" style={{ background: HEX.test(hexIn) ? hexIn : cur }} />
+        <div className="ui-field-box">
+          <input
+            className={cx('ui-input', bad && 'is-invalid')}
+            aria-label={tr('自訂強調色（色碼）')}
+            aria-invalid={bad || undefined}
+            aria-describedby={ids + '-msg'}
+            value={hexIn}
+            placeholder={cur}
+            onChange={(e) => {
+              const x = e.target.value.trim();
+              setHexIn(x);
+              // A right code applies at once and clears an error; a wrong one waits for blur or Enter.
+              if (HEX.test(x)) {
+                setChecked(false);
+                pick(x.toLowerCase());
+              }
+            }}
+            onBlur={() => setChecked(true)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') setChecked(true);
+            }}
+          />
+          {bad ? <FieldErrorIcon /> : null}
+        </div>
       </div>
+      <FieldMessage id={ids + '-msg'} error={bad ? tr('色碼格式不正確，請輸入 # 加 6 碼，例如 #2457d6') : undefined} hint={tr('輸入 # 加 6 碼')} />
     </div>
   );
 }

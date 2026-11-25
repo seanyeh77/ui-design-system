@@ -12,9 +12,9 @@ function Demo({ iconOnly }: { iconOnly?: boolean }) {
       iconOnly={iconOnly}
       value={v}
       onChange={setV}
-      items={[
-        { id: 'preview', label: '預覽', icon: 'eye' },
-        { id: 'source', label: '原始碼', icon: 'file-code' },
+      options={[
+        { value: 'preview', label: '預覽', icon: 'eye' },
+        { value: 'source', label: '原始碼', icon: 'file-code' },
       ]}
     />
   );
@@ -26,7 +26,8 @@ test('a radio group: one Tab stop, ← → move and pick, icons named by their l
   const [a, b] = screen.getAllByRole('radio');
   expect(a.getAttribute('aria-checked')).toBe('true');
   expect(b.getAttribute('aria-label')).toBe('原始碼');
-  expect(group.offsetHeight).toBe(28);
+  // 40 px, the height of a toolbar's other controls.
+  expect(group.offsetHeight).toBe(40);
   const user = userEvent.setup();
   await user.tab();
   expect(document.activeElement).toBe(a);

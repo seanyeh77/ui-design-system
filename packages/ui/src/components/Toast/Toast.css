@@ -12,7 +12,11 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: var(--space-3) var(--space-4);
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  min-height: 48px;
   border-radius: var(--radius-md);
   background: var(--surface);
   color: var(--ink);
@@ -21,23 +25,115 @@
   font-size: var(--text-compact);
   animation: ui-toast-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
 }
+/* A card alone (not from toast()): no close button, so the same padding on both sides. */
+div.ui-toast[role='status'] {
+  padding-right: var(--space-4);
+}
+.ui-toast-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font: inherit;
+  font-weight: 400;
+}
 .ui-toast-icon {
-  color: var(--success);
+  flex: none;
+  color: var(--success-text);
+}
+.ui-toast.is-info .ui-toast-icon {
+  color: var(--info-text);
+}
+.ui-toast.is-warning .ui-toast-icon {
+  color: var(--warning-text);
+}
+.ui-toast.is-danger .ui-toast-icon {
+  color: var(--danger-text);
 }
 .ui-toast-action {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   margin-left: var(--space-1);
-  padding: 0 var(--space-1);
-  min-height: 28px;
+  padding: 0 var(--space-2);
+  min-height: 32px;
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--accent-text);
   font: inherit;
   font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
+}
+.ui-toast-action:hover {
+  background: var(--surface-sub);
+}
+.ui-toast-kbd {
+  font-family: var(--font-mono);
+  font-size: var(--text-mini);
+  font-weight: 400;
+  color: var(--ink-muted);
+}
+.ui-toast-close {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+.ui-toast-close:hover {
+  background: var(--surface-sub);
+  color: var(--ink);
+}
+/* toast()'s place: bottom right, the newest at the bottom; bottom centre on phones, above the tab bar. */
+.ui-toaster {
+  position: fixed;
+  z-index: var(--z-popover);
+  right: var(--space-5);
+  bottom: var(--space-5);
+  display: flex;
+  /* Base UI lists the newest first: reversed, the newest sits at the bottom, nearest the corner. */
+  flex-direction: column-reverse;
+  align-items: flex-end;
+  gap: var(--space-2);
+  width: min(420px, calc(100vw - 2 * var(--space-5)));
+  outline: none;
+  pointer-events: none;
+}
+.ui-toaster > .ui-toast {
+  pointer-events: auto;
+}
+.ui-toaster > .ui-toast[data-ending-style] {
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity var(--dur-toggle) ease,
+    transform var(--dur-toggle) ease;
+}
+@media (max-width: 599px) {
+  .ui-toaster {
+    right: var(--space-3);
+    left: var(--space-3);
+    bottom: var(--space-3);
+    width: auto;
+    align-items: center;
+  }
+  body:has(.ui-tabbar) .ui-toaster {
+    bottom: calc(64px + var(--space-3));
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .ui-toast {
     animation: ui-fade var(--dur-hover) ease both;
+  }
+  .ui-toaster > .ui-toast[data-ending-style] {
+    transform: none;
   }
 }

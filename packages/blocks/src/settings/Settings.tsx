@@ -9,6 +9,7 @@ import {
   Switch,
   TextField,
   ThemePicker,
+  toast,
   type NavSection,
 } from '@seanyeh77/ui';
 
@@ -44,15 +45,10 @@ const NAV: NavSection[] = [
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function Settings({ values, onChange, onDeleteAccount }: SettingsProps) {
-  // TODO(integrator): when Toast becomes toast() + <Toaster />, call toast('已儲存') in saved() and drop this state.
-  const [toast, setToast] = React.useState('');
-  const timer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
-  React.useEffect(() => () => clearTimeout(timer.current), []);
   const save = (next: Partial<SettingsValues>) => {
     onChange({ ...values, ...next });
-    setToast('已儲存');
-    clearTimeout(timer.current);
-    timer.current = setTimeout(() => setToast(''), 3000);
+    // One 「已儲存」 that restarts its 3 s on every change, not a new one per key.
+    toast('已儲存', { id: 'saved' });
   };
 
   // Text fields: a draft while typing; saved when the field is left and the value is valid and changed.
@@ -65,7 +61,6 @@ export function Settings({ values, onChange, onDeleteAccount }: SettingsProps) {
   return (
     <AppShell nav={NAV} value="settings" onNavigate={() => {}} brand="專案中心" title="設定">
       <SettingsLayout
-        toast={toast}
         categories={[
           {
             id: 'profile',
@@ -75,7 +70,7 @@ export function Settings({ values, onChange, onDeleteAccount }: SettingsProps) {
                 <TextField
                   label="名稱"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(v) => setName(v)}
                   onBlur={() => {
                     setLeft((l) => ({ ...l, name: true }));
                     if (!nameError && name.trim() !== values.name) save({ name: name.trim() });
@@ -86,7 +81,7 @@ export function Settings({ values, onChange, onDeleteAccount }: SettingsProps) {
                   label="Email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(v) => setEmail(v)}
                   onBlur={() => {
                     setLeft((l) => ({ ...l, email: true }));
                     if (!emailError && email !== values.email) save({ email });

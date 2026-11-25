@@ -1,4 +1,4 @@
-<!-- @dsCard group="Feedback" height=90 -->
+<!-- @dsCard group="Feedback" height=240 -->
 <!doctype html>
 <html lang="zh-Hant">
   <head>
@@ -15,7 +15,47 @@
     <script>
       var U = window.UI,
         h = React.createElement;
-      ReactDOM.createRoot(document.getElementById('root')).render(h('div', { className: 'ui-row' }, h(U.Toast, { actionLabel: '復原' }, '已儲存變更')));
+      function Demo() {
+        var n = React.useState(3);
+        return h(
+          'div',
+          { className: 'ui-stack' },
+          h(
+            'div',
+            { className: 'ui-row' },
+            h(
+              U.Button,
+              {
+                onClick: function () {
+                  U.toast('已儲存變更');
+                },
+              },
+              '儲存',
+            ),
+            h(
+              U.Button,
+              {
+                onClick: function () {
+                  U.toast('已刪除 ' + n[0] + ' 筆', {
+                    action: {
+                      label: '復原',
+                      undo: true,
+                      onAction: function () {
+                        U.toast('已復原 ' + n[0] + ' 筆', { tone: 'info' });
+                      },
+                    },
+                  });
+                },
+              },
+              '刪除',
+            ),
+          ),
+          h(U.Toast, null, '已儲存變更'),
+          h(U.Toast, { tone: 'danger' }, '儲存失敗：網路中斷，請稍後再試'),
+          h(U.Toaster),
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
     </script>
   </body>
 </html>

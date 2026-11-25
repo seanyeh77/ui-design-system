@@ -5,6 +5,7 @@ import { IconOf, type IconSource } from '../../icons/Icon';
 import { cx } from '../../internal/util';
 import { Dialog } from '../Dialog/Dialog';
 import type { DangerConfirm } from '../Button/Button';
+import { baseReason, useOpenState, type OpenStateProps } from '../../internal/open';
 import { includeIcons } from '../../icons/store';
 import phDotsThree from '../../icons/ph/dots-three';
 
@@ -28,7 +29,8 @@ export type MenuItem =
       confirm: DangerConfirm;
     });
 
-export interface MenuProps {
+export interface MenuProps extends OpenStateProps {
+  /** The actions; danger ones go last, in red, and are confirmed. */
   items: MenuItem[];
   /** aria-label and tooltip of the ⋯ button. Default 「更多操作」. */
   label?: string;
@@ -41,7 +43,8 @@ export interface MenuProps {
 }
 
 /** The ⋯ button and its list of actions. Danger items go last, in red, after a divider, and are confirmed. */
-export function Menu({ items, label, icon = 'dots-three', align = 'end', triggerClassName }: MenuProps) {
+export function Menu({ items, label, icon = 'dots-three', align = 'end', triggerClassName, open: openProp, defaultOpen, onOpenChange }: MenuProps) {
+  const [open, setOpen] = useOpenState({ open: openProp, defaultOpen, onOpenChange });
   const [asking, setAsking] = React.useState<Extract<MenuItem, { danger: true }> | null>(null);
   const normal = items.filter((it) => !it.danger);
   const danger = items.filter((it): it is Extract<MenuItem, { danger: true }> => !!it.danger);
@@ -54,7 +57,7 @@ export function Menu({ items, label, icon = 'dots-three', align = 'end', trigger
   );
   return (
     <>
-      <Base.Root>
+      <Base.Root open={open} onOpenChange={(next, details) => setOpen(next, baseReason(details?.reason))}>
         <Base.Trigger className={cx('ui-iconbtn', 'ui-menu-trigger', triggerClassName)} aria-label={label || tr('更多操作')}>
           <IconOf icon={icon} size={20} />
         </Base.Trigger>
@@ -79,7 +82,7 @@ export function Menu({ items, label, icon = 'dots-three', align = 'end', trigger
       {danger.length ? (
         <Dialog
           open={!!asking}
-          onClose={() => setAsking(null)}
+          onOpenChange={(o) => !o && setAsking(null)}
           title={asking ? (asking.confirm?.title ?? tr('{label}？', { label: asking.label })) : ''}
           tone="danger"
           confirmLabel={asking?.confirm?.confirmLabel ?? asking?.label ?? ''}

@@ -102,7 +102,7 @@ export function ListDetail({ items, owners, onSave }: ListDetailProps) {
       </Page>
       <Drawer
         open={!!editing}
-        onClose={close}
+        onOpenChange={(o) => !o && close()}
         dirty={dirty}
         title={!editing ? '' : editing.id ? `編輯 ${editing.name}` : '新增項目'}
         actions={(requestClose) => (
@@ -129,7 +129,7 @@ export function ListDetail({ items, owners, onSave }: ListDetailProps) {
               label="名稱"
               required
               value={draft.name}
-              onChange={(e) => set('name', e.target.value)}
+              onChange={(v) => set('name', v)}
               onBlur={() => setNameLeft(true)}
               error={nameLeft && !draft.name.trim() ? '名稱不能空白，請輸入專案名稱。' : undefined}
             />

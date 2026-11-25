@@ -18,7 +18,8 @@
       var S = React.useState;
       function D() {
         var c = S(''),
-          n = S('');
+          n = S(''),
+          d = S(null);
         return h(
           'div',
           { style: { padding: 20 } },
@@ -37,6 +38,7 @@
               ],
             }),
             h(U.TextField, { label: '電話', placeholder: '0912 345 678' }),
+            h(U.DatePicker, { label: '開始日期', value: d[0], onChange: d[1] }),
             h(U.TextArea, { className: 'is-full', label: '備註', value: n[0], onChange: n[1] }),
           ),
         );

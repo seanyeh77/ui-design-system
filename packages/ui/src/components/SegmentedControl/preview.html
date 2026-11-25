@@ -16,8 +16,8 @@
       var U = window.UI,
         h = React.createElement;
       var ITEMS = [
-        { id: 'preview', label: '預覽', icon: 'eye' },
-        { id: 'source', label: '原始碼', icon: 'file-code' },
+        { value: 'preview', label: '預覽', icon: 'eye' },
+        { value: 'source', label: '原始碼', icon: 'file-code' },
       ];
       function Demo() {
         var a = React.useState('preview'),
@@ -25,7 +25,7 @@
         return h(
           'div',
           { style: { display: 'grid', gap: 16, maxWidth: 560 } },
-          // In a 36 px bar, like Workbench's mainBar: icons only, the words in a tooltip.
+          // In a toolbar: icons only, the words in a tooltip; 40 px like the bar's other controls.
           h(
             'div',
             {
@@ -33,7 +33,7 @@
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,
-                height: 36,
+                height: 56,
                 padding: '0 8px 0 16px',
                 borderRadius: 10,
                 background: 'var(--surface)',
@@ -42,12 +42,12 @@
               },
             },
             h('span', { style: { flex: 1, color: 'var(--ink-muted)' } }, 'docs / README.md'),
-            h(U.SegmentedControl, { label: '顯示方式', iconOnly: true, value: a[0], onChange: a[1], items: ITEMS }),
+            h(U.SegmentedControl, { label: '顯示方式', iconOnly: true, value: a[0], onChange: a[1], options: ITEMS }),
           ),
           h(
             'div',
             null,
-            h(U.SegmentedControl, { label: '顯示方式', value: b[0], onChange: b[1], items: ITEMS }),
+            h(U.SegmentedControl, { label: '顯示方式', value: b[0], onChange: b[1], options: ITEMS }),
           ),
           h('p', { style: { margin: 0, color: 'var(--ink-muted)', fontSize: 13 } }, a[0] === 'preview' ? '目前顯示預覽。' : '目前顯示原始碼。'),
         );

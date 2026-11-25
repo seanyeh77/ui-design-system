@@ -5,11 +5,13 @@ import { cx } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { tr } from '../../i18n';
 import { Dialog } from '../Dialog/Dialog';
+import { useDisabledFocusRescue } from '../../internal/focus';
 
 interface ButtonBase extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
   /** A verb: 儲存, 刪除, 匯出. No 「確定」or 「好」. */
   children: React.ReactNode;
-  /** Shows a spinner and disables the button; pair it with a progressive label such as 儲存中. */
+  /** Shows a spinner and ignores presses while the action runs, keeping focus on the button (aria-disabled, not
+   *  disabled); pair it with a progressive label such as 儲存中. */
   loading?: boolean;
   /** Leading icon: a built-in name such as 'plus', or custom path data. */
   icon?: IconSource;
@@ -48,7 +50,7 @@ export type ButtonProps =
 
 /** Buttons. Labels are verbs; one primary per section; danger actions are always confirmed. */
 export function Button(props: ButtonProps) {
-  const { variant = 'secondary', loading, icon, className, children, disabled, onClick, ...other } = props;
+  const { variant = 'secondary', loading, icon, className, children, disabled, onClick, ref, ...other } = props;
   const { confirm, confirmed, ...native } = other as typeof other & { confirm?: DangerConfirm; confirmed?: boolean };
   const [asking, setAsking] = React.useState(false);
   devWarn(
@@ -56,15 +58,34 @@ export function Button(props: ButtonProps) {
     'Button',
     'a danger button needs confirm={{ title }} (or confirmed when it is the button inside the confirm Dialog).',
   );
+  const own = React.useRef<HTMLButtonElement | null>(null);
+  // Disabled while it has focus (pressed, then disabled): focus goes to the control before it, not to the page.
+  useDisabledFocusRescue(own, disabled);
+  const setRef = React.useCallback(
+    (el: HTMLButtonElement | null) => {
+      own.current = el;
+      if (typeof ref === 'function') ref(el);
+      else if (ref) (ref as React.RefObject<HTMLButtonElement | null>).current = el;
+    },
+    [ref],
+  );
   const ownEvent = React.useRef<{ event: React.MouseEvent<HTMLButtonElement>; button: HTMLButtonElement } | null>(null);
   const button = (
     <button
       type="button"
       {...native}
+      ref={setRef}
       className={cx('ui-btn', 'ui-btn-' + variant, loading && 'is-loading', className)}
-      disabled={disabled || loading}
+      disabled={disabled}
+      // Loading keeps the button focusable: aria-disabled and a press that does nothing, so focus never falls to the page.
+      aria-disabled={loading || native['aria-disabled'] || undefined}
       aria-busy={loading || undefined}
       onClick={(e) => {
+        if (loading) {
+          // Also stops a submit button from sending the form again.
+          e.preventDefault();
+          return;
+        }
         if (confirm) {
           // A submit button must not submit before the person confirms.
           e.preventDefault();
@@ -83,7 +104,7 @@ export function Button(props: ButtonProps) {
       {button}
       <Dialog
         open={asking}
-        onClose={() => setAsking(false)}
+        onOpenChange={(o) => !o && setAsking(false)}
         title={confirm.title}
         tone="danger"
         confirmLabel={confirm.confirmLabel ?? (typeof children === 'string' ? children : tr('刪除'))}

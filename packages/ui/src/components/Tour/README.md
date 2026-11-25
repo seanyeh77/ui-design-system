@@ -10,7 +10,7 @@ const tour = useTour('first-visit');
 <IconButton icon="question" label="導覽" onClick={tour.start} hint={tour.hint('導覽：三個步驟介紹這一頁。')} />
 <Tour
   open={tour.open}
-  onClose={tour.close}
+  onOpenChange={tour.onOpenChange}
   steps={[
     { target: 'search', title: '搜尋', text: '搜尋函式、檔案、元件與環境變數。快捷鍵 Ctrl K。' },
     { target: 'tree', title: '流程樹', text: '名稱旁的標籤是關係的來源，點選問號查看依據。' },
@@ -19,6 +19,7 @@ const tour = useTour('first-visit');
 <section data-tour="tree">…</section>
 ```
 
+- 開關用 `open` 和 `onOpenChange(open, reason)`，`reason` 是 `'done'`（完成）或 `'skip'`（略過或 Esc）；`useTour` 的 `tour.onOpenChange` 直接接上。舊的 `onClose` 還能用一個版本。
 - `useTour(key)` 記住這個瀏覽器看過了沒有：沒看過會自動打開，看完或略過後不再出現。
 - 頁面有「導覽」按鈕時用按鈕上的提示（`hint`），導覽不自己打開；不用「第一次使用」橫幅。
 - 頁面上要有「重看導覽」，呼叫 `tour.start()`。
@@ -44,7 +45,7 @@ const tour = useTour('first-visit');
 ```js
 const tour = UI.useTour('first-visit');
 h(UI.Tour, {
-  open: tour.open, onClose: tour.close,
+  open: tour.open, onOpenChange: tour.onOpenChange,
   steps: [
     { target: 'search', title: '搜尋', text: '搜尋函式、檔案、元件與環境變數。快捷鍵 Ctrl K。' },
     { target: 'tree', title: '流程樹', text: '名稱旁的標籤是關係的來源，點選問號查看依據。' },

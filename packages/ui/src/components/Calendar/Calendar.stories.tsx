@@ -9,7 +9,7 @@ function D() {
   const [day, setDay] = React.useState(new Date(2026, 10, 14));
   return (
     <div style={{ padding: '20px 0' }}>
-      <UI.Calendar focus={day} onPick={setDay} dayState={(d) => ({ selected: same(d, day) })} />
+      <UI.Calendar month={day} onPick={setDay} dayState={(d) => ({ selected: same(d, day) })} />
     </div>
   );
 }

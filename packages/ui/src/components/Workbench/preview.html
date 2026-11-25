@@ -113,9 +113,9 @@
                 iconOnly: true,
                 value: mode[0],
                 onChange: mode[1],
-                items: [
-                  { id: 'preview', label: '預覽', icon: 'eye' },
-                  { id: 'source', label: '原始碼', icon: 'file-code' },
+                options: [
+                  { value: 'preview', label: '預覽', icon: 'eye' },
+                  { value: 'source', label: '原始碼', icon: 'file-code' },
                 ],
               }),
               h(U.IconButton, { variant: 'quiet', icon: 'arrow-square-out', label: '用 VS Code 開啟' }),

@@ -31,9 +31,7 @@ function App() {
       </div>
       <UI.Tour
         open={open}
-        onClose={() => {
-          setOpen(false);
-        }}
+        onOpenChange={setOpen}
         steps={[
           { target: 'search', title: '搜尋', text: '搜尋函式、檔案、元件與環境變數。快捷鍵 Ctrl K。' },
           { target: 'tree', title: '流程樹', text: '名稱旁的標籤是關係的來源，點選問號查看依據。' },
@@ -53,7 +51,7 @@ function Tall() {
       <section data-tour="panel" style={{ ...card, height: '150vh', boxSizing: 'border-box' }}>
         檢查筆記
       </section>
-      <UI.Tour open={open} onClose={() => setOpen(false)} steps={[{ target: 'panel', title: '檢查筆記', text: '錯誤的位置附有修正建議，可直接複製。' }]} />
+      <UI.Tour open={open} onOpenChange={setOpen} steps={[{ target: 'panel', title: '檢查筆記', text: '錯誤的位置附有修正建議，可直接複製。' }]} />
     </div>
   );
 }
@@ -73,7 +71,7 @@ function NearlyFull() {
       </div>
       <UI.Tour
         open={open}
-        onClose={() => setOpen(false)}
+        onOpenChange={setOpen}
         steps={[
           { target: 'search', title: '搜尋', text: '搜尋函式、檔案、元件與環境變數。快捷鍵 Ctrl K。' },
           { target: 'notes', title: '檢查筆記', text: '錯誤的位置附有修正建議，可直接複製。' },
@@ -115,7 +113,7 @@ function InShell() {
         open={open}
         step={step}
         onStepChange={setStep}
-        onClose={() => setOpen(false)}
+        onOpenChange={setOpen}
         steps={[
           { title: '歡迎', text: '這裡整理專案的架構和檢查結果。' },
           { target: 'errors', title: '待處理的錯誤', text: '需要修正的項目會先列在這裡。' },
