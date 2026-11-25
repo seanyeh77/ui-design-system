@@ -1272,3 +1272,32 @@ AI 定的細節（待確認）：
 - 連結維持強調色加底線；滑過 `surface-sub` 底色（`radius-sm` 圓角），焦點是一般的 2 px 外框。
 - 項目符號或編號留在列外，和其他項目對齊；文字起點和其他項目相同，底色往左多 6 px，不蓋到符號或編號。相鄰的兩個整列連結之間 2 px。
 - C1 的範圍：`ui check` 的觸控目標檢查跳過「只因為 `tabindex` 才能聚焦、本身會捲動（`overflow` 是 `auto` 或 `scroll`）、而且不是控制項（沒有連結、按鈕、輸入框的標籤，也沒有 button、tab、slider、separator 等 role）」的元素。目前符合的有 CodeView 與 Markdown 的程式碼區塊（`pre.ui-cv-body`）和 Markdown 的表格框（`.ui-md-table-wrap`），頁面自己可以 Tab 到的捲動區也一樣。它們能聚焦是為了用鍵盤捲動，點一下不會做任何事，手指本來就能直接捲動。
+
+## 2026-11-25 全面審查修正：表單、浮層與回饋
+
+使用者把細節交給 agent：「都照你的意見，因為我外來新專案每個前端都會使用 design system，不要讓前端只支持特定場景為原則去判斷，另外希望是 agent 能夠使用者個 design 使用越少的 token 或是更專注於設計網頁與 UX 這樣最好」，以及「全部都交給 subagent，最後驗證也是」。下面是審查後修正時 AI 定的部分。
+
+### AI 定的細節（待確認）
+
+- 改了已確認的規則：Toast 原本是「右下角、3 s、附復原」。改成一般訊息仍是 3 s；有動作（「復原」）的訊息停留 10 s，滑鼠或焦點在訊息上時暫停計時（WCAG 2.2.1 時間可調整），並可按 Ctrl Z（Mac ⌘Z）復原，按鈕上寫出這個按鍵；焦點在輸入框時 Ctrl Z 留給輸入框。頁面不再自己管 state 和計時器：`toast()` 加一個 `<Toaster />`（Base UI Toast），多則由下往上疊，每則有 ×；手機在下方中間、分頁列上方。`tone` 預設 `success`（打勾），`danger` 立即念出（`role="alert"`）。
+- 改了已確認的規則：SegmentedControl 原本「高 28 px」「圖示選中時變實心、強調文字色」。改成 40 px（和工具列上的控制項同高，Tabs 也從 46 px 改成 40 px：分頁 34 px 加軌道上下 3 px），文字 15 px；只有圖示時選中的圖示用 `ink`，和文字版一樣靠白色小塊加 `line-strong` 框表示選中。Workbench 的 `mainBar`（36 px）裡維持 28 px，和那一列的其他按鈕同高。觸控裝置上整組 48 px。DataTable 摘要分段（32 px）沒有改，留給 DataTable 那邊對齊。
+- Button 的 `loading` 不設 `disabled`，改用 `aria-disabled` 加 `aria-busy`，按了不執行：焦點留在按鈕上。按鈕在有焦點時被停用，焦點移到同一組（toolbar、group、form、section、對話框）裡前一個可用的控制項，沒有時後一個，再沒有時到主要內容（`focusMain`）。先找「前一個」，因為那通常是使用者剛走過來的地方（例如 TimeControl 的「回到現在」停用後到「回放」）。
+- 停用的 primary 按鈕：`accent-soft` 底加 `ink-muted` 字（4.5:1），和停用的 secondary／quiet（`surface-sub` 灰底）分得出來。
+- Dialog 的 `tone` 只有 `neutral` 和 `danger`（共用語意色的子集，另外三種對「要使用者決定的框」沒有意義）。`danger` 用 AlertDialog：焦點先到「取消」，點背景不關閉。一般 Dialog 打開時焦點在第一個按鈕（「取消」），不在 ×。
+- Drawer 的「放棄未儲存的變更？」改成取代抽屜底部的按鈕列（問題、說明、「繼續編輯」「放棄」），不在抽屜上再疊一個對話框；焦點先到「繼續編輯」，按了回到問題出現前的位置。Drawer 的內容不當成 `aria-describedby`（表單整份當描述，一打開就把所有欄位念一遍），改成新增 `description` 一句說明，用 Base UI Description 連上。
+- `onOpenChange(open, reason)` 的 `reason` 只用一組自己的名稱：`trigger`、`escape`、`outside`、`close`、`cancel`、`confirm`、`select`、`hotkey`、`done`、`skip`、`other`，Base UI 的原因對應過來。
+- 共用 `FieldProps`：`label` 必填（`hideLabel` 只是看不到）、`hint`、`error`、`required`、`disabled`、`name`。`Select` 的 `aria-label` 改成 `label` 加 `hideLabel`。Switch 維持 `label` 當 `aria-label`、文字放旁邊（設定列的排法），沒有套 `hideLabel`。
+- 表單的控制項文字只有一個大小：選項文字（Checkbox、RadioGroup、Switch 旁 `<label>` 裡的字、選單選項）15 px（`text-control`），欄位標籤維持 14 px／600。
+- 浮層清單的每一列（Menu、Select、MultiSelect、Select 的搜尋清單、DataTable 的篩選與排序面板）40 px 高、`text-control`，寫在 `styles/floating.css` 一條共用規則。CommandPalette 的結果有第二行說明，維持最少 48 px。
+- FormGrid 改用 container query：FormGrid 自己寬 640 px 以上雙欄。640 px 是兩欄各 300 px 左右（扣掉 24 px 間距）還放得下 DatePicker、Select 的寬度；400 px 的 Drawer 一定單欄。FormGrid 裡的 DatePicker、DateRangePicker 填滿欄寬，單獨使用時仍是 240／280 px。
+- DateRangePicker 的日曆圖示移到右邊（和 DatePicker、Select 同側）；按鈕不再用另外寫的 `aria-label`（「到」），改由標籤加畫面上的文字命名（WCAG 2.5.3）。有值時選單的快捷清單最後多一個「清除」。
+- MultiSelect 的「+n」：畫面上仍是「+3」，螢幕閱讀器念「另外 3 個：名稱、名稱」（隱藏文字），沒有改成按鈕。
+- TextArea 打到上限時用頁面的 live region 念一次「已達 200 字上限」，字數本身連到 `aria-describedby`。
+- AccentPicker 的色碼：打字途中不檢查，離開欄位或按 Enter 才檢查；對的色碼仍然立即套用。錯誤句改成「色碼格式不正確，請輸入 # 加 6 碼，例如 #2457d6」。AccentPicker 與 ThemePicker 上方加看得見的標籤「強調色」「主題」。
+- Checkbox、Switch、RadioGroup 不受控時用 `defaultChecked`／`defaultValue`；Checkbox、RadioGroup 的型別要求 `label` 或 `aria-label` 其一。
+- LoginCard：送出有錯時焦點移到第一個有錯的欄位，錯誤只放在 `aria-describedby`，不用 `role="alert"`（同時兩個 alert 會互相打斷）；從登入檢查回來的 `error` 也一樣移焦點。頁面底色改用 `bg`，卡片加 1 px `line` 框（淺色時 `bg` 和白卡差很少）。「顯示密碼」名稱固定，只改 `aria-pressed`。新增 `logo`，32 px 高，放在品牌名稱左邊。
+- Term `inline`：預設 Enter 或點擊才打開（`openOnFocus` 預設改成 false），一路 Tab 過去不會念每張小卡。
+- ErrorPage 的 96 px 錯誤碼改用 Inter 的 tabular-nums：它是展示用的數字，不是程式碼，Geist Mono 的斜線零在這個大小很突兀。範例的狀態切換改用 SegmentedControl。
+- Checkbox、Switch 在強制色彩模式用系統色：勾選與「部分」的橫線是 Highlight／HighlightText，開關的軌道與圓鈕是 CanvasText／Highlight。
+- `useFormErrors(values, validate)` 放在 `components/useFormErrors/`（有自己的 README，`ui docs useFormErrors` 讀得到），從套件根目錄匯出。送出時依欄位的 `name` 找第一個有錯的欄位；是選擇器的隱藏 input 時移到同一個欄位裡看得見的控制項。
+- 設定頁範本（settings）改用 `toast('已儲存', { id: 'saved' })`：連續修改只留一則、重新計時。
