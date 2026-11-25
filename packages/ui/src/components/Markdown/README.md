@@ -49,13 +49,7 @@ h(
 - 沒有給 `linkHref` 時連結照原網址；外部網址在新分頁開啟。
 - 自訂 scheme：`schemes={['fn']}` 之後，`[_sync_as](fn:harness/controller.py:VirtualRouter._sync_as)` 原樣交給 `linkHref` 與 `onLink`；`linkHref` 沒有回傳網址、也沒有 `onLink` 時只顯示文字。
 
-### 名稱與位置的外觀
-
-原文不用改，Markdown 自動判斷：
-
-- 連結的文字只有一段行內程式碼（``[`VirtualRouter._sync_as`](fn:…)``）時是「名稱」：強調文字色的等寬字，沒有底色，滑過或焦點時才有底線（`InlineCode look="name"`）。
-- 行內程式碼被 `refHref` 或 `onRef` 認成路徑、而且有目標時是「位置」：灰色、13 px，滑過或焦點時變強調文字色加底線（`InlineCode look="location"`）。
-- 其他連結（`[說明](fn:docs)`、一般網址）照舊；沒有目標的行內程式碼維持灰底。外部網址在新分頁開啟的連結（沒有 `onLink`）也照舊。
+連結文字只有一段行內程式碼時顯示成「名稱」，被 `refHref`／`onRef` 認成路徑的行內程式碼顯示成「位置」，原文不用改。
 
 ## 名詞說明（terms）
 
@@ -77,7 +71,7 @@ h(UI.Markdown, {
 
 ## AI 標記
 
-AI 寫的段落、清單項目或表格格子寫 `[AI](ai:)`（開頭或結尾都可以），在那一段的最後畫成灰色小字「AI 撰寫」（`UI.AiMark`）：13 px、`ink-muted`，和前面的文字隔 8 px。`[推測](ai:)` 用同樣的樣子顯示「推測」。
+AI 寫的段落、清單項目或表格格子寫 `[AI](ai:)`（開頭或結尾都可以），在那一段的最後畫成灰色小字「AI 撰寫」（`UI.AiMark`）。`[推測](ai:)` 用同樣的樣子顯示「推測」。
 
 ```md
 這個函式在每次路由表變動時重新建立連線，所以第 540 行的呼叫次數會隨鄰居數增加。[AI](ai:)
@@ -87,6 +81,7 @@ AI 寫的段落、清單項目或表格格子寫 `[AI](ai:)`（開頭或結尾�
 ```
 
 - 不是連結，Tab 不會停在上面；螢幕閱讀器在句子後面念「（AI 撰寫）」。
+
 ## inline
 
 只渲染行內語法、不產生段落，給一行摘要用，例如 README 的第一句：
@@ -112,7 +107,6 @@ CodeView 不內建預覽：由使用的地方放一個 `SegmentedControl`（「�
 | Section 裡（Section 標題是 h3） | `#`            | 4          | `#` 是 h4   |
 | Section 裡，原文從 `###` 開始寫 | `###`          | 2          | `###` 是 h4 |
 
-- 大小跟著層級：h4 20 px，h5、h6 16 px 粗體。在 Section 裡，h4 改成 16 px 粗體，不比 Section 的 20 px 標題大。
 
 ## 範例：用 Markdown 顯示一份結構化報告
 
@@ -154,33 +148,6 @@ h(
 
 畫面就是這份文字；「複製成 Markdown」直接複製 `report`，貼到 GitHub 或 Notion 時表格、收合區塊、提示框都還在。
 
-## 範例：Section 裡放 Markdown
-
-```js
-h(
-  UI.SectionGroup,
-  null,
-  h(
-    UI.Section,
-    {
-      id: 'external',
-      title: '外部指令',
-      summary: '29 個指令、4 個 namespace、3 個沒有逾時',
-      defaultOpen: true,
-      actions: h(UI.IconButton, {
-        icon: 'copy',
-        label: '複製這一段',
-        onClick: function () {
-          navigator.clipboard.writeText(report);
-        },
-      }),
-    },
-    h(UI.Markdown, { topLevel: 2, schemes: ['fn'], linkHref: linkHref, refHref: refHref }, report),
-  ),
-);
-```
-
-- `report` 從 `###` 開始寫，所以 `topLevel: 2`，`###` 成為 h4，在 Section 的 h3 標題底下。
-- 「複製這一段」放在 Section 的 `actions`，點它不會開合段落。
+放在 Section 裡時，`report` 從 `###` 開始寫就給 `topLevel: 2`（`###` 成為 h4，在 Section 的 h3 標題底下）；「複製這一段」放在 Section 的 `actions`，點它不會開合段落。
 
 外觀、鍵盤與無障礙的完整規格在 repo 的 `docs/maintaining/Markdown.md`。

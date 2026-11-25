@@ -11,8 +11,8 @@ pnpm workspace。`pnpm install` 之後，`pnpm check` 依序 build、型別檢�
 | `packages/tokens/tokens.json` | 所有 token（淺色、深色）和 preset，`usage` 一律英文。`pnpm --filter @seanyeh77/tokens build` 產生 CSS、Tailwind 主題和型別。 |
 | `packages/ui/src/components/<Name>/` | `<Name>.tsx`、`README.md`、`<Name>.stories.tsx`（Storybook）、`preview.html`（純 HTML 範例，Design System artifact 的卡片） |
 | `packages/ui/src/components/<Name>/<Name>.css`、`packages/ui/src/styles/*.css` | 元件樣式，只用 token 變數：每個元件一個檔，加上共用檔（`base`、`field`、`chart`、`motion`、`table`、`utilities`、`touch`、`floating`、`focus`）。`packages/ui/src/styles.css` 依 cascade 順序列出每個檔，build 把它們合成 `dist/styles.css`（在 `@layer ui.components` 裡）並寫出 `dist/css/` 的分檔。新的 CSS 檔要加進這份清單（否則 `pnpm test` 失敗）。 |
-| `packages/blocks/src/` | 頁面範本；根目錄的 `registry.json` 列出它們 |
-| `packages/eslint-plugin-ui`、`packages/cli` | lint 規則、`ui check`、`ui shots`、`ui docs`、`ui list` |
+| `packages/blocks/src/` | 頁面範本；根目錄的 `registry.json` 列出它們。文件網站的 shadcn registry（`/r/<name>.json`）和 `ui add` 用的 `packages/cli/dist/templates.json` 都在 build 時從這兩處產生 |
+| `packages/eslint-plugin-ui`、`packages/cli` | lint 規則、`ui check`、`ui shots`、`ui docs`、`ui list`、`ui add` |
 | `tests/visual/baseline/` | 每個預覽的畫面基準圖：`<Name>-<390 或 1280>-<light 或 dark>.png` |
 | `apps/docs` | Storybook；`pnpm site` 把整個文件網站建到 `site/`（含 `llms.txt` 和 `/md/`） |
 | `docs/` | `guidelines.md`（核心規則）、主題檔、這份、`decisions.md`（決策紀錄）；`docs/maintaining/` 放元件的實作規格 |
@@ -35,11 +35,15 @@ pnpm workspace。`pnpm install` 之後，`pnpm check` 依序 build、型別檢�
 ## 畫面比對
 
 - CI 對每個 `site/preview/*.html` 在 390 px 與 1280 px、淺色與深色截圖（`ui shots … --compare tests/visual/baseline --diff visual-diff`），和基準圖不同就失敗：顏色距離超過 0.1 的像素算不同，超過 0.02 % 的像素不同或尺寸改變就算有變化。job summary 列出變化的圖，`visual-diff` artifact 有 `<name>-diff.png`（紅色是差異）、`-expected.png`、`-actual.png`。
+- 基準圖是用 Playwright 的 Chromium 畫的：`packages/ui` 和 `packages/cli` 把 `playwright` 釘在同一個確切版本（`shots.test.ts` 檢查），CI 依這個版本快取瀏覽器。升級 Playwright 時兩邊一起改，並重新產生基準圖。
+- 預覽的 `<head>` 會換成文件網站的（自架字型、tokens、`bundle.js`）：只有 `<style>` 和 `<body>` 的屬性會留下，`<script>` 要放在 `<body>` 裡（放在 `<head>` 時 `pnpm site` 失敗）。
 - 改變是預期的，或新的預覽還沒有基準圖時：在分支上跑 **Update visual baselines** workflow（Actions → Update visual baselines → Run workflow）。它在和 CI 相同的環境截圖，以「更新畫面基準圖」commit，再對那個 commit 跑 CI。跑之前先看 diff：它接受所有變化。不要 commit 自己電腦產生的基準圖：字型和 Chromium 版本畫出的字略有不同，CI 會失敗。本機在 `pnpm build && pnpm site` 之後用 `node packages/cli/dist/cli.js shots site/preview/<Name>.html --compare tests/visual/baseline --diff visual-diff` 看變化（只到本機和 CI 畫得一樣的程度）。
 
 ## 發布
 
-- 改到已發布的套件就加 changeset（`pnpm changeset`）；不需要發布的改動加空的（`pnpm changeset --empty`）。合併「Version packages」PR 時經由 trusted publishing 發布到 npm（每個套件在 npmjs.com 把這個 repo 的 `publish.yml` 設為 Trusted Publisher，不用 token）。push 到 `main` 會重建文件網站。
+- 改到已發布的套件就加 changeset（`pnpm changeset`）；不需要發布的改動加空的（`pnpm changeset --empty`）。
+- Release（`publish.yml`）和 Docs site（`pages.yml`）都在 `main` 的 push 跑完 CI 且成功後才開始（`workflow_run`），用的是 CI 測過的那個 commit；CI 失敗時兩者都不跑。Docs site 也可以在 Actions 手動執行，重建目前的 `main`。
+- Release 有 changeset 時開或更新「Version packages」PR。這個 PR 由 workflow token 推送，GitHub 不會自動對它跑 CI，所以 Release 用 `workflow_dispatch` 在 `changeset-release/main` 上啟動 CI，結果掛在 PR 的 commit 上。合併它之後，`main` 的 CI 成功時 Release 經由 trusted publishing 發布到 npm（每個套件在 npmjs.com 把這個 repo 的 `publish.yml` 設為 Trusted Publisher，不用 token）。
 - commit 不加 Claude 的 co-author 或 Claude-Session trailer。
 
 ## 設計決策

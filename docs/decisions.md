@@ -1442,6 +1442,28 @@ AI 定的細節（待確認）：
 - tokens.json：`dur-toggle`、`dur-nav`、`space-5` 的 `usage` 照實際用途改寫（分頁和開關的指示塊用 `dur-nav` 的水滴，不是 300 ms）。
 - 觸控裝置上 Workbench 的 `mainBar`（36 px）裡的 SegmentedControl 仍是 28 px 的外觀，和那一列的其他按鈕一樣只把每個選項的觸控範圍放大到 48 px；整組改成 48 px 高會超出 36 px 的列。
 
+## 2026-11-25 驗證後修正：工具與文件
+
+0.45.0 發布後獨立驗證找到的 `ui check`、`ui shots`、ESLint 規則、文件網站與文件問題。使用者把設計選擇交給 agent：「都照你的意見，因為我外來新專案每個前端都會使用 design system，不要讓前端只支持特定場景為原則去判斷，另外希望是 agent 能夠使用者個 design 使用越少的 token 或是更專注於設計網頁與 UX 這樣最好」、「全部都交給 subagent，最後驗證也是」。
+
+### AI 定的細節（待確認）
+
+- `ui check` 每次量測前（頁面本身和每個打開的狀態）等頁面的動畫與轉場結束，最多 1.5 s；無限循環的動畫（轉圈、Skeleton）和暫停的動畫不等。
+- `ui check` 每個寬度與主題那一行的結果（ok 或「N problems」）算進頁面和所有打開的狀態；每個狀態的問題列在「after opening …」底下，一行一個。
+- 同一列欄位不同高：一個欄位（`.ui-field`）的控制項是它最外層的輸入框（欄位框、選單按鈕、輸入框）；同一列是最近一個並排子元素的祖先（grid，或橫向的 flex）。TextArea 本來就比較高，不算。差超過 1 px 算失敗，和工具列相同。
+- 置中的長文字：只在 390 px 檢查；兩行以上、寬至少 160 px、只含行內內容的區塊才算段落。按鈕、表格格子、圖表標籤、SVG 不算；EmptyState 和 ErrorPage 整個不算（它們的標題和短說明照設計置中，說明有寬度上限）。
+- AppShell 頁面的文件捲動：頁面有 `.ui-shell` 而 `document.scrollingElement.scrollHeight` 比視窗高超過 1 px 就失敗，四種寬度與主題都檢查。
+- forced-colors（強制色彩模式）下選中與未選中是否還分得出來：沒有做。比對 computed style 要猜每個元件用哪個屬性表示選中（底色、邊框、圖示、外框），誤報多，會讓 CI 在正確的預覽上失敗。
+- `ui check --shots` 也存每個打開的狀態：`<name>-<寬度>-light-<狀態>.png`，狀態名稱用和檔名相同的清理規則（`--open #open` 是 `open-open`，分頁「已停用」是 `tab-已停用`）。
+- `ui shots` 的整頁高度：等網路閒置（最多 5 s，輪詢的頁面不會閒置）和字型載入，量捲動區的 scrollHeight，連續兩次量到一樣才截圖。
+- 截圖檔名：路徑之後接查詢字串（`key-value`，多個用 `-` 接）再接 hash，經過同樣的清理（`iframe.html?id=button--primary` 是 `iframe-id-button-primary`）。沒有查詢字串的網址檔名不變，現有基準圖不用改名。
+- ESLint `verb-labels`：「送出」和「Submit」是動詞，不再擋；仍擋的是只回答對話框、不說明動作的字：確定、確認、好、好的、OK、是、否、Yes、No。「確認刪除」這種動詞加受詞照樣可以。訊息改成直接列出可用的字（儲存、刪除、送出、確認刪除）。
+- `ui add <dashboard|list-detail|settings|login> [dir]`：範本內容在 CLI 的 build 時從 `registry.json` 和 `packages/blocks` 產生（`dist/templates.json`），不連網路。預設資料夾：專案有 `src/` 時 `src/components/blocks/<name>`，否則 `components/blocks/<name>`（和 shadcn registry 的 target 相同）；檔案已存在時保留，`--force` 才覆寫；寫完印出要安裝的套件和要 render 的元件。
+- 文件網站的預覽：預覽 `<head>` 裡的 `<style>` 和 `<body>` 的屬性都保留（Cover 的版面、AppShell 和 Workbench 的 `padding: 0` 原本都被丟掉）；`<head>` 裡有 `<script>` 時 `pnpm site` 直接失敗。Cover 在窄於 960 px 時只顯示文字、標題 48 px，不在手機上橫向溢出。
+- 字型：`@seanyeh77/tokens` 另外產生 `fonts-latin.css`（Inter、Geist Mono，約 18 KB）和 `fonts-tc.css`（Noto Sans TC，約 490 KB），`@seanyeh77/ui` 也匯出這兩個；`fonts.css` 不變。AGENTS.md 建議在 bundler 專案裡只把 `fonts-latin.css` 放進主 CSS，用 `import('…/fonts-tc.css')` 讓中文字型的 CSS 變成另一個非同步載入的檔，並用 `assetsInlineLimit` 讓 woff2 維持檔案。Vite 8 實測：只匯入 `fonts.css` 時主 CSS 532 KB（其中 28 個字型檔被 base64 內嵌）；分開後主 CSS 18.75 KB，`fonts-tc` 412.5 KB 另外載入，沒有內嵌。
+- 重複的規則：按鈕層級留在 Button 的用法，Toast 的時間與復原留在 Toast 的用法；guidelines.md 那兩處改成指向 `ui docs Button`、`ui docs Toast` 的一句。
+- CodeView、Markdown 的 README 縮到 8 KB 以內：只有外觀數值（間距、顏色、毫秒）和互動細節的部分搬到 `docs/maintaining/<Name>.md`，props 和用法留在 README。
+
 ## 待確認清單（2026-11-25 整理）
 
 整份檔案裡標成「AI 定的細節（待確認）」、還沒確認的項目，一項一行；行號指向原文，原文沒有改。實驗室的代號後面括號寫出那個選項是什麼。

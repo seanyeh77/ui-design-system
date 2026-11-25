@@ -49,4 +49,4 @@
 - 第一次使用的導覽：`Tour` 加 `useTour(key)` 記住看過了沒有。可以略過，看完或略過後不再自動出現；頁面上要有「重看導覽」。有「導覽」按鈕的頁面不自動打開，改在按鈕上提示（`IconButton` 的 `hint`）；不用「第一次使用」橫幅。
 - 讀者可能看不懂的名詞和關係標籤：`Term`；句子裡用 `variant="inline"`。
 - 發現寫錯的地方：`Suggestion`，舊的和新的上下兩行，可以複製修正。
-- 整頁元件：錯誤頁 `ErrorPage`、登入頁 `LoginCard`、設定頁 `SettingsLayout`（改完自動儲存，危險操作放最下方的 `DangerZone`）。
+- 整頁元件：錯誤頁 `ErrorPage`、登入頁 `LoginCard`、設定頁 `SettingsLayout`（改完自動儲存，危險操作放最下方的 `DangerZone`；選中的分類寫進網址 hash，頁面自己用 hash 做路由或同一頁有兩個 SettingsLayout 時給 `urlSync={false}`）。
