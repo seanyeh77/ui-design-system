@@ -119,7 +119,7 @@ test('reading points: role application and a data table; the last x label stays 
   );
   expect(screen.getByRole('application', { name: '每日請求' })).toBeTruthy();
   const table = screen.getByRole('table', { name: '每日請求' });
-  expect(table.querySelectorAll('tbody tr').length).toBe(5);
+  expect(table.querySelectorAll('[role="row"]').length).toBe(6);
   const box = (container.firstElementChild as HTMLElement).getBoundingClientRect();
   const spans = [...container.querySelectorAll('.ui-chart-xlabels > span')];
   await expect.poll(() => Math.round(spans[spans.length - 1].getBoundingClientRect().right)).toBeLessThanOrEqual(Math.round(box.right));

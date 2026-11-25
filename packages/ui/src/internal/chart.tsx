@@ -190,28 +190,26 @@ export function chartKey(e: React.KeyboardEvent, at: number, n: number): number 
  *  reads like any other. */
 export function ChartTable({ caption, head, rows }: { caption: string; head: string[]; rows: React.ReactNode[][] }) {
   if (!rows.length) return null;
+  // ARIA table roles on divs: no native <table> (the system replaces it), and the hiding box keeps its 1 px width.
   return (
-    <table className="ui-visually-hidden">
-      <caption>{caption}</caption>
-      <thead>
-        <tr>
-          {head.map((h, i) => (
-            <th key={i} scope="col">
-              {h}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((r, i) => (
-          <tr key={i}>
-            <th scope="row">{r[0]}</th>
-            {r.slice(1).map((c, j) => (
-              <td key={j}>{c}</td>
-            ))}
-          </tr>
+    <div className="ui-visually-hidden" role="table" aria-label={caption}>
+      <div role="row">
+        {head.map((h, i) => (
+          <span key={i} role="columnheader">
+            {h}
+          </span>
         ))}
-      </tbody>
-    </table>
+      </div>
+      {rows.map((r, i) => (
+        <div key={i} role="row">
+          <span role="rowheader">{r[0]}</span>
+          {r.slice(1).map((c, j) => (
+            <span key={j} role="cell">
+              {c}
+            </span>
+          ))}
+        </div>
+      ))}
+    </div>
   );
 }

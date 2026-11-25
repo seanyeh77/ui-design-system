@@ -1293,7 +1293,7 @@ AI 定的細節（待確認）：
 - `format: 'compact'`（BarChart、LineChart）用 `format.compact`：1 萬以上寫「50 萬」「1.5 億」，軸和數值卡片都用。
 - BarChart `height`：數字（px，預設 200）或 `'fill'`；`fill` 時放在 Card 裡會讓 Card 變成直向 flex，長條區最矮 160 px。
 - LineChart x 軸標籤：每個標籤在點的正下方置中，超出圖的左右邊時往內移（用 CSS `clamp()`），不另外改成靠左或靠右。
-- 圖表鍵盤：看數值時圖是 `role="application"`（`aria-roledescription`「長條圖」「折線圖」），播放頭模式是 `role="slider"`；兩種都在圖後面放一個只給螢幕閱讀器的資料表，沒有做「以表格檢視」按鈕。播放頭移動時不再另外用 live region 念，交給 `aria-valuetext`。
+- 圖表鍵盤：看數值時圖是 `role="application"`（`aria-roledescription`「長條圖」「折線圖」），播放頭模式是 `role="slider"`；兩種都在圖後面放一個只給螢幕閱讀器的資料表（ARIA 的 table 角色，不用原生 `<table>`），沒有做「以表格檢視」按鈕。播放頭移動時不再另外用 live region 念，交給 `aria-valuetext`。
 - 變淡（Graph `is-dim`、LayerGraph）：線、箭頭、方框的底色與色條、大小長條淡到 35 %，文字改成 `ink-muted`；LayerGraph 變淡的編號圓點改成 `ink-muted` 底。
 - LayerGraph `labels` 的鍵名：`size`、`count`、`external`、`shared`、`sharedMeta`、`use`、`inferred`、`inferredText`、`declared`、`declaredLegend`、`declaredText`、`listNodes`、`listEdges`；`value`、`onChange` 管方框，線的選取維持 `selectedEdge`、`onSelectEdge`。`storageKey` 存高度（`ui-lg-height:`）和「線上文字」開關（`ui-lg-labels:`），也當捲動位置的名稱（只存在記憶體）。
 - KpiCard：「萬」「億」和單位一樣半大、`ink-muted`、前面 4 px；變化的小數位數只在給了 `decimals` 時跟著它，沒給時維持百分比 1 位、百分點 2 位；螢幕閱讀器在變化後面念「改善」或「變差」。ConsoleLayout 頂列的小卡平分寬度、每張至少和內容一樣寬。
