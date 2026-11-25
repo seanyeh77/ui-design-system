@@ -33,6 +33,15 @@
 .ui-select-trigger[data-popup-open] .ui-select-chev {
   transform: rotate(180deg);
 }
+/* The value or placeholder fills the row, so the error icon and the caret sit together at the right end. */
+.ui-select-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
 .is-placeholder {
   color: var(--ink-muted);
 }
