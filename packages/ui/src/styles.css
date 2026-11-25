@@ -74,6 +74,7 @@
 @import './components/Term/Term.css' layer(ui.components);
 @import './components/CodeView/CodeView.css' layer(ui.components);
 @import './components/Graph/Graph.css' layer(ui.components);
+@import './components/SegmentedControl/SegmentedControl.css' layer(ui.components);
 @import './components/LayerGraph/LayerGraph.css' layer(ui.components);
 @import './components/AppShell/AppShell.css' layer(ui.components);
 @import './components/Grid/Grid.css' layer(ui.components);
@@ -81,7 +82,6 @@
 @import './components/Section/Section.css' layer(ui.components);
 @import './components/Markdown/Markdown.css' layer(ui.components);
 @import './components/Workbench/Workbench.css' layer(ui.components);
-@import './components/SegmentedControl/SegmentedControl.css' layer(ui.components);
 @import './components/StatusBand/StatusBand.css' layer(ui.components);
 @import './components/Meter/Meter.css' layer(ui.components);
 @import './components/ZoneMap/ZoneMap.css' layer(ui.components);

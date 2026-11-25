@@ -11,7 +11,7 @@ export const Default = {
       <UI.TextField label="帳號" defaultValue="demo-user" disabled />
       <UI.TextField label="月預算" prefix="NT$" inputMode="numeric" defaultValue="12,000" />
       <UI.TextField label="儲存空間" unit="GB" inputMode="numeric" defaultValue="120" />
-      <UI.TextField label="網址" prefix="https://" suffix=".example.com" defaultValue="docs" />
+      <UI.TextField label="子網域" suffix=".example.com" defaultValue="docs" />
     </div>
   ),
 };

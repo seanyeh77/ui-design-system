@@ -208,7 +208,9 @@ label:has(> .ui-switch) {
   height: var(--control-height);
   box-sizing: border-box;
   padding: 0 var(--space-3);
-  border: 1px solid var(--line-strong);
+  /* The frame is an inset shadow, not a border, so the input inside is the full 40 px (48 px on phones) tall: the
+     whole box is its touch target. */
+  box-shadow: inset 0 0 0 1px var(--line-strong);
   border-radius: var(--radius-md);
   background: var(--surface-input);
   color: var(--ink);
@@ -226,10 +228,10 @@ label:has(> .ui-switch) {
   outline: none;
 }
 .has-error .ui-field-box.has-affix {
-  border: 1.5px solid var(--danger);
+  box-shadow: inset 0 0 0 1.5px var(--danger);
 }
 .is-disabled .ui-field-box.has-affix {
-  border-color: transparent;
+  box-shadow: none;
   background: var(--surface-sub);
   color: var(--ink-muted);
 }
@@ -261,4 +263,10 @@ label:has(> .ui-switch) {
   visibility: hidden;
   min-width: 0;
   overflow: hidden;
+}
+/* Forced colors drop shadows: the frame becomes a border. */
+@media (forced-colors: active) {
+  .ui-field-box.has-affix {
+    border: 1px solid CanvasText;
+  }
 }

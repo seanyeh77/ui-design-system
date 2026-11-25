@@ -1138,7 +1138,8 @@ test('loading: columns as wide as when loaded, headings whole, a mono ID column 
   const { container, rerender } = render(table(true));
   await new Promise((r) => setTimeout(r, 100));
   const before = widths(container);
-  for (const h of container.querySelectorAll<HTMLElement>('.ui-dt-head [data-col] .ui-dt-sort > span')) expect(h.scrollWidth).toBeLessThanOrEqual(h.clientWidth);
+  for (const h of container.querySelectorAll<HTMLElement>('.ui-dt-head [data-col] .ui-dt-sort > span'))
+    expect(h.scrollWidth).toBeLessThanOrEqual(h.clientWidth);
   expect(container.querySelector('.ui-dt-range')).toBeNull();
   // The name column takes the room left, not the ID.
   expect(before.name).toBeGreaterThan(before.id * 2);
@@ -1162,7 +1163,7 @@ test('phone cards: a field name sits on the value baseline; code in a row is the
       ]}
     />,
   );
-  const cell = container.querySelector<HTMLElement>('.ui-dt-body [data-col="owner"]')!;
+  const cell = container.querySelector('.ui-dt-body [data-col="owner"]') as HTMLElement;
   // A baseline probe: an empty inline-block sits on the baseline of the text around it.
   const probe = (el: HTMLElement, font: string) => {
     const s = document.createElement('span');
@@ -1179,8 +1180,8 @@ test('phone cards: a field name sits on the value baseline; code in a row is the
   cell.append(label);
   expect(Math.abs(probe(label, `${before.fontSize} sans-serif`) - probe(cell, 'inherit'))).toBeLessThanOrEqual(2);
   label.remove();
-  const row = getComputedStyle(container.querySelector('.ui-dt-body [data-col="file"]')!).fontSize;
-  expect(getComputedStyle(container.querySelector('.ui-dt-body .ui-code')!).fontSize).toBe(row);
+  const row = getComputedStyle(container.querySelector('.ui-dt-body [data-col="file"]') as HTMLElement).fontSize;
+  expect(getComputedStyle(container.querySelector('.ui-dt-body .ui-code') as HTMLElement).fontSize).toBe(row);
   unmount();
   await page.viewport(1280, 900);
 });

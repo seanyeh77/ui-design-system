@@ -51,7 +51,7 @@ function Demo() {
       style={{ maxWidth: 672, padding: 16, borderRadius: 'var(--radius-lg)', background: 'var(--surface)', boxShadow: 'var(--shadow-card)' }}
     >
       {/* Only the drawing scrolls: the legend below stays in view. */}
-      <div ref={box} style={{ overflowX: 'auto' }}>
+      <div ref={box} tabIndex={0} role="region" aria-label="架構圖" style={{ overflowX: 'auto' }}>
         <svg viewBox="0 0 640 300" width={640} height={300} role="img" aria-label="架構圖">
           <UI.GraphDefs />
           {EDGES.map((e, i) => {

@@ -68,7 +68,7 @@
           // Only the drawing scrolls: the legend below stays in view.
           h(
             'div',
-            { ref: box, style: { overflowX: 'auto' } },
+            { ref: box, tabIndex: 0, role: 'region', 'aria-label': '架構圖', style: { overflowX: 'auto' } },
           h(
             'svg',
             { viewBox: '0 0 640 300', width: 640, height: 300, role: 'img', 'aria-label': '架構圖' },

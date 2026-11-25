@@ -33,12 +33,19 @@ test('prefix, suffix and unit: muted text inside the one frame, read with the de
     </>,
   );
   const budget = screen.getByRole('textbox', { name: '月預算' });
-  expect(budget.getAttribute('aria-describedby')?.split(' ').map((id) => document.getElementById(id)?.textContent)).toEqual(['NT$', '元']);
+  expect(
+    budget
+      .getAttribute('aria-describedby')
+      ?.split(' ')
+      .map((id) => document.getElementById(id)?.textContent),
+  ).toEqual(['NT$', '元']);
   const box = budget.closest('.ui-field-box') as HTMLElement;
   const pre = box.querySelector('.ui-field-affix') as HTMLElement;
   expect(pre.getBoundingClientRect().right).toBeLessThanOrEqual(budget.getBoundingClientRect().left);
-  expect(getComputedStyle(box).borderTopStyle).toBe('solid');
+  expect(getComputedStyle(box).boxShadow).toContain('inset');
   expect(getComputedStyle(budget).borderTopStyle).toBe('none');
+  // The input is the whole box: its touch target.
+  expect(budget.getBoundingClientRect().height).toBe(box.getBoundingClientRect().height);
   const size = screen.getByRole('textbox', { name: '儲存空間' });
   const unit = () => (size.closest('.ui-field-box') as HTMLElement).querySelector('.ui-field-unitline .ui-field-affix') as HTMLElement;
   const x0 = unit().getBoundingClientRect().left;

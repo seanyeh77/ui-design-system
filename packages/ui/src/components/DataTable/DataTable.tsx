@@ -812,7 +812,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         }
         root.classList.remove('is-measuring');
       }
-            // Everything read in this pass goes into one state update (one render), and none when nothing changed.
+      // Everything read in this pass goes into one state update (one render), and none when nothing changed.
       const next: Partial<Measured> = {};
       const head = root.querySelector<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-head');
       const scroll = root.querySelector<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-scroll');

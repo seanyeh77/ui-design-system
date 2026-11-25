@@ -42,8 +42,9 @@ test('EmptyState on a phone: more than 2 lines of description left-align the who
   const [long, short] = [...document.querySelectorAll<HTMLElement>('.ui-empty')];
   await waitFor(() => expect(long.classList.contains('is-long')).toBe(true));
   expect(short.classList.contains('is-long')).toBe(false);
-  const left = long.querySelector('.ui-empty-title')!.getBoundingClientRect().left;
-  for (const sel of ['.ui-empty-desc', 'button']) expect(Math.abs(long.querySelector(sel)!.getBoundingClientRect().left - left)).toBeLessThanOrEqual(1);
+  const part = (root: HTMLElement, sel: string) => root.querySelector(sel) as HTMLElement;
+  const left = part(long, '.ui-empty-title').getBoundingClientRect().left;
+  for (const sel of ['.ui-empty-desc', 'button']) expect(Math.abs(part(long, sel).getBoundingClientRect().left - left)).toBeLessThanOrEqual(1);
   const center = (el: Element) => (el.getBoundingClientRect().left + el.getBoundingClientRect().right) / 2;
-  for (const sel of ['.ui-empty-desc', 'button']) expect(Math.abs(center(short.querySelector(sel)!) - center(short))).toBeLessThanOrEqual(1);
+  for (const sel of ['.ui-empty-desc', 'button']) expect(Math.abs(center(part(short, sel)) - center(short))).toBeLessThanOrEqual(1);
 });

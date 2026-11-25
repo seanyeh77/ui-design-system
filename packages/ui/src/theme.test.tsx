@@ -155,7 +155,8 @@ test('themeScript applies the stored theme and the picked accent before initThem
   setTheme('dark');
   const want = ['--accent', '--accent-text', '--focus'].map((k) => root.style.getPropertyValue(k));
   // A fresh page: nothing on <html> yet.
-  for (const k of ['--accent', '--accent-hover', '--accent-press', '--accent-soft', '--accent-text', '--on-accent', '--focus', '--focus-ring']) root.style.removeProperty(k);
+  for (const k of ['--accent', '--accent-hover', '--accent-press', '--accent-soft', '--accent-text', '--on-accent', '--focus', '--focus-ring'])
+    root.style.removeProperty(k);
   root.removeAttribute('data-theme');
   root.removeAttribute('data-theme-setting');
   new Function(themeScript)();

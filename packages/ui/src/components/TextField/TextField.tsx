@@ -3,8 +3,7 @@ import { cx } from '../../internal/util';
 import { describedBy, FieldErrorIcon, FieldLabel, FieldMessage, type FieldProps } from '../../internal/Field';
 
 export interface TextFieldProps
-  extends FieldProps,
-    Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'name' | 'required' | 'disabled' | 'prefix'> {
+  extends FieldProps, Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'name' | 'required' | 'disabled' | 'prefix'> {
   /** The text. */
   value?: string;
   /** Muted text inside the box before the value, e.g. 「NT$」 or 「https://」. */
