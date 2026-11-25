@@ -14,6 +14,7 @@ import {
   TextField,
   toast,
   type DataTableColumn,
+  useFormErrors,
   type NavSection,
 } from '@seanyeh77/ui';
 
@@ -69,8 +70,10 @@ const COLUMNS: DataTableColumn<Item>[] = [
 export function ListDetail({ items, owners, onSave }: ListDetailProps) {
   const [editing, setEditing] = React.useState<Item | null>(null);
   const [draft, setDraft] = React.useState<Item | null>(null);
-  // The name's error shows once the field is left (blur), not on every key, as the form rules say.
-  const [nameLeft, setNameLeft] = React.useState(false);
+  // Errors show once a field is left (blur) or on 儲存, not on every key; 儲存 with an error moves focus to the field.
+  const form = useFormErrors({ name: draft?.name ?? '' }, (v) => ({
+    name: v.name.trim() ? undefined : '名稱不能空白，請輸入專案名稱。',
+  }));
   const dirty = !!editing && JSON.stringify(editing) !== JSON.stringify(draft);
   const open = (it: Item) => {
     setEditing(it);
@@ -79,7 +82,7 @@ export function ListDetail({ items, owners, onSave }: ListDetailProps) {
   const close = () => {
     setEditing(null);
     setDraft(null);
-    setNameLeft(false);
+    form.reset();
   };
   const create = () => open({ id: '', name: '', owner: owners[0] ?? '', status: 'draft', note: '', updated: new Date() });
   const set = <K extends keyof Item>(k: K, v: Item[K]) => setDraft((d) => (d ? { ...d, [k]: v } : d));
@@ -112,13 +115,14 @@ export function ListDetail({ items, owners, onSave }: ListDetailProps) {
             <Button onClick={requestClose}>取消</Button>
             <Button
               variant="primary"
-              disabled={!dirty || !draft?.name.trim()}
-              onClick={() => {
-                if (draft) onSave({ ...draft, updated: new Date() });
+              // Not disabled for an error: 儲存 says what is wrong and goes to the field.
+              disabled={!dirty}
+              onClick={form.submit(() => {
+                if (!draft) return;
+                onSave({ ...draft, updated: new Date() });
                 close();
-                // AppShell shows the toast; no Toaster of its own is needed.
-                toast(draft?.id ? '已儲存' : '已新增');
-              }}
+                toast(draft.id ? '已儲存' : '已新增');
+              })}
             >
               儲存
             </Button>
@@ -129,11 +133,12 @@ export function ListDetail({ items, owners, onSave }: ListDetailProps) {
           <FormGrid>
             <TextField
               label="名稱"
+              name="name"
               required
               value={draft.name}
               onChange={(v) => set('name', v)}
-              onBlur={() => setNameLeft(true)}
-              error={nameLeft && !draft.name.trim() ? '名稱不能空白，請輸入專案名稱。' : undefined}
+              onBlur={() => form.onBlur('name')}
+              error={form.errors.name}
             />
             <Select label="負責人" value={draft.owner} options={owners.map((o) => ({ value: o, label: o }))} onChange={(v) => set('owner', v)} />
             <Select label="狀態" value={draft.status} options={STATUS_OPTIONS} onChange={(v) => set('status', v)} />

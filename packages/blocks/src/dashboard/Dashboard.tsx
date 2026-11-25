@@ -90,8 +90,8 @@ export function Dashboard({ kpis, trend, rows, notifications }: DashboardProps) 
             <KpiCard key={k.label} {...k} />
           ))}
         </Grid>
-        <Card title="每週完成的任務">
-          <LineChart label="每週完成的任務" labels={trend.labels} series={trend.series} unit="個" />
+        <Card title="每日完成的任務">
+          <LineChart label="每日完成的任務" labels={trend.labels} series={trend.series} unit="個" />
         </Card>
         {/* A short table on an overview: the summary tabs only, no search, filter or sort row (headings still sort). */}
         <Card title="專案" padding={false}>
