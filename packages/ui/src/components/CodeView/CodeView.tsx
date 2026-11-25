@@ -868,9 +868,7 @@ export function CodeView<L extends CodeLink = CodeLink>({
       // its language, so a document with many code blocks does not get many 「原始碼」 landmarks.
       role={file || title ? 'region' : 'group'}
       aria-label={
-        file ||
-        title ||
-        (lang !== 'plain' ? tr('{lang} 程式碼', { lang: tr((languageLabel || undefined) ?? LANGUAGE_NAMES[lang] ?? lang) }) : tr('原始碼'))
+        file || title || (lang !== 'plain' ? tr('{lang} 程式碼', { lang: tr((languageLabel || undefined) ?? LANGUAGE_NAMES[lang] ?? lang) }) : tr('原始碼'))
       }
     >
       {head}
