@@ -22,6 +22,7 @@ export interface AppShellProps {
   nav: NavSection[];
   /** Id of the current page. */
   value: string;
+  /** Called with the id of the nav item the person picks. */
   onNavigate: (id: string) => void;
   /** The product at the top of the sidebar: { mark, name, href } (see SideNav's NavBrand). Collapsed it shows the mark
    *  alone, a link named by `name`; open or pinned, the name fades in beside it. Plain text gets its first character as
@@ -46,6 +47,7 @@ export interface AppShellProps {
    *  pins or unpins it; their choice is kept in the browser. Default false: a 72 px strip of icons that opens to
    *  240 px over the content while the pointer or the keyboard focus is on it. */
   defaultPinned?: boolean;
+  /** Extra class on the root element. */
   className?: string;
 }
 
@@ -59,8 +61,8 @@ const CLOSE_DELAY = 300;
 export { focusMain };
 const MORE = '\u0000more';
 
-/** The dashboard frame: sidebar (240 px, 72 px collapsed) above 1024 px, a drawer from the top bar's menu button from
- *  600 to 1024 px, and bottom tabs on phones.
+/** The dashboard frame: sidebar (240 px, 72 px collapsed) from 960 px, a drawer from the top bar's menu button from
+ *  600 to 959 px, and bottom tabs on phones.
  *  The top bar hides while scrolling down and returns when scrolling up. */
 export function AppShell({
   nav,
@@ -83,8 +85,8 @@ export function AppShell({
     '`breadcrumb` is deprecated: in the top bar it repeats the page title. Put <Breadcrumb items={…} /> first in the page content instead.',
   );
   const phone = useNarrow();
-  // 600 to 1024 px (tablets, narrow windows): no sidebar; the top bar's menu button opens the whole nav in a drawer.
-  const tablet = useMedia('(min-width: 600px) and (max-width: 1024px)');
+  // 600 to 959 px (tablets, narrow windows): no sidebar; the top bar's menu button opens the whole nav in a drawer.
+  const tablet = useMedia('(min-width: 600px) and (max-width: 959px)');
   // Stored choices: the same on the server and the first render in the browser (none stored), then the stored ones.
   const [storedCollapsed, setStoredCollapsed] = useStored<string | null>(COLLAPSE_KEY, asText, null);
   const [storedPin, setStoredPin] = useStored<string | null>(PIN_KEY, asText, null);

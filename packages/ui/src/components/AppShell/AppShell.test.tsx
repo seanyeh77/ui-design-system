@@ -54,7 +54,7 @@ test('phones: a tab for a group opens its first page', async () => {
   expect(onNavigate).toHaveBeenCalledWith('p1');
 });
 
-test('AppShell from 600 to 1024 px: no sidebar; the top bar menu opens the navigation in a drawer', async () => {
+test('AppShell from 600 to 959 px: no sidebar; the top bar menu opens the navigation in a drawer', async () => {
   await page.viewport(820, 900);
   const onNavigate = vi.fn();
   const { container } = render(
