@@ -17,11 +17,11 @@
   font-size: var(--text-compact);
   color: var(--ink-muted);
 }
-/* Phones: a description that wraps reads from the left (long text is left-aligned on phones); one that fits on a line
-   stays centred, its box only as wide as the text. */
+/* Phones: a description of more than 2 lines (EmptyState adds is-long) left-aligns the whole block, title, steps and
+   button with it, so nothing is centred above left-aligned text; up to 2 lines everything stays centred. */
 @media (max-width: 599px) {
-  .ui-empty-desc {
-    width: fit-content;
+  .ui-empty.is-long {
+    align-items: flex-start;
     text-align: start;
   }
 }

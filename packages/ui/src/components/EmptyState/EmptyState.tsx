@@ -1,5 +1,6 @@
-import type * as React from 'react';
+import * as React from 'react';
 import { codeText } from '../InlineCode/InlineCode';
+import { cx, resizeObserver } from '../../internal/util';
 
 export interface EmptyStateProps {
   /** What is empty, stated: 「還沒有專案」. */
@@ -16,10 +17,30 @@ export interface EmptyStateProps {
 
 /** What a list or page shows when it has nothing yet: what is missing and the first step. */
 export function EmptyState({ title, description, steps = [], current = 0, action }: EmptyStateProps) {
+  // A description longer than 2 lines: on a phone the whole block reads from the left (CSS applies it under 600 px).
+  const descRef = React.useRef<HTMLParagraphElement>(null);
+  const [long, setLong] = React.useState(false);
+  React.useLayoutEffect(() => {
+    const el = descRef.current;
+    if (!el) return;
+    const measure = () => {
+      const line = parseFloat(getComputedStyle(el).lineHeight);
+      const h = el.getBoundingClientRect().height;
+      setLong(line > 0 && h > 0 && Math.round(h / line) > 2);
+    };
+    measure();
+    const ro = resizeObserver(measure);
+    ro?.observe(el);
+    return () => ro?.disconnect();
+  }, [description]);
   return (
-    <div className="ui-empty">
+    <div className={cx('ui-empty', long && 'is-long')}>
       <div className="ui-empty-title">{title}</div>
-      {description ? <p className="ui-empty-desc">{codeText(description)}</p> : null}
+      {description ? (
+        <p ref={descRef} className="ui-empty-desc">
+          {codeText(description)}
+        </p>
+      ) : null}
       {steps.length ? (
         <ol className="ui-steps">
           {steps.map((s, i) => (
