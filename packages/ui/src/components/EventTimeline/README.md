@@ -31,4 +31,3 @@
 - 圖示 20 px、沒有底色，螢幕閱讀器念類型名稱。內建類型：`alert` warning 圖示、`warning-text` 色；`switch` 左右箭頭、`accent-text`；`ai` 星芒、灰；`manual` 人像、灰。
 - `tone` 的顏色：`info` 用 `accent-text`，`success`、`warning`、`danger` 用各自的文字色。
 - 沒有定義的 `kind` 顯示一個灰色圓點，開發模式會提醒加進 `kinds`。
-- 事件的 `text` 裡反引號包住的文字顯示成行內程式碼（InlineCode），不顯示反引號。

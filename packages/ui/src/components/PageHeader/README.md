@@ -2,7 +2,7 @@
 
 ## 用法
 
-詳細頁（一筆訂單、一個專案）的頁首：那筆資料的名稱、狀態、一行重點資訊和操作。清單頁不用它：標題在頂部列，「新增」給 DataTable 的 `action`。
+詳細頁（一筆訂單、一個專案）的頁首：那筆資料的名稱、狀態、一行重點資訊和操作。清單頁不用它。
 
 ```tsx
 <AppShell nav={nav} value="orders" onNavigate={go}>
@@ -21,8 +21,7 @@
 </AppShell>
 ```
 
-- 標題只出現一次：詳細頁的標題給 PageHeader 的 `title`，AppShell 不給 `title`（兩個都給時開發模式會提醒）。頂部列已經寫了標題時，PageHeader 不給 `title`，只放狀態、資訊和操作。
-- 麵包屑放在 PageHeader 上方（內容最上方），不放頂部列。
+- `title` 是那筆資料的名稱（頁面唯一的 h1），這時 AppShell 不給 `title`；頂部列已有標題時 PageHeader 不給 `title`，只放狀態、資訊和操作。
 - 操作：`primary` 最多一個實心按鈕；`actions` 是外框按鈕，最多 3 個；其他和危險操作放 `more`（「⋯」選單，危險項目會先確認）。
 - 手機（小於 600 px）：只有 `primary` 保持按鈕，`actions` 收進「⋯」。
 - `status` 放 Badge，和 `meta` 在標題下同一行、同一個字級。

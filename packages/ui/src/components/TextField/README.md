@@ -8,12 +8,11 @@
 <TextField label="Email" type="email" required value={email} onChange={setEmail} error={emailError} />
 ```
 
-- `onChange(value, event)`：第一個參數是新的文字，可以直接給 `setEmail`（舊版收到的是原生事件，見 CHANGELOG 的改法）。
+- `onChange(value, event)`：第一個參數是新的文字，可以直接給 `setEmail`；需要事件時用第二個參數。
 - 標籤一定要有，不要只靠 placeholder；不需要看到標籤時（工具列的搜尋）加 `hideLabel`，螢幕閱讀器仍念得到。
 - 自己給的 `aria-describedby`、`aria-invalid` 會保留，和提示或錯誤合在一起。
 - 錯誤：`error` 給一句原因加修正方式（「Email 格式不正確，例如 name@example.com」）。離開欄位（blur）或送出表單時才設定，不在每次按鍵時設定；改正後立刻清掉。欄位多時用 `useFormErrors` 處理這些時機。
 - 必填：`required` 會在標籤後加紅色星號（`danger`）。
-- `hint` 與 `error` 裡反引號包住的文字顯示成行內程式碼（InlineCode），不顯示反引號。
 
 ## 細節
 

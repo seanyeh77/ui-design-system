@@ -15,7 +15,6 @@ const [due, setDue] = useState<Date | null>(null);
 - `label` 必填（藏起來用 `hideLabel`），也接受 `disabled` 和 `name`（表單送出 `2026-11-14`）。在 FormGrid 裡寬度填滿欄位，單獨使用時寬 240 px。
 - 日曆一週從週日開始；選中的日期是強調色圓角方塊，今天下方有一個小圓點。
 - 手機上（寬度小於 600 px）日期格 48 px。
-- `hint` 與 `error` 裡反引號包住的文字顯示成行內程式碼（InlineCode），不顯示反引號。
 
 ## 細節
 

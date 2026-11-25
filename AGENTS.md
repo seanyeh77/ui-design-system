@@ -1,49 +1,36 @@
 # AGENTS.md
 
-Instructions for AI agents (Claude, Codex, Cursor and others) that build UI with this design system or change it.
+For AI agents (Claude, Codex, Cursor and others) that build web pages with this design system. To change the design system itself, read [docs/maintaining.md](docs/maintaining.md).
 
-## What this is
-
-SeanYeh's design system: typed React 19 components, design tokens, page templates and written rules. Overlays (Dialog, Menu, Popover, Select…) run on Base UI, so focus, keyboard and positioning are handled for you.
-
-Docs site (Storybook, live examples, props tables): https://seanyeh77.github.io/ui-design-system/ ; index of every published file: https://seanyeh77.github.io/ui-design-system/llms.txt
+SeanYeh's design system: typed React 19 components, design tokens, page templates and written rules. Docs site (Storybook, live examples, props tables): https://seanyeh77.github.io/ui-design-system/ ; index of every file: https://seanyeh77.github.io/ui-design-system/llms.txt
 
 | Package | What it is |
 | --- | --- |
-| `@seanyeh77/ui` | The components (ES modules with types, one file per module so bundlers keep only what a page imports), `styles.css` (or per component in `css/`), `bundle.js` for pages without a build step, and the docs under `docs/` (each README and guide) |
-| `@seanyeh77/tokens` | `tokens.css`, a Tailwind v4 theme (`tailwind.css`), typed token names with `cssVar()`, the fonts |
-| `@seanyeh77/eslint-plugin-ui` | Lint rules: tokens only, no native controls, no card in a card, danger actions confirmed, one primary button, verb labels |
-| `@seanyeh77/ui-cli` | `ui check <page>`, `ui shots <page>` (screenshot baselines and comparison), `ui docs <Name> [--full]`, `ui list`. Run it as `npx @seanyeh77/ui-cli …`: plain `npx ui` runs an unrelated npm package. |
-| Registry `…/r/<name>.json` | Page templates to copy into a project: `dashboard`, `list-detail`, `settings`, `login` |
+| `@seanyeh77/ui` | The components, `styles.css`, `bundle.js` for pages without a build step, and the docs under `docs/` (this file is `docs/agents.md`) |
+| `@seanyeh77/tokens` | `tokens.css`, the fonts, a Tailwind v4 theme (`tailwind.css`), typed token names with `cssVar()` |
+| `@seanyeh77/eslint-plugin-ui` | Lint rules for the core rules |
+| `@seanyeh77/ui-cli` | `ui check`, `ui shots`, `ui docs`, `ui list`. Run it as `npx @seanyeh77/ui-cli …`: plain `npx ui` is an unrelated package. |
+| Registry `…/r/<name>.json` | Page templates: `dashboard`, `list-detail`, `settings`, `login` |
 
-## Building UI with it
+## Building a page
 
-Use it for any web page, dashboard, frontend or tool UI unless the user asks for a different look. Pick the template or components, connect data and events, and spend the effort on the page's design and UX. Do not write your own styles for something a component covers.
+Use it for any web page or tool UI unless the user asks for a different look. Spend the effort on the page's design and UX; do not write your own styles for something a component covers.
 
-What to read, and nothing more:
+Read this, and nothing more:
 
-1. `docs/guidelines.md`: the core rules every page needs (about 6 KB). Read it once.
-2. The 用法 block of each component you use: `npx @seanyeh77/ui-cli docs DataTable` prints what it is, a minimal example and the rules most often gotten wrong. Add `--full` only when you need a detail the block does not cover. The same files are in `node_modules/@seanyeh77/ui/docs/` and on the docs site under `/md/`.
-3. A topic file only when the page has that topic: `layout` (your own frame, navigation, search, tours), `forms`, `data` (tables, lists, KPIs, charts), `monitoring`, `code` (code-reading tools), `theme` (all tokens, accent, Slidev preset), `motion`. `ui docs layout` prints one.
+1. `docs/guidelines.md`, the core rules every page needs (about 9 KB). Read it once, whole: the rules agents most often get wrong (list pages, buttons, status, numbers, empty and loading states) are there.
+2. The 用法 block of each component you use: `npx @seanyeh77/ui-cli docs DataTable`. Add `--full` only for a detail the block does not cover. `ui list` lists every component by group; `ui docs icons` prints the icon names. The same files are in `node_modules/@seanyeh77/ui/docs/` and on the docs site under `/md/`.
+3. A topic file only when the page has that topic: `layout`, `forms`, `data`, `monitoring`, `code`, `theme`, `motion` (`ui docs layout`).
 
 Then:
 
-- Start from a page template when one fits: `npx shadcn@latest add https://seanyeh77.github.io/ui-design-system/r/dashboard.json` (also `list-detail`, `settings`, `login`). It needs a `components.json` (run `npx shadcn@latest init` first, or the command stops at a prompt) and `@seanyeh77/ui` installed. Without shadcn, read the files from the same JSON (`files[].content`) and write them yourself. With the shadcn MCP server, add `{ "registries": { "@seanyeh77": "https://seanyeh77.github.io/ui-design-system/r/{name}.json" } }` to `components.json` and add them by name.
-- Otherwise frame a dashboard with `AppShell`, lay out content with `Page` and `Grid`, one `Card` per block.
-- Your own CSS uses tokens only: `var(--surface)`, `var(--space-4)` in CSS; `cssVar('ink-muted')` from `@seanyeh77/tokens` in style props (only token names compile); `bg-surface text-ink-muted` with the Tailwind theme.
-- TypeScript enforces most rules: icon names, `confirm` on danger buttons and menu items, `DataTable` column keys. Fix type errors instead of casting them away. In development the components warn in the console with the cause and the fix.
+- Start from a page template when one fits: `npx shadcn@latest add https://seanyeh77.github.io/ui-design-system/r/dashboard.json` (also `list-detail`, `settings`, `login`). It needs a `components.json` (`npx shadcn@latest init`); without shadcn, write the JSON's `files[].content` yourself.
+- Your own CSS uses tokens only: `var(--surface)` in CSS, `cssVar('ink-muted')` from `@seanyeh77/tokens` in style props, `bg-surface text-ink-muted` with the Tailwind theme.
+- TypeScript enforces most rules (icon names, `confirm` on danger actions, DataTable column keys): fix type errors instead of casting them away. In development the components warn in the console with the cause and the fix.
 - Items marked 看情況 ("situational") are not fixed rules: choose per context and say which way you chose.
-- Before you finish: run `npx @seanyeh77/ui-cli check <file or URL>`. It opens the page at 390 px and 1280 px, light and dark, and fails on console errors, horizontal overflow at 390 px, touch targets under 48 px, touch areas that spill past their control, a card inside a card, raw Markdown, native controls the system replaces, wrapped buttons, tabs, table headers or interface headings (headings inside Markdown content may wrap), controls of different heights in one toolbar, a status badge with a shadow in a table or card, unlayered page CSS on element selectors (a reset or starter CSS) that overrides a component, interface text cut off with no tooltip, text outside its card, targets under 24 px that crowd another at 1280 px, a missing viewport meta and axe-core's WCAG 2.2 AA rules. It also opens every tab, SettingsLayout category and toolbar menu and checks those states; `--open <selector>` adds a dialog or drawer. Add `--shots shots/` and check the screenshots against the last section of `guidelines.md`.
+- Before you finish: `npx @seanyeh77/ui-cli check <file or URL>`. It opens the page at 390 px and 1280 px, light and dark, opens its tabs, SettingsLayout categories and toolbar menus, and fails on what the rules forbid (console errors, overflow, small or crowded targets, a card in a card, native controls, wrapped labels, cut-off text, page CSS that overrides components, axe-core WCAG 2.2 AA); each problem says what to fix. `--open <selector>` also checks a dialog or drawer; `--no-axe` and `--no-interact` skip those parts. Add `--shots shots/` and check the screenshots against the last section of `guidelines.md`.
 
-### Rules that are easy to miss
-
-- List page: title once (top bar); the list in one `Card`; the page's primary action (新增) in DataTable's `action` (right end of the one toolbar row with the summary tabs, search and sort), not in a Card head of its own and never in the sidebar; the count comes from the DataTable toolbar, not next to the title. Row actions (`rowActions`) take no column: they show at the row's end on hover or focus, in room the last cell keeps free.
-- Buttons: `primary` solid, at most one per section; `secondary` outline; `quiet` for low-emphasis and toolbar actions; `danger` always confirmed.
-- Status is a `Badge` (dot + text in tables and cards), never a hand-made colored chip; only states that need attention stand out.
-- Numbers are numbers: `numeric` + `unit`, `format: 'duration'` or `'relative'`, never strings like 「46 分」.
-- Summary tabs already give the counts: no KPI cards repeating them, and a condition in the summary is not also a filter. Table rules: `docs/data.md`.
-
-### Projects with a build step (Vite, Next.js and similar)
+## Projects with a build step (Vite, Next.js and similar)
 
 ```bash
 npm i react react-dom @seanyeh77/ui @seanyeh77/tokens
@@ -51,10 +38,8 @@ npm i -D eslint @seanyeh77/eslint-plugin-ui @seanyeh77/ui-cli
 npx playwright install chromium   # the browser ui check uses; or set CHROMIUM_PATH
 ```
 
-The fonts ship once, in `@seanyeh77/tokens`, a dependency of `@seanyeh77/ui`: `@seanyeh77/ui/fonts.css` loads them from there. List `@seanyeh77/tokens` yourself, as above, to import `cssVar()` and the Tailwind theme (pnpm lets a project import only what it lists). The packages are ES modules only: TypeScript needs `moduleResolution` `bundler`, `node16` or `nodenext` (Vite and Next.js templates already use `bundler`).
-
 ```ts
-import '@seanyeh77/ui/fonts.css'; // self-hosted fonts: works offline
+import '@seanyeh77/ui/fonts.css'; // the self-hosted fonts of @seanyeh77/tokens, resolved by the bundler: works offline
 import '@seanyeh77/ui/tokens.css';
 import '@seanyeh77/ui/styles.css';
 import { AppShell, Button, DataTable, initTheme } from '@seanyeh77/ui';
@@ -68,16 +53,14 @@ import ui from '@seanyeh77/eslint-plugin-ui';
 export default [ui.configs.recommended];
 ```
 
-- The system's CSS is in the cascade layer `ui` (`ui.tokens`, `ui.components`): your own unlayered CSS always overrides it, no specificity fight and no `!important`. With Tailwind v4, start the main CSS file with `@layer theme, base, ui, components, utilities;` (before `@import 'tailwindcss'`) so utility classes override components. Details and the per-component CSS (`@seanyeh77/ui/css/`) in `theme.md`.
-- Because unlayered CSS always wins, page-wide resets win too: delete the starter CSS of the project template (Vite's `index.css` and `App.css`), and put any reset or normalize CSS (`* { margin: 0 }`, `button { background: none }`, a CMS theme) in `@layer base { … }` or another layer declared before `ui`. `ui check` reports unlayered element or `*` rules that override a component.
-- React 19 is required. The module starts with `'use client'`, so it works in Next.js server components pages as client components. Server code that only formats dates, numbers or text imports from `@seanyeh77/ui/format` (no `'use client'`).
-- The ESLint plugin brings its own TSX parser and depends on nothing but ESLint, so it installs next to any TypeScript version, TypeScript 7 included. Templates that come with oxlint instead of ESLint (today's Vite templates) need `eslint` installed, as above, and an `eslint.config.js`.
-- Components need a browser: run component tests in a browser (Vitest browser mode) or jsdom. Every component renders and handles clicks and keys in jsdom with no setup and no polyfills; what needs layout is not computed there (measured column widths, overflow fades, positions of tooltips and popups, sizes that follow the container), so test those in Vitest browser mode.
-- pnpm may refuse a version published less than a day ago (`minimumReleaseAge`, in minutes: 1440 by default in pnpm 11, and set by many pnpm 10 projects). To install a just-released `@seanyeh77/ui` once, run `pnpm add @seanyeh77/ui@<剛發布的版本> --config.minimum-release-age=0`; or allow it in `pnpm-workspace.yaml` with `minimumReleaseAgeExclude: ['@seanyeh77/ui@<剛發布的版本>', '@seanyeh77/tokens@<剛發布的版本>']` and remove the line after a day.
+- ES modules only: TypeScript needs `moduleResolution` `bundler`, `node16` or `nodenext` (Vite and Next.js templates use `bundler`). React 19 is required. The module starts with `'use client'`; server code that only formats dates, numbers or text imports `@seanyeh77/ui/format`.
+- The system's CSS is in the cascade layer `ui`: your unlayered CSS always wins, with no `!important`. So delete the template's starter CSS (Vite's `index.css`, `App.css`) and put any reset in `@layer base { … }`. With Tailwind v4, start the main CSS with `@layer theme, base, ui, components, utilities;` (details in `theme.md`).
+- The ESLint plugin depends only on ESLint and works with TypeScript 7. Templates that ship oxlint instead need `eslint` and an `eslint.config.js`, as above.
+- pnpm may refuse a version published less than a day ago: `pnpm add @seanyeh77/ui@<version> --config.minimum-release-age=0`.
 
-### Pages without a build step
+## Pages without a build step
 
-`bundle.js` brings React 19, ReactDOM and every component (`window.React`, `window.ReactDOM`, `window.UI`); the styles are in `styles.css`:
+`bundle.js` brings React 19, ReactDOM and every component (`window.React`, `window.ReactDOM`, `window.UI`):
 
 ```html
 <meta charset="utf-8">
@@ -94,34 +77,6 @@ export default [ui.configs.recommended];
 </script>
 ```
 
-Pin a version, as above: `/dist/<version>/` never changes, while `/dist/` without a version always serves the latest release and can break a finished page. The same files are on jsDelivr: `https://cdn.jsdelivr.net/npm/@seanyeh77/ui@0.45.0/dist/bundle.js` and `…/dist/styles.css`, `https://cdn.jsdelivr.net/npm/@seanyeh77/tokens@0.45.0/dist/tokens.css` and `…/tokens@0.45.0/fonts.css`. For a single-file page that must work offline or in a sandbox that blocks this host, inline the same files. `bundle.js` keeps the development warnings on.
+Pin a version as above: `/dist/<version>/` never changes; `/dist/` always serves the latest release. jsDelivr has the same files (`https://cdn.jsdelivr.net/npm/@seanyeh77/ui@0.45.0/dist/bundle.js`, `…/dist/styles.css`; the fonts at `https://cdn.jsdelivr.net/npm/@seanyeh77/tokens@0.45.0/fonts.css`). Without a bundler, `@seanyeh77/ui/dist/fonts.css` cannot resolve its import: load the tokens package's `fonts.css` or the pinned site URL.
 
-Scope: web UI and the tokens of SeanYeh's Slidev decks (the `teaching` preset, `data-theme="teaching"`: teal `#027874` accent, 0 px radius, no shadows, 1.5 px borders, light only; see `theme.md`). Slide layout, Notion documents and teaching diagrams follow SeanYeh's separate `teaching-materials-style` skill.
-
-## Changing the design system
-
-A pnpm workspace. `pnpm install`, then `pnpm check` builds, type-checks, lints and tests everything; CI runs the same plus `ui check` and the screenshot comparison on every preview.
-
-| Path | Contents |
-| --- | --- |
-| `packages/tokens/tokens.json` | Every token, light and dark, and the presets. `pnpm --filter @seanyeh77/tokens build` writes the CSS, the Tailwind theme and the types. |
-| `packages/ui/src/components/<Name>/` | `<Name>.tsx`, `README.md`, `<Name>.stories.tsx` (Storybook, module example) and `preview.html` (plain-HTML example; the card of the Design System artifact) |
-| `packages/ui/src/components/<Name>/<Name>.css`, `packages/ui/src/styles/*.css` | Component styles, token variables only: one file per component, plus shared files (`base`, `field`, `chart`, `motion`, `table`, `utilities`, `touch`, `floating`, `focus`). `packages/ui/src/styles.css` lists every file in cascade order; the build joins them into `dist/styles.css` inside `@layer ui.components` and writes the per-component files in `dist/css/`. A new CSS file must be added to that list (`pnpm test` fails otherwise). |
-| `packages/blocks/src/` | Page templates; `registry.json` at the root lists them |
-| `packages/eslint-plugin-ui`, `packages/cli` | The lint rules, `ui check`, `ui shots` and `ui docs` |
-| `tests/visual/baseline/` | Screenshot baselines of every preview: `<Name>-<390 or 1280>-<light or dark>.png` |
-| `apps/docs` | Storybook; `pnpm site` builds the whole docs site into `site/` (with `llms.txt` and `/md/`) |
-| `docs/` | `guidelines.md` (core rules), the topic files, `decisions.md` (history) |
-
-- Components: TypeScript strict, React 19 (`ref` is a prop), Base UI for anything that floats or traps focus. One JSDoc line per prop (it becomes the props table). Prefer types that make a wrong use fail to compile over a sentence in the README; add a `devWarn` with the cause and the fix for what types cannot catch. Export new components and their types from `src/index.ts`.
-- A new component needs `README.md`, a story and `preview.html` whose first line is `<!-- @dsCard group="Data" height=400 -->`, plus a test when it has behavior (`src/**/*.test.tsx`, Vitest in a real Chromium). Every story is also rendered, clicked and rendered on the server in jsdom (`src/components.jsdom.test.tsx`): check for browser-only APIs (`ResizeObserver`, Range measuring, canvas, `scrollIntoView`, pointer capture) before calling them, never polyfill a global.
-- A README starts with `## 用法`: one sentence (what it is, when to use it, what to use instead), a minimal example, and the 3 to 6 rules most often gotten wrong. Details follow in later `##` sections. The first sentence is the summary in `llms.txt` and `ui list`.
-- Where a rule goes: one component's rule in its README; a rule every page needs in `docs/guidelines.md` (keep it about 6 KB); a rule for one kind of page in its topic file. Say each rule once. A new topic file goes in `GUIDES` of `packages/cli/src/usage.ts` (the reading order of `llms.txt` and `ui docs`) and in `apps/docs/scripts/pages.ts`.
-- Names and default texts are generic: no project's terms (no 「函式」 or 「編譯器」 as built-in words). A project passes its own words through props.
-- Visual regression: CI screenshots every `site/preview/*.html` at 390 px and 1280 px, light and dark, with `ui shots … --compare tests/visual/baseline --diff visual-diff`, and fails when a shot differs from its baseline (a pixel differs past color distance 0.1; more than 0.02 % of the pixels, or a new size, is a change). The job summary lists the changed shots; the `visual-diff` artifact holds `<name>-diff.png` (changes in red), `-expected.png` and `-actual.png`.
-- When the change is intended, or a new preview has no baseline yet: run the **Update visual baselines** workflow on the branch (Actions → Update visual baselines → Run workflow). It takes the shots on the same runner image and browser as CI, commits them as 「更新畫面基準圖」 and starts CI on that commit. Look at the diffs before you run it: it accepts every change. Do not commit baselines made on your own machine: fonts and the Chromium build render text a little differently, and CI then fails. Locally, `node packages/cli/dist/cli.js shots site/preview/<Name>.html --compare tests/visual/baseline --diff visual-diff` after `pnpm build && pnpm site` shows what changed, as far as your machine renders like CI.
-- Releases: `pnpm changeset` for every change to a published package. Merging the "Version packages" pull request publishes to npm through trusted publishing (each package names this repo and `publish.yml` as its Trusted Publisher on npmjs.com; no token). Pushing to `main` rebuilds the docs site.
-- Docs are written in Traditional Chinese with technical terms in English; every number carries its unit.
-- Only record what the user confirmed: the rule in the file above, the original wording of each lab decision in `docs/decisions.md`.
-- New design decisions are SeanYeh's: he picks them from option labs with a live demo for every choice. Propose options; do not change tokens, rules or component behavior on your own. Any default you pick must be flagged as yours. In `docs/decisions.md` they go under 「AI 定的細節（待確認）」, whichever agent (Claude, Codex, Cursor or another) picked them; when SeanYeh leaves the details to the agent, write that down with his words.
-- Commits never carry Claude co-author or Claude-Session trailers.
+Scope: web UI, and the tokens of SeanYeh's Slidev decks (`initTheme({ preset: 'teaching' })`, see `theme.md`). Slide layout, Notion documents and teaching diagrams follow the separate `teaching-materials-style` skill.

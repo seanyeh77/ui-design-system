@@ -14,7 +14,6 @@
 - 只有 `info` 與 `success` 能關閉（傳 `onDismiss`）；`warning` 與 `danger` 不能關閉。
 - 動作是內文下方的 40 px 外框按鈕（`actionLabel`、`onAction`），文字只用動詞；有沒有「✕」都從同一個位置開始。
 - 本身就是卡片：單獨使用時不再包一層 Card；放進 Card 時自動拿掉陰影。
-- 內容是字串時，反引號包住的文字顯示成行內程式碼（InlineCode），不顯示反引號。
 
 ## 細節
 

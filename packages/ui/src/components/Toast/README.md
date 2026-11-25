@@ -13,11 +13,10 @@ toast('已刪除 3 筆', { action: { label: '復原', undo: true, onAction: rest
 toast('儲存失敗：網路中斷，請稍後再試', { tone: 'danger' });
 ```
 
-- 頁面不要自己管 toast 的 state 和計時器：`toast()` 負責顯示、排隊、計時和念出。
-- AppShell 自動放一個 Toaster，AppShell 裡的頁面不用設定；頁面自己放了 `<Toaster />` 時改用頁面的，同一則訊息不會出現兩次。
+- 頁面不自己管 toast 的 state 和計時器：`toast()` 負責顯示、排隊、計時和念出。AppShell 自動放一個 Toaster；頁面自己放了 `<Toaster />` 時改用頁面的，同一則訊息不會出現兩次。
 - 時間：一般訊息 3 s 後消失；有動作（例如「復原」）的訊息停留 10 s，滑鼠移到訊息上或焦點在訊息裡時暫停計時（WCAG 2.2.1）。
 - 「復原」加 `undo: true`：訊息顯示時按 Ctrl Z（Mac 是 ⌘Z）也會執行，按鈕上寫出這個按鍵；焦點在輸入框裡時 Ctrl Z 仍是輸入框的復原。
-- 文字寫發生了什麼，用過去式：「已刪除 3 筆」。內容是字串時，反引號包住的文字顯示成行內程式碼（InlineCode）。
+- 文字寫發生了什麼，用過去式：「已刪除 3 筆」。
 - `tone`：預設 `success`（打勾）；`neutral`、`info`、`warning`、`danger`。`danger` 立即念出（`role="alert"`），用在操作失敗；失敗的原因和修正方式寫進訊息。
 - 同一件事連續發生（每次輸入都存檔）時給相同的 `id`：只留一則，重新計時。
 

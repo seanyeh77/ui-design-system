@@ -4,11 +4,8 @@
 
 ## 色彩
 
-- 中性色調：暖灰。淺色主題底色極淺灰，深色主題底色深灰。
-- 卡片分層：陰影。
-- 強調色：預設 `#2457d6`，使用者可以自訂，不限定顏色。用量中量，用在主要按鈕、連結、圖示、標籤與選取狀態。
 - 語意色（`success`、`warning`、`danger`、`info`）：固定的顏色，不跟著強調色變；換強調色只重新計算強調相關的 token。
-- Tailwind：只用設計系統的 token class（`bg-surface`、`text-ink-muted`、`rounded-md`、`shadow-card`）；Tailwind 內建的顏色、圓角和陰影（`text-gray-500`、`rounded-xl`、`shadow-lg`）由 ESLint 規則 `no-tailwind-defaults` 抓出來。
+- Tailwind 內建的顏色、圓角和陰影（`text-gray-500`、`rounded-xl`、`shadow-lg`）由 ESLint 規則 `no-tailwind-defaults` 抓出來；改用 token class（`bg-surface`、`rounded-md`、`shadow-card`）。
 
 主題設定有三個選項：自動（跟隨系統的 `prefers-color-scheme`）、淺色、深色。頁面載入時呼叫一次 `initTheme()`，由它在根元素設 `data-theme` 與 `color-scheme`（原生捲軸和表單控制項跟著變深）；頁面不要自己設 `data-theme`。換主題用 `setTheme()`，換強調色用 `setAccent()`；自己做主題介面時，`storedTheme()`、`storedAccent()`、`pickedAccent()`（使用者有選才有值）讀目前的選擇，`resetAccent()` 回到 token 的預設。使用者沒選強調色時不寫 inline 變數，由 `tokens.css`（主題或 preset）決定。
 
@@ -76,7 +73,7 @@
 
 ### 只載入用到的元件的 CSS
 
-`styles.css`（約 200 KB，gzip 後約 39 KB；bundler 壓縮後約 148 KB、gzip 約 25 KB）是預設的載法。很在意大小的專案可以改用 `@seanyeh77/ui/css/` 裡的分檔：寫一個 CSS 入口檔，依序 `@import` `base.css`、用到的每個元件的檔案、`end.css`，JavaScript 只 import 這一個檔。
+`styles.css` 是預設的載法。很在意大小的專案可以改用 `@seanyeh77/ui/css/` 裡的分檔：寫一個 CSS 入口檔，依序 `@import` `base.css`、用到的每個元件的檔案、`end.css`，JavaScript 只 import 這一個檔。
 
 ```css
 /* src/ui.css */
@@ -100,9 +97,11 @@ import './ui.css';
 
 所有控制項的鍵盤焦點用同一種樣式：2 px 實線外框，顏色 `focus`，離控制項 2 px（`outline: 2px solid var(--focus); outline-offset: 2px`）。`focus` 等於 `accent-text`，在每種底色上都至少 4.5:1。貼齊會裁切內容的容器時（可以捲動的分頁列、表格、清單、程式碼區、選單項目），外框改畫在內側 2 px（`outline-offset: -2px`），不會被切掉。DataTable 格子裡的任何可聚焦元素（程式碼連結、按鈕、勾選框）都畫在內側；截斷的長文字裡的連結取得鍵盤焦點時，整段文字展開，連結和外框都看得到。CommandPalette 的搜尋列在輸入框有焦點時，整列畫內側外框。有錯誤的欄位也用同一種外框，紅框不變。拖曳分隔線（SplitPane、Workbench）在焦點時變成 3 px 的 `accent` 線。
 
-自己寫的可聚焦元素不必另外寫樣式：`styles.css` 對所有 `:focus-visible` 預設同一種外框。`focus-ring` 是舊名稱，數值和 `focus` 相同；`danger-ring` 不再使用，數值等於 `danger-text`。
+自己寫的可聚焦元素不必另外寫樣式：`styles.css` 對所有 `:focus-visible` 預設同一種外框。`focus-ring` 是 `focus` 的別名；`danger-ring` 等於 `danger-text`，新的 CSS 不用。
 
-間距、圓角與陰影：密度緊密，區塊間距 `space-8` 32 px；中圓角 `radius-xs` 4 px（行內程式碼、鍵帽、分段控制）、`radius-sm` 6 px、`radius-md` 10 px、`radius-lg` 14 px；表面用柔和陰影 `shadow-card`。
+## 間距、圓角與陰影
+
+區塊間距 `space-8` 32 px；圓角 `radius-xs` 4 px（行內程式碼、鍵帽、分段控制）、`radius-sm` 6 px、`radius-md` 10 px、`radius-lg` 14 px；表面用柔和陰影 `shadow-card`。每個 token 的數值與用途在 `tokens.json`（`usage`）。
 
 ## 字型
 
@@ -114,14 +113,13 @@ import './ui.css';
 
 - 圖示組：Phosphor（MIT 授權，可商用），平常用 Regular 線條版；選中時換成同一個圖示的實心版（Fill）並用強調色，例如側邊欄和手機底部分頁列的選中項目。
 - 線寬：Phosphor 的線寬固定，不另外調整；自訂的 24 × 24 線條圖示用 2 px（`icon-stroke`）。
-- 用法：`h(UI.Icon, { name: 'house' })`，加 `filled: true` 用實心版；名稱照 Phosphor，常用的 80 個已內建，`icons` 列出全部名稱（也接受 Lucide 的名稱，例如 `trash-2`）。元件的 `icon` 屬性接受同樣的名稱，或自訂圖示的 24 px path。
+- 用法：`h(UI.Icon, { name: 'house' })`，加 `filled: true` 用實心版；名稱照 Phosphor，內建 102 個，`npx @seanyeh77/ui-cli docs icons` 印出全部名稱（也接受 40 個 Lucide 名稱，例如 `trash-2`）。元件的 `icon` 屬性接受同樣的名稱，或自訂圖示的 24 px path。
 - 自訂圖示 `d` 傳 SVG 標記字串（以 `<` 開頭）時會當成 HTML 直接放進 `<svg>`：只傳自己程式碼裡寫死的圖示，絕不傳使用者輸入或外部資料的字串。
 - 載入：每個圖示是一個獨立的模組，有 build 的專案只打包頁面用到的圖示，用法不變。元件固定會顯示的圖示（下拉箭頭、關閉的 x、勾號等）跟著元件一起打包，第一次畫面就有，server render 也有。用 `name` 或 `icon` 指定的其他圖示在第一次顯示時才載入：載入前是同樣大小的空白方框（版面不會跳動），載入後同一個圖示之後都立即顯示。server render 時這些圖示是空白方框，hydrate 後再補上。
 - 首屏的圖示想在第一次畫面就出現時，render 前先 `await preloadIcons(['house', 'gear'])`；不呼叫也能用，只是晚一個網路來回。import `icons` 的頁面會帶入全部圖示，所以只在真的需要全部名稱時才 import。`bundle.js` 內含全部圖示，一律立即顯示。
 
 ## 外觀設定
 
-- 主題與強調色放在設定頁的「外觀」，不放在頂部列。
 - 主題：自動、淺色、深色三張預覽卡片（`ThemePicker`）。
 - 強調色：8 個推薦色票，加上可以輸入任何色碼的欄位（`AccentPicker`）。每個推薦色在淺色主題本身就能當文字：在 `bg`、`surface`、`surface-sub`、`surface-chrome` 和它自己的 `accent-soft` 上都至少 4.5:1，白字放在它上面也至少 4.5:1，所以淺色主題的 `accent-text` 就是色票本身；預設色一定是其中之一。色票：藍 `#2457d6`、靛 `#5b4fd6`、紫 `#864ad1`、桃紅 `#ba3873`、紅 `#c53228`、橘 `#ab5101`、綠 `#077b42`、青 `#027874`。
 - 切換主題時，所有顏色用 300 ms 漸變。
@@ -135,9 +133,8 @@ import './ui.css';
 - `on-accent`：白色與 `ink`（`#171512`）中對比較高者。深色主題的強調色一定夠亮，所以是 `ink`。
 - `accent-soft`：淺色主題為白色混入 12% 強調色；深色主題為 `surface` 混入 22% 強調色（選中的列多半在卡片上，以卡片底色為準）。
 - `accent-text`：強調色的文字色，對 `bg`、`surface`、`surface-sub`、`surface-chrome` 與換算出的 `accent-soft` 都要至少 4.5:1。強調色本身已經達標時就等於強調色（預設 `#2457d6` 在淺色主題不變）；不夠時，淺色主題混入黑色、每步 4%，深色主題混入白色、每步 5%，直到全部都達 4.5:1。例如淺色主題 `#ffe066` → `#7a6c31`、`#c4600f` → `#a5510d`、`#0f8a85` → `#0d7975`；深色主題 `#1a1a6e` → `#afafcc`，預設 `#2457d6` → `#92abeb`。讀 `bg`、`surface` 時接受 `#rgb`（打包工具會把 `#ffffff` 縮成 `#fff`）、`#rrggbb` 與 `rgb()`；讀不出來時 `accent-text` 就用強調色本身，不往黑或白混。
-- `focus`（以及舊名稱 `focus-ring`）：等於 `accent-text`。
+- `focus`（和別名 `focus-ring`）：等於 `accent-text`。
 - 用強調色寫的文字、緊貼文字的圖示和狀態記號一律讀 `accent-text`，不讀 `accent`。
-- 語意色不跟著強調色變：`success`、`warning`、`danger`、`info` 在每個強調色下都是同一組顏色。
 
 ## 教材主題（teaching preset）
 

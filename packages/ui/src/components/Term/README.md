@@ -2,11 +2,11 @@
 
 ## 用法
 
-名詞或關係標籤的說明：讀者可能看不懂的詞（例如「translation unit」）和關係標籤（例如「推測（規則）」）。長篇的解釋改連到文件。
+名詞或關係標籤的說明：讀者可能看不懂的詞（例如「webhook」）和關係標籤（例如「推測（規則）」）。長篇的解釋改連到文件。
 
 ```tsx
 <p>
-  起點經過 2 個 <Term text="一個 `.c` 檔加上它 include 的標頭檔，編譯器一次處理的單位。">translation unit</Term>。
+  部署完成時會呼叫 <Term text="服務在事件發生時呼叫的網址，例如 `https://example.com/hooks/deploy`。">webhook</Term>。
 </p>
 <p>
   登入後伺服器會寫一個 <Term variant="inline" text="瀏覽器替網站保存的一小段文字。">cookie</Term>。
@@ -16,7 +16,6 @@
 - 預設在詞的後面加一個小問號，點一下打開；句子裡讀起來不想被打斷時用 `variant="inline"`（灰色虛線）。
 - 關係的說明可以加證據那一行程式碼（`code`）和一個動作（`action`，例如「看這一行」）。
 - 同一份程式碼或文件反覆出現的詞，用 CodeView 或 Markdown 的 `terms` 自動標，不必一個一個包。
-- `text` 裡反引號包住的文字顯示成行內程式碼（InlineCode），不顯示反引號。
 
 ## 細節
 

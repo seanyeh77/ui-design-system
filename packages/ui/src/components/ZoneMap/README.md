@@ -30,6 +30,6 @@ h(UI.ZoneMap, {
 - 沒有資料（`value` 是 `null`）：虛線框，名稱加「沒有資料」，不能選。
 - 位置：`area: { row, col, rows, cols }`（從 1 開始）；沒給時依序排入 `columns` 欄（預設 4）、每列 `rowHeight` px（預設 120）。目前只有矩形。
 - `fill`：列高平分地圖拿到的高度，最少 `rowHeight` px，不留空白。
-- 選取是受控的 `value`（選中分區的 `id`）加 `onChange(id, zone)`。從舊版升級：`selectedId`、`onSelect(zone)` 改名 `value`、`onChange`，舊名稱下一版前仍可用。
+- 選取是受控的 `value`（選中分區的 `id`）加 `onChange(id, zone)`。
 - 數值和單位之間有一個空格，畫面上寫「23.1 °C」，和按鈕的名稱一樣（WCAG 2.5.3）。
 - 鍵盤：每個分區是按鈕，Tab 依序經過，Enter 或空白鍵選取（`aria-pressed`）。螢幕閱讀器念「B 區，28.4 °C，注意，進氣 26.1 °C」。

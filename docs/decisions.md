@@ -1421,3 +1421,480 @@ AI 定的細節（待確認）：
 - DataTable 沒有資料時，空狀態放在一個 `role="row"` 裡的 `role="cell"`，表格的 ARIA 結構完整（`table > rowgroup > row`）。
 - LineChart 資料表的欄名「名稱（單位）」經過 `tr()`，英文介面是「name (unit)」。
 - `ui check` 在頁面自己也跑 axe 時（Storybook 的無障礙 addon）等那次跑完再跑，最多等 10 s，不再回報「Axe is already running」。
+
+## 2026-11-25 文件整理
+
+發布前的文件檢查：閱讀路徑變短、規則只說一次、補上 agent 常寫錯的規則。使用者把細節交給 agent：「希望是 agent 能夠使用者個 design 使用越少的 token 或是更專注於設計網頁與 UX 這樣最好」。
+
+### AI 定的細節（待確認）
+
+- 平板範圍改成 600 到 959 px：AppShell 的導覽抽屜原本用到 1024 px（實驗室 NB 寫「1024 px 以下改成抽屜」），和斷點 token（`bp-desktop` 960 px）、Grid、SplitPane 的 960 px 不一致。改成 960 px，整個系統只有一組斷點；960 到 1024 px 的視窗現在有側邊欄（不釘選時只占 72 px）。
+- Dashboard 的期間選擇（DateRangePicker 加 `hideLabel`，或「今天／7 天／30 天」的 SegmentedControl）放在內容最上方、第一排卡片之前，不放頂部列：頂部列只放整個 app 共用的東西（搜尋、通知、帳號），期間只影響這一頁；放在內容裡不用自己寫 CSS，手機上也放得下。
+- 空清單：還沒有任何資料時 Card 裡用 EmptyState 取代 DataTable，「新增」放在 EmptyState 的 `action`（secondary，照 EmptyState 的規則）；搜尋或篩選後沒有結果時用 DataTable 的 `emptyText`，工具列留著。
+- 載入與失敗：載入中每個區塊一塊同大小的 Skeleton；載入失敗時在那個區塊的位置放 `Alert tone="danger"`，動作「重試」。
+- 常見狀態對應 Badge：已啟用 `tone="success"`，已停用、已取消 `status="closed"` 加文字，連線 `online`、`offline`。
+- 清單頁的 Card 不給 `title`（標題在頂部列），DataTable 給同字的 `label`；一頁有好幾個區塊時（Dashboard、詳細頁）表格的 Card 才給 `title`。
+- 表單頁：整份表單一張 Card，按鈕在最下方靠右，`primary` 在最右、「取消」在它左邊（和 Dialog、Drawer 的順序相同）。
+- 展示類頁面：系統沒有頂部導覽元件，用 `TopBar`（`title` 寫網站名稱、`children` 放 `Link`、`onSearch={false}`）；頁尾一行由頁面自己寫，只用 token。
+- 文件：AGENTS.md 只留做頁面的閱讀路徑（約 6.5 KB），改設計系統的規則搬到 `docs/maintaining.md`；README 超過約 8 KB 時，agent 用不到的實作規格搬到 `docs/maintaining/<Name>.md`（DataTable、LayerGraph、TreeList、Workbench、CodeView、Markdown）；套件附 `docs/agents.md`。
+- `ui docs icons` 印出內建圖示名稱（build 時從 `src/icons/names.ts` 產生 `docs/icons.md`），一行 Phosphor 名稱、一行 Lucide 別名。
+- 元件分組：「頁面範本」改名「整頁元件」（只有 ErrorPage、LoginCard、SettingsLayout），外框和排版（AppShell、ConsoleLayout、Workbench、Grid、SplitPane）移到「版面與外框」，DangerZone 到「按鈕與操作」；新增「監控畫面」「程式碼與架構圖」「文字標記」三組。
+- 每個匯出的 prop 都要有 JSDoc，`pnpm test` 檢查（`scripts/check-jsdoc.ts`）。
+- tokens.json：`dur-toggle`、`dur-nav`、`space-5` 的 `usage` 照實際用途改寫（分頁和開關的指示塊用 `dur-nav` 的水滴，不是 300 ms）。
+
+## 待確認清單（2026-11-25 整理）
+
+整份檔案裡標成「AI 定的細節（待確認）」、還沒確認的項目，一項一行；行號指向原文，原文沒有改。實驗室的代號後面括號寫出那個選項是什麼。
+
+### 先確認：目前的規則依賴這些
+
+- 平板範圍：AppShell 在 600 到 959 px 改成導覽抽屜，960 px 以上有側邊欄，和斷點 token（`bp-desktop` 960 px）一致。實驗室 NB（窄於桌面時改成導覽抽屜）原本寫「1024 px 以下」，這次改成 960 px，少一組斷點（見下方「文件整理」）。
+- SegmentedControl 高 40 px（和工具列控制項同高），觸控裝置 48 px，Workbench 的 `mainBar` 裡 28 px；Tabs 整排也是 40 px（第 1355 行）。
+- Toast：一般訊息 3 s；有「復原」時 10 s，滑鼠或焦點在上面時暫停，Ctrl Z（⌘Z）也能復原；`toast()` 加 AppShell 自動放的 Toaster（第 1354、1412 行）。
+- 清單頁的「新增」放在 DataTable 的 `action`，工具列最右端，不放 Card 標題列（第 1233 行）。
+- 一個工具列：摘要分段、搜尋、「篩選」、筆數、「排序」、「⋯」、`action` 放得下時同一列，放不下時摘要自己一列（第 1252 行）；筆數只在搜尋或篩選後顯示（第 1254、1388 行）。
+- 這一版其他所有選擇：下方「這一版（2026-11-25）」整段，以及「文件整理」一節。
+
+### 這一版（2026-11-25）
+
+- 第 1282 行（2026-11-25 全面審查修正：核心）：存在 localStorage 的選擇（主題、強調色、側邊欄收合與釘選、Section、導覽看過沒、DataTable 的欄位與欄寬、LayerGraph 的高度與線上文字、Workbench 的版面）一律透過 `useStored`：伺服…
+- 第 1283 行（2026-11-25 全面審查修正：核心）：`useMedia` 在伺服器和 hydrate 時都是 false
+- 第 1284 行（2026-11-25 全面審查修正：核心）：Workbench 的版面只在改變時才存，不在第一次顯示時就存一份預設版面
+- 第 1285 行（2026-11-25 全面審查修正：核心）：preset 的 API：`initTheme({ preset: 'teaching' })`，狀態放在根元素的 `data-theme-preset`（頁面也可以先寫好這個屬性再呼叫 `initTheme()`，伺服器渲染時就不會閃）
+- 第 1286 行（2026-11-25 全面審查修正：核心）：強調色只在使用者選過時寫 inline 變數
+- 第 1287 行（2026-11-25 全面審查修正：核心）：語意色不跟著強調色變（theme.md 原本寫「配合強調色的飽和度」，實際上沒有這樣做）：照實寫成固定的顏色，不實作跟著變
+- 第 1288 行（2026-11-25 全面審查修正：核心）：`DEFAULT_ACCENT` 和 setAccent 在沒有 `tokens.css` 時用的底色，改由 `scripts/theme-defaults.ts` 從 tokens.json 產生 `src/generated/themeDefaults.ts`…
+- 第 1289 行（2026-11-25 全面審查修正：核心）：`color-scheme`：淺色與 teaching 是 `light`、深色是 `dark`
+- 第 1290 行（2026-11-25 全面審查修正：核心）：`format.relative`：1 小時內仍寫分鐘，即使跨過午夜（「30 分鐘前」比「昨天」準確）
+- 第 1291 行（2026-11-25 全面審查修正：核心）：新元件 `RelativeTime`：`<time>`，頁面上所有實例共用一個每 60 秒的計時器
+- 第 1292 行（2026-11-25 全面審查修正：核心）：欄位格式統一寫成 `format: 'dateTime'`（和 `format.dateTime()` 一致）
+- 第 1293 行（2026-11-25 全面審查修正：核心）：`devWarn` 可以傳函式（條件和訊息只在開發時計算），另外匯出 `DEV`
+- 第 1294 行（2026-11-25 全面審查修正：核心）：i18n：`useLocale()`、`subscribeLocale()`、`<LocaleProvider locale>`
+- 第 1295 行（2026-11-25 全面審查修正：核心）：一詞多義用「情境::原文」當 key（`'快選::上個月'` 是 Last month，`'上個月'` 是 Previous month
+- 第 1296 行（2026-11-25 全面審查修正：核心）：預設文字改成不限專案：LayerGraph 外部方框的預設標籤「repo 外」改成「外部」（英文 External），範例與預覽頁傳 `externalLabel="repo 外"` 保持原樣
+- 第 1297 行（2026-11-25 全面審查修正：核心）：CommandPalette 內建種類改用固定 id：`'page'`、`'setting'`、`'command'`、`'file'`，名稱經過翻譯
+- 第 1298 行（2026-11-25 全面審查修正：核心）：GraphLegend 只翻譯內建的預設圖例，頁面傳進來的文字照原樣顯示
+- 第 1299 行（2026-11-25 全面審查修正：核心）：`consoleZoom` 是 ConsoleLayout 內部的規則：繼續匯出但標成 deprecated，呼叫時開發警告，下一次不相容的版本移除
+- 第 1300 行（2026-11-25 全面審查修正：核心）：`focusMain` 的鍵盤或滑鼠偵測不再在 import 時掛上，改由 AppShell 和 `initTheme()` 呼叫 `installFocusMain()`
+- 第 1308 行（2026-11-25 全面審查修正：工具與發布）：發布與文件網站：Release（`publish.yml`，檔名不變，npm Trusted Publisher 仍對得上）和 Docs site 改成在 CI 於 main 的 push 成功後觸發（`workflow_run`），che…
+- 第 1309 行（2026-11-25 全面審查修正：工具與發布）：版本固定：npm 固定 `11.21.3`（不再用 `npm@latest`）
+- 第 1310 行（2026-11-25 全面審查修正：工具與發布）：Version packages PR 的 CI：changesets/action 用 workflow token 推送，GitHub 不替它跑 CI
+- 第 1311 行（2026-11-25 全面審查修正：工具與發布）：CI 拆成 `check`（build、型別、lint、測試、changeset 檢查）和 `pages`（文件網站、ui check、畫面比對）兩個 job 並行，共用 `.github/actions/setup`
+- 第 1312 行（2026-11-25 全面審查修正：工具與發布）：PR 改到已發布的套件卻沒有 changeset 時 CI 失敗
+- 第 1313 行（2026-11-25 全面審查修正：工具與發布）：字型只放在 `@seanyeh77/tokens`，`@seanyeh77/ui` 改成依賴它，`@seanyeh77/ui/fonts.css` 用 `@import '@seanyeh77/tokens/fonts.css'` 交給 b…
+- 第 1314 行（2026-11-25 全面審查修正：工具與發布）：ESLint 外掛把 `@typescript-eslint/parser` 和它需要的 TypeScript 6 API 打包進 `dist`，套件只依賴 ESLint：TypeScript 7 專案（今天的 Vite react-ts…
+- 第 1315 行（2026-11-25 全面審查修正：工具與發布）：文件網站多了 `/dist/<版本>/`（`bundle.js`、`styles.css`、`tokens.css`、`fonts.css`，字型共用 `/dist/fonts/`），從 0.45.0 起每次部署都從 npm 取回之前的版本
+- 第 1316 行（2026-11-25 全面審查修正：工具與發布）：ESLint 規則：`no-native-controls` 加上 `<textarea>`、`<button>`、`<a>`（用 `Link`）和沒有 type 或 type 為 text、search、email、password、nu…
+- 第 1317 行（2026-11-25 全面審查修正：工具與發布）：`ui check`：24 px 檢查只在 1280 px 跑，句子裡、`display: inline` 和 Markdown 內容裡的連結不算（WCAG 的行內例外）
+- 第 1318 行（2026-11-25 全面審查修正：工具與發布）：`ui shots`：頁面本身不捲動、但有一個至少 60 % 視窗高的元素在捲動時，把視窗加高到內容全部露出（最多 12000 px）
+- 第 1319 行（2026-11-25 全面審查修正：工具與發布）：Vitest：瀏覽器與 jsdom 測試都固定在 Asia/Taipei
+- 第 1320 行（2026-11-25 全面審查修正：工具與發布）：TypeScript 7.1 還只有 beta（`7.1.0-beta`），所以 tsdown 的「tsgo generator on TypeScript 7.0 is deprecated」警告還在
+- 第 1328 行（2026-11-25 全面審查修正：版面、元件與範本）：Link：一律有底線（1 px，滑過 2 px，離文字 3 px），不是只在滑過時出現：句子裡的連結不能只靠顏色分辨
+- 第 1329 行（2026-11-25 全面審查修正：版面、元件與範本）：PageHeader：標題 20 px（和頂部列標題同大），狀態 Badge 放在標題下一行、和資訊同一個字級（同一列文字同大），不放在標題旁
+- 第 1330 行（2026-11-25 全面審查修正：版面、元件與範本）：Grid 的不等寬欄寫成 `columns={[2, 1]}`（沒有另外加 Page 的 `aside`）：960 px 以下一欄，各欄靠上對齊、不拉成一樣高
+- 第 1331 行（2026-11-25 全面審查修正：版面、元件與範本）：Card 標題列：放不下時按鈕換到下一列靠右（和 DataTable 工具列在標題列時一樣），不收進「⋯」
+- 第 1332 行（2026-11-25 全面審查修正：版面、元件與範本）：Badge：每個地方都是圓圈加文字，沒有 Chip 和外框（最安靜的選項）
+- 第 1333 行（2026-11-25 全面審查修正：版面、元件與範本）：Tag：`icon` 加 `tone`
+- 第 1334 行（2026-11-25 全面審查修正：版面、元件與範本）：頂部列的帳號：用 `<Menu icon="user" label="帳號">`（無框圖示按鈕打開帳號選單），沒有新增 Avatar 元件，元件數量少一個
+- 第 1335 行（2026-11-25 全面審查修正：版面、元件與範本）：NotificationBell 的名稱改成「通知中心」
+- 第 1336 行（2026-11-25 全面審查修正：版面、元件與範本）：SideNav 底部按鈕：圖示從 20 px 改成 22 px（和項目圖示相同），按鈕往左 3 px，圖示中心和項目圖示在同一條線上
+- 第 1337 行（2026-11-25 全面審查修正：版面、元件與範本）：ProjectSwitcher：狀態圓圈用 Badge（在線、`warning` 的空心加 !、離線）
+- 第 1338 行（2026-11-25 全面審查修正：版面、元件與範本）：Alert：拿掉色條，只留圖示和狀態色
+- 第 1339 行（2026-11-25 全面審查修正：版面、元件與範本）：EventTimeline：只有跨好幾天時才分日期（全部在同一天時和以前一樣只有時間）
+- 第 1340 行（2026-11-25 全面審查修正：版面、元件與範本）：SettingsLayout：分類寫進網址 hash，用 `replaceState`（不多一筆瀏覽紀錄），預設開，`urlSync={false}` 關
+- 第 1341 行（2026-11-25 全面審查修正：版面、元件與範本）：設定的開關列做成 `SettingsRow`（不是給 Switch 加 `description`）：選單之類的其他控制項也能放
+- 第 1342 行（2026-11-25 全面審查修正：版面、元件與範本）：DangerZone：和 SettingsSection 一樣的卡片陰影，拿掉紅框，只有標題是紅色（最安靜的選項）
+- 第 1343 行（2026-11-25 全面審查修正：版面、元件與範本）：設定範本放進 AppShell：示範標題只在頂部列出現一次
+- 第 1344 行（2026-11-25 全面審查修正：版面、元件與範本）：CodeView 的註解不用斜體：字型沒有斜體字面，全部是瀏覽器硬斜，中文註解很難讀
+- 第 1345 行（2026-11-25 全面審查修正：版面、元件與範本）：強制色彩模式：選取與焦點用 `Highlight`，狀態圓點用 `CanvasText`，卡片因為陰影消失補 1 px `CanvasText` 邊框，分頁與分段的指示改成 2 px `Highlight` 外框
+- 第 1346 行（2026-11-25 全面審查修正：版面、元件與範本）：Workbench 檔案總管底部（「設定」）的內距改成上下 8 px、左右 12 px
+- 第 1354 行（2026-11-25 全面審查修正：表單、浮層與回饋）：改了已確認的規則：Toast 原本是「右下角、3 s、附復原」
+- 第 1355 行（2026-11-25 全面審查修正：表單、浮層與回饋）：改了已確認的規則：SegmentedControl 原本「高 28 px」「圖示選中時變實心、強調文字色」
+- 第 1356 行（2026-11-25 全面審查修正：表單、浮層與回饋）：Button 的 `loading` 不設 `disabled`，改用 `aria-disabled` 加 `aria-busy`，按了不執行：焦點留在按鈕上
+- 第 1357 行（2026-11-25 全面審查修正：表單、浮層與回饋）：停用的 primary 按鈕：`accent-soft` 底加 `ink-muted` 字（4.5:1），和停用的 secondary／quiet（`surface-sub` 灰底）分得出來
+- 第 1358 行（2026-11-25 全面審查修正：表單、浮層與回饋）：Dialog 的 `tone` 只有 `neutral` 和 `danger`（共用語意色的子集，另外三種對「要使用者決定的框」沒有意義）
+- 第 1359 行（2026-11-25 全面審查修正：表單、浮層與回饋）：Drawer 的「放棄未儲存的變更？」改成取代抽屜底部的按鈕列（問題、說明、「繼續編輯」「放棄」），不在抽屜上再疊一個對話框
+- 第 1360 行（2026-11-25 全面審查修正：表單、浮層與回饋）：`onOpenChange(open, reason)` 的 `reason` 只用一組自己的名稱：`trigger`、`escape`、`outside`、`close`、`cancel`、`confirm`、`select`、`hotkey`…
+- 第 1361 行（2026-11-25 全面審查修正：表單、浮層與回饋）：共用 `FieldProps`：`label` 必填（`hideLabel` 只是看不到）、`hint`、`error`、`required`、`disabled`、`name`
+- 第 1362 行（2026-11-25 全面審查修正：表單、浮層與回饋）：表單的控制項文字只有一個大小：選項文字（Checkbox、RadioGroup、Switch 旁 `<label>` 裡的字、選單選項）15 px（`text-control`），欄位標籤維持 14 px／600
+- 第 1363 行（2026-11-25 全面審查修正：表單、浮層與回饋）：浮層清單的每一列（Menu、Select、MultiSelect、Select 的搜尋清單、DataTable 的篩選與排序面板）40 px 高、`text-control`，寫在 `styles/floating.css` 一條共用規則
+- 第 1364 行（2026-11-25 全面審查修正：表單、浮層與回饋）：FormGrid 改用 container query：FormGrid 自己寬 640 px 以上雙欄
+- 第 1365 行（2026-11-25 全面審查修正：表單、浮層與回饋）：DateRangePicker 的日曆圖示移到右邊（和 DatePicker、Select 同側）
+- 第 1366 行（2026-11-25 全面審查修正：表單、浮層與回饋）：MultiSelect 的「+n」：畫面上仍是「+3」，螢幕閱讀器念「另外 3 個：名稱、名稱」（隱藏文字），沒有改成按鈕
+- 第 1367 行（2026-11-25 全面審查修正：表單、浮層與回饋）：TextArea 打到上限時用頁面的 live region 念一次「已達 200 字上限」，字數本身連到 `aria-describedby`
+- 第 1368 行（2026-11-25 全面審查修正：表單、浮層與回饋）：AccentPicker 的色碼：打字途中不檢查，離開欄位或按 Enter 才檢查
+- 第 1369 行（2026-11-25 全面審查修正：表單、浮層與回饋）：Checkbox、Switch、RadioGroup 不受控時用 `defaultChecked`／`defaultValue`
+- 第 1370 行（2026-11-25 全面審查修正：表單、浮層與回饋）：LoginCard：送出有錯時焦點移到第一個有錯的欄位，錯誤只放在 `aria-describedby`，不用 `role="alert"`（同時兩個 alert 會互相打斷）
+- 第 1371 行（2026-11-25 全面審查修正：表單、浮層與回饋）：Term `inline`：預設 Enter 或點擊才打開（`openOnFocus` 預設改成 false），一路 Tab 過去不會念每張小卡
+- 第 1372 行（2026-11-25 全面審查修正：表單、浮層與回饋）：ErrorPage 的 96 px 錯誤碼改用 Inter 的 tabular-nums：它是展示用的數字，不是程式碼，Geist Mono 的斜線零在這個大小很突兀
+- 第 1373 行（2026-11-25 全面審查修正：表單、浮層與回饋）：Checkbox、Switch 在強制色彩模式用系統色：勾選與「部分」的橫線是 Highlight／HighlightText，開關的軌道與圓鈕是 CanvasText／Highlight
+- 第 1374 行（2026-11-25 全面審查修正：表單、浮層與回饋）：`useFormErrors(values, validate)` 放在 `components/useFormErrors/`（有自己的 README，`ui docs useFormErrors` 讀得到），從套件根目錄匯出
+- 第 1375 行（2026-11-25 全面審查修正：表單、浮層與回饋）：設定頁範本（settings）改用 `toast('已儲存', { id: 'saved' })`：連續修改只留一則、重新計時
+- 第 1383 行（2026-11-25 全面審查修正：資料與圖表）：DataTable 批次操作列：勾選後出現在表格上方（工具列與篩選標籤下面）的一條 `role="toolbar"`，`accent-soft` 底、40 px 高，左邊「已選 n 筆」，右邊 `bulkActions` 和 40 px 的…
+- 第 1384 行（2026-11-25 全面審查修正：資料與圖表）：DataTable 欄寬邊框：點擊範圍 24 px，以框線為中心各占左右兩格內距
+- 第 1385 行（2026-11-25 全面審查修正：資料與圖表）：排序面板：兩層以上時每層多「上移」「下移」兩個安靜的 32 px IconButton，面板從 400 px 加寬到 480 px
+- 第 1386 行（2026-11-25 全面審查修正：資料與圖表）：字距、行距（WCAG 1.4.12）：DataTable 放一個看不見的量測元素，字的大小改變時重新量欄寬
+- 第 1387 行（2026-11-25 全面審查修正：資料與圖表）：手機卡片：欄名占左邊 40 %（13 px `ink-muted`，太長用「…」），值在右邊 60 % 換行
+- 第 1388 行（2026-11-25 全面審查修正：資料與圖表）：筆數「6 / 24 筆」只在搜尋或篩選讓列變少時出現，沒有條件時完全不顯示（也不留只給螢幕閱讀器的那份）
+- 第 1389 行（2026-11-25 全面審查修正：資料與圖表）：`mono: true`：整欄 Geist Mono 加等寬數字，第一欄的列連結字重從 600 降到 500（等寬字粗體太重）
+- 第 1390 行（2026-11-25 全面審查修正：資料與圖表）：格子裡有連結的 InlineCode（Markdown 表格也是）：沒有底色、框線和底線，只有連結色的 Geist Mono
+- 第 1391 行（2026-11-25 全面審查修正：資料與圖表）：頁碼：目前頁 `accent-soft` 底、`accent` 框、`accent-text` 字
+- 第 1392 行（2026-11-25 全面審查修正：資料與圖表）：無內距 Card 裡的 DataTable：600 px 以上第一欄（勾選欄、展開欄除外）左內距改成 16 px（`--space-4`），和工具列、KpiCard、Card 內容同一條左緣
+- 第 1393 行（2026-11-25 全面審查修正：資料與圖表）：圖表 y 軸刻度：1、2、5 乘 10 的次方，3 到 5 格，最上一格是第一個大於等於最大值的刻度
+- 第 1394 行（2026-11-25 全面審查修正：資料與圖表）：`format: 'compact'`（BarChart、LineChart）用 `format.compact`：1 萬以上寫「50 萬」「1.5 億」，軸和數值卡片都用
+- 第 1395 行（2026-11-25 全面審查修正：資料與圖表）：BarChart `height`：數字（px，預設 200）或 `'fill'`
+- 第 1396 行（2026-11-25 全面審查修正：資料與圖表）：LineChart x 軸標籤：每個標籤在點的正下方置中，超出圖的左右邊時往內移（用 CSS `clamp()`），不另外改成靠左或靠右
+- 第 1397 行（2026-11-25 全面審查修正：資料與圖表）：圖表鍵盤：看數值時圖是 `role="application"`（`aria-roledescription`「長條圖」「折線圖」），播放頭模式是 `role="slider"`
+- 第 1398 行（2026-11-25 全面審查修正：資料與圖表）：變淡（Graph `is-dim`、LayerGraph）：線、箭頭、方框的底色與色條、大小長條淡到 35 %，文字改成 `ink-muted`
+- 第 1399 行（2026-11-25 全面審查修正：資料與圖表）：LayerGraph `labels` 的鍵名：`size`、`count`、`external`、`shared`、`sharedMeta`、`use`、`inferred`、`inferredText`、`declared`、`declaredLegend`…
+- 第 1400 行（2026-11-25 全面審查修正：資料與圖表）：KpiCard：「萬」「億」和單位一樣半大、`ink-muted`、前面 4 px
+- 第 1401 行（2026-11-25 全面審查修正：資料與圖表）：Skeleton：條用 `line`（約 1.33:1），光帶是 `line` 和 `surface` 的 60 % 混色，只占中間一段
+- 第 1402 行（2026-11-25 全面審查修正：資料與圖表）：ProgressBar、Meter 強制色彩模式：軌道 1 px `CanvasText` 外框，填色與圓點 `Highlight`，Meter 的刻度 `CanvasText`
+- 第 1403 行（2026-11-25 全面審查修正：資料與圖表）：TreeList：「全部展開／全部收合」用和 Section 一樣的圖示按鈕（外框樣式）
+- 第 1404 行（2026-11-25 全面審查修正：資料與圖表）：ZoneMap：`min`、`max` 預設是分區數值的最小與最大值
+- 第 1412 行（2026-11-25 全面審查修正：整合）：Toaster：AppShell 自動放一個 Toaster，AppShell 裡的頁面呼叫 `toast()` 不用另外設定
+- 第 1413 行（2026-11-25 全面審查修正：整合）：還沒有 Toaster 在聽的時候呼叫 `toast()`（第一次 render，或在 AppShell 的 Toaster 訂閱之前執行的 effect）：訊息先排隊，Toaster 出現後才顯示並開始計時，不會遺失
+- 第 1414 行（2026-11-25 全面審查修正：整合）：SettingsLayout 的 `toast` prop 改成 deprecated：開發時警告，仍可用，改經由 `toast()` 顯示（同一個 id，文字變了就重新計時，空字串關掉），並自己放一個只在頁面沒有 Toaster 時出現的…
+- 第 1415 行（2026-11-25 全面審查修正：整合）：範本：列表與詳細頁儲存後顯示「已儲存」（新增時「已新增」），設定頁每次儲存顯示同一則「已儲存」
+- 第 1416 行（2026-11-25 全面審查修正：整合）：LayerGraph：沒有 `storageKey` 時「線上文字」開關不讀也不寫 localStorage（原本會用所有節點 id 組成的 key 讀取）
+- 第 1417 行（2026-11-25 全面審查修正：整合）：FileUpload：`status: 'error'` 改名為 `'danger'`，和其他元件的 tone 一致
+- 第 1418 行（2026-11-25 全面審查修正：整合）：LoginCard 的「忘記密碼」改用 Link（一律有底線），觸控螢幕上點擊範圍 48 px
+- 第 1419 行（2026-11-25 全面審查修正：整合）：觸控螢幕（`pointer: coarse`）：清單選項（`role="option"`：Select、MultiSelect、DataTable 篩選與排序面板、CommandPalette）至少 48 px 高
+- 第 1420 行（2026-11-25 全面審查修正：整合）：MultiSelect 的輸入框另外用 `aria-labelledby` 指向欄位標籤：清單打開時頁面其他部分對輔助科技隱藏，`<label for>` 不再替它命名
+- 第 1421 行（2026-11-25 全面審查修正：整合）：DataTable 沒有資料時，空狀態放在一個 `role="row"` 裡的 `role="cell"`，表格的 ARIA 結構完整（`table > rowgroup > row`）
+- 第 1422 行（2026-11-25 全面審查修正：整合）：LineChart 資料表的欄名「名稱（單位）」經過 `tr()`，英文介面是「name (unit)」
+- 第 1423 行（2026-11-25 全面審查修正：整合）：`ui check` 在頁面自己也跑 axe 時（Storybook 的無障礙 addon）等那次跑完再跑，最多等 10 s，不再回報「Axe is already running」
+
+### 更早的版本
+
+- 第 185 行（LayerGraph 選線）：線在 Tab 順序中排在所有方框之後
+- 第 194 行（LayerGraph 手機版與滑過提示）：漸層寬 48 px；提示是深色膠囊，寫「左右滑動」加箭頭
+- 第 209 行（codemap 新手試用回報的修正（0.4.1 之後））：Tabs 加 `unit`（整排）和 `TabItem.unit`（單項），有 count 沒有單位時開發模式提醒
+- 第 210 行（codemap 新手試用回報的修正（0.4.1 之後））：只有一頁時留右上的「N / M 筆」，拿掉下方那一行（右上在篩選時還會寫出剩幾筆，資訊比較多）
+- 第 211 行（codemap 新手試用回報的修正（0.4.1 之後））：「左右滑動」從圖上的深色膠囊改成圖下方靠右的一行次要文字（13 px，加箭頭），第一次捲動後隱藏但保留位置，下方內容不跳動
+- 第 212 行（codemap 新手試用回報的修正（0.4.1 之後））：圖例：沒有任何線時整列不顯示
+- 第 213 行（codemap 新手試用回報的修正（0.4.1 之後））：CodeView：只有 C 改成「C 語言」，JavaScript、Python、Shell 本來就看得懂，維持原名
+- 第 225 行（DataTable 長文字、窄容器與 LayerGraph 共用元件）：Tooltip 只加在真的被截掉的格子
+- 第 226 行（DataTable 長文字、窄容器與 LayerGraph 共用元件）：表格的「左右滑動」只在第一次「左右」捲動後隱藏，上下捲動不算
+- 第 227 行（DataTable 長文字、窄容器與 LayerGraph 共用元件）：「使用 N 次」是強調色底、白字的小標籤
+- 第 228 行（DataTable 長文字、窄容器與 LayerGraph 共用元件）：選一般方框時，它沒用到的共用元件變淡
+- 第 244 行（codemap 角色試用回報（手機觸控、深色模式、鍵盤））：「略過」、「顯示全部」、單獨的 Term 原本就有看不見的 48 px 點擊範圍（`::after`），觸控測試確認點在 48 × 48 px 內都點得到，外觀維持原樣
+- 第 245 行（codemap 角色試用回報（手機觸控、深色模式、鍵盤））：深色模式的程式碼連結色是 `accent-text` 混入 25% 的 `ink`（約 5.0:1），用混色而不是新的色票，使用者換強調色後仍然成立
+- 第 246 行（codemap 角色試用回報（手機觸控、深色模式、鍵盤））：CodeView 的接續標示是縮排裡一條 2 px 的 `line-strong` 直線，從第二行畫到最後一行
+- 第 247 行（codemap 角色試用回報（手機觸控、深色模式、鍵盤））：捲動提示：觸控螢幕（`pointer: coarse`）寫「左右滑動」，其他寫「向右捲動」，都保留漸層
+- 第 248 行（codemap 角色試用回報（手機觸控、深色模式、鍵盤））：CommandPalette：螢幕閱讀器先讀種類再讀名稱，中間用空格，例如「環境變數 IBTRACE_SHM」
+- 第 249 行（codemap 角色試用回報（手機觸控、深色模式、鍵盤））：Tooltip 關閉時不播動畫、立刻移除
+- 第 260 行（手機底部分頁列與手機上的導覽）：分頁名稱太長時用「…」截斷
+- 第 261 行（手機底部分頁列與手機上的導覽）：RA（手機導覽：先捲動，說明卡放在目標下方） 只用在寬度小於 600 px
+- 第 262 行（手機底部分頁列與手機上的導覽）：捲動改成直接跳到位置（手機和電腦都是）：整頁變暗時頁面捲動被鎖住，0.5.0 的平滑捲動會停在半路，目標可能還在視窗外
+- 第 273 行（LayerGraph 往上的線）：走哪一側：目標是該層最左邊的方框時走左側，其他走右側
+- 第 274 行（LayerGraph 往上的線）：來源不是該側最外面的方框時，從來源上緣出發，在上方空隙裡橫到通道
+- 第 275 行（LayerGraph 往上的線）：通道離方框 20 px，多條往上的線各自一條通道，間隔 12 px
+- 第 276 行（LayerGraph 往上的線）：往上的線的橫向段也算障礙物，往下的線的標籤不會壓在上面
+- 第 290 行（codemap 第三輪角色試用（螢幕閱讀器、平板、手機））：`focusMain()` 的目標順序：`main` 裡第一個 `h1`／`h2`、頂部列的標題、`main` 本身
+- 第 291 行（codemap 第三輪角色試用（螢幕閱讀器、平板、手機））：「跳到主要內容」平常移出畫面，聚焦時出現在左上角（白底、強調色字、浮起陰影）
+- 第 292 行（codemap 第三輪角色試用（螢幕閱讀器、平板、手機））：焦點遞補：被移除、換掉或變成不能按的按鈕，焦點給同一個位置的按鈕，沒有時給前一個，再沒有時 `focusMain()`
+- 第 293 行（codemap 第三輪角色試用（螢幕閱讀器、平板、手機））：播報的時機：DataTable 和 CommandPalette 在輸入停下 400 ms 後
+- 第 294 行（codemap 第三輪角色試用（螢幕閱讀器、平板、手機））：CodeView：每行是 `listitem`，「第 62 行：」用看不見、不能選取的文字放在行首
+- 第 295 行（codemap 第三輪角色試用（螢幕閱讀器、平板、手機））：TreeList 子項目的 group 放在列的後面，用 `aria-owns` 連到上層項目（列本身是格線排版）
+- 第 296 行（codemap 第三輪角色試用（螢幕閱讀器、平板、手機））：SideNav 和 MobileTabBar 原本就有 `aria-current="page"`，這次加了測試
+- 第 311 行（架構圖文字版、平板側邊欄、架構圖旁邊有面板、手機上往上的線的標籤）：XC（架構圖右上角「圖／清單」切換） 的切換用 Tabs（分段控制），文字「圖」「清單」
+- 第 312 行（架構圖文字版、平板側邊欄、架構圖旁邊有面板、手機上往上的線的標籤）：FB（架構圖太寬時維持原尺寸捲動並記住位置） 的記憶以 `scrollKey`（預設是所有方框的 id）為準，存在這一頁的記憶體裡，重新整理後不保留
+- 第 313 行（架構圖文字版、平板側邊欄、架構圖旁邊有面板、手機上往上的線的標籤）：NB（窄於桌面時改成導覽抽屜） 的範圍是 600 到 1024 px
+- 第 314 行（架構圖文字版、平板側邊欄、架構圖旁邊有面板、手機上往上的線的標籤）：PB（往上的線的標籤放在兩層之間） 套用在所有寬度（不只手機）
+- 第 324 行（LayerGraph 標籤避開所有的線）：順序：先找一行的位置，再換成 2、3、4 行（每種行數取最窄的寬度），最後加高空隙
+- 第 325 行（LayerGraph 標籤避開所有的線）：往下的線的標籤也套用同樣的規則：先換到箭頭另一側，再換行，再加高箭頭上方的空隙
+- 第 326 行（LayerGraph 標籤避開所有的線）：標籤也不壓到自己的線（只是可以緊貼在自己的箭頭和通道旁邊）
+- 第 327 行（LayerGraph 標籤避開所有的線）：往下的線的標籤先放（位置固定在箭頭旁），往上的線的標籤再找位置
+- 第 328 行（LayerGraph 標籤避開所有的線）：換行位置：中文字之間和空格
+- 第 329 行（LayerGraph 標籤避開所有的線）：仍會蓋在線上的情況：Default 範例最下層的「經由 `on_packet` 回呼」，箭頭兩側都被其他往下的線佔滿，加高也沒有空位，和 0.7.0 一樣
+- 第 337 行（DataTable 預設隱藏的欄位）：`resetKey` 重設所有欄位的勾選，包括使用者自己關掉的一般欄位（之前 `resetKey` 不重設欄位）
+- 第 338 行（DataTable 預設隱藏的欄位）：手機不顯示「欄位」按鈕，所以 `hidden: true` 的欄位在手機卡片上一直不顯示
+- 第 339 行（DataTable 預設隱藏的欄位）：第一欄設 `hidden: true`，或沒有「欄位」選單時（`columnMenu={false}`、2 欄以下）設了 `hidden: true`：開發時 console 警告，第一欄照常顯示
+- 第 349 行（codemap 第三輪試用：元件問題）：帶 Alt、Meta、Ctrl 的方向鍵也不給 Tabs 和 RadioGroup 處理（同一個問題）
+- 第 350 行（codemap 第三輪試用：元件問題）：觸控裝置的判斷是 `(pointer: coarse)`（手機和平板都是）
+- 第 351 行（codemap 第三輪試用：元件問題）：分數的函式名稱 `format.fraction` 和 `format.fractionLabel`
+- 第 362 行（表格長文字與頁面標題焦點）：LB（長文字列最左邊的展開箭頭） 只在 600 px 以上（表格版面）
+- 第 363 行（表格長文字與頁面標題焦點）：FC（換頁後標題左邊的 3 px 強調色條） 的色條在標題左邊 12 px 外，不推動標題文字
+- 第 371 行（codemap 第三輪試用：TreeList 和 LayerGraph）：TreeList 名稱順序「名稱，標籤，meta，路徑」，並加 `ariaLabel` 整句替換
+- 第 372 行（codemap 第三輪試用：TreeList 和 LayerGraph）：LayerGraph 選了「兩邊一致」：共用項目的次數也算其他共用項目的使用
+- 第 380 行（LayerGraph repo 外的項目、可拖拉的雙欄分隔線）：external 方框：白底（`surface`）、1.5 px `line-strong` 虛線外框、沒有左側色條
+- 第 381 行（LayerGraph repo 外的項目、可拖拉的雙欄分隔線）：往下的線的標籤：一律留在箭頭正上方的空隙
+- 第 382 行（LayerGraph repo 外的項目、可拖拉的雙欄分隔線）：SplitPane 是新元件，放在 Pages 分類
+- 第 392 行（codemap 第四輪試用：元件問題）：Tour：說明卡不蓋住目標，取代之前「上下都放不下時放在目標裡面」和手機上「蓋住目標下半部」的做法（RA（手機導覽的說明卡位置） 的細節）
+- 第 393 行（codemap 第四輪試用：元件問題）：DataTable 的 `fullText` 用 Tooltip（滑鼠），螢幕閱讀器在格子內容後念完整文字，觸控時用列的展開詳細
+- 第 394 行（codemap 第四輪試用：元件問題）：長文字原本有 20 em 的上限，拿掉後依欄寬截斷
+- 第 407 行（線標籤、手機架構圖與拖拉提示實驗室）：MA（每條線自己的轉彎，標籤在轉角旁） 只用在兩條以上有標籤的線（推測的線或有 `label` 的線）進同一個方框時
+- 第 408 行（線標籤、手機架構圖與拖拉提示實驗室）：PM（架構圖先變窄再縮小） 的寬度看 LayerGraph 自己的外框，不是視窗
+- 第 409 行（線標籤、手機架構圖與拖拉提示實驗室）：GB 的把手是 10 × 40 px（實驗室說明寫 8 × 40 px，示範畫的是 10 × 40 px，照示範），圓角 5 px，3 個 3 px 圓點（`line-strong`），間隔 3 px
+- 第 410 行（線標籤、手機架構圖與拖拉提示實驗室）：EC（點整列展開） 除了連結和按鈕，點勾選框、輸入框、`rowActions`、`role="menuitem"` 等自己有動作的元素也不切換
+- 第 418 行（LayerGraph 線上文字只在滑過時顯示）：選項是元件的 prop `edgeLabels: 'shown' | 'hover'`，預設 `'shown'`
+- 第 419 行（LayerGraph 線上文字只在滑過時顯示）：`'hover'` 時，標籤在這些情況顯示：滑鼠在線或標籤上、鍵盤移到線上、選到這條線、選到它兩端的方框
+- 第 420 行（LayerGraph 線上文字只在滑過時顯示）：沒有 `onSelectEdge` 時，線上多一條看不見的路徑只用來偵測滑過，不能點、不能用 Tab 移到，螢幕閱讀器不念
+- 第 421 行（LayerGraph 線上文字只在滑過時顯示）：PM（架構圖先變窄再縮小） 縮小時，方框和標籤在觸控螢幕上的點擊範圍反向放大，畫面上仍是 48 px
+- 第 431 行（架構圖線標籤的切換實驗室）：按鈕預設出現，只在圖上有推測的線時出現，切到清單時隱藏
+- 第 432 行（架構圖線標籤的切換實驗室）：`edgeLabels` 是一開始的狀態
+- 第 433 行（架構圖線標籤的切換實驗室）：名稱固定「顯示線上文字」，用 `aria-pressed` 表示狀態（實驗室示範時提示文字會換成「隱藏線上文字」，正式版不換，避免名稱和狀態互相矛盾）
+- 第 434 行（架構圖線標籤的切換實驗室）：圖示用 Phosphor `tag`，按下時用實心版
+- 第 450 行（codemap 第五輪試用（0.10.0））：LayerGraph：原本的位置都被擋住時，標籤沿自己的線找最近的空位
+- 第 451 行（codemap 第五輪試用（0.10.0））：LayerGraph：從方框出去的線分散在整個方框寬度（離兩邊 16 px）
+- 第 452 行（codemap 第五輪試用（0.10.0））：LayerGraph：同一層的線改從下方空隙繞到目標下緣，箭頭朝上（原本會穿過目標方框）
+- 第 453 行（codemap 第五輪試用（0.10.0））：LayerGraph：相同標籤加來源的寫法「來自 {from}，{label}」，只在兩條以上文字完全相同時加
+- 第 454 行（codemap 第五輪試用（0.10.0））：LayerGraph：repo 外的方框自成一排時不跟著變窄
+- 第 455 行（codemap 第五輪試用（0.10.0））：TopBar：專案切換器的名稱先截斷，標題最多保留 45 % 寬度
+- 第 456 行（codemap 第五輪試用（0.10.0））：DataTable：不能換行的內容讓欄位自動加寬
+- 第 457 行（codemap 第五輪試用（0.10.0））：DataTable：手機卡片的 `overflow-wrap` 從 `anywhere` 改成 `break-word`
+- 第 458 行（codemap 第五輪試用（0.10.0））：計數（DataTable、Tour、TextArea）的「a / b」改由 CSS 畫，頁面文字只留念的版本
+- 第 459 行（codemap 第五輪試用（0.10.0））：Tour：目標比視窗 70 % 高時開發警告
+- 第 460 行（codemap 第五輪試用（0.10.0））：CodeView：`refHref`、`onRef` 只用在註解和字串裡的路徑
+- 第 461 行（codemap 第五輪試用（0.10.0））：LayerGraph `countLabel`、`sizeLabel` 可以是函式
+- 第 476 行（側邊欄自動隱藏與釘選實驗室）：滑鼠停在圖示列上 100 ms 才展開，離開 300 ms 後收回
+- 第 477 行（側邊欄自動隱藏與釘選實驗室）：鍵盤：焦點用鍵盤移進側邊欄時展開，焦點離開時收回
+- 第 478 行（側邊欄自動隱藏與釘選實驗室）：選了頁面後收回。
+- 第 479 行（側邊欄自動隱藏與釘選實驗室）：展開時在頂部列之上、彈出框和對話框之下
+- 第 480 行（側邊欄自動隱藏與釘選實驗室）：釘選記在 `ui-nav-pinned`
+- 第 481 行（側邊欄自動隱藏與釘選實驗室）：新的 `defaultPinned`（預設 false）
+- 第 482 行（側邊欄自動隱藏與釘選實驗室）：圖釘按鈕在收合按鈕左邊；72 px 時兩個上下排
+- 第 495 行（DataTable 工具列的換行與表格高度）：搜尋和按鈕分兩組，按鈕組不換行，空間不夠時「排序」的文字先用「…」省略
+- 第 496 行（DataTable 工具列的換行與表格高度）：480 px 以下「排序」只寫「排序」加層數
+- 第 497 行（DataTable 工具列的換行與表格高度）：沒有搜尋框時標題剩不到約 12 個字寬，按鈕換到標題下一列、靠右
+- 第 498 行（DataTable 工具列的換行與表格高度）：放到 Card 標題列是 DataTable 在第一次畫完後找到緊接在前面的 Card 標題列，再把按鈕畫進去（portal）
+- 第 499 行（DataTable 工具列的換行與表格高度）：DataTable 改成填滿父元素寬度（container query 需要），不再依內容縮小
+- 第 500 行（DataTable 工具列的換行與表格高度）：放大按鈕和複製按鈕同樣是 40 px 的外框圖示按鈕
+- 第 501 行（DataTable 工具列的換行與表格高度）：沒有分頁的表格維持最高 560 px、表頭固定
+- 第 517 行（全螢幕監控版面 ConsoleLayout（第 4 批））：新元件 `ConsoleLayout`：`title`、`tags`、`status`、`kpis`、`clock`、`fullscreen`（預設開）、`main`、`side`、`bottom`、`extras: [{ id, minHeight, node }]`…
+- 第 518 行（全螢幕監控版面 ConsoleLayout（第 4 批））：縮放用 CSS `zoom`，依版面本身的寬高計算（不是視窗），所以放在預覽框裡也正確
+- 第 519 行（全螢幕監控版面 ConsoleLayout（第 4 批））：外距、間距 12 px；側欄 400 px，版面寬度小於 1280 px 時 360 px
+- 第 520 行（全螢幕監控版面 ConsoleLayout（第 4 批））：底列高度跟著內容（LineChart 預設 240 px 的圖），主視覺拿剩下的高度
+- 第 521 行（全螢幕監控版面 ConsoleLayout（第 4 批））：全螢幕按鈕：IconButton，圖示 corners-out／corners-in（新增 corners-in），名稱「全螢幕」／「離開全螢幕」
+- 第 522 行（全螢幕監控版面 ConsoleLayout（第 4 批））：手機的順序：頂列（KPI 換到第二行，可以左右捲動）、主視覺（最少 320 px 高）、側欄的卡片、底列、`extras` 的卡片全部顯示
+- 第 523 行（全螢幕監控版面 ConsoleLayout（第 4 批））：使用者確認大螢幕上分區圖下方不要留空白（回答「要」）：ZoneMap 新增 `fill`，列高平分卡片剩下的高度，最少 `rowHeight` px
+- 第 524 行（全螢幕監控版面 ConsoleLayout（第 4 批））：LineChart 改成依實際寬度畫：原本圖固定畫在 640 px 寬再整張縮放，寬的圖文字跟著變大（1440 px 寬時軸標約 19 px），不符合「SVG 軸標 12 px」
+- 第 542 行（監控畫面的分區圖、事件時間軸、時間控制、KPI 緊湊版，與預測／示範標記改版（第 3 批））：分區：新元件 `ZoneMap`，`zones: [{ id, name, value, unit, decimals, fill, tone, state, forecast, detail, area }]`
+- 第 543 行（監控畫面的分區圖、事件時間軸、時間控制、KPI 緊湊版，與預測／示範標記改版（第 3 批））：事件：新元件 `EventTimeline`，`events: [{ time: Date, kind: 'alert' | 'switch' | 'ai' | 'manual', text }]`
+- 第 544 行（監控畫面的分區圖、事件時間軸、時間控制、KPI 緊湊版，與預測／示範標記改版（第 3 批））：時間控制：名稱改成 `TimeControl`（沒有拖曳軸，拖曳由 LineChart 的播放頭負責）
+- 第 545 行（監控畫面的分區圖、事件時間軸、時間控制、KPI 緊湊版，與預測／示範標記改版（第 3 批））：KPI：`KpiCard size="compact"`，數字 22 px、內距 10／14 px、不畫迷你折線（傳了 spark 會在開發模式提醒）
+- 第 546 行（監控畫面的分區圖、事件時間軸、時間控制、KPI 緊湊版，與預測／示範標記改版（第 3 批））：Tag：forecast 用 trend-up 圖示、demo 用 info 圖示，圖示 1em，字 600 粗細、字級和行高繼承
+- 第 563 行（監控畫面的圖表：預測與實際、節能、狀態色帶、閾值條（第 2 批））：都做成 LineChart 的新屬性，不另開 ComparisonChart、SavingsChart：`min`（y 軸下限）、每組的 `dashed`、`color`（第幾個 chart 色）與 `null` 值、`band: { between, tone: 'diverge' | 'success', label }`…
+- 第 564 行（監控畫面的圖表：預測與實際、節能、狀態色帶、閾值條（第 2 批））：差額帶只畫兩組都有值的地方
+- 第 565 行（監控畫面的圖表：預測與實際、節能、狀態色帶、閾值條（第 2 批））：「現在」線是 1.5 px 的 `ink` 實線，上方寫「現在」12 px
+- 第 566 行（監控畫面的圖表：預測與實際、節能、狀態色帶、閾值條（第 2 批））：播放頭：在圖上任何地方按下就移到那裡並可拖曳
+- 第 567 行（監控畫面的圖表：預測與實際、節能、狀態色帶、閾值條（第 2 批））：節能大字 25 px 粗體，數字由頁面用等寬字包起來
+- 第 568 行（監控畫面的圖表：預測與實際、節能、狀態色帶、閾值條（第 2 批））：StatusBand：類別依 `classes` 順序用 chart-1 到 chart-4，最多 4 類
+- 第 569 行（監控畫面的圖表：預測與實際、節能、狀態色帶、閾值條（第 2 批））：Meter：上方一列名稱靠左，狀態和數值靠右，數值在固定 8 字寬的欄裡右對齊（`--meter-value-width`），所以疊在一起時兩者右緣都對齊
+- 第 570 行（監控畫面的圖表：預測與實際、節能、狀態色帶、閾值條（第 2 批））：圖的空狀態：沒有任何值時，圖中間寫「這段時間沒有資料」
+- 第 589 行（監控畫面的資料色、預測與示範標示、字級，與危險動作的確認（第 1 批））：色值：熱度淺色 `#2f6fb5 #6f9fd0 #b5cbe3 #e7e3dd #f2c08a #e8853a #c8401f`、深色 `#3d74b8 #5f8cc6 #8fa9c9 #5a534c #c9925a #d9772f #e0532d`…
+- 第 590 行（監控畫面的資料色、預測與示範標示、字級，與危險動作的確認（第 1 批））：名稱：`heat-1`…`heat-7`
+- 第 591 行（監控畫面的資料色、預測與示範標示、字級，與危險動作的確認（第 1 批））：新增函式 `textOn(fill)`（選 #171512 或白色）、`heatToken(value, min, max)`、`divergeToken(diff, { zero, strong })`
+- 第 592 行（監控畫面的資料色、預測與示範標示、字級，與危險動作的確認（第 1 批））：「預測」與「示範資料」做成 `Tag` 的 `variant="forecast"` 與 `variant="demo"`：高 22 px 與 24 px，`radius-sm`
+- 第 593 行（監控畫面的資料色、預測與示範標示、字級，與危險動作的確認（第 1 批））：新增文件頁 `DataColors`（Foundations），放類別色、色階、紋理與監控畫面字級的說明和示範
+- 第 594 行（監控畫面的資料色、預測與示範標示、字級，與危險動作的確認（第 1 批））：S2（監控畫面大螢幕放大上限 1.5 倍） 的縮放實作放在第 4 批的監控版面
+- 第 604 行（CodeView peek 標示一段範圍）：「程式碼區」是最近一個會捲動的框：程式碼本身（有 `maxHeight` 時），否則是包住它、`overflow` 為 auto 或 scroll 且內容超出的上層元素（例如 Workbench 的面板），都沒有時是整頁
+- 第 605 行（CodeView peek 標示一段範圍）：`from` 比 `to` 大時自動對調
+- 第 606 行（CodeView peek 標示一段範圍）：手機上只畫出目標附近幾行時，只標示和捲動範圍裡畫出來的行
+- 第 621 行（列上的小型切換、導覽提示泡泡的位置、AI 撰寫的標示、CodeView peek 的樣子）：新元件名稱 `SegmentedControl`，`iconOnly` 是 T3（只有圖示的小型分段控制） 的樣子
+- 第 622 行（列上的小型切換、導覽提示泡泡的位置、AI 撰寫的標示、CodeView peek 的樣子）：觸控裝置上沒有另外擴大可點範圍，和 mainBar 裡 28 px 的 `IconButton` 相同
+- 第 623 行（列上的小型切換、導覽提示泡泡的位置、AI 撰寫的標示、CodeView peek 的樣子）：H3（導覽提示泡泡放在按鈕左邊）：泡泡垂直置中對齊按鈕，寬度縮到按鈕左邊的空間（文字換行）
+- 第 624 行（列上的小型切換、導覽提示泡泡的位置、AI 撰寫的標示、CodeView peek 的樣子）：A2（AI 標記改成行末灰字）：不另加 `variant`，`AiMark` 直接改成行末灰字（13 px、`ink-muted`，前面 8 px）
+- 第 634 行（CodeView 的 onLine、peek 與選取，TreeList 重複選取）：`onLine` 的 `'key'` 也包含 Home、End、PageUp、PageDown 和 [ ]，它們同樣把焦點移到某一行
+- 第 635 行（CodeView 的 onLine、peek 與選取，TreeList 重複選取）：給了 `onLine` 而沒有 `links` 時，↑ ↓ 也一行一行移動（原本只有 `links` 或 `terms` 時才這樣）
+- 第 636 行（CodeView 的 onLine、peek 與選取，TreeList 重複選取）：選了 API 形式為屬性 `peek?: number | null`，沒有另外加 `CodeViewHandle.peek()`
+- 第 637 行（CodeView 的 onLine、peek 與選取，TreeList 重複選取）：`peek` 的外觀：白底（`surface`）加左側 3 px `line-strong` 線
+- 第 638 行（CodeView 的 onLine、peek 與選取，TreeList 重複選取）：TreeList：再點一次已選取的列（或按 Enter）仍呼叫 `onSelect`（例如手機上收起檔案總管），但不展開、不收合
+- 第 653 行（行內名詞說明（Term 行內樣式、CodeView 與 Markdown 的 terms））：文字顏色和字體不變；虛線是 `line-strong`、1 px、離文字 4 px
+- 第 654 行（行內名詞說明（Term 行內樣式、CodeView 與 Markdown 的 terms））：卡片和現在的 Term 相同，寬 340 px（試做頁寫 320 px，實作沿用現有 Term 的寬度）
+- 第 655 行（行內名詞說明（Term 行內樣式、CodeView 與 Markdown 的 terms））：鍵盤：Tab 到詞上立刻顯示卡片，焦點留在詞上
+- 第 656 行（行內名詞說明（Term 行內樣式、CodeView 與 Markdown 的 terms））：觸控（寬度小於 600 px）：點一下打開底部面板，和現在的 Term 相同
+- 第 657 行（行內名詞說明（Term 行內樣式、CodeView 與 Markdown 的 terms））：螢幕閱讀器念「cookie，有說明」（英文介面念 “cookie, has an explanation”）
+- 第 658 行（行內名詞說明（Term 行內樣式、CodeView 與 Markdown 的 terms））：比對：整個字、大小寫要相同
+- 第 659 行（行內名詞說明（Term 行內樣式、CodeView 與 Markdown 的 terms））：CodeView：路徑連結的位置也不標名詞
+- 第 660 行（行內名詞說明（Term 行內樣式、CodeView 與 Markdown 的 terms））：Markdown：自動比對只在一般文字（含粗體、斜體）裡，標題、連結文字、行內程式碼、`<summary>` 和表頭不標
+- 第 661 行（行內名詞說明（Term 行內樣式、CodeView 與 Markdown 的 terms））：`Term` 另外加 `openOnFocus`（預設 true）和 `tabIndex`，給 CodeView 這類自己用方向鍵移動焦點的元件用
+- 第 689 行（Workbench：從外面打開分頁與讀取目前版面）：`ref` 拿到的 `WorkbenchHandle` 有 `show`、`toggle`、`resetLayout`、`explorerPicked`、`phone`，以及 `getLayout()`（呼叫當下的版面
+- 第 690 行（Workbench：從外面打開分頁與讀取目前版面）：`onLayoutChange` 在第一次繪製時也呼叫一次
+- 第 691 行（Workbench：從外面打開分頁與讀取目前版面）：`show()` 在寬螢幕會把那一邊記成打開
+- 第 692 行（Workbench：從外面打開分頁與讀取目前版面）：手機上在合併面板換分頁，`layout.active` 跟著更新，網址才寫得到
+- 第 711 行（編輯器版面（Workbench）、IconButton 安靜樣式、TreeList 緊密模式與標記）：尺寸：頂列 48 px；檔案總管預設 260 px（180 到 480）
+- 第 712 行（編輯器版面（Workbench）、IconButton 安靜樣式、TreeList 緊密模式與標記）：分頁列 36 px、13 px 字，目前分頁粗體，底線照 Tabs 的水滴動畫
+- 第 713 行（編輯器版面（Workbench）、IconButton 安靜樣式、TreeList 緊密模式與標記）：拖曳：滑鼠在分頁左半邊插在它前面、右半邊插在它後面
+- 第 714 行（編輯器版面（Workbench）、IconButton 安靜樣式、TreeList 緊密模式與標記）：「更多 N」選單：放不下時才出現，目前的分頁一定留在分頁列上
+- 第 715 行（編輯器版面（Workbench）、IconButton 安靜樣式、TreeList 緊密模式與標記）：記住版面：`localStorage` 的 `ui-workbench:` 加 `id`
+- 第 716 行（編輯器版面（Workbench）、IconButton 安靜樣式、TreeList 緊密模式與標記）：快捷鍵在整頁有效；焦點在輸入框時 Ctrl B 不處理
+- 第 717 行（編輯器版面（Workbench）、IconButton 安靜樣式、TreeList 緊密模式與標記）：疊加的區塊不記開關：載入、還原、換寬度時都先收起，寬螢幕記下的開關不受影響
+- 第 718 行（編輯器版面（Workbench）、IconButton 安靜樣式、TreeList 緊密模式與標記）：手機面板：握把拖動範圍 120 px 到 75%，雙擊恢復 45%，高度不存
+- 第 719 行（編輯器版面（Workbench）、IconButton 安靜樣式、TreeList 緊密模式與標記）：動畫：寬螢幕收合、展開區塊 300 ms，主畫面同時變寬變窄，拖曳邊界時不加
+- 第 720 行（編輯器版面（Workbench）、IconButton 安靜樣式、TreeList 緊密模式與標記）：`attention: true` 的 view 在分頁上有 6 px 圓點，它所在的區塊關著時頂列的開關按鈕上也有 8 px 圓點
+- 第 721 行（編輯器版面（Workbench）、IconButton 安靜樣式、TreeList 緊密模式與標記）：`explorerPicked()`：頁面在樹裡選了東西後呼叫，960 px 以下關掉檔案總管
+- 第 722 行（編輯器版面（Workbench）、IconButton 安靜樣式、TreeList 緊密模式與標記）：TreeList 緊密模式只用在 `kind="plain"`（檔案種類需要日期和大小的位置）
+- 第 723 行（編輯器版面（Workbench）、IconButton 安靜樣式、TreeList 緊密模式與標記）：IconButton 安靜樣式的圖示是次要文字色，按下（`aria-pressed`）或滑過時變主要文字色
+- 第 738 行（側邊欄收合時的品牌）：logo 的位置在收合、展開、釘選三種狀態都一樣
+- 第 739 行（側邊欄收合時的品牌）：收合時連結的焦點框和項目一樣（3 px 強調色光暈）
+- 第 740 行（側邊欄收合時的品牌）：釘選後收合（72 px）和自動收回一樣只顯示 logo
+- 第 741 行（側邊欄收合時的品牌）：`onClick` 可以代替 `href`
+- 第 742 行（側邊欄收合時的品牌）：舊寫法（傳一個元素）：收合時整塊藏起來，開發模式在 console 提醒改用新寫法
+- 第 743 行（側邊欄收合時的品牌）：型別名稱 `NavBrand`
+- 第 778 行（表格的程式碼底色、多欄排序與標題字級實驗室）：K1（表格裡的行內程式碼白底加框） 的框線用 inset 陰影畫，字的大小和行高不變
+- 第 779 行（表格的程式碼底色、多欄排序與標題字級實驗室）：新的 `defaultSort`
+- 第 780 行（表格的程式碼底色、多欄排序與標題字級實驗室）：不按 Shift 點標題時換成只排這一欄（清掉其他層級）
+- 第 781 行（表格的程式碼底色、多欄排序與標題字級實驗室）：標題上的層級是箭頭後面 11 px 的強調色數字，不用膠囊（膠囊讓標題變寬）
+- 第 782 行（表格的程式碼底色、多欄排序與標題字級實驗室）：按鈕最寬 280 px；手機上寫「排序」加層數（`ui-pop-count`，和篩選按鈕的條件數相同）
+- 第 783 行（表格的程式碼底色、多欄排序與標題字級實驗室）：彈出框寬 400 px；手機上也是同一個彈出框，不改成 Drawer（和篩選一致
+- 第 784 行（表格的程式碼底色、多欄排序與標題字級實驗室）：「再依…」在彈出框裡展開成欄位清單，上面一行小字「再依哪一欄」（沒有排序時「依哪一欄排序」），每個欄位前有「＋」，焦點移到第一個
+- 第 785 行（表格的程式碼底色、多欄排序與標題字級實驗室）：拖曳只在滑鼠上；觸控和鍵盤用握把的 Alt＋↑ ↓（觸控上可以先移除再加回）
+- 第 797 行（跳過連結、無內距卡片、表格單位的錯誤）：無內距卡片裡的表格拿掉左右框線與圓角，貼齊卡片邊緣，保留上下框線
+- 第 798 行（跳過連結、無內距卡片、表格單位的錯誤）：卡片裡放表格時，標題寫在 Card 的 `title`，DataTable 給同樣文字的 `label`、不給 `caption`
+- 第 815 行（CodeView 程式碼裡的名稱可以點實驗室）：API：`links?: L[]`（`L extends CodeLink`，頁面可以多帶自己的欄位，例如 `id`）、`onLink?: (link, e)` 收到同一個物件、`preview?: (link) => ReactNode`
+- 第 816 行（CodeView 程式碼裡的名稱可以點實驗室）：`col` 從 1 開始、以字元（Unicode code point）計
+- 第 817 行（CodeView 程式碼裡的名稱可以點實驗室）：虛線是強調文字色 55% 不透明、1 px
+- 第 818 行（CodeView 程式碼裡的名稱可以點實驗室）：沒有 `onLink` 時，Ctrl 或 ⌘＋點擊（或 Enter）在同一個分頁開 `href`
+- 第 819 行（CodeView 程式碼裡的名稱可以點實驗室）：← → 在第一個或最後一個連結時不動（不繞回）
+- 第 820 行（CodeView 程式碼裡的名稱可以點實驗室）：預覽 500 ms 出現，離開 200 ms 後消失（中間移進卡片就不消失）
+- 第 821 行（CodeView 程式碼裡的名稱可以點實驗室）：沒有 `links`（或一個都對不上）時，CodeView 和以前完全一樣：↑ ↓ 仍是捲動，路徑連結仍是 Tab 停留點
+- 第 836 行（DataTable 對齊 Markdown 表格實驗室）：共用實作：拖拉邊框、放大對話框、複製圖示放在 `internal/tableTools`，Markdown 表格與 DataTable 一起用
+- 第 837 行（DataTable 對齊 Markdown 表格實驗室）：DataTable 的最窄欄寬另外不比標題加排序箭頭窄，表頭不換行
+- 第 838 行（DataTable 對齊 Markdown 表格實驗室）：第一次拖拉時量下所有顯示中欄位的寬度並固定，`grow` 不再分配
+- 第 839 行（DataTable 對齊 Markdown 表格實驗室）：`widthKey` 的寬度不會被 `resetKey` 清掉
+- 第 840 行（DataTable 對齊 Markdown 表格實驗室）：`zoom` 與 `copy` 預設開，可以設 `false` 關掉
+- 第 841 行（DataTable 對齊 Markdown 表格實驗室）：對話框最寬 1200 px，標題用 `caption` 或 `label`，沒有時寫「表格」
+- 第 842 行（DataTable 對齊 Markdown 表格實驗室）：複製圖示在工具列「欄位」左邊
+- 第 843 行（DataTable 對齊 Markdown 表格實驗室）：刻意不同：記住欄寬只有 DataTable 有（Markdown 表格的欄位隨內容變，沒有固定的 key）
+- 第 857 行（表格調整與全部展開實驗室）：每欄最窄 48 px；鍵盤 ← → 每次 16 px
+- 第 858 行（表格調整與全部展開實驗室）：放大圖示一律顯示在表格右上方（32 px，沒有外框）
+- 第 859 行（表格調整與全部展開實驗室）：`SectionGroup` 內建的那一列也只剩這一個圖示按鈕
+- 第 869 行（架構圖的高度）：LayerGraph 新的選填 `resizable`（預設 false）與 `heightKey`
+- 第 870 行（架構圖的高度）：每個間距最多多 200 px
+- 第 871 行（架構圖的高度）：「清單」模式不顯示把手。
+- 第 885 行（Markdown 撐起整份概觀實驗室）：LayerGraph 新的選填 `toolbar`：頁面的控制項放在「圖／清單」同一列的左邊，「圖／清單」在右邊
+- 第 886 行（Markdown 撐起整份概觀實驗室）：可收合區塊一開始收合（`open` 屬性也去掉）
+- 第 887 行（Markdown 撐起整份概觀實驗室）：提示框對應：NOTE、IMPORTANT 是 info，TIP 是 success，WARNING 是 warning，CAUTION 是 danger
+- 第 888 行（Markdown 撐起整份概觀實驗室）：表格格子裡有行內程式碼時，該欄至少 14 字寬
+- 第 889 行（Markdown 撐起整份概觀實驗室）：`schemes` 列出的 scheme 沒有 `linkHref` 回傳的網址、也沒有 `onLink` 時只顯示文字
+- 第 890 行（Markdown 撐起整份概觀實驗室）：`topLevel` 可設 1 到 6
+- 第 903 行（程式碼區塊的樣子）：CodeView 新的選填 `lineNumbers`（預設 true）
+- 第 924 行（可收合段落、Markdown、DetailList 實驗室）：「全部展開」「全部收合」用 Phosphor 的 arrows-out-line-vertical、arrows-in-line-vertical，一般（secondary）按鈕
+- 第 925 行（可收合段落、Markdown、DetailList 實驗室）：摘要 13 px、次要文字色
+- 第 926 行（可收合段落、Markdown、DetailList 實驗室）：`id` 對應網址 hash：載入時與 `hashchange` 時展開並捲到標題
+- 第 927 行（可收合段落、Markdown、DetailList 實驗室）：Markdown：`#` 對應 h4（`topLevel` 可改）
+- 第 928 行（可收合段落、Markdown、DetailList 實驗室）：複製圖示：CodeView 新的選填 `copy`，32 px（手機 48 px）放在標題列最右邊、語言標示的右側，複製後 2 秒變成勾，提示「已複製」，和 Suggestion 一樣
+- 第 929 行（可收合段落、Markdown、DetailList 實驗室）：DetailList `labelWidth: 'auto'`：左欄最寬 40%，名稱和值隔 24 px
+- 第 948 行（codemap 第 7 輪實驗室）：TA（架構圖方框名稱右邊的短標籤）：標籤 12 px、粗 600、`ink-muted` 字、白底（方框內）或 `surface-sub` 底（清單裡）、`radius-sm`
+- 第 949 行（codemap 第 7 輪實驗室）：LA（線念成「起點 到 終點」）：清單模式畫面上仍寫「→」，「→」對螢幕閱讀器隱藏，另外念一個看不見的「到」
+- 第 950 行（codemap 第 7 輪實驗室）：第 2 項「線在 Tab 順序裡沒有角色」：線從選取功能加入時就是 `role="button"`，有名稱與 `aria-pressed`，也有測試
+- 第 958 行（LayerGraph 標籤在窄方框裡）：門檻 8 個字；整張圖一起換，不是只換放不下的那個方框
+- 第 975 行（codemap lab3 實驗室）：KA（整棵樹一個 Tab 停點）：在已展開、而且列裡有連結的列上按 →，先進連結而不是到第一個子項目（實驗室的寫法）
+- 第 976 行（codemap lab3 實驗室）：RA（搜尋面板底部「共 N 筆」）：沒有截斷時螢幕閱讀器仍念「找到 N 筆結果」，畫面寫「共 N 筆」
+- 第 977 行（codemap lab3 實驗室）：MA（手機分頁列圖示下加文字）：有文字時分頁列高 64 px（原本 60 px），文字就是按鈕的名稱（不再另給 `aria-label`）
+- 第 978 行（codemap lab3 實驗室）：CAB：PageUp／PageDown 一次 20 行
+- 第 986 行（codemap lab3）：TreeList：延遲載入的節點有 `hasChildren` 時本來就是 `aria-expanded="false"`（在元件和 codemap 的流程頁都確認過），只補測試
+- 第 987 行（codemap lab3）：TreeList 鍵盤：ArrowRight 展開後 ArrowDown 進子節點在元件和 codemap 都重現不出來，補了測試
+- 第 988 行（codemap lab3）：CommandPalette：已有結果又在載入時，清單下方一行「搜尋中」（13 px、`ink-muted`、上方分隔線）
+- 第 989 行（codemap lab3）：Switch：`label` 只是 `aria-label`，元件不畫文字
+- 第 990 行（codemap lab3）：待選（「codemap lab3 實驗室」，結果見上一節）：TreeList 鍵盤（KB 維持現狀、KA 整棵樹一個停點）、CommandPalette 結果數（R0 不顯示、RA 底部一行「共 N 筆」、RB 可捲動時底部淡出加筆數）、M…
+- 第 1000 行（淺色強調色的文字對比保護（2026/11/10））：Badge「進行中」的符號和 Alert（info）的圖示緊貼文字，也改讀 `accent-text`（Alert 上方的色條仍是 `accent`）
+- 第 1010 行（codemap 第八輪實驗室）：編號圓點 20 px、`ink` 底、等寬數字，滑過或選取時改 `accent` 底
+- 第 1018 行（codemap 第八輪）：LayerGraph 清單：選中用 `aria-pressed`（列是按鈕，按鈕不支援 `aria-selected`），連到共用項目的關係也能選
+- 第 1019 行（codemap 第八輪）：Tour：新增 `keepVisible`（寫法同 `target`），說明卡也不蓋住它們
+- 第 1020 行（codemap 第八輪）：LayerGraph 手機：一開始捲到方框的最左邊減 16 px
+- 第 1021 行（codemap 第八輪）：LayerGraph 線上文字：「讀得出是哪一條線的」定義為離自己的線比離其他線近 4 px 以上、離其他線至少 8 px，套用到所有沿線找位置的標籤和往上的線的線道旁位置
+- 第 1022 行（codemap 第八輪）：ProjectSwitcher：名稱和狀態分成兩段，寬度不夠時狀態先縮
+- 第 1023 行（codemap 第八輪）：待選（「codemap 第八輪實驗室」，結果見上一節）：分頁放不下時的提示（S0 淡出（目前）、SA 加箭頭按鈕、SB 收進「更多」）
+- 第 1032 行（線上文字改用開關）：沿用既有的屬性名稱 `labelToggle`（使用者寫的是 `labelsToggle`），值是 `true`／`'switch'`（預設）、`'icon'`、`false`
+- 第 1046 行（codemap 第七輪）：LayerGraph：往上的線的標籤先沿著自己的線找位置，離起點越近越好，而且離自己的線比離其他線近 4 px 以上
+- 第 1047 行（codemap 第七輪）：LayerGraph 清單：方框名稱後的「，大小」緊接在名稱後面（抵掉按鈕的 4 px 內距）
+- 第 1048 行（codemap 第七輪）：Tabs：可以捲動的那一側邊緣淡出 40 px（`mask-image`），選中的分頁自動捲進畫面
+- 第 1049 行（codemap 第七輪）：CommandPalette：輸入的文字或 `loading` 改變時也重新播報，不只在播報的文字改變時
+- 第 1050 行（codemap 第七輪）：線上文字按鈕的名稱放進「codemap 第七輪實驗室」，結果見上一節
+- 第 1061 行（codemap 第六輪實驗室）：屬性名稱 `declared`、`declaredLabel`、`declaredLegend`、`declaredText`
+- 第 1069 行（codemap 第六輪）：LayerGraph：PM（架構圖先變窄再縮小） 的縮小比例在圖變寬後重算（原本只算一次，是錯誤）
+- 第 1070 行（codemap 第六輪）：Tabs：字不換行，放不下時整排左右捲動（後來選了 G0）
+- 第 1071 行（codemap 第六輪）：`unit` 函式和「1 <單位>」翻譯的寫法
+- 第 1072 行（codemap 第六輪）：「向右捲動」提示按了沒有反應：它原本就只是文字，不是按鈕
+- 第 1073 行（codemap 第六輪）：MobileTabBar 只有圖示是「要是 T0（手機分頁列只有圖示）」的決定，這輪沒有改
+- 第 1089 行（寫死顏色改成 token）：token 名稱；`on-solid` 和 `on-accent` 分開（`on-accent` 會隨自訂強調色換成深色字，危險按鈕和徽章固定白字）
+- 第 1097 行（圖表、日曆、日期欄、上傳的鍵盤與螢幕閱讀器）：BarChart、LineChart：圖本身是一個 Tab 停點，← → 和 Home／End 移動，顯示和滑過相同的數值卡片，並用 `UI.announce` 念出
+- 第 1098 行（圖表、日曆、日期欄、上傳的鍵盤與螢幕閱讀器）：Calendar：只有一天在 Tab 順序，按 WAI-ARIA 的日期格子慣例（← → ↑ ↓ Home End PageUp PageDown），跨月自動換頁，不能選的日期跳過
+- 第 1099 行（圖表、日曆、日期欄、上傳的鍵盤與螢幕閱讀器）：DatePicker：格式錯誤離開欄位後才顯示，改對時立刻消失
+- 第 1100 行（圖表、日曆、日期欄、上傳的鍵盤與螢幕閱讀器）：FileUpload：進度條名稱「檔名 上傳進度」
+- 第 1101 行（圖表、日曆、日期欄、上傳的鍵盤與螢幕閱讀器）：表格放不下時的操作欄做成實驗室（K0、KA、KB、KC），等使用者選
+- 第 1109 行（文字對比、字級、動畫時間與層級 token）：文字對比：`ink`、`ink-muted` 和每個 `*-text`，放在兩個主題的 `bg`、`surface`、`surface-sub`、`surface-chrome`、`accent-soft` 上都要達 4.5:1，狀態文字在…
+- 第 1110 行（文字對比、字級、動畫時間與層級 token）：自訂強調色：`setAccent` 換算 `accent-text` 時，除了 `bg`、`surface`，也要在 `surface-sub`、`surface-chrome` 和換算出來的 `accent-soft` 上達 4.5:1（…
+- 第 1111 行（文字對比、字級、動畫時間與層級 token）：字級 token（`--text-*`，Tailwind 的 `text-*` 同名並帶行高）：`mini` 12 px、`small` 13 px、`compact` 14 px、`control` 15 px、`body` 16 px…
+- 第 1112 行（文字對比、字級、動畫時間與層級 token）：動畫時間 token（`--dur-*`，依 `docs/motion.md` 的用途命名，數值不變）：`hover` 150 ms、`menu` 180 ms、`nav` 200 ms、`tooltip` 220 ms、`expand`…
+- 第 1113 行（文字對比、字級、動畫時間與層級 token）：層級 token（`--z-*`，數值和原本相同，所以疊放順序完全不變）：元件內部 `base` 0、`raised` 1、`sticky` 2、`float` 5
+- 第 1114 行（文字對比、字級、動畫時間與層級 token）：檢查：`pnpm test` 會先跑 `packages/ui/scripts/check-css-tokens.ts`，`styles.css` 寫了 px 字級、數字 z-index，或和 token 相同的動畫時間、曲線就失敗
+- 第 1126 行（文件拆分：核心規則、主題檔與元件的「用法」）：主題檔的分法和名稱；核心規則收哪些條目（目標 6 KB 以內）
+- 第 1127 行（文件拆分：核心規則、主題檔與元件的「用法」）：每個元件「用法」挑的規則、範例和「改用哪個元件」的說法
+- 第 1128 行（文件拆分：核心規則、主題檔與元件的「用法」）：「標籤只標例外」原本寫在階層清單，現在也寫進 Tag 的用法和 `code.md`，套用到所有分類標籤
+- 第 1129 行（文件拆分：核心規則、主題檔與元件的「用法」）：Markdown README 原本寫 .md 檔的「原始碼／預覽」用 Tabs，改成和已確認規則一致的 SegmentedControl
+- 第 1130 行（文件拆分：核心規則、主題檔與元件的「用法」）：Toast 的用法寫成「頁面掛上它 3 s 後移除」，照元件目前的做法（元件本身不計時）
+- 第 1131 行（文件拆分：核心規則、主題檔與元件的「用法」）：套件的 `docs/` 收核心規則和所有主題檔，不收 `decisions.md`
+- 第 1141 行（清單頁的實際使用回饋：狀態圓點、工具列、欄寬、列狀態、長度格式）：色票改成本身就達標的顏色（同色相、只降 OKLCH 明度）：紫 `#8a4fd6` → `#864ad1`、桃紅 `#c2407a` → `#ba3873`、紅 `#cd3a2f` → `#c53228`、橘 `#b85a0e` → `#ab5101`…
+- 第 1142 行（清單頁的實際使用回饋：狀態圓點、工具列、欄寬、列狀態、長度格式）：深色：`surface-chrome` `#35302c` → `#3d3834`
+- 第 1143 行（清單頁的實際使用回饋：狀態圓點、工具列、欄寬、列狀態、長度格式）：圓角：新增 `radius-xs` 4 px（行內程式碼、鍵帽、終端機、分段控制）
+- 第 1144 行（清單頁的實際使用回饋：狀態圓點、工具列、欄寬、列狀態、長度格式）：Badge 在 `Card`、`DataTable` 裡一律圓點加文字、沒有陰影
+- 第 1145 行（清單頁的實際使用回饋：狀態圓點、工具列、欄寬、列狀態、長度格式）：新增 `Button variant="quiet"`：無外框、透明底、`ink-muted` 字，滑過 `surface-sub` 底與 `ink` 字
+- 第 1146 行（清單頁的實際使用回饋：狀態圓點、工具列、欄寬、列狀態、長度格式）：TextField 的錯誤訊息加 `role="alert"`（所有表單都會朗讀）
+- 第 1147 行（清單頁的實際使用回饋：狀態圓點、工具列、欄寬、列狀態、長度格式）：DataTable 工具列：所有控制項 40 px
+- 第 1148 行（清單頁的實際使用回饋：狀態圓點、工具列、欄寬、列狀態、長度格式）：搜尋：在輸入框以外按 `/`（可以加 Shift）跳到頁面上第一個表格的搜尋框，Ctrl、Alt、⌘ 或焦點在對話框、選單裡時不作用
+- 第 1149 行（清單頁的實際使用回饋：狀態圓點、工具列、欄寬、列狀態、長度格式）：篩選有條件時按鈕變強調文字色加強調色框
+- 第 1150 行（清單頁的實際使用回饋：狀態圓點、工具列、欄寬、列狀態、長度格式）：欄寬：第一個不是短欄、不是 `long`、沒有 `width` 的欄是主要欄，拿剩下的寬度
+- 第 1151 行（清單頁的實際使用回饋：狀態圓點、工具列、欄寬、列狀態、長度格式）：列狀態：滑過是 `surface` 混入 `ink`（淺色 6%、深色 5%，深色 6% 時部分文字不到 4.5:1）
+- 第 1152 行（清單頁的實際使用回饋：狀態圓點、工具列、欄寬、列狀態、長度格式）：欄位 `secondary`：格子下方第二行，13 px `ink-muted`，一行加刪節號，會被搜尋，手機卡片也顯示
+- 第 1153 行（清單頁的實際使用回饋：狀態圓點、工具列、欄寬、列狀態、長度格式）：`rowHref`：第一格變成連結，點整列任何地方等於點它（Ctrl、⌘ 開新分頁），有 `rowHref` 時點列不再展開詳細內容
+- 第 1154 行（清單頁的實際使用回饋：狀態圓點、工具列、欄寬、列狀態、長度格式）：日期欄用 `<time>`、等寬數字（一般字型），相對時間滑過時用 Tooltip 顯示完整時間（超過一週的已經是完整時間就不顯示）
+- 第 1155 行（清單頁的實際使用回饋：狀態圓點、工具列、欄寬、列狀態、長度格式）：長度：`format.duration(秒)`，未滿 1 小時 `46:42`，1 小時以上 `1:54:49`，第一位不補零，負數或無效值寫「—」
+- 第 1156 行（清單頁的實際使用回饋：狀態圓點、工具列、欄寬、列狀態、長度格式）：頁面範本：list-detail 在 Card 的 `actions` 放主要按鈕「新增」（plus 圖示），摘要順序「失敗、審核中、進行中、完成、草稿」，加「更新」欄
+- 第 1157 行（清單頁的實際使用回饋：狀態圓點、工具列、欄寬、列狀態、長度格式）：`ui check` 新增兩項：同一列工具列控制項高度差超過 1 px
+- 第 1165 行（焦點外框、深色強調色填色與狀態記號的對比）：焦點：原本 3 px 半透明光暈（淺色約 1.6:1、深色約 2:1）改成 2 px `focus` 實線外框，外推 2 px
+- 第 1166 行（焦點外框、深色強調色填色與狀態記號的對比）：強調色填色：`setAccent` 讓填色在 `bg`、`surface`、`surface-sub`、`surface-chrome`、`accent-soft` 上都至少 3:1，填色上的字（`on-accent`，白或 `#171512`…
+- 第 1167 行（焦點外框、深色強調色填色與狀態記號的對比）：狀態色：淺色 `success` `#1ca655` → `#1b9f52`、`warning` `#d68710` → `#bc770e`
+- 第 1168 行（焦點外框、深色強調色填色與狀態記號的對比）：狀態記號（Badge 圓圈、樹狀清單、Workbench、專案切換、Meter 的點與刻度、折線圖閾值線）改用各狀態的文字色，`draft` 用 `ink-muted`
+- 第 1169 行（焦點外框、深色強調色填色與狀態記號的對比）：分頁與分段控制的選取框加 1 px `line-strong` 邊框（選取框和底色只差約 1.1:1）
+- 第 1170 行（焦點外框、深色強調色填色與狀態記號的對比）：DataTable：合計列一起量寬度
+- 第 1171 行（焦點外框、深色強調色填色與狀態記號的對比）：Card 沒有標題時，`actions` 靠右，不再多一個空白占位
+- 第 1172 行（焦點外框、深色強調色填色與狀態記號的對比）：KpiCard 縮寫數字裡的「萬」「億」用一般字型
+- 第 1176 行（焦點外框、深色強調色填色與狀態記號的對比）：淺色 `warning-text` `#955e0b` → `#945d0b`：紅色色票的 `accent-soft` 上原本 4.49:1
+- 第 1177 行（焦點外框、深色強調色填色與狀態記號的對比）：表格格子裡可以聚焦的東西一律內縮焦點框
+- 第 1178 行（焦點外框、深色強調色填色與狀態記號的對比）：等寬字型只留在數字和程式碼：KPI 單位、樹狀清單日期與說明行、進度條「完成」改用一般字型
+- 第 1179 行（焦點外框、深色強調色填色與狀態記號的對比）：表格列裡的完成進度條用 `success-text`
+- 第 1180 行（焦點外框、深色強調色填色與狀態記號的對比）：手機的表格合計不再隱藏，在卡片下方列出「合計 n 筆」和各欄合計
+- 第 1181 行（焦點外框、深色強調色填色與狀態記號的對比）：文件、範例、story 的專案名稱改成通用的例子（例如 `src/server`、`APP_SHM`、`'app'`、`useTour('first-visit')`）
+- 第 1182 行（焦點外框、深色強調色填色與狀態記號的對比）：`ui check` 的深色檢查在有 `window.UI` 的頁面呼叫 `UI.setTheme`，確實用深色檢查
+- 第 1190 行（CSS 層、拆檔與按需載入）：元件樣式包在 `@layer ui.components`，token 包在 `@layer ui.tokens`
+- 第 1191 行（CSS 層、拆檔與按需載入）：`styles.css` 拆成 70 個元件各自的 `<Name>.css` 和 `src/styles/` 下 9 個共用檔
+- 第 1192 行（CSS 層、拆檔與按需載入）：另外提供按需載入：`css/base.css`、各元件的 `css/<Name>.css`（會 `@import` 它用到的其他元件）、最後 `css/end.css`
+- 第 1193 行（CSS 層、拆檔與按需載入）：JavaScript 改成一個原始檔對一個輸出檔，`'use client'` 加在每個需要的檔案
+- 第 1194 行（CSS 層、拆檔與按需載入）：後續修正（同樣交給 agent 決定）：
+- 第 1209 行（圖示按需載入）：每個圖示拆成一個模組（`src/icons/ph/<name>.ts`，Regular 與 Fill 放在一起）
+- 第 1210 行（圖示按需載入）：元件固定會顯示的圖示（下拉箭頭、關閉的 x、勾號、排序、搜尋等）在元件檔裡靜態 import 並 `includeIcons()`，所以第一次畫面和 server render 都有
+- 第 1211 行（圖示按需載入）：其他名稱在 `Icon` 第一次 render 時用 `import()` 載入：載入前是同樣大小、同樣 `viewBox` 的空白 `<svg>`，載入後換成圖示，同一個 `<svg>` 元素，版面不動
+- 第 1212 行（圖示按需載入）：新增 `preloadIcons(names)`（選用），讓首屏圖示在第一次畫面就出現
+- 第 1213 行（圖示按需載入）：`icons` 移到自己的模組，只有 import 它的頁面才帶入全部圖示
+- 第 1214 行（圖示按需載入）：新增開發警告：`name` 不是內建名稱時提示改用 Phosphor 名稱或 `d`
+- 第 1215 行（圖示按需載入）：結果：只用 Button 的 Vite 專案主程式 357 KB → 303 KB（gzip 112 KB → 97 KB）
+- 第 1223 行（codemap 回報的元件問題：Workbench 把手、ProjectSwitcher 間隔號、反引號）：Workbench 手機下方面板的把手：看得到的部分維持 20 px，觸控範圍往上延伸到 48 px（蓋在主畫面底部，不蓋住面板的分頁列）
+- 第 1224 行（codemap 回報的元件問題：Workbench 把手、ProjectSwitcher 間隔號、反引號）：ProjectSwitcher：「audio-demo · 即時」兩邊各一個空格
+- 第 1225 行（codemap 回報的元件問題：Workbench 把手、ProjectSwitcher 間隔號、反引號）：反引號：會出現句子的字串 prop 都把反引號裡的文字顯示成行內程式碼（EmptyState、SettingsSection、各種欄位的說明與錯誤、Alert、Toast、Dialog、Drawer、DangerZone、ErrorPage…
+- 第 1233 行（清單頁的外觀：主要操作、列操作、摘要筆數）：主要操作：DataTable 新增 `action`（一個 `primary` 按鈕），放在摘要那一列的右端
+- 第 1234 行（清單頁的外觀：主要操作、列操作、摘要筆數）：摘要筆數：分段上只寫數字，單位改成只給螢幕閱讀器（Tabs 新增 `hideUnit`，DataTable 的摘要和常用檢視都用）
+- 第 1235 行（清單頁的外觀：主要操作、列操作、摘要筆數）：列操作：不占一欄，滑過列或鍵盤移到列裡時疊在列的右端
+- 第 1236 行（清單頁的外觀：主要操作、列操作、摘要筆數）：展開箭頭欄：只在這一頁有 `long` 格子被截掉、有 `fullText` 欄位、或有展開中的列時出現
+- 第 1237 行（清單頁的外觀：主要操作、列操作、摘要筆數）：勾選欄：46 px 改成 40 px，展開箭頭欄和勾選欄都拿掉自己的直線，看起來屬於第一欄
+- 第 1238 行（清單頁的外觀：主要操作、列操作、摘要筆數）：日期加時間：`format.dateTime` 在全形「）」後面不加空格，寫成 `2026/11/04（三）13:00`
+- 第 1239 行（清單頁的外觀：主要操作、列操作、摘要筆數）：空格子：「—」改成 `ink-muted`
+- 第 1240 行（清單頁的外觀：主要操作、列操作、摘要筆數）：卡片底部：放在 `padding={false}` Card 裡、下方沒有頁碼和捲動提示的表格，最後一列直接到卡片底邊（拿掉 16 px 空白和表格的底線）
+- 第 1241 行（清單頁的外觀：主要操作、列操作、摘要筆數）：手機（小於 480 px 的表格）：搜尋框、「篩選」（只留圖示和條件數）、筆數和「排序」同一列，搜尋框占剩下的寬度、最窄 120 px（原本搜尋框一列、其他一列）
+- 第 1242 行（清單頁的外觀：主要操作、列操作、摘要筆數）：dashboard 範本：摘要補上「草稿」，各狀態的筆數加起來等於「全部」
+- 第 1243 行（清單頁的外觀：主要操作、列操作、摘要筆數）：表頭灰底粗體、斑馬紋加格線、搜尋框的 `line-strong` 外框（3:1）都是已確認的選擇，沒有改
+- 第 1252 行（清單頁的外觀：主要操作、列操作、摘要筆數）：一個工具列：摘要分段是工具列的第一段，後面是搜尋框、「篩選」、筆數、「排序」、「⋯」，最後是 `action`（「新增」）
+- 第 1253 行（清單頁的外觀：主要操作、列操作、摘要筆數）：摘要分段在工具列裡改成 40 px 高（分段 32 px 加軌道上下 4 px），每一項依文字寬度（原本每項最少 96 px）
+- 第 1254 行（清單頁的外觀：主要操作、列操作、摘要筆數）：有摘要時工具列的「4 / 4 筆」只在搜尋或篩選留下較少的列時顯示
+- 第 1255 行（清單頁的外觀：主要操作、列操作、摘要筆數）：760 px 以下（沒有摘要或摘要另一列時）：搜尋框占按鈕留下的寬度（最窄 200 px），兩者放不下時按鈕整組換到下一列、靠右
+- 第 1256 行（清單頁的外觀：主要操作、列操作、摘要筆數）：欄寬：只貼合內容的文字欄（例如「負責人」）最窄 128 px（8 em）
+- 第 1257 行（清單頁的外觀：主要操作、列操作、摘要筆數）：「更新」不截斷：列操作仍然疊在列的右端，但最後一格（表頭、每一列、合計列）的右內距多留按鈕的寬度（量出來的，約 64 px
+- 第 1269 行（Markdown 內容與 ui check）：「標題不換行」改成只適用介面標題（頁面、卡片、對話框標題），Markdown 顯示的文件內容裡的標題可以換行
+- 第 1270 行（Markdown 內容與 ui check）：整列連結只用在清單項目的內容只有一個連結時（前後只有空白）
+- 第 1271 行（Markdown 內容與 ui check）：列高：觸控螢幕（`pointer: coarse`）至少 48 px
+- 第 1272 行（Markdown 內容與 ui check）：連結維持強調色加底線；滑過 `surface-sub` 底色（`radius-sm` 圓角），焦點是一般的 2 px 外框
+- 第 1273 行（Markdown 內容與 ui check）：項目符號或編號留在列外，和其他項目對齊
+- 第 1274 行（Markdown 內容與 ui check）：C1（程式碼區塊不算觸控目標） 的範圍：`ui check` 的觸控目標檢查跳過「只因為 `tabindex` 才能聚焦、本身會捲動（`overflow` 是 `auto` 或 `scroll`）、而且不是控制項（沒有連結、按鈕、輸入框的標籤，也沒有 button…
