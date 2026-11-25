@@ -3,8 +3,9 @@
   flex-wrap: nowrap;
   align-items: center;
   gap: 6px;
-  min-height: var(--control-height);
-  padding: 4px 8px;
+  /* One row (chips that do not fit become 「+n」): exactly the 40 px of every other field. */
+  height: var(--control-height);
+  padding: 0 4px 0 8px;
   box-sizing: border-box;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-md);
@@ -69,4 +70,22 @@
 }
 .ui-ms-chips {
   display: contents;
+}
+/* 清除: every value at once, at the field's right end (shown from 2 values; one value has its chip's ×). */
+.ui-ms-clear {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.ui-ms-clear:hover {
+  background: var(--surface-sub);
+  color: var(--ink);
 }

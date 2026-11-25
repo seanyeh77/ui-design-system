@@ -52,7 +52,7 @@
 }
 @media (max-width: 599px) {
   .ui-ms {
-    min-height: var(--touch-target);
+    height: var(--touch-target);
   }
 }
 @media (max-width: 599px) {
