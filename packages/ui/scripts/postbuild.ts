@@ -120,10 +120,15 @@ if (problems.length) throw new Error(`postbuild:\n  ${problems.join('\n  ')}`);
 // package's file, and the bundler resolves the import and the font URLs inside it.
 cpSync(new URL('dist/tokens.css', tokens), new URL('tokens.css', dist));
 rmSync(new URL('fonts', dist), { recursive: true, force: true });
-writeFileSync(
-  new URL('fonts.css', dist),
-  "/* @seanyeh77/ui/fonts.css: the self-hosted fonts of @seanyeh77/tokens (a dependency of @seanyeh77/ui). */\n@import '@seanyeh77/tokens/fonts.css';\n",
-);
+for (const [name, what] of [
+  ['fonts.css', 'the self-hosted fonts'],
+  ['fonts-latin.css', 'Inter and Geist Mono'],
+  ['fonts-tc.css', 'Noto Sans TC'],
+])
+  writeFileSync(
+    new URL(name, dist),
+    `/* @seanyeh77/ui/${name}: ${what} of @seanyeh77/tokens (a dependency of @seanyeh77/ui). */\n@import '@seanyeh77/tokens/${name}';\n`,
+  );
 
 const docs = new URL('docs/', root);
 mkdirSync(docs, { recursive: true });
