@@ -29,7 +29,7 @@
       "name": "settings",
       "type": "registry:block",
       "title": "Settings page",
-      "description": "Settings with categories, auto-save with 「已儲存」, theme and accent pickers, and a danger zone.",
+      "description": "Settings in the app frame: categories in the URL hash, switch rows, fields that save on blur, 「已儲存」, theme and accent pickers, and a danger zone last.",
       "dependencies": ["@seanyeh77/ui"],
       "files": [{ "path": "packages/blocks/src/settings/Settings.tsx", "type": "registry:block", "target": "components/blocks/settings/Settings.tsx" }]
     },
