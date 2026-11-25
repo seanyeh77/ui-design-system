@@ -36,3 +36,15 @@
   color: var(--success-text);
   font-weight: 600;
 }
+/* Forced colors (Windows high contrast): backgrounds are replaced, so the track gets an outline and the fill keeps a
+   system colour of its own. */
+@media (forced-colors: active) {
+  .ui-progress-track {
+    border: 1px solid CanvasText;
+  }
+  .ui-progress-fill,
+  .ui-progress.is-done .ui-progress-fill {
+    forced-color-adjust: none;
+    background: Highlight;
+  }
+}

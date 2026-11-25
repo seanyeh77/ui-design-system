@@ -9,6 +9,7 @@ import { codeText } from '../InlineCode/InlineCode';
 export interface KpiCardProps {
   /** What is measured: 「本月營收」. */
   label: string;
+  /** The figure, as a number (counts up from 0 when it appears). */
   value: number;
   /** 'money' shows NT$ 1,280; 'percent' 1 decimal without the % sign: pass unit="%" (same as DataTable). Default 'number'. */
   format?: 'number' | 'money' | 'percent';
@@ -18,6 +19,8 @@ export interface KpiCardProps {
   compact?: boolean;
   /** Written after the number: 元, 人, ms, %. */
   unit?: string;
+  /** Digits after the decimal point, for the figure and its change (delta). Default 0 for the figure; the change then
+   *  keeps 1 (%) or 2 (pt). */
   decimals?: number;
   /** Change versus the comparison period. */
   delta?: number;
@@ -29,6 +32,8 @@ export interface KpiCardProps {
   spark?: number[];
   /** Default 「較上週」. */
   compareLabel?: string;
+  /** Its own class names. */
+  className?: string;
   /** `compact`: a 22 px number for a top bar, no sparkline; with verdict and target below. Default 'default' (31 px). */
   size?: 'default' | 'compact';
   /** How the figure is judged, in words: 「預測準確」(success), 「偏差變大」(warning), 「需要校正」(danger). Shown only
@@ -36,12 +41,13 @@ export interface KpiCardProps {
   verdict?: { tone: 'success' | 'warning' | 'danger'; text: string };
   /** One gray line under the number, e.g. 「目標 ≤ 0.5 °C（示意）」; `backticks` are code. */
   target?: string;
-  className?: string;
 }
 
-/** Chinese in a figure (the 萬 and 億 of an abbreviated number) in the text font; Geist Mono stays on the digits. */
+/** Chinese in a figure (the 萬 and 億 of an abbreviated number) in the text font and drawn like the unit (smaller,
+ *  muted); Geist Mono stays on the digits. */
 function sansCjk(text: string): React.ReactNode[] {
-  return text.split(/([\u2e80-\u9fff\uff00-\uffef]+)/).map((t, i) =>
+  // The space before 萬 is the unit's margin (CSS), not a space as wide as a Geist Mono digit.
+  return text.split(/\s*([\u2e80-\u9fff\uff00-\uffef]+)/).map((t, i) =>
     i % 2 ? (
       <span key={i} className="ui-kpi-cjk">
         {t}
@@ -64,7 +70,12 @@ export function KpiCard(props: KpiCardProps) {
   const hasDelta = typeof delta === 'number';
   const up = hasDelta && delta > 0;
   const isGood = good ?? up;
-  const dTxt = hasDelta ? (deltaUnit === 'pt' ? tr('{n} 個百分點', { n: format.number(Math.abs(delta), 2) }) : format.percent(Math.abs(delta))) : '';
+  // The change follows decimals when it is given (decimals={1}: 「0.4 個百分點」, not 「0.40」).
+  const dTxt = hasDelta
+    ? deltaUnit === 'pt'
+      ? tr('{n} 個百分點', { n: format.number(Math.abs(delta), props.decimals ?? 2) })
+      : format.percent(Math.abs(delta), props.decimals ?? 1)
+    : '';
   let sparkD: string | null = null;
   if (!compact && spark && spark.length > 1) {
     const mx = Math.max(...spark);
@@ -75,7 +86,10 @@ export function KpiCard(props: KpiCardProps) {
   return (
     <section className={cx('ui-kpi', compact && 'is-compact', className)}>
       <div className="ui-kpi-label">{label}</div>
-      <div ref={valRef} className="ui-kpi-value" aria-label={kpiText(value, props, decimals) + (showUnit ? ' ' + unit : '')}>
+      <div ref={valRef} className="ui-kpi-value">
+        {/* The final figure for screen readers, as text (an aria-label on a div without a role is not read); the
+            counting figure is hidden from them. */}
+        <span className="ui-visually-hidden">{kpiText(value, props, decimals) + (showUnit ? ' ' + unit : '')}</span>
         <span className="ui-kpi-num" aria-hidden="true">
           <span className="ui-kpi-sizer">{sansCjk(kpiText(value, props, decimals))}</span>
           <span className="ui-kpi-live">{sansCjk(kpiText(value * t, props, decimals))}</span>
@@ -96,6 +110,8 @@ export function KpiCard(props: KpiCardProps) {
           <span className={cx('ui-kpi-change', isGood ? 'is-good' : 'is-bad')}>
             {up ? '▲ ' : '▼ '}
             {digits(dTxt)}
+            {/* Good or bad is not only a colour (WCAG 1.4.1): said in words to screen readers. */}
+            <span className="ui-visually-hidden">{isGood ? tr('，改善') : tr('，變差')}</span>
           </span>
           <span className="ui-kpi-note">{compareLabel || tr('較上週')}</span>
         </div>

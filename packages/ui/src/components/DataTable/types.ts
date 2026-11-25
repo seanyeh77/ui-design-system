@@ -10,8 +10,12 @@ interface ColumnBase<R extends Row> {
   label: string;
   /** Numbers: right-aligned with tabular figures. */
   numeric?: boolean;
+  /** IDs, codes, hashes and paths: the cell (and the first column's row link) in Geist Mono with figures of one
+   *  width. Not for words or Chinese text. */
+  mono?: boolean;
   /** After each value: '%', 'ms', '個'. Write it here, not in the label. */
   unit?: string;
+  /** false: the heading does not sort, and the column is left out of 「排序」. Default true. */
   sortable?: boolean;
   /** What to sort by when it is not the field itself. */
   sortValue?: (row: R) => number | string;
@@ -25,7 +29,9 @@ interface ColumnBase<R extends Row> {
    *  relative: 「2 小時前」 within a week, kept current, the full date on hover. percent: 1 decimal, no % sign: add
    *  unit: '%'. duration: seconds as 46:42 or 1:54:49, right-aligned, sorted by the number. */
   format?: 'money' | 'date' | 'dateTime' | 'datetime' | 'relative' | 'percent' | 'duration';
+  /** With format 'money': the ISO currency code. Default: the locale's currency (TWD). */
   currency?: string;
+  /** Digits after the decimal point for numbers. */
   decimals?: number;
   /** A second line under the cell's text: smaller, muted, one line cut with …. Search finds its text; phone cards show
    *  it. E.g. the reason an import failed, or 「匯入中 42%」 for a running one. Rows grow only when a column has it. */

@@ -13,7 +13,7 @@ const ZONES: Zone[] = [
 
 function Map() {
   const [sel, setSel] = React.useState<string | null>(null);
-  return <ZoneMap label="機房分區" zones={ZONES} selectedId={sel} onSelect={(z) => setSel(z.id)} />;
+  return <ZoneMap label="機房分區" zones={ZONES} value={sel} onChange={setSel} />;
 }
 
 test('zones are buttons named with their figure and state; Tab then Enter or Space selects', async () => {
@@ -67,4 +67,17 @@ test('fill: rows share the height the map is given, never below rowHeight', asyn
   );
   const zone = container.querySelector('.ui-zone') as HTMLElement;
   await expect.poll(() => zone.getBoundingClientRect().height).toBeGreaterThan(250);
+});
+
+test("the heat scale spans the zones' own values by default; the shown figure reads like the name", () => {
+  const zones: Zone[] = [
+    { id: 'lo', name: '低', value: 40, unit: '%' },
+    { id: 'hi', name: '高', value: 80, unit: '%' },
+  ];
+  const { container } = render(<ZoneMap label="濕度" zones={zones} />);
+  const fills = [...container.querySelectorAll('.ui-zone')].map((z) => z.getAttribute('data-fill'));
+  expect(fills).toEqual(['heat-1', 'heat-7']);
+  const b = screen.getByRole('button', { name: /低/ });
+  expect((b.querySelector('.ui-zone-value') as HTMLElement).textContent).toBe('40.0 %');
+  expect(b.getAttribute('aria-label')).toContain('40.0 %');
 });

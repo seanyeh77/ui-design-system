@@ -176,7 +176,6 @@
   white-space: nowrap;
 }
 .ui-zone-unit {
-  margin-left: 4px;
   font-family: var(--font-sans);
   font-size: var(--text-body);
   font-weight: 500;

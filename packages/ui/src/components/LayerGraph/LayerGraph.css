@@ -251,8 +251,33 @@
 .ui-lg-arrow.is-related {
   fill: var(--accent);
 }
-.ui-lg .is-dim {
-  opacity: 0.4;
+/* Dimmed (not related to the selection): lines, arrows and the boxes' fills and bars fade; every text turns ink-muted
+   and keeps 4.5:1, so a dimmed box can still be read and picked. Not opacity on a whole box, which took its name under
+   3:1. */
+.ui-lg-edge.is-dim,
+.ui-lg-arrow.is-dim {
+  opacity: 0.35;
+}
+.ui-lg-label.is-dim,
+.ui-lg-li.is-dim,
+.ui-lg-li.is-dim .ui-lg-libtn,
+.ui-lg-li.is-dim .ui-lg-limeta,
+.ui-lg-numlist li.is-dim {
+  color: var(--ink-muted);
+}
+.ui-lg-node.is-dim {
+  background: color-mix(in srgb, var(--graph-node) 35%, var(--ui-graph-bg, var(--surface)));
+  box-shadow: inset 4px 0 0 color-mix(in srgb, var(--graph-edge) 35%, var(--ui-graph-bg, var(--surface)));
+  color: var(--ink-muted);
+}
+.ui-lg-node.is-dim:hover {
+  background: var(--surface-sub);
+}
+.ui-lg-node.is-dim.is-external {
+  border-color: color-mix(in srgb, var(--line-strong) 50%, var(--ui-graph-bg, var(--surface)));
+}
+.ui-lg-node.is-dim :is(.ui-lg-track, .ui-lg-track > span) {
+  opacity: 0.35;
 }
 /* Selectable edges (onSelectEdge): an invisible 12 px path over each line takes clicks and focus. It sits above the lines,
    under the boxes and labels, and comes after the boxes in tab order. */
@@ -289,18 +314,20 @@
   pointer-events: auto;
   cursor: pointer;
 }
-.ui-lg-label.is-clickable.is-hover {
+/* Hover on a line, its label or its number (is-hl, set on every part of that line without a new render). */
+.ui-lg-label.is-clickable.is-hl {
   text-decoration: underline;
 }
-/* Hover on a line or its label: the line gets a little darker. */
-.ui-lg-edge.is-hover:not(.is-related) {
+/* Hover on a selectable line or its label: the line gets a little darker and 2 px wider. */
+.ui-lg.has-pick .ui-lg-edge.is-hl:not(.is-related) {
   stroke: color-mix(in srgb, var(--graph-edge), var(--ink) 35%);
+  stroke-width: calc(var(--lg-w) + 2);
 }
-.ui-lg-edge.is-hover:not(.is-related) + .ui-lg-arrow {
+.ui-lg.has-pick .ui-lg-edge.is-hl:not(.is-related) + .ui-lg-arrow {
   fill: color-mix(in srgb, var(--graph-edge), var(--ink) 35%);
 }
 /* edgeLabels 'hover': a label stays in its place but hidden until its line is hovered, focused or selected. */
-.ui-lg-label.is-quiet {
+.ui-lg-label.is-quiet:not(.is-hl) {
   opacity: 0;
   pointer-events: none;
 }
@@ -433,7 +460,7 @@
   visibility: hidden;
   z-index: calc(var(--z-sticky) + 1);
 }
-.ui-lg-label.is-numbered.is-shown {
+.ui-lg-label.is-numbered:is(.is-shown, .is-hl) {
   visibility: visible;
 }
 /* A line's number: a 20 px dot on the line, the same number as in the list under the diagram. */
@@ -453,12 +480,13 @@
   text-align: center;
   pointer-events: auto;
 }
-.ui-lg-num.is-on {
+.ui-lg-num:is(.is-on, .is-hl) {
   background: var(--accent);
   color: var(--on-accent);
 }
-.ui-lg-num.is-dim {
-  opacity: 0.35;
+/* Dimmed: a muted dot, its number still 4.5:1. */
+.ui-lg-num.is-dim:not(.is-on, .is-hl) {
+  background: var(--ink-muted);
 }
 .ui-lg-num.is-static {
   position: static;
@@ -479,9 +507,6 @@
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
-}
-.ui-lg-numlist li.is-dim {
-  opacity: 0.45;
 }
 .ui-lg-label.is-related {
   color: var(--accent-text);

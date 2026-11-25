@@ -17,3 +17,4 @@ h(UI.Meter, { label: 'B 區進氣溫度', value: 28.1, min: 20, max: 32, warn: 2
 - 圓點 14 px，顏色依狀態。
 - 上方一列：名稱靠左；狀態和數值靠右，數值用等寬字、右對齊在固定寬度的欄（8 個字寬，`--meter-value-width` 可以改）。
 - 無障礙：`role="meter"`，`aria-valuetext` 念「28.1 °C，注意，注意 27，上限 29」。
+- 強制色彩模式（Windows 高對比）：底色會被換掉，所以軌道加 1 px `CanvasText` 外框，圓點用 `Highlight`、刻度用 `CanvasText`，不會消失。

@@ -59,6 +59,9 @@ export interface DataTableProps<R extends Row = Record<string, unknown>> {
   /** px kept free at the end of each row's last cell for the row actions, so they never cover its content. Default:
    *  the width the actions take, measured. */
   actionsWidth?: number;
+  /** false: no toolbar row at all (no search, 「篩選」, 「排序」, 「⋯」 or count), for a small table of a few rows that
+   *  needs none of them. Headings still sort on click. Default true. */
+  toolbar?: boolean;
   /** Search box (default on; false hides it). Searches every column unless keys is given. */
   search?: false | { placeholder?: string; keys?: RowKey<R>[] };
   /** Filters in the 「篩選」 popover. */
@@ -250,6 +253,16 @@ function RowCheck({ v, label, onClick }: { v: boolean | 'mixed'; label: string; 
   );
 }
 
+interface Measured {
+  fit: Record<string, number>;
+  clipped: boolean | null;
+  want: Record<string, number>;
+  roomy: boolean;
+  actsW: number | null;
+  onerow: boolean;
+}
+const UNMEASURED: Measured = { fit: {}, clipped: null, want: {}, roomy: false, actsW: null, onerow: false };
+
 interface Snapshot {
   kind: 'sort' | 'next' | 'prev';
   rows: Record<string, { top: number; bg: string; node: HTMLElement }>;
@@ -295,18 +308,14 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const rootRef = React.useRef<HTMLDivElement>(null);
   const [sel, setSel] = React.useState<Record<string, boolean>>({});
   const [sumVal, setSumVal] = React.useState('all');
-  // Widths (px) that columns grew to so content that cannot wrap is not cut; see the measuring effect.
-  const [fit, setFit] = React.useState<Record<string, number>>({});
-  // Whether a long cell on the page is cut at its column's edge (desktop); null until measured.
-  const [clipped, setClipped] = React.useState<boolean | null>(null);
-  // What the main and long columns ask for (px), and whether every column gets it (measured below).
-  const [want, setWant] = React.useState<Record<string, number>>({});
+  // What the measuring effect reads from the drawn table, in one state so one measure is one render (see below).
+  const [measured, setMeasured] = React.useState<Measured>(UNMEASURED);
+  // fit: widths (px) that columns grew to so content that cannot wrap is not cut. clipped: whether a long cell on the
+  // page is cut at its column's edge (desktop; null until measured). want, roomy: what the main and long columns ask for
+  // (px), and whether every column gets it. actsW: the row actions' width (px), kept free at the end of the last cell.
+  // onerow: the summary tabs, the search field and the buttons fit on one row.
+  const { fit, clipped, want, roomy, actsW, onerow: onerowState } = measured;
   const wantRef = React.useRef(want);
-  const [roomy, setRoomy] = React.useState(false);
-  // The row actions' width (px), kept free at the end of the last cell so they never cover its content.
-  const [actsW, setActsW] = React.useState<number | null>(null);
-  // The summary tabs, the search field and the buttons fit on one row.
-  const [onerowState, setOnerow] = React.useState(false);
   // A2: widths readers dragged (px per column key); null = width and grow decide. Remembered under widthKey.
   const [widths, setWidths] = useStored<Record<string, number> | null>(p.widthKey ? 'ui-dt-width:' + p.widthKey : undefined, parseWidths, null);
   // In the 「放大表格」 dialog: open, and the widths dragged there (not kept; the page's widths stay).
@@ -343,9 +352,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     // Remembered columns (widthKey) are the reader's own, like the widths: a new data set keeps them.
     if (!colsKey) setToggled({});
     setOpened({});
-    setFit({});
-    setWant({});
-    setClipped(null);
+    setMeasured((m) => ({ ...m, fit: {}, want: {}, clipped: null }));
   }
   const valuesKey = JSON.stringify(values);
   const sortKey = JSON.stringify(sort);
@@ -425,41 +432,51 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const rowEls = React.useRef<Record<string, HTMLDivElement | null>>({});
   const snap = React.useRef<Snapshot | null>(null);
 
-  let all = rows.map((r, i) => ({ r, i }));
-  const viewObj = p.views?.find((v) => v.id === view);
-  if (viewObj?.filter) all = all.filter((x) => viewObj.filter?.(x.r));
-  const sumAll = all;
   const summary = p.summary;
-  if (summary && sumVal !== 'all') all = all.filter((x) => String(get(x.r, summary.key)) === sumVal);
-  const baseCount = all.length;
   const searching = search !== false && !!q;
+  const searchKeys = search ? search.keys : undefined;
+  // Read by the memo below as a string, so a new keys array with the same keys does not search again.
+  const searchKeysKey = searchKeys ? searchKeys.join('\u0001') : null;
   const passes = (r: R, skip?: string) =>
-    (!searching || searchHit(r, cols, filters, q, search ? search.keys : undefined)) && filters.every((f) => f.key === skip || matches(f, r, values[f.key]));
-  let list = all.filter((x) => passes(x.r));
+    (!searching || searchHit(r, cols, filters, q, searchKeys)) && filters.every((f) => f.key === skip || matches(f, r, values[f.key]));
+  // View, summary, search, filters and sort run again only when one of them or the rows change, not on every render
+  // (a hover, a selection, a measured width).
+  const { all, sumAll, list } = React.useMemo(() => {
+    let all = rows.map((r, i) => ({ r, i }));
+    const viewObj = p.views?.find((v) => v.id === view);
+    if (viewObj?.filter) all = all.filter((x) => viewObj.filter?.(x.r));
+    const sumAll = all;
+    if (sumKey && sumVal !== 'all') all = all.filter((x) => String(get(x.r, sumKey)) === sumVal);
+    const keys = searchKeysKey === null ? undefined : (searchKeysKey.split('\u0001') as RowKey<R>[]);
+    const hit = (r: R) => (!searching || searchHit(r, cols, filters, q, keys)) && filters.every((f) => matches(f, r, values[f.key]));
+    let list = all.filter((x) => hit(x.r));
+    if (sort.length) {
+      // The first level decides; the next only between rows the first finds equal; then the rows' own order.
+      const by = sort.map((l) => {
+        const col = cols.find((c) => c.key === l.key);
+        // Dates by time (an ISO string or a Date), not by their text.
+        const val = (r: R): unknown => {
+          if (col?.sortValue) return col.sortValue(r);
+          const v = get(r, l.key);
+          if (v instanceof Date || (col && isDateCol(col))) return asDate(v)?.getTime() ?? -Infinity;
+          return v;
+        };
+        return { val, d: l.dir === 'asc' ? 1 : -1 };
+      });
+      list = [...list].sort((a, b) => {
+        for (const { val, d } of by) {
+          const x = val(a.r);
+          const y = val(b.r);
+          const c = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'zh-Hant');
+          if (c) return c * d;
+        }
+        return a.i - b.i;
+      });
+    }
+    return { all, sumAll, list };
+  }, [rows, cols, filters, values, q, searching, searchKeysKey, sort, view, p.views, sumKey, sumVal]);
+  const baseCount = all.length;
   const activeN = filters.filter((f) => isActive(values[f.key])).length;
-  if (sort.length) {
-    // The first level decides; the next only between rows the first finds equal; then the rows' own order.
-    const by = sort.map((l) => {
-      const col = cols.find((c) => c.key === l.key);
-      // Dates by time (an ISO string or a Date), not by their text.
-      const val = (r: R): unknown => {
-        if (col?.sortValue) return col.sortValue(r);
-        const v = get(r, l.key);
-        if (v instanceof Date || (col && isDateCol(col))) return asDate(v)?.getTime() ?? -Infinity;
-        return v;
-      };
-      return { val, d: l.dir === 'asc' ? 1 : -1 };
-    });
-    list = [...list].sort((a, b) => {
-      for (const { val, d } of by) {
-        const x = val(a.r);
-        const y = val(b.r);
-        const c = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'zh-Hant');
-        if (c) return c * d;
-      }
-      return a.i - b.i;
-    });
-  }
   // After the search, a filter, the summary or the view changes (not on first render): 「顯示 6 筆」.
   const shownKey = `${q}|${valuesKey}|${sumVal}|${view}`;
   const firstKey = React.useRef(shownKey);
@@ -473,7 +490,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const pages = Math.max(1, Math.ceil(list.length / pageSize));
   const pageNow = Math.min(page, pages - 1);
   const start = pageNow * pageSize;
-  const vis = list.slice(start, start + pageSize);
+  const vis = React.useMemo(() => list.slice(start, start + pageSize), [list, start, pageSize]);
   const idOf = (x: { r: R; i: number }) => {
     const id = get(x.r, 'id');
     return id != null ? String(id) : String(x.i);
@@ -718,10 +735,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         }
         root.classList.remove('is-measuring');
       }
-      setFit((f) => {
-        const grow = Object.entries(need).filter(([k, w]) => w > (f[k] ?? 0));
-        return grow.length ? { ...f, ...Object.fromEntries(grow) } : f;
-      });
+      // Everything read in this pass goes into one state update (one render), and none when nothing changed.
+      const next: Partial<Measured> = {};
       const head = root.querySelector<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-head');
       const scroll = root.querySelector<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-scroll');
       if (head && scroll && scroll.clientWidth > 0) {
@@ -730,7 +745,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         const more = Object.entries(asks).filter(([k, w]) => w > (before[k] ?? 0));
         const merged = more.length ? { ...before, ...Object.fromEntries(more) } : before;
         wantRef.current = merged;
-        if (more.length) setWant(merged);
+        if (more.length) next.want = merged;
         // Every column gets what it asks for when the hugging columns, the checkbox column and every main or long
         // column's ask fit in the box (the caret column is left out: it goes when nothing is cut).
         let used = 0;
@@ -739,14 +754,14 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
           const key = el.dataset.col;
           used += key && el.classList.contains('is-grow') ? Math.max(asks[key] ?? 0, merged[key] ?? 0, 48) : el.getBoundingClientRect().width;
         }
-        setRoomy(used <= scroll.clientWidth);
+        next.roomy = used <= scroll.clientWidth;
       }
       // The row actions' width: the widest set of buttons over a row end.
       let aw = 0;
       for (const el of root.querySelectorAll<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-body .ui-dt-acts')) {
         if (el.childElementCount) aw = Math.max(aw, Math.ceil(el.getBoundingClientRect().width));
       }
-      if (root.querySelector(':scope > .ui-dt-scroller .ui-dt-body .ui-dt-acts')) setActsW((v) => (v !== null && Math.abs(v - aw) <= 1 ? v : aw));
+      if (root.querySelector(':scope > .ui-dt-scroller .ui-dt-body .ui-dt-acts')) next.actsW = aw;
       // One toolbar row when the summary tabs, the search field at its least width and the buttons fit.
       const tools = root.querySelector<HTMLElement>(':scope > .ui-dt-tools.has-summary');
       if (tools && tools.clientWidth > 0) {
@@ -759,7 +774,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
           need2 += e.getBoundingClientRect().width + (text ? Math.max(0, text.scrollWidth - text.clientWidth) : 0);
         }
         need2 += Math.max(0, parts.length - 1) * TOOL_GAP;
-        setOnerow(need2 <= tools.clientWidth);
+        next.onerow = need2 <= tools.clientWidth;
       }
       // A long cell cut at its column's edge: the caret column is needed. Only where layout is real (not jsdom).
       const scroller = root.querySelector<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-scroll');
@@ -767,8 +782,23 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         const cut = [...root.querySelectorAll<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-body .ui-dt-long')].some(
           (el) => el.scrollWidth > el.clientWidth + 1,
         );
-        setClipped(cut);
+        next.clipped = cut;
       }
+      setMeasured((m) => {
+        const grow = Object.entries(need).filter(([k, w]) => w > (m.fit[k] ?? 0));
+        if (grow.length) next.fit = { ...m.fit, ...Object.fromEntries(grow) };
+        const aw2 = next.actsW;
+        const actsSame = aw2 == null || (m.actsW !== null && Math.abs(m.actsW - aw2) <= 1);
+        const same =
+          !next.fit &&
+          !next.want &&
+          (next.roomy === undefined || next.roomy === m.roomy) &&
+          actsSame &&
+          (next.onerow === undefined || next.onerow === m.onerow) &&
+          (next.clipped === undefined || next.clipped === m.clipped);
+        if (same) return m;
+        return { ...m, ...next, actsW: actsSame ? m.actsW : (next.actsW ?? m.actsW) };
+      });
     };
     let frame = 0;
     const later = () => {
@@ -794,9 +824,23 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
       lastW = w;
     });
     ro?.observe(root);
+    // The text's own size: a font that loads late, a zoom of the text only, or reader styles that add letter, word or
+    // line spacing (WCAG 1.4.12) change how wide a cell's content is, though the table's width stays.
+    const probe = root.querySelector<HTMLElement>(':scope > .ui-dt-probe');
+    let probeSize = '';
+    const po = probe
+      ? resizeObserver(() => {
+          const r = probe.getBoundingClientRect();
+          const size = `${Math.round(r.width)}x${Math.round(r.height)}`;
+          if (probeSize && size !== probeSize) later();
+          probeSize = size;
+        })
+      : null;
+    if (probe) po?.observe(probe);
     return () => {
       mo.disconnect();
       ro?.disconnect();
+      po?.disconnect();
       cancelAnimationFrame(frame);
       measureRef.current = () => {};
     };
@@ -816,6 +860,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     cx(
       'ui-dt-cell',
       isNum(c) && 'is-num',
+      c.mono && 'is-mono',
       grows(c) ? 'is-grow' : 'is-hug',
       ci === 0 && sticky && 'is-sticky is-sticky-end',
       ci === shownCols.length - 1 && 'is-lastcol',
@@ -827,25 +872,15 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
 
   const headOf = (inZoom: boolean) => {
     const gridStyle = inZoom ? zoomGrid : pageGrid;
-    const minW = gridStyle.minWidth;
     const w = inZoom ? zoomWidths : widths;
     const setW = inZoom ? setZoomWidths : setWidths;
     const root = () => (inZoom ? zoomRef.current : rootRef.current);
-    return selectable && selIds.length && p.bulkActions ? (
-      <div className="ui-dt-row ui-dt-head ui-dt-bulk" role="row" style={{ minWidth: minW }}>
-        <div className="ui-dt-cell" role="columnheader">
-          <RowCheck v={allOn ? true : 'mixed'} label={tr('全選')} onClick={() => toggle(visIds, !allOn)} />
-        </div>
-        <span className="ui-dt-bulk-count">{tr('已選 {n} 筆', { n: selIds.length })}</span>
-        <span className="ui-dt-bulk-actions">{p.bulkActions(selIds, clear)}</span>
-        <button type="button" className="ui-dt-bulk-close" aria-label={tr('取消選取')} onClick={clear}>
-          <Icon name="x" size={14} />
-        </button>
-      </div>
-    ) : (
+    return (
       <div className="ui-dt-row ui-dt-head" role="row" style={gridStyle}>
         {expander ? (
-          <div className={cx('ui-dt-cell ui-dt-exp', lead('exp').className)} style={lead('exp').style} role="columnheader" aria-label={tr('詳細')} />
+          <div className={cx('ui-dt-cell ui-dt-exp', lead('exp').className)} style={lead('exp').style} role="columnheader">
+            <span className="ui-visually-hidden">{tr('展開')}</span>
+          </div>
         ) : null}
         {selectable ? (
           <div className={cx('ui-dt-cell ui-dt-sel', lead('sel').className)} style={lead('sel').style} role="columnheader">
@@ -1054,7 +1089,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
       () => p.onCopyError?.(),
     );
   // 「/」 focuses the search field of the first table on the page that has one; that table shows the 「/」 hint.
-  const slash = search !== false && p.searchShortcut !== false;
+  const slash = search !== false && p.toolbar !== false && p.searchShortcut !== false;
   const [slashOwner, setSlashOwner] = React.useState(false);
   React.useEffect(() => {
     const el = rootRef.current;
@@ -1131,8 +1166,9 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
       hideUnit
     />
   ) : null;
-  // With a summary the tabs already give the counts: 「4 / 4 筆」 shows only while a search or filter keeps fewer rows.
-  const showCount = !summary || list.length !== baseCount;
+  // 「6 / 24 筆」 only while a search or filter keeps fewer rows: before that the summary tabs, the page range under the
+  // table or the rows themselves already say how many there are.
+  const showCount = list.length !== baseCount;
   const toolsView = (inZoom: boolean, inHead = false) => (
     <div className={cx('ui-dt-tools', inHead && 'is-inhead', summaryView && !inZoom && !inHead && 'has-summary', onerow && !inZoom && !inHead && 'is-onerow')}>
       {summaryView && !inZoom && !inHead ? <div className="ui-dt-sumwrap">{summaryView}</div> : null}
@@ -1172,14 +1208,16 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
             }}
           />
         ) : null}
-        <span className={cx('ui-dt-result', !showCount && 'ui-visually-hidden')}>
-          {/* Shown 「6 / 6 筆」; read 「6 筆中的 6 筆」, not 「6 斜線 6 筆」. The shown one is drawn by CSS, so the page's text
-              has only the readable one (no 「6 / 6 筆6 筆中的 6 筆」 when copied or read by a tool). */}
-          <span aria-hidden="true">
-            {seenOnly(tr('{n} / {total} 筆', { n: '\u0001', total: '\u0002' }), [format.number(list.length), format.number(baseCount)])}
+        {showCount ? (
+          <span className="ui-dt-result">
+            {/* Shown 「6 / 24 筆」; read 「24 筆中的 6 筆」, not 「6 斜線 24 筆」. The shown one is drawn by CSS, so the page's
+                text has only the readable one (no 「6 / 24 筆24 筆中的 6 筆」 when copied or read by a tool). */}
+            <span aria-hidden="true">
+              {seenOnly(tr('{n} / {total} 筆', { n: '\u0001', total: '\u0002' }), [format.number(list.length), format.number(baseCount)])}
+            </span>
+            <span className="ui-visually-hidden">{format.fractionLabel(list.length, baseCount, tr('筆'))}</span>
           </span>
-          <span className="ui-visually-hidden">{format.fractionLabel(list.length, baseCount, tr('筆'))}</span>
-        </span>
+        ) : null}
         {sortCols.length ? <SortButton cols={sortCols} levels={sort} max={maxSort} onChange={changeSort} boundary={inZoom ? zoomRef : rootRef} /> : null}
         {narrow ? null : (
           <MoreMenu
@@ -1212,6 +1250,18 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
       </div>
     </div>
   );
+  // While rows are selected: the count, the bulk actions and 「取消選取」 in a toolbar above the table (not a row of the
+  // table: the header row and its column headers stay).
+  const bulkView =
+    selectable && selIds.length && p.bulkActions ? (
+      <div className="ui-dt-bulk" role="toolbar" aria-label={tr('已選 {n} 筆', { n: selIds.length })}>
+        <span className="ui-dt-bulk-count">{monoNums(tr('已選 {n} 筆', { n: '\u0001' }), [format.number(selIds.length)])}</span>
+        <span className="ui-dt-bulk-actions">{p.bulkActions(selIds, clear)}</span>
+        <button type="button" className="ui-dt-bulk-close" aria-label={tr('取消選取')} onClick={clear}>
+          <Icon name="x" size={16} />
+        </button>
+      </div>
+    ) : null;
   const tableView = (inZoom: boolean) => {
     const grid = inZoom ? zoomGrid : pageGrid;
     const pfx = inZoom ? uid + 'z' : uid;
@@ -1443,16 +1493,20 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
           })}
         </div>
       ) : null}
-      {summaryView && headSlot ? <div className="ui-dt-top">{summaryView}</div> : null}
-      {headSlot ? createPortal(toolsView(false, true), headSlot) : toolsView(false)}
+      {/* Measures the text's size (see the measuring effect): its text is drawn by CSS, so it is not in the page's text. */}
+      <span className="ui-dt-probe" aria-hidden="true" />
+      {summaryView && (headSlot || p.toolbar === false) ? <div className="ui-dt-top">{summaryView}</div> : null}
+      {p.toolbar === false ? null : headSlot ? createPortal(toolsView(false, true), headSlot) : toolsView(false)}
       {chipsView(false)}
+      {bulkView}
       {tableView(false)}
       <ScrollHint show={overflows} done={scrolled} />
       {footView}
       <TableDialog open={zoomed} onClose={() => setZoomed(false)} title={p.caption || p.label}>
         <div ref={zoomRef} className="ui-dt ui-dt-zoomed">
-          {toolsView(true)}
+          {p.toolbar === false ? null : toolsView(true)}
           {chipsView(true)}
+          {bulkView}
           {tableView(true)}
           {footView}
         </div>

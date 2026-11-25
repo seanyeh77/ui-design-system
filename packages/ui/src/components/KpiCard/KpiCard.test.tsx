@@ -33,3 +33,17 @@ test('萬 and 億 in an abbreviated figure are in the text font, the digits in G
   expect(cjk.textContent).toBe('萬');
   expect(getComputedStyle(cjk).fontFamily).not.toMatch(/Geist Mono/);
 });
+
+test('screen readers get the final figure as text and whether the change is good; 萬 is drawn like a unit; delta follows decimals', () => {
+  const { container, rerender } = render(<KpiCard label="營收" value={12840000} unit="元" delta={8.2} />);
+  const value = container.querySelector('.ui-kpi-value') as HTMLElement;
+  expect(value.getAttribute('aria-label')).toBeNull();
+  expect((value.querySelector('.ui-visually-hidden') as HTMLElement).textContent).toBe('1,284 萬 元');
+  expect(value.querySelector('.ui-kpi-num')?.getAttribute('aria-hidden')).toBe('true');
+  expect(container.querySelector('.ui-kpi-change')?.textContent).toBe('▲ 8.2%，改善');
+  const cjk = container.querySelector('.ui-kpi-sizer .ui-kpi-cjk') as HTMLElement;
+  const unit = container.querySelector('.ui-kpi-unit') as HTMLElement;
+  expect(getComputedStyle(cjk).fontSize).toBe(getComputedStyle(unit).fontSize);
+  rerender(<KpiCard label="錯誤率" value={0.42} unit="%" decimals={1} delta={0.4} deltaUnit="pt" good={false} />);
+  expect(container.querySelector('.ui-kpi-change')?.textContent).toBe('▲ 0.4 個百分點，變差');
+});

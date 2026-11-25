@@ -1,10 +1,12 @@
 import type * as React from 'react';
+import { devWarn } from '../../internal/dev';
 import { cx } from '../../internal/util';
 import { format } from '../../format';
 import { tr } from '../../i18n';
 import { heatToken, textOn } from '../../theme';
 
 export interface Zone {
+  /** Unique id: value and onChange use it. */
   id: string;
   /** 「A 區」. */
   name: string;
@@ -29,6 +31,7 @@ export interface Zone {
 }
 
 export interface ZoneMapProps {
+  /** The zones, in order (placed by `area` or flowing into the grid). */
   zones: Zone[];
   /** What the map shows, for screen readers, e.g. 「設施分區」. */
   label: string;
@@ -40,10 +43,17 @@ export interface ZoneMapProps {
   /** Rows grow to fill the height the map is given (in ConsoleLayout's main view, or any flex column), never below
    *  `rowHeight`. */
   fill?: boolean;
-  /** The heat scale's range for zones without a fill. Default 20 to 30. */
+  /** Bottom of the heat scale for zones without a fill. Default: the smallest value among the zones. */
   min?: number;
+  /** Top of the heat scale for zones without a fill. Default: the largest value among the zones. */
   max?: number;
+  /** The selected zone's id (controlled); null for none. */
+  value?: string | null;
+  /** A zone was picked (click, Enter or Space): its id, and the zone. */
+  onChange?: (id: string, zone: Zone) => void;
+  /** @deprecated use value. */
   selectedId?: string | null;
+  /** @deprecated use onChange (it gets the id first, the zone second). */
   onSelect?: (zone: Zone) => void;
   className?: string;
 }
@@ -53,7 +63,20 @@ export interface ZoneMapProps {
  *  ink outline outside it; a zone needing attention has a 4 px warning or danger border and 「⚠」 in its state. */
 const DATA_TOKEN = /^(heat-[1-7]|diverge-(neg|pos)(-strong)?|diverge-zero|chart-[1-4])$/;
 
-export function ZoneMap({ zones, label, columns = 4, rowHeight = 120, fill = false, min = 20, max = 30, selectedId, onSelect, className }: ZoneMapProps) {
+export function ZoneMap({ zones, label, columns = 4, rowHeight = 120, fill = false, className, ...p }: ZoneMapProps) {
+  devWarn(
+    p.selectedId !== undefined || p.onSelect !== undefined,
+    'ZoneMap',
+    'selectedId and onSelect are renamed value and onChange (id, zone); pass those instead.',
+  );
+  const selectedId = p.value !== undefined ? p.value : p.selectedId;
+  const pick = (z: Zone) => (p.onChange ? p.onChange(z.id, z) : p.onSelect?.(z));
+  // The heat scale spans the zones' own values unless min and max are given: a map of humidity or load reads as well as
+  // one of temperatures. One value alone (or all equal) gets the middle of the scale.
+  const values = zones.map((z) => z.value).filter((v): v is number => v != null && Number.isFinite(v));
+  const lo = p.min ?? (values.length ? Math.min(...values) : 0);
+  const hiRaw = p.max ?? (values.length ? Math.max(...values) : 1);
+  const [min, max] = hiRaw > lo ? [lo, hiRaw] : [lo - 1, lo + 1];
   return (
     <div
       className={cx('ui-zonemap', fill && 'is-fill', className)}
@@ -86,7 +109,7 @@ export function ZoneMap({ zones, label, columns = 4, rowHeight = 120, fill = fal
             style={{ ...place, background: bg, color: DATA_TOKEN.test(fill) ? undefined : textOn(fill) }}
             aria-pressed={on}
             aria-label={[z.name, figure + (z.unit ? ' ' + z.unit : ''), state.replace('⚠ ', ''), z.detail].filter(Boolean).join(tr('，'))}
-            onClick={() => onSelect?.(z)}
+            onClick={() => pick(z)}
           >
             <span className="ui-zone-head">
               <span className="ui-zone-name">{z.name}</span>
@@ -94,7 +117,13 @@ export function ZoneMap({ zones, label, columns = 4, rowHeight = 120, fill = fal
             </span>
             <span className="ui-zone-value">
               {figure}
-              {z.unit ? <span className="ui-zone-unit">{z.unit}</span> : null}
+              {/* A real space before the unit: the shown text is 「23.1 °C」, the same as the button's name (WCAG 2.5.3). */}
+              {z.unit ? (
+                <>
+                  {' '}
+                  <span className="ui-zone-unit">{z.unit}</span>
+                </>
+              ) : null}
             </span>
             {z.detail ? <span className="ui-zone-detail">{z.detail}</span> : null}
           </button>

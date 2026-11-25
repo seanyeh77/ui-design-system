@@ -37,10 +37,10 @@
             h(U.ZoneMap, {
               label: '設施分區',
               zones: ZONES,
-              selectedId: sel[0],
-              onSelect: function (z) {
-                sel[1](z.id);
-              },
+              min: 20,
+              max: 30,
+              value: sel[0],
+              onChange: sel[1],
             }),
           ),
         );

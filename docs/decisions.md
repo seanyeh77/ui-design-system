@@ -1373,3 +1373,32 @@ AI 定的細節（待確認）：
 - Checkbox、Switch 在強制色彩模式用系統色：勾選與「部分」的橫線是 Highlight／HighlightText，開關的軌道與圓鈕是 CanvasText／Highlight。
 - `useFormErrors(values, validate)` 放在 `components/useFormErrors/`（有自己的 README，`ui docs useFormErrors` 讀得到），從套件根目錄匯出。送出時依欄位的 `name` 找第一個有錯的欄位；是選擇器的隱藏 input 時移到同一個欄位裡看得見的控制項。
 - 設定頁範本（settings）改用 `toast('已儲存', { id: 'saved' })`：連續修改只留一則、重新計時。
+
+## 2026-11-25 全面審查修正：資料與圖表
+
+使用者把細節交給 AI：「都照你的意見，因為我外來新專案每個前端都會使用 design system，不要讓前端只支持特定場景為原則去判斷，另外希望是 agent 能夠使用者個 design 使用越少的 token 或是更專注於設計網頁與 UX 這樣最好」、「全部都交給 subagent，最後驗證也是」。手機卡片「欄名｜值」同一行、篩選後才顯示筆數是審查時已定的方向。
+
+### AI 定的細節（待確認）
+
+- DataTable 批次操作列：勾選後出現在表格上方（工具列與篩選標籤下面）的一條 `role="toolbar"`，`accent-soft` 底、40 px 高，左邊「已選 n 筆」，右邊 `bulkActions` 和 40 px 的取消 ×；表頭不再被換掉。
+- DataTable 欄寬邊框：點擊範圍 24 px，以框線為中心各占左右兩格內距；表頭的排序按鈕不再有自己的內距（焦點外框改畫在外側 2 px），最後一欄右側內距 24 px。不拖曳的方式：點一下邊框，欄寬依序變成 1.5 倍、2 倍，第三下回到預設（每次念出寬度）；沒有另做「調整欄寬」選單。
+- 排序面板：兩層以上時每層多「上移」「下移」兩個安靜的 32 px IconButton，面板從 400 px 加寬到 480 px；方向 radio 只有選中的在 Tab 順序裡，← → ↑ ↓ 切換。
+- 字距、行距（WCAG 1.4.12）：DataTable 放一個看不見的量測元素，字的大小改變時重新量欄寬；數字欄放不下時從尾端截（`safe flex-end`），不從開頭。
+- 手機卡片：欄名占左邊 40 %（13 px `ink-muted`，太長用「…」），值在右邊 60 % 換行；長日期和數字在這裡可以換行。`rowActions` 在卡片最下面自己一行、靠右，狀態永遠對齊卡片右緣；沒有操作的卡片沒有這一行。
+- 筆數「6 / 24 筆」只在搜尋或篩選讓列變少時出現，沒有條件時完全不顯示（也不留只給螢幕閱讀器的那份）；新增 `toolbar={false}` 拿掉整個工具列，自動判斷小表格的做法沒有做。
+- `mono: true`：整欄 Geist Mono 加等寬數字，第一欄的列連結字重從 600 降到 500（等寬字粗體太重）。
+- 格子裡有連結的 InlineCode（Markdown 表格也是）：沒有底色、框線和底線，只有連結色的 Geist Mono；滑過或焦點時 1 px 底線。位置（`is-location`）維持原本的 `ink-muted`。
+- 頁碼：目前頁 `accent-soft` 底、`accent` 框、`accent-text` 字；不能按的上一頁／下一頁沒有框線、`ink-muted` 字，不用半透明。
+- 無內距 Card 裡的 DataTable：600 px 以上第一欄（勾選欄、展開欄除外）左內距改成 16 px（`--space-4`），和工具列、KpiCard、Card 內容同一條左緣。
+- 圖表 y 軸刻度：1、2、5 乘 10 的次方，3 到 5 格，最上一格是第一個大於等於最大值的刻度；數值是整數且範圍 3 以上時只用整數刻度；給 `max` 而整除不了時平分 4 格。軸的寬度量畫出來的刻度文字。單位寫在 y 軸上方（12 px `ink-muted`）。
+- `format: 'compact'`（BarChart、LineChart）用 `format.compact`：1 萬以上寫「50 萬」「1.5 億」，軸和數值卡片都用。
+- BarChart `height`：數字（px，預設 200）或 `'fill'`；`fill` 時放在 Card 裡會讓 Card 變成直向 flex，長條區最矮 160 px。
+- LineChart x 軸標籤：每個標籤在點的正下方置中，超出圖的左右邊時往內移（用 CSS `clamp()`），不另外改成靠左或靠右。
+- 圖表鍵盤：看數值時圖是 `role="application"`（`aria-roledescription`「長條圖」「折線圖」），播放頭模式是 `role="slider"`；兩種都在圖後面放一個只給螢幕閱讀器的資料表（ARIA 的 table 角色，不用原生 `<table>`），沒有做「以表格檢視」按鈕。播放頭移動時不再另外用 live region 念，交給 `aria-valuetext`。
+- 變淡（Graph `is-dim`、LayerGraph）：線、箭頭、方框的底色與色條、大小長條淡到 35 %，文字改成 `ink-muted`；LayerGraph 變淡的編號圓點改成 `ink-muted` 底。
+- LayerGraph `labels` 的鍵名：`size`、`count`、`external`、`shared`、`sharedMeta`、`use`、`inferred`、`inferredText`、`declared`、`declaredLegend`、`declaredText`、`listNodes`、`listEdges`；`value`、`onChange` 管方框，線的選取維持 `selectedEdge`、`onSelectEdge`。`storageKey` 存高度（`ui-lg-height:`）和「線上文字」開關（`ui-lg-labels:`），也當捲動位置的名稱（只存在記憶體）。
+- KpiCard：「萬」「億」和單位一樣半大、`ink-muted`、前面 4 px；變化的小數位數只在給了 `decimals` 時跟著它，沒給時維持百分比 1 位、百分點 2 位；螢幕閱讀器在變化後面念「改善」或「變差」。ConsoleLayout 頂列的小卡平分寬度、每張至少和內容一樣寬。
+- Skeleton：條用 `line`（約 1.33:1），光帶是 `line` 和 `surface` 的 60 % 混色，只占中間一段；減少動態時沒有光帶。
+- ProgressBar、Meter 強制色彩模式：軌道 1 px `CanvasText` 外框，填色與圓點 `Highlight`，Meter 的刻度 `CanvasText`；Skeleton 加 1 px `GrayText` 外框。
+- TreeList：「全部展開／全部收合」用和 Section 一樣的圖示按鈕（外框樣式）；「2 個新」從 12 px 改成 13 px，和檔案數同一級；`onChange` 和 ZoneMap 的 `onChange` 第二個參數是整個節點或分區。
+- ZoneMap：`min`、`max` 預設是分區數值的最小與最大值；只有一個值或全部相同時用那個值上下各 1。數值和單位之間改成真的空格（原本是 4 px 外距）。

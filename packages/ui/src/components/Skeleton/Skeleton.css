@@ -6,10 +6,31 @@
     background-position: 300px 0;
   }
 }
+/* The bar is line (about 1.33:1 on surface in light and dark, so it is seen); a narrow lighter band passes over it. */
 .ui-skel {
   display: block;
   border-radius: var(--radius-sm);
-  background: linear-gradient(90deg, var(--surface-sub) 0%, var(--bg) 50%, var(--surface-sub) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--line) 0%,
+    var(--line) 35%,
+    color-mix(in srgb, var(--line), var(--surface) 60%) 50%,
+    var(--line) 65%,
+    var(--line) 100%
+  );
   background-size: 600px 100%;
   animation: ui-shimmer 1.2s linear infinite;
+}
+/* Reduced motion: no shimmer, a still bar. */
+@media (prefers-reduced-motion: reduce) {
+  .ui-skel {
+    animation: none;
+    background: var(--line);
+  }
+}
+/* Forced colors: backgrounds are dropped, so an outline keeps the place visible. */
+@media (forced-colors: active) {
+  .ui-skel {
+    border: 1px solid GrayText;
+  }
 }

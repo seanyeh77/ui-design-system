@@ -13,9 +13,10 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  right: -6px;
+  /* 24 px hit area centred on the border (WCAG 2.5.8): 12 px over each cell's padding. */
+  right: -12px;
   z-index: var(--z-raised);
-  width: 11px;
+  width: 24px;
   cursor: col-resize;
   touch-action: none;
   outline: none;
@@ -37,7 +38,25 @@
 .ui-col-resize:focus-visible::after {
   width: 3px;
 }
-/* A finger cannot hit an 11 px border: on touch screens the corner button shows the whole table instead. */
+/* A linked name or path in a table cell (InlineCode with a link): mono text in the link colour only, no chip, border
+   or underline until hover or keyboard focus. The zebra rows and the hover ground stay calm. */
+:is(.ui-dt-body, .ui-dt-detail, .ui-md-table td) .ui-code.is-link:not(.is-location) {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  text-decoration: none;
+  color: var(--code-link-ink, var(--accent-text));
+}
+:is(.ui-dt-body, .ui-dt-detail, .ui-md-table td) .ui-code.is-link:is(:hover, :focus-visible) {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+/* Dark: accent-text on a surface-sub row is 3.9:1; a quarter of ink brings it above 4.5:1. */
+[data-theme='dark'] :is(.ui-dt-body, .ui-dt-detail, .ui-md-table td) .ui-code.is-link {
+  --code-link-ink: color-mix(in srgb, var(--accent-text), var(--ink) 25%);
+}
+/* A finger cannot drag a column border: on touch screens the corner button shows the whole table instead. */
 @media (pointer: coarse) {
   .ui-col-resize {
     display: none;

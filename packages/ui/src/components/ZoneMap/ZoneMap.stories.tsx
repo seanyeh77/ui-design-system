@@ -15,6 +15,6 @@ const ZONES: UI.Zone[] = [
 export const Zones = {
   render: function Render() {
     const [sel, setSel] = React.useState('b');
-    return <UI.ZoneMap label="設施分區" columns={5} zones={ZONES} selectedId={sel} onSelect={(z) => setSel(z.id)} />;
+    return <UI.ZoneMap label="設施分區" columns={5} zones={ZONES} min={20} max={30} value={sel} onChange={setSel} />;
   },
 };

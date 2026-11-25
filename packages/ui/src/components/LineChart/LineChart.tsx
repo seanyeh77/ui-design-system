@@ -1,12 +1,24 @@
 import * as React from 'react';
-import { ChartTip, TICKS, chartKey, tickDecimals, niceMax, seriesColor, smoothPath, type Point } from '../../internal/chart';
+import {
+  ChartTable,
+  ChartTip,
+  axisTicks,
+  chartKey,
+  chartNumber,
+  seriesColor,
+  smoothPath,
+  ticksDecimals,
+  useAxisWidth,
+  type ChartFormat,
+  type Point,
+} from '../../internal/chart';
 import { cx, digits } from '../../internal/util';
-import { format } from '../../format';
 import { tr } from '../../i18n';
 import { announce } from '../../announce';
 import { StatusBand, StatusLegend, type StatusBandProps } from '../StatusBand/StatusBand';
 
 export interface LineSeries {
+  /** The series' name: the legend, the tooltip and the data table. */
   name: string;
   /** One value per label; null where there is none (a forecast ahead of the measurements, a gap). */
   values: (number | null)[];
@@ -27,6 +39,7 @@ export interface LineBand {
 }
 
 export interface LineThreshold {
+  /** The level, in the chart's unit. */
   value: number;
   /** Written on the line at the right, e.g. 「上限 29 °C」. */
   label: string;
@@ -41,11 +54,13 @@ export interface LineChartProps {
   labels: string[];
   /** Describes the chart for screen readers. */
   label: string;
-  /** After each value in the tooltip. */
+  /** After each value in the tooltip, and above the y axis, e.g. 「°C」. */
   unit?: string;
   /** Decimals of the values in the tooltip. Default 0. */
   decimals?: number;
-  /** Top of the y axis. Default: a round number above the largest value. */
+  /** 'compact': the axis and the tooltip write 40 萬 and 1.5 億 (400K in English) instead of 400,000. Default 'number'. */
+  format?: ChartFormat;
+  /** Top of the y axis. Default: the first round tick at or above the largest value. */
   max?: number;
   /** Bottom of the y axis. Default 0; set it for values far from 0, such as temperatures. */
   min?: number;
@@ -62,6 +77,7 @@ export interface LineChartProps {
   /** A playhead at this point, for replaying: an accent line with a round handle on the x axis. Dragging (mouse,
    *  touch) or ← → Home End on the chart move it. */
   playhead?: number;
+  /** The playhead moved (drag, ← → Home End): the new point's index. */
   onPlayheadChange?: (at: number) => void;
   /** A large figure above the chart, e.g. 「省 186 kWh（約 12%）」. */
   headline?: React.ReactNode;
@@ -75,8 +91,7 @@ export interface LineChartProps {
   className?: string;
 }
 
-/** Plot geometry in px: y labels left of L, the 現在 label above T, the playhead handle below B. */
-const L = 40;
+/** Plot geometry in px: the 現在 label above T, the playhead handle below B. The y labels' width is measured. */
 const T = 10;
 const BELOW = 30;
 
@@ -104,6 +119,7 @@ export function LineChart({
   label,
   unit,
   decimals,
+  format: fmt,
   max,
   min = 0,
   labelEvery = 1,
@@ -134,34 +150,40 @@ export function LineChart({
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+  const all = series.flatMap((s) => s.values.filter((v): v is number => v != null));
+  const ticks = axisTicks(min, Math.max(min + 1, ...all, ...(thresholds ?? []).map((t) => t.value)), { top: max, dec: decimals });
+  const top = ticks[ticks.length - 1];
+  const tickDec = fmt === 'compact' ? undefined : ticksDecimals(ticks);
+  const tickText = ticks.map((v) => chartNumber(v, fmt, tickDec));
+  // The y labels' own width (measured): 「400,000」 or 「40 萬」 never touches the card's edge.
+  const L = useAxisWidth(plot, tickText, W) + 8;
   const R = W - 10;
   const B = height - BELOW;
   const stripes = 'ui-stripes-' + React.useId().replace(/:/g, '');
   const dragging = React.useRef(false);
-  const all = series.flatMap((s) => s.values.filter((v): v is number => v != null));
-  const top = max ?? niceMax(Math.max(min + 1, ...all, ...(thresholds ?? []).map((t) => t.value)) - min) + min;
   const n = labels.length || series[0]?.values.length || 0;
   const step = (R - L) / Math.max(1, n - 1);
   const X = (i: number) => L + i * step;
   const Y = (v: number) => B - ((v - min) / (top - min)) * (B - T);
-  const ticks = TICKS.map((f) => min + f * (top - min));
   const suffix = unit ? ' ' + unit : '';
-  const num = (v: number | null | undefined) => (v == null ? '—' : format.number(v, decimals) + suffix);
+  const num = (v: number | null | undefined) => (v == null ? '—' : chartNumber(v, fmt, decimals) + suffix);
   const replay = playhead != null && !!onPlayheadChange;
-  const show = (j: number) => {
+  // 「13:30：實際 25.5 °C，預測 26 °C」: the point's time and every series' value there.
+  const pointText = (j: number) =>
+    (labels[j] ?? '') +
+    tr('：') +
+    series
+      .filter((s) => s.values[j] != null)
+      .map((s) => (series.length > 1 ? s.name + ' ' : '') + num(s.values[j]))
+      .join(tr('，'));
+  const show = (j: number, say = true) => {
     setHi(j);
-    announce(
-      labels[j] +
-        tr('：') +
-        series
-          .filter((s) => s.values[j] != null)
-          .map((s) => (series.length > 1 ? s.name + ' ' : '') + num(s.values[j]))
-          .join(tr('，')),
-    );
+    if (say) announce(pointText(j));
   };
+  // A slider says its own value (aria-valuetext) when it changes: no live-region message on top of it.
   const move = (j: number) => {
     if (replay) onPlayheadChange(j);
-    show(j);
+    show(j, !replay);
   };
   const at = (e: React.PointerEvent<HTMLElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
@@ -169,6 +191,8 @@ export function LineChart({
     return Math.max(0, Math.min(n - 1, Math.round((x - L) / step)));
   };
   const edge = { left: ((L - step / 2) / W) * 100 + '%', right: ((W - R - step / 2) / W) * 100 + '%' };
+  // An x label centred under its point, moved inside when it would run past the chart's left or right edge.
+  const xLabelShift = (x: number) => `translateX(clamp(${-x}px, -50%, calc(${W - x}px - 100%)))`;
   const legend = series.length > 1 || band;
   // Fewer x labels when they would touch: Geist Mono 12 px is about 7.5 px a character, 12 px between labels.
   const widest = Math.max(0, ...labels.map((lb) => lb.length)) * 7.5 + 12;
@@ -227,16 +251,32 @@ export function LineChart({
           ) : null}
         </div>
       ) : null}
+      {unit ? (
+        <div className="ui-chart-axisunit" aria-hidden="true">
+          {unit}
+        </div>
+      ) : null}
       <div
         ref={plot}
         className={cx('ui-chart-plot', replay && 'is-replay')}
         tabIndex={n ? 0 : undefined}
-        role="group"
+        // Replay: a slider over the points (its value read as 「時間：數值」). Reading points: an application, so screen
+        // readers pass the arrow keys on; the values are also in the data table after the chart.
+        {...(replay
+          ? {
+              role: 'slider',
+              'aria-valuemin': 0,
+              'aria-valuemax': Math.max(0, n - 1),
+              'aria-valuenow': playhead,
+              'aria-valuetext': pointText(playhead),
+              'aria-orientation': 'horizontal' as const,
+            }
+          : { role: 'application', 'aria-roledescription': tr('折線圖') })}
         aria-label={label}
         aria-description={replay ? tr('左右方向鍵移動播放頭') : tr('左右方向鍵查看每一個時間點的數值')}
         onMouseLeave={() => !dragging.current && setHi(-1)}
         // The keyboard sees the values too: ← → move between points, each read aloud as it shows.
-        onFocus={() => hi < 0 && n && show(replay ? playhead : 0)}
+        onFocus={() => hi < 0 && n && show(replay ? playhead : 0, !replay)}
         onBlur={() => setHi(-1)}
         onKeyDown={(e) => {
           const to = chartKey(e, replay ? playhead : hi, n);
@@ -287,7 +327,7 @@ export function LineChart({
             <g key={i}>
               <line x1={L} x2={R} y1={Y(v)} y2={Y(v)} className={i ? 'ui-chart-grid' : 'ui-chart-axis'} />
               <text x={L - 8} y={Y(v) + 4} textAnchor="end" className="ui-chart-tick">
-                {format.number(v, tickDecimals(top - min))}
+                {tickText[i]}
               </text>
             </g>
           ))}
@@ -372,12 +412,21 @@ export function LineChart({
           <StatusBand {...status} count={n} times={labels} legend={false} className="is-attached" />
         </div>
       ) : null}
-      <div className="ui-chart-xlabels" style={{ marginLeft: edge.left, marginRight: edge.right }}>
-        {labels.map((lb, j) => (
-          <span key={j}>{every > 1 && j % every ? '' : digits(lb)}</span>
-        ))}
+      <div className="ui-chart-xlabels is-placed" aria-hidden="true">
+        {labels.map((lb, j) =>
+          every > 1 && j % every ? null : (
+            <span key={j} style={{ left: (X(j) / W) * 100 + '%', transform: xLabelShift(X(j)) }}>
+              {digits(lb)}
+            </span>
+          ),
+        )}
       </div>
       {status ? <StatusLegend classes={status.classes} label={status.label} /> : null}
+      <ChartTable
+        caption={label}
+        head={[tr('時間點'), ...series.map((s) => (unit ? `${s.name}（${unit}）` : s.name))]}
+        rows={labels.map((lb, j) => [lb, ...series.map((s) => (s.values[j] == null ? '—' : chartNumber(s.values[j] as number, fmt, decimals)))])}
+      />
     </div>
   );
 }

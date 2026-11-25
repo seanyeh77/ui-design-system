@@ -103,8 +103,8 @@
             h(U.LayerGraph, {
               nodes: nodes4,
               edges: edges4,
-              selected: b[0],
-              onSelect: b[1],
+              value: b[0],
+              onChange: b[1],
               selectedEdge: e[0],
               onSelectEdge: e[1],
               legend: false,
@@ -136,13 +136,11 @@
         return h(
           'div',
           { style: Object.assign({}, card, { maxWidth: 358 }) },
-          h(U.LayerGraph, {
+          h(U.LayerGraph, { labels: { size: '{n} 個函式', declaredText: '由專案的 rules.json 宣告。' },
             nodes: nodes8,
             edges: edges8,
             selectedEdge: e[0],
             onSelectEdge: e[1],
-            sizeLabel: '{n} 個函式',
-            declaredText: '由專案的 rules.json 宣告。',
           }),
         );
       }
@@ -158,21 +156,20 @@
       ];
       function External() {
         var s = React.useState(null);
-        return h('div', { style: card }, h(U.LayerGraph, { nodes: nodes9, edges: edges9, selected: s[0], onSelect: s[1], sizeLabel: '{n} 個函式', externalLabel: 'repo 外' }));
+        return h('div', { style: card }, h(U.LayerGraph, { labels: { size: '{n} 個函式', external: 'repo 外' }, nodes: nodes9, edges: edges9, value: s[0], onChange: s[1] }));
       }
       function HoverLabels() {
         var s = React.useState(null);
         return h(
           'div',
           { style: card },
-          h(U.LayerGraph, {
+          h(U.LayerGraph, { labels: { size: '{n} 個函式' },
             nodes: nodes9,
             edges: edges9,
             selectedEdge: s[0],
             onSelectEdge: s[1],
             edgeLabels: 'hover',
-            scrollKey: 'labels-on-hover',
-            sizeLabel: '{n} 個函式',
+            storageKey: 'labels-on-hover',
           }),
         );
       }
@@ -206,16 +203,14 @@
         return h(
           'div',
           { style: card },
-          h(U.LayerGraph, {
+          h(U.LayerGraph, { labels: { size: '{n} 個函式', external: 'repo 外' },
             nodes: mapNodes,
             edges: mapEdges,
-            selected: s[0],
-            onSelect: s[1],
+            value: s[0],
+            onChange: s[1],
             selectedEdge: e[0],
             onSelectEdge: e[1],
-            sizeLabel: '{n} 個函式',
-            externalLabel: 'repo 外',
-            scrollKey: 'preview-map',
+            storageKey: 'preview-map',
           }),
           h('p', { style: { margin: '8px 0 0', fontSize: 13, color: 'var(--ink-muted)' } }, '選取的關係：', e[0] || '（無）'),
         );
@@ -228,7 +223,7 @@
           h(
             'div',
             { style: card },
-            h(U.LayerGraph, { nodes: nodes, edges: edges, selected: s[0], onSelect: s[1], inferredText: '由規則推得，編譯器無法確認。' }),
+            h(U.LayerGraph, { labels: { inferredText: '由規則推得，編譯器無法確認。' }, nodes: nodes, edges: edges, value: s[0], onChange: s[1] }),
           ),
           h('div', { style: card }, h(U.LayerGraph, { nodes: nodes2, edges: edges2, legend: false })),
           h('div', { style: card }, h(U.LayerGraph, { nodes: nodes3, edges: edges3, legend: false })),

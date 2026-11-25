@@ -99,3 +99,32 @@ test('the plot is drawn at its real width, so text keeps its size; height sets t
   await expect.poll(() => svg.getAttribute('viewBox')).toBe(`0 0 ${svg.clientWidth} 300`);
   expect(svg.clientHeight).toBe(300);
 });
+
+test('replay is a slider: its value is the point index, its text the time and the values', () => {
+  render(<Replay />);
+  const s = screen.getByRole('slider', { name: '進氣溫度' });
+  expect(s.getAttribute('aria-valuemin')).toBe('0');
+  expect(s.getAttribute('aria-valuemax')).toBe('5');
+  expect(s.getAttribute('aria-valuenow')).toBe('3');
+  expect(s.getAttribute('aria-valuetext')).toBe('13:30：實際 25.5 °C，預測 26.0 °C');
+});
+
+test('reading points: role application and a data table; the last x label stays inside; large values fit', async () => {
+  await page.viewport(1280, 800);
+  const labels = ['11/01', '11/02', '11/03', '11/04', '11/05'];
+  const { container } = render(
+    <div style={{ width: 600 }}>
+      <LineChart label="每日請求" unit="次" labels={labels} series={[{ name: '請求', values: [120_000, 240_000, 410_000, 300_000, 380_000] }]} />
+    </div>,
+  );
+  expect(screen.getByRole('application', { name: '每日請求' })).toBeTruthy();
+  const table = screen.getByRole('table', { name: '每日請求' });
+  expect(table.querySelectorAll('[role="row"]').length).toBe(6);
+  const box = (container.firstElementChild as HTMLElement).getBoundingClientRect();
+  const spans = [...container.querySelectorAll('.ui-chart-xlabels > span')];
+  await expect.poll(() => Math.round(spans[spans.length - 1].getBoundingClientRect().right)).toBeLessThanOrEqual(Math.round(box.right));
+  expect(spans[0].getBoundingClientRect().left).toBeGreaterThanOrEqual(box.left);
+  for (const t of container.querySelectorAll('.ui-chart-tick')) expect(t.getBoundingClientRect().left).toBeGreaterThanOrEqual(box.left);
+  // ticks: whole steps, the top near the largest value (500,000 for 410,000)
+  expect([...container.querySelectorAll('.ui-chart-tick')].map((t) => t.textContent)).toEqual(['0', '100,000', '200,000', '300,000', '400,000', '500,000']);
+});

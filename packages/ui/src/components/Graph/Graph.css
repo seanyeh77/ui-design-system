@@ -65,9 +65,17 @@
   fill: var(--accent-text);
   color: var(--accent-text);
 }
+/* Dimmed (not related to what is selected or hovered): the shapes and lines fade, the text turns ink-muted and keeps
+   4.5:1, so a dimmed name can still be read and clicked. Not opacity on the whole node, which took its text under 3:1. */
 .ui-graph .is-dim {
-  opacity: 0.4;
+  color: var(--ink-muted);
+}
+.ui-graph :is(rect, path, line, polyline, polygon, circle, ellipse):is(.is-dim, .is-dim *) {
+  opacity: 0.35;
   transition: opacity var(--dur-hover) ease;
+}
+.ui-graph text:is(.is-dim, .is-dim *) {
+  fill: var(--ink-muted);
 }
 .ui-graph-legend {
   display: flex;

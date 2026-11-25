@@ -102,6 +102,74 @@ export function ChartTip({ title, rows, style }: { title?: React.ReactNode; rows
   );
 }
 
+/** The y axis: tick values from lo to top, a step of 1, 2 or 5 times a power of ten (never 2.5: no 12.5 or 37.5),
+ *  3 to 5 steps, the top the first tick at or above the largest value (128 萬 gets a 150 萬 axis, not 200 萬). Whole
+ *  steps unless the values need decimals (dec > 0) or the range is under 3. A given top that the steps do not divide
+ *  gets 4 equal steps. */
+export function axisTicks(lo: number, hi: number, o: { top?: number; dec?: number } = {}): number[] {
+  const range = (o.top ?? hi) - lo;
+  if (!(range > 0)) return [lo, lo + 1];
+  const whole = !o.dec && range >= 3;
+  const raw = range / 5;
+  let step = 0;
+  for (let e = 10 ** Math.floor(Math.log10(raw)); !step; e *= 10)
+    for (const m of [1, 2, 5]) {
+      const s = m * e;
+      if (s >= raw && (!whole || Number.isInteger(s)) && Math.ceil(range / s - 1e-9) <= 5) {
+        step = s;
+        break;
+      }
+    }
+  let n = Math.max(1, Math.ceil(range / step - 1e-9));
+  if (o.top != null && Math.abs(n * step - range) > step * 1e-6) {
+    n = 4;
+    step = range / 4;
+  }
+  // Rounded so 0.1 + 0.2 does not show as 0.30000000000000004.
+  return Array.from({ length: n + 1 }, (_, i) => +(lo + i * step).toPrecision(12));
+}
+
+/** How a chart writes a value: 'number' (1,280,000) or 'compact' (128 萬, 1.5 億; 1.3M in English). */
+export type ChartFormat = 'number' | 'compact';
+/** A tick or tooltip value as text, in the chart's format. */
+export function chartNumber(v: number, fmt: ChartFormat | undefined, dec?: number): string {
+  return fmt === 'compact' && Math.abs(v) >= 1e4 ? format.compact(v) : format.number(v, dec);
+}
+/** Decimals the ticks need so that neighbours read differently (0.5, 1, 1.5). */
+export const ticksDecimals = (ticks: number[]): number => Math.min(3, Math.max(0, ...ticks.map((t) => (String(+t.toPrecision(6)).split('.')[1] ?? '').length)));
+
+/** The width (px) the y axis labels need: measured from the drawn labels (a font that loads late, text spacing a reader
+ *  adds), else estimated from their length where nothing is measured (jsdom). Measured again when the labels change
+ *  or the text's size does. */
+export function useAxisWidth(ref: React.RefObject<HTMLElement | null>, labels: string[], scaleKey: number | string = ''): number {
+  // Geist Mono 12 px: about 7.5 px a character; CJK (萬、億) about 12 px.
+  const guess = Math.ceil(Math.max(0, ...labels.map((t) => [...t].reduce((w, c) => w + (c.charCodeAt(0) > 0x2e80 ? 12 : 7.5), 0))));
+  const [w, setW] = React.useState(guess);
+  // scaleKey: an SVG drawn at another width than its box is scaled, and so are its labels: measured again once it
+  // has its real width.
+  const key = labels.join('|') + '|' + scaleKey;
+  React.useLayoutEffect(() => {
+    const root = ref.current;
+    if (!root) return;
+    const read = () => {
+      let m = 0;
+      for (const el of root.querySelectorAll<Element>('.ui-chart-tick')) m = Math.max(m, el.getBoundingClientRect().width);
+      const next = m > 0 ? Math.ceil(m) : guess;
+      setW((v) => (Math.abs(v - next) > 1 ? next : v));
+    };
+    read();
+    const probe = root.querySelector('.ui-chart-tick');
+    if (!probe || typeof ResizeObserver !== 'function') return;
+    // SVG text has no box to observe: the root's size stands in (text spacing and zoom change it too), and fonts.
+    const ro = new ResizeObserver(read);
+    ro.observe(root);
+    document.fonts?.ready.then(read).catch(() => {});
+    return () => ro.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- measured again when the labels change
+  }, [key]);
+  return w;
+}
+
 /** Rounds an axis maximum up to 2, 4, 5, 8 or 10 times a power of ten. */
 export function niceMax(v: number): number {
   const e = 10 ** Math.floor(Math.log10(v || 1));
@@ -117,4 +185,33 @@ export function chartKey(e: React.KeyboardEvent, at: number, n: number): number 
     e.key === 'ArrowRight' ? Math.min(n - 1, i + 1) : e.key === 'ArrowLeft' ? Math.max(0, i - 1) : e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : null;
   if (to != null) e.preventDefault();
   return to;
+}
+
+/** The chart's values as a table for screen readers (visually hidden): one row per item or point, the first cell its
+ *  name. Charts with arrow keys are role="application", which some screen readers read only key by key; this table
+ *  reads like any other. */
+export function ChartTable({ caption, head, rows }: { caption: string; head: string[]; rows: React.ReactNode[][] }) {
+  if (!rows.length) return null;
+  // ARIA table roles on divs: no native <table> (the system replaces it), and the hiding box keeps its 1 px width.
+  return (
+    <div className="ui-visually-hidden" role="table" aria-label={caption}>
+      <div role="row">
+        {head.map((h, i) => (
+          <span key={i} role="columnheader">
+            {h}
+          </span>
+        ))}
+      </div>
+      {rows.map((r, i) => (
+        <div key={i} role="row">
+          <span role="rowheader">{r[0]}</span>
+          {r.slice(1).map((c, j) => (
+            <span key={j} role="cell">
+              {c}
+            </span>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
 }

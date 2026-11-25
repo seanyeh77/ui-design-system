@@ -9,5 +9,7 @@
 ```
 
 - 高度 8 px，軌道 `surface-sub`，填色 `accent`。
-- 百分比寫在條的下方，Geist Mono；完成時改寫「完成 ✓」，用一般字體。在 DataTable 的列裡，完成的綠色條改用 `success-text`，選中的列（`accent-soft`）上也有 3:1。
+- 百分比寫在條的下方，Geist Mono；完成時改寫「完成 ✓」，用一般字體。
+- 不放進 DataTable 的格子：表格列裡的進度寫成文字（「匯入中 42%」），放在欄位的 `secondary`（標題下的第二行）。
+- 強制色彩模式（Windows 高對比）：軌道加 1 px `CanvasText` 外框，填色用 `Highlight`，條不會消失。
 - 到 100% 時條變 `success`，文字變「完成 ✓」。
