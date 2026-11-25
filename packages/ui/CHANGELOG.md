@@ -1,5 +1,45 @@
 # @seanyeh77/ui
 
+## 0.46.0
+
+### Minor Changes
+
+- 08bc9ad: 新增 `fonts-latin.css`（Inter、Geist Mono）和 `fonts-tc.css`（Noto Sans TC）：主 CSS 只放前者，中文字型的 CSS 另外非同步載入，不再擋住第一次畫面（做法見 AGENTS.md）。`fonts.css` 不變。
+- 0c1f10f: 照一致的命名：NotificationBell 的面板用 `open`、`defaultOpen`、`onOpenChange`，點一則通知是 `onSelect(item)`（之後面板關閉）；`onOpen` 已棄用，仍然可用。SideNav 用 `collapsed` 加 `onCollapsedChange(collapsed)`、`pinned` 加 `onPinnedChange(pinned)`；`onToggle`、`onPin` 已棄用，仍然可用。棄用的名稱在開發時 console 提醒改名。
+- 3689fc5: AppShell 沒有 `title`、`tags`、`actions`、`onSearch` 時（詳細頁的標題在 PageHeader）不畫頂部列，內容從最上方開始，不再留一條 64 px 的空白列；平板仍有頂部列放選單按鈕。PageHeader 的 `meta` 可以給陣列，以「 · 」連起來，全形「）」後面不加空格；字串的 `meta` 也照這個規則調整，日期的「）」和時間之間不留空格。
+- f781b8e: DetailList 的每一列可以給 `href`（另一個網站加 `external`）：值變成 Link，整列都能點，列高至少 48 px，`ui check` 不再把值裡的連結判為太小的觸控目標。
+- 526ae7c: Grid：一欄放好幾張卡片時把它們包在 `Page` 裡，Grid 裡的 Page 卡片間距自動是 24 px（手機 16 px），和欄距相同。新增 `align`（`'stretch'`、`'start'`）：等寬的 Grid 預設一排一樣高，比例 Grid 預設靠上；比例 Grid 裡 `height="fill"` 的圖表要撐滿時給 `align="stretch"`。
+- 7ebb98a: 新增 11 個 Phosphor 圖示：`pause`、`play`、`prohibit`、`receipt`、`truck`、`package`、`credit-card`、`shopping-cart`、`storefront`、`map-pin`、`phone`（一般與實心，每個一個模組）。內建圖示共 113 個，`ui docs icons` 列出全部。
+- 4f620c6: Workbench 和 ConsoleLayout 的地標完整（axe 的 region、page-has-heading-one 不再失敗）：Workbench 的 `brand` 名稱是 `h1`，主畫面和它上方的列在 `main` 裡（名稱是 `label`），各邊界放在它調整的區塊裡；外框不再是帶名稱的 `group`。ConsoleLayout 的底列也在 `main` 裡，手機上頂列以下整欄都在 `main`。外觀不變。Workbench 用 `storageKey` 記住版面，和其他會記住選擇的元件同名；沒給時只記到重新整理為止。`id` 已棄用，仍然可用（存的資料相同），開發時 console 會提醒改名。
+- 0b81a59: Tabs 換成和 SegmentedControl 不同的外觀：文字加 2 px `accent-text` 底線，下緣一條 1 px 基準線，沒有灰底軌道；整排仍高 40 px（手機 48 px）。看得出「換內容」（Tabs）和「換顯示方式」（SegmentedControl）的差別。DataTable 的 `summary` 保留分段控制的樣子。
+- f01820e: 數字和單位不再分開換行：`format.fileSize`、`format.compact`（萬、億）、`format.money`（NT$ 後面）改用不換行空格（U+00A0），元件收的字串（說明、提示、EventTimeline 的事件文字、FileUpload 的 `limitText`）也自動把「數字 單位」之間的空格換成不換行空格。比對這些字串的測試要改用 ` `。ZoneMap 數值和單位之間的空格改用單位的字型（Inter），不再是 Geist Mono h2 大小約 20 px 的空隙。SplitPane、Workbench 的邊界和 LayerGraph 的高度把手可以不拖曳調整（WCAG 2.5.7）：點一下依序切換最小、預設、預設的 1.5 倍（LayerGraph：最矮、畫出的高度、最高），念出新的大小，操作方式寫在 `aria-description`。
+- 9506ae1: 資料、表單與設定的修正：
+  
+  - RelativeTime 與 DataTable 的 `format: 'relative'`：伺服器渲染時先輸出完整日期時間，瀏覽器接手後換成依瀏覽器時鐘算的相對時間，不再停在伺服器的字。`format.relative` 把 60 s 以內的未來時間寫成「現在」。
+  - KpiCard 新增 `direction`（`'up'` 或 `'down'`，哪個方向比較好），好壞由 `delta` 的正負算出；`good` 改成只用來直接指定。好壞以灰色的「（改善）」「（變差）」寫在比較期間後面，不只靠顏色；`delta={0}` 沒有箭頭。
+  - DataTable：沒有 `summary` 的一頁表格顯示「24 筆」，螢幕閱讀器一律念得到筆數；新增 `unit`，頁碼、已選、合計和朗讀都用它；新增 `loading`、`loadingRows`；手機卡片的欄位名稱固定 6 rem、日期和時間各自不斷開；切換摘要時滑出的列不再畫到卡片外；欄位與篩選寫在 render 裡也不會每次重新排序篩選；寫網址改用 `window.history`，沒有時略過。
+  - MultiSelect：選單沒開時 Esc 不再清掉已選的值（交給外層的 Drawer 或 Dialog），選 2 個以上時有「清除」，移除會念出；高度 40 px。
+  - Select：沒有值又有錯誤時，警告圖示在右端箭頭旁。
+  - DatePicker、DateRangePicker：打開時焦點在選中的日期，沒有值時在今天。
+  - Checkbox、RadioGroup：點擊範圍和焦點外框只包住框與文字。
+  - SettingsLayout：hash 寫成 `#settings-<id>`（仍讀 `#<id>`），hash 路由（`#/…`）時不讀也不寫；手機的分類改用 Tabs。SettingsSection 新增 `actions`。
+  - useFormErrors 新增 `isValid(name)`，`onBlur(name)` 回傳欄位是否正確。
+  - Toast：觸控螢幕不顯示「Ctrl Z」。
+
+### Patch Changes
+
+- f5a21a0: 文件：guidelines 的按鈕層級和 Toast 時間改成指向元件的用法；CodeView、Markdown 的 README 縮短，外觀細節移到 repo 的 `docs/maintaining/`；data.md、layout.md 指向 DataTable 的 `format: 'money'`、KpiCard 的 `direction` 和 `compareLabel`、SettingsLayout 的 `urlSync`；AGENTS.md 加上 `ui add` 和字型載入的做法。
+- 9bbe36a: 文件：Toast 用法寫出觸控螢幕不顯示「Ctrl Z」；AGENTS.md 去掉重複的說明。
+- ed5a2ce: Alert 的動作按鈕放在文字那一列的右端，不再多佔一行（約 30 px）；Alert 窄於 480 px 時（手機）放在內文下方。LoginCard 拿掉 1 px 外框，和其他卡片一樣只用陰影。
+- 4b9fdd2: AppShell：頁面本身不再捲動。內容捲動區（`.ui-shell-main`）是絕對定位內容的定位框，圖表的隱藏資料表、KpiCard 念出的數值、外部連結的隱藏說明不再把文件撐高（390 px 時文件從 844 px 長到 1734 px，捲下去一片空白）；`.ui-visually-hidden` 加上 `clip-path: inset(50%)`。0.45.1 恢復導覽的平板邊界含 1024 px：600 到 1024 px 用導覽抽屜，大於 1024 px 才有側邊欄（0.45.0 誤改成 1023 px）。
+- 22ab76b: 高對比模式（forced-colors）：AccentPicker 的色票保留自己的顏色，各有一圈 CanvasText 外框，選中的那個是 Highlight 外框；目前顏色的預覽方塊也保留顏色。Calendar 選中的日期除了粗體再加 2 px Highlight 外框。
+- e598efe: LayerGraph 記住左右捲動位置時用 `storageKey`，沒給時用方框 id 的短雜湊（不再把所有 id 串成一個長字串），最多記 50 張圖，最舊的先忘。Graph 的說明、預覽和 story：圖比外框寬時一開始把選取的方框捲到中間。
+- d605d46: EventTimeline：文字換行時種類圖示對齊第一行（和時間同一行），不再垂直置中；執行者名稱換到下一行時從左邊開始，不再多縮排。EmptyState：手機上說明超過一行時靠左排，一行放得下時仍置中。
+- 2e98484: AppShell／TopBar 的 `tags` 一律畫成 12 px、`ink-muted`、半粗的小字（有 `tone` 時用 tone 的顏色），不再和標題同字級、同顏色而看起來像標題的一部分；ConsoleLayout 頂列維持和標題相同。Tag 的 README 寫清楚兩者的分別。dashboard 範本加上「示範資料」標記和內容最上方的期間選擇（DateRangePicker，預設最近 30 天）。
+- Updated dependencies [08bc9ad]
+- Updated dependencies [4b9fdd2]
+  - @seanyeh77/tokens@0.46.0
+
 ## 0.45.0
 
 ### Minor Changes

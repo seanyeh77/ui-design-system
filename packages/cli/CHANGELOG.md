@@ -1,5 +1,33 @@
 # @seanyeh77/ui-cli
 
+## 0.46.0
+
+### Minor Changes
+
+- 01b316a: `ui check` 等動畫和轉場結束（最多 1.5 s）才量測，淡出中的列不再被誤報；每個寬度與主題那一行算進打開的狀態的問題，各狀態的問題列在它底下。新的檢查：同一列表單欄位不同高、390 px 時置中的兩行以上段落、AppShell 頁面的文件本身也在捲動。`--shots` 也存每個打開的狀態。`ui shots` 等網路閒置和字型、量到兩次相同的高度才截圖；檔名包含查詢字串（`iframe.html?id=button--primary` 是 `iframe-id-button-primary`），不再互相覆蓋。`ui docs` 不印 HTML 註解。新增 `ui add <dashboard|list-detail|settings|login> [dir]`，不連網路寫出頁面範本。升級方式：用含查詢字串的網址產生的基準圖要重新產生（檔名改了）。
+
+### Patch Changes
+
+- Updated dependencies [f5a21a0]
+- Updated dependencies [08bc9ad]
+- Updated dependencies [9bbe36a]
+- Updated dependencies [ed5a2ce]
+- Updated dependencies [0c1f10f]
+- Updated dependencies [4b9fdd2]
+- Updated dependencies [3689fc5]
+- Updated dependencies [f781b8e]
+- Updated dependencies [22ab76b]
+- Updated dependencies [e598efe]
+- Updated dependencies [526ae7c]
+- Updated dependencies [7ebb98a]
+- Updated dependencies [4f620c6]
+- Updated dependencies [0b81a59]
+- Updated dependencies [d605d46]
+- Updated dependencies [2e98484]
+- Updated dependencies [f01820e]
+- Updated dependencies [9506ae1]
+  - @seanyeh77/ui@0.46.0
+
 ## 0.45.0
 
 ### Minor Changes

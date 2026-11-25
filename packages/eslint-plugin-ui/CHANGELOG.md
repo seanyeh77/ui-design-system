@@ -1,5 +1,11 @@
 # @seanyeh77/eslint-plugin-ui
 
+## 0.46.0
+
+### Patch Changes
+
+- 4872187: `verb-labels` 不再把「送出」「Submit」當成不說明動作的文字；訊息列出可以改用的字。
+
 ## 0.45.0
 
 ### Minor Changes
