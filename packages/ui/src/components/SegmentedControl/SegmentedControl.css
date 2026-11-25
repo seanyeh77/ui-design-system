@@ -72,10 +72,10 @@
 .ui-wb-mainbar .ui-seg.is-icons .ui-seg-item {
   width: 28px;
 }
-/* Touch screens: each part is a 48 px target (the whole switch 48 px tall). */
+/* Touch screens: each part is a 48 px target (the whole switch 48 px tall). In Workbench's 36 px mainBar the switch
+   keeps its 28 px look, like the bar's other buttons, and each part's touch area grows to 48 px (touch.css). */
 @media (pointer: coarse) {
-  .ui-seg,
-  .ui-wb-mainbar .ui-seg {
+  .ui-seg {
     height: var(--touch-target);
   }
   .ui-seg.is-icons .ui-seg-item,

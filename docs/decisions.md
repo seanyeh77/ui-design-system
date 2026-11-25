@@ -1440,6 +1440,7 @@ AI 定的細節（待確認）：
 - 元件分組：「頁面範本」改名「整頁元件」（只有 ErrorPage、LoginCard、SettingsLayout），外框和排版（AppShell、ConsoleLayout、Workbench、Grid、SplitPane）移到「版面與外框」，DangerZone 到「按鈕與操作」；新增「監控畫面」「程式碼與架構圖」「文字標記」三組。
 - 每個匯出的 prop 都要有 JSDoc，`pnpm test` 檢查（`scripts/check-jsdoc.ts`）。
 - tokens.json：`dur-toggle`、`dur-nav`、`space-5` 的 `usage` 照實際用途改寫（分頁和開關的指示塊用 `dur-nav` 的水滴，不是 300 ms）。
+- 觸控裝置上 Workbench 的 `mainBar`（36 px）裡的 SegmentedControl 仍是 28 px 的外觀，和那一列的其他按鈕一樣只把每個選項的觸控範圍放大到 48 px；整組改成 48 px 高會超出 36 px 的列。
 
 ## 待確認清單（2026-11-25 整理）
 
