@@ -372,7 +372,9 @@ const onePrimary: Rule.RuleModule = {
   },
 };
 
-const VAGUE = /^(確定|確認|好|好的|OK|Ok|ok|Submit|submit|送出|是|否|Yes|No)$/;
+/** Labels that answer the dialog instead of naming the action. A verb, even a general one (送出, 儲存, 新增), passes; a
+    verb with its object (確認刪除, 刪除 api-gateway) passes too. */
+const VAGUE = /^(確定|確認|好|好的|OK|Ok|ok|是|否|Yes|yes|No|no)$/;
 
 const verbLabels: Rule.RuleModule = {
   meta: { type: 'suggestion', docs: { description: 'Button labels say what happens: 儲存, 刪除 api-gateway, 發布. Not 確定 or OK.' }, schema: [] },
@@ -383,7 +385,11 @@ const verbLabels: Rule.RuleModule = {
         if (tagName(el.openingElement) !== 'Button') return;
         const t = textOf(el);
         if (VAGUE.test(t))
-          context.report({ node, message: 'Button label "{{t}}" does not say what happens. Use the verb of the action: 儲存, 刪除, 發布.', data: { t } });
+          context.report({
+            node,
+            message: 'Button label "{{t}}" does not say what happens. Use the verb of the action instead, e.g. 儲存, 刪除, 送出, 確認刪除.',
+            data: { t },
+          });
       },
     };
   },
