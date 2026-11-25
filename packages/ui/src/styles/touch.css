@@ -46,7 +46,8 @@
   .ui-input,
   .ui-select-trigger,
   .ui-datefield,
-  .ui-pwfield {
+  .ui-pwfield,
+  .ui-field-box.has-affix {
     height: var(--touch-target);
   }
 }

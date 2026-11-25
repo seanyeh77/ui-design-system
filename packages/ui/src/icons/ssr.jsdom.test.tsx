@@ -10,7 +10,7 @@ test('server render with every module, hydration with a subset: no mismatch, the
   const { renderToString } = await import('react-dom/server');
   const serverReact = await import('react');
   const tree = (ui: { Button: typeof server.Button; Icon: typeof server.Icon }, h: typeof serverReact.createElement) =>
-    h('div', null, h(ui.Button, { icon: 'gear' }, '設定'), h(ui.Icon, { name: 'magnifying-glass' }), h(ui.Icon, { name: 'globe' }));
+    h('div', null, h(ui.Button, { icon: 'gear', children: '設定' }), h(ui.Icon, { name: 'magnifying-glass' }), h(ui.Icon, { name: 'globe' }));
   await server.preloadIcons(['globe']);
   const html = renderToString(tree(server, serverReact.createElement));
 

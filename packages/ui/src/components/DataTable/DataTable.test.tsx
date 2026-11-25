@@ -1094,7 +1094,6 @@ test('phone cards at 320 px with WCAG 1.4.12 text spacing: a date and its time s
         <DataTable
           label="續約"
           rows={[{ id: 1, name: 'web-frontend', at: '2026-11-18T04:51:00+08:00' }]}
-          rowKey="id"
           columns={[
             { key: 'name', label: '名稱' },
             { key: 'at', label: '下次續約', format: 'dateTime' },

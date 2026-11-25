@@ -187,3 +187,66 @@
 label:has(> .ui-switch) {
   font-size: var(--text-control);
 }
+/* TextField with prefix, suffix or unit: the box draws the border (like the password field) and the input inside is
+   bare, so the muted text sits inside the same frame. */
+.ui-field-box.has-affix {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--control-height);
+  box-sizing: border-box;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-input);
+  color: var(--ink);
+}
+.ui-field-box.has-affix .ui-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.ui-field-box.has-affix .ui-input:focus-visible {
+  outline: none;
+}
+.has-error .ui-field-box.has-affix {
+  border: 1.5px solid var(--danger);
+}
+.is-disabled .ui-field-box.has-affix {
+  border-color: transparent;
+  background: var(--surface-sub);
+  color: var(--ink-muted);
+}
+.ui-field-affix {
+  flex: none;
+  color: var(--ink-muted);
+  font-size: var(--text-control);
+  white-space: nowrap;
+}
+/* The unit after the typed text: an invisible copy of the text, on top of the input, pushes it along. */
+.ui-field-unitwrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  display: grid;
+}
+.ui-field-unitwrap > * {
+  grid-area: 1 / 1;
+}
+.ui-field-unitline {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  font-size: var(--text-control);
+  white-space: pre;
+  pointer-events: none;
+}
+.ui-field-mirror {
+  visibility: hidden;
+  min-width: 0;
+  overflow: hidden;
+}

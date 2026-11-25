@@ -35,6 +35,7 @@
 .ui-cal-day:focus-visible,
 .ui-ms:focus-within,
 .ui-pwfield:focus-within,
+.ui-field-box.has-affix:focus-within,
 .ui-dt-opt:focus-visible,
 .ui-code.is-link:focus-visible,
 .ui-code.is-link.is-name:focus-visible,

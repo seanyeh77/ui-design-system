@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import { TextField } from '../../index';
 
 test('TextField: the error node exists only while there is an error; a new error is a new alert node', () => {
@@ -21,4 +22,28 @@ test('TextField: the error node exists only while there is an error; a new error
   rerender(<TextField label="名稱" hint="最多 40 個字" />);
   expect(screen.queryByRole('alert')).toBeNull();
   expect(container.querySelector('.ui-field-error')).toBeNull();
+});
+
+test('prefix, suffix and unit: muted text inside the one frame, read with the description; the unit follows the text', async () => {
+  const user = userEvent.setup();
+  render(
+    <>
+      <TextField label="月預算" prefix="NT$" suffix="元" />
+      <TextField label="儲存空間" unit="GB" />
+    </>,
+  );
+  const budget = screen.getByRole('textbox', { name: '月預算' });
+  expect(budget.getAttribute('aria-describedby')?.split(' ').map((id) => document.getElementById(id)?.textContent)).toEqual(['NT$', '元']);
+  const box = budget.closest('.ui-field-box') as HTMLElement;
+  const pre = box.querySelector('.ui-field-affix') as HTMLElement;
+  expect(pre.getBoundingClientRect().right).toBeLessThanOrEqual(budget.getBoundingClientRect().left);
+  expect(getComputedStyle(box).borderTopStyle).toBe('solid');
+  expect(getComputedStyle(budget).borderTopStyle).toBe('none');
+  const size = screen.getByRole('textbox', { name: '儲存空間' });
+  const unit = () => (size.closest('.ui-field-box') as HTMLElement).querySelector('.ui-field-unitline .ui-field-affix') as HTMLElement;
+  const x0 = unit().getBoundingClientRect().left;
+  await user.type(size, '1200');
+  expect(unit().getBoundingClientRect().left).toBeGreaterThan(x0 + 20);
+  // A focus ring around the whole frame.
+  expect(getComputedStyle(size.closest('.ui-field-box') as HTMLElement).outlineStyle).toBe('solid');
 });
