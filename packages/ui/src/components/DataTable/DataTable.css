@@ -936,6 +936,14 @@
   .ui-dt-body .ui-dt-cell .ui-dt-time wbr {
     display: inline;
   }
+  /* Each part stays whole while it fits on a line; only a card narrower than the part (320 px, wide text spacing)
+     breaks inside it, rather than overflowing the card. */
+  .ui-dt-body .ui-dt-cell .ui-dt-nowrap {
+    display: inline-block;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
   .ui-dt-body .ui-dt-cell.is-num {
     white-space: normal;
   }

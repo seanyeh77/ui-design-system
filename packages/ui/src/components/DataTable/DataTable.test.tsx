@@ -1081,3 +1081,33 @@ test('pages: the current page is quiet (accent text on accent-soft); a disabled 
   expect(prev.disabled).toBe(true);
   expect(getComputedStyle(prev).opacity).toBe('1');
 });
+
+test('phone cards at 320 px with WCAG 1.4.12 text spacing: a date and its time stay inside the card', async () => {
+  await page.viewport(320, 800);
+  const style = document.createElement('style');
+  style.textContent = '* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; }';
+  document.head.append(style);
+  // Inside a page's 16 px side padding, as in AppShell on a phone.
+  const { container, unmount } = render(
+    <div style={{ padding: 16 }}>
+      <Card padding={false}>
+        <DataTable
+          label="續約"
+          rows={[{ id: 1, name: 'web-frontend', at: '2026-11-18T04:51:00+08:00' }]}
+          rowKey="id"
+          columns={[
+            { key: 'name', label: '名稱' },
+            { key: 'at', label: '下次續約', format: 'dateTime' },
+          ]}
+        />
+      </Card>
+    </div>,
+  );
+  const card = container.querySelector('.ui-dt-body .ui-dt-row') as HTMLElement;
+  const right = card.getBoundingClientRect().right;
+  for (const part of container.querySelectorAll<HTMLElement>('.ui-dt-body .ui-dt-time .ui-dt-nowrap'))
+    expect(part.getBoundingClientRect().right).toBeLessThanOrEqual(right + 0.5);
+  unmount();
+  style.remove();
+  await page.viewport(1280, 900);
+});

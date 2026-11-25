@@ -39,7 +39,7 @@
         React.useLayoutEffect(function () {
           var el = box.current,
             n = sel && node(sel);
-          if (el && n && el.scrollWidth > el.clientWidth) el.scrollLeft = Math.max(0, n.x + n.w / 2 + 16 - el.clientWidth / 2);
+          if (el && n && el.scrollWidth > el.clientWidth) el.scrollLeft = Math.max(0, n.x + n.w / 2 - el.clientWidth / 2);
         }, []);
         function related(e) {
           return !sel || e[0] === sel || e[1] === sel;
@@ -56,17 +56,19 @@
         return h(
           'div',
           {
-            ref: box,
             className: 'ui-graph',
             style: {
               maxWidth: 672,
-              overflowX: 'auto',
               padding: 16,
               borderRadius: 'var(--radius-lg)',
               background: 'var(--surface)',
               boxShadow: 'var(--shadow-card)',
             },
           },
+          // Only the drawing scrolls: the legend below stays in view.
+          h(
+            'div',
+            { ref: box, style: { overflowX: 'auto' } },
           h(
             'svg',
             { viewBox: '0 0 640 300', width: 640, height: 300, role: 'img', 'aria-label': '架構圖' },
@@ -119,6 +121,7 @@
                 h('text', { x: n.x + n.w / 2, y: n.y + 20, textAnchor: 'middle', dominantBaseline: 'central', className: 'ui-graph-name' }, n.id),
               );
             }),
+          ),
           ),
           h(U.GraphLegend, {
             items: [
