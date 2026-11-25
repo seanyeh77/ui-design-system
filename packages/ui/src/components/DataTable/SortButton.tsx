@@ -3,14 +3,17 @@ import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
 import { FloatingPanel } from '../../internal/FloatingPanel';
+import { IconButton } from '../IconButton/IconButton';
 import type { SortLevel } from './filters';
 import { includeIcons } from '../../icons/store';
+import phArrowDown from '../../icons/ph/arrow-down';
+import phArrowUp from '../../icons/ph/arrow-up';
 import phDotsSixVertical from '../../icons/ph/dots-six-vertical';
 import phPlus from '../../icons/ph/plus';
 import phSortAscending from '../../icons/ph/sort-ascending';
 import phX from '../../icons/ph/x';
 
-includeIcons(phDotsSixVertical, phPlus, phSortAscending, phX);
+includeIcons(phArrowDown, phArrowUp, phDotsSixVertical, phPlus, phSortAscending, phX);
 
 export interface SortColumn {
   key: string;
@@ -53,12 +56,27 @@ export function SortButton({ cols, levels, max, onChange, boundary }: SortButton
   const name = (k: string) => cols.find((c) => c.key === k)?.label ?? k;
   const first = (k: string): SortLevel['dir'] => (cols.find((c) => c.key === k)?.numeric ? 'desc' : 'asc');
   const rest = cols.filter((c) => !levels.some((l) => l.key === c.key));
-  const move = (from: number, to: number, focus?: boolean) => {
+  // focus: the control to focus in the moved level afterwards (its grip after Alt + ↑ ↓, the same 上移 or 下移 button,
+  // or the other one when the level reached the top or the bottom).
+  const move = (from: number, to: number, focus?: 'grip' | 'up' | 'down') => {
     if (to < 0 || to >= levels.length || from === to) return;
     const next = levels.slice();
     next.splice(to, 0, next.splice(from, 1)[0]);
     onChange(next);
-    if (focus) requestAnimationFrame(() => listRef.current?.querySelectorAll<HTMLElement>('.ui-dt-sortgrip')[to]?.focus());
+    if (!focus) return;
+    const want = focus === 'up' && to === 0 ? 'down' : focus === 'down' && to === levels.length - 1 ? 'up' : focus;
+    requestAnimationFrame(() =>
+      listRef.current?.querySelectorAll<HTMLElement>('.ui-dt-sortlvl')[to]?.querySelector<HTMLElement>(`.ui-dt-sort-${want}`)?.focus(),
+    );
+  };
+  // The direction radios: one tab stop per level (the checked one), ← → ↑ ↓ pick the other, as in a native radio group.
+  const dirKey = (e: React.KeyboardEvent<HTMLButtonElement>, i: number, d: SortLevel['dir']) => {
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+    e.preventDefault();
+    const other = d === 'asc' ? 'desc' : 'asc';
+    onChange(levels.map((x, j) => (j === i ? { key: x.key, dir: other } : x)));
+    const group = e.currentTarget.parentElement;
+    requestAnimationFrame(() => group?.querySelector<HTMLElement>(`[data-dir="${other}"]`)?.focus());
   };
   const shown = levels.map((l) => name(l.key) + ' ' + ARROW[l.dir]).join(tr('、'));
   const read = levels.map((l) => name(l.key) + ' ' + dirWord(l.dir)).join(tr('、'));
@@ -123,13 +141,14 @@ export function SortButton({ cols, levels, max, onChange, boundary }: SortButton
             >
               <button
                 type="button"
-                className="ui-dt-sortgrip"
-                aria-label={tr('「{name}」第 {n} 排序；按 Alt＋↑ ↓ 調整順序', { name: name(l.key), n: i + 1 })}
+                className="ui-dt-sortgrip ui-dt-sort-grip"
+                aria-label={tr('「{name}」第 {n} 排序', { name: name(l.key), n: i + 1 })}
+                aria-description={tr('拖曳，或按 Alt＋↑ ↓ 調整順序')}
                 aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"
                 onKeyDown={(e) => {
                   if (!e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
                   e.preventDefault();
-                  move(i, i + (e.key === 'ArrowUp' ? -1 : 1), true);
+                  move(i, i + (e.key === 'ArrowUp' ? -1 : 1), 'grip');
                 }}
               >
                 <Icon name="dots-six-vertical" size={16} />
@@ -143,13 +162,37 @@ export function SortButton({ cols, levels, max, onChange, boundary }: SortButton
                     type="button"
                     role="radio"
                     aria-checked={l.dir === d}
+                    tabIndex={l.dir === d ? 0 : -1}
+                    data-dir={d}
                     className={cx(l.dir === d && 'is-on')}
                     onClick={() => onChange(levels.map((x, j) => (j === i ? { key: x.key, dir: d } : x)))}
+                    onKeyDown={(e) => dirKey(e, i, l.dir)}
                   >
                     {ARROW[d]} {dirWord(d)}
                   </button>
                 ))}
               </span>
+              {/* Moving a level without dragging (WCAG 2.5.7): 上移 and 下移, shown while there are two levels or more. */}
+              {levels.length > 1 ? (
+                <span className="ui-dt-sortmove">
+                  <IconButton
+                    variant="quiet"
+                    className="ui-dt-sort-up"
+                    icon="arrow-up"
+                    label={tr('上移「{name}」', { name: name(l.key) })}
+                    disabled={i === 0}
+                    onClick={() => move(i, i - 1, 'up')}
+                  />
+                  <IconButton
+                    variant="quiet"
+                    className="ui-dt-sort-down"
+                    icon="arrow-down"
+                    label={tr('下移「{name}」', { name: name(l.key) })}
+                    disabled={i === levels.length - 1}
+                    onClick={() => move(i, i + 1, 'down')}
+                  />
+                </span>
+              ) : null}
               <button
                 type="button"
                 className="ui-dt-sortrm"

@@ -5,6 +5,7 @@
   box-sizing: border-box;
   border-radius: var(--radius-sm);
   border: 2px solid var(--line-strong);
+  background: transparent;
   color: var(--on-accent);
   display: inline-flex;
   align-items: center;

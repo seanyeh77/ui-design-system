@@ -56,14 +56,19 @@ test('rows hidden by a search are unchecked', async () => {
   expect(bulk).toHaveBeenLastCalledWith(['b'], expect.any(Function));
 });
 
-test('one page: the count above the table only, no range below', () => {
+test('count: only once a search or filter keeps fewer rows; one page has no range below', async () => {
+  const user = userEvent.setup();
   const rows = Array.from({ length: 6 }, (_, i) => ({ id: String(i), name: 'row ' + i }));
   const { container, rerender } = render(<DataTable columns={cols} rows={rows} urlSync={false} />);
-  // Shown 「6 / 6 筆」, drawn by CSS; the page's text and the screen reader have only 「6 筆中的 6 筆」.
-  const seen = [...container.querySelectorAll('.ui-dt-result .ui-seen')].map((e) => getComputedStyle(e, '::before').content);
-  expect(seen.join('').replace(/"|\s*\/\s*""/g, '')).toBe('6 / 6 筆');
-  expect(container.querySelector('.ui-dt-result')?.textContent).toBe('6 筆中的 6 筆');
+  // Nothing filtered: the rows say how many there are, no 「6 / 6 筆」.
+  expect(container.querySelector('.ui-dt-result')).toBeNull();
   expect(container.querySelector('.ui-dt-foot')).toBeNull();
+  await user.type(screen.getByRole('searchbox'), 'row 1');
+  // Shown 「1 / 6 筆」, drawn by CSS; the page's text and the screen reader have only 「6 筆中的 1 筆」.
+  const seen = [...container.querySelectorAll('.ui-dt-result .ui-seen')].map((e) => getComputedStyle(e, '::before').content);
+  expect(seen.join('').replace(/"|\s*\/\s*""/g, '')).toBe('1 / 6 筆');
+  expect(container.querySelector('.ui-dt-result')?.textContent).toBe('6 筆中的 1 筆');
+  await user.clear(screen.getByRole('searchbox'));
   rerender(<DataTable columns={cols} rows={rows} urlSync={false} pageSize={4} />);
   expect(container.querySelector('.ui-dt-range')?.textContent).toBe('第 1–4 筆，共 6 筆');
 });
@@ -593,11 +598,24 @@ test('multi-column sort: the 「排序」 panel flips, removes, adds and reorder
   await user.click(within(dtDir).getByRole('radio', { name: '↑ 由小到大' }));
   expect(dtCol(container)).toEqual(['18.1 ms', '41.7 ms', '7.9 ms', '212.4 ms', '96.5 ms']);
   // ΔT up to the first level with Alt + ↑ on its handle
-  within(dialog).getByRole('button', { name: '「ΔT」第 2 排序；按 Alt＋↑ ↓ 調整順序' }).focus();
+  within(dialog).getByRole('button', { name: '「ΔT」第 2 排序' }).focus();
   await user.keyboard('{Alt>}{ArrowUp}{/Alt}');
   expect(dtCol(container)).toEqual(['7.9 ms', '18.1 ms', '41.7 ms', '96.5 ms', '212.4 ms']);
   expect(location.search).toBe('?sort=dt%2Cprog');
-  await waitFor(() => expect(document.activeElement?.getAttribute('aria-label')).toBe('「ΔT」第 1 排序；按 Alt＋↑ ↓ 調整順序'));
+  await waitFor(() => expect(document.activeElement?.getAttribute('aria-label')).toBe('「ΔT」第 1 排序'));
+  // Without dragging: 下移 moves ΔT back down; the focus stays on the moved level (上移 once it is at the bottom).
+  await user.click(within(dialog).getByRole('button', { name: '下移「ΔT」' }));
+  expect(location.search).toBe('?sort=prog%2Cdt');
+  await waitFor(() => expect(document.activeElement?.getAttribute('aria-label')).toBe('上移「ΔT」'));
+  await user.click(within(dialog).getByRole('button', { name: '上移「ΔT」' }));
+  expect(location.search).toBe('?sort=dt%2Cprog');
+  // The direction radios: one tab stop, arrows pick the other.
+  const asc = within(within(dialog).getByRole('radiogroup', { name: '「ΔT」的方向' })).getByRole('radio', { name: '↑ 由小到大' });
+  expect(asc.tabIndex).toBe(0);
+  asc.focus();
+  await user.keyboard('{ArrowRight}');
+  expect(location.search).toBe('?sort=-dt%2Cprog');
+  await waitFor(() => expect(document.activeElement?.textContent).toBe('↓ 由大到小'));
   // remove both, then add 函式
   await user.click(within(dialog).getByRole('button', { name: '移除「ΔT」排序' }));
   await user.click(within(dialog).getByRole('button', { name: '移除「程式」排序' }));
@@ -690,7 +708,7 @@ test('toolbar on phones: the search field and the buttons share one row, the fie
   const rest = leaves(tools)
     .filter((e) => e !== search)
     .map((e) => e.getBoundingClientRect());
-  expect(rest.length).toBeGreaterThan(1);
+  expect(rest.length).toBeGreaterThanOrEqual(1);
   expect(rest[0].left).toBeGreaterThanOrEqual(sr.right);
   rest.forEach((r) => expect(r.top).toBeLessThan(sr.bottom));
   rest.forEach((r, i) => i && expect(r.left).toBeGreaterThanOrEqual(rest[i - 1].right));
@@ -786,7 +804,7 @@ test('action: the primary button at the right end of the summary row, or of the 
   expect(Math.round(top.getBoundingClientRect().right - parseFloat(getComputedStyle(top).paddingRight) - btn.getBoundingClientRect().right)).toBe(0);
   expect(a.container.querySelector('.ui-card-head')).toBeNull();
   // The tabs give the counts: no 「2 / 2 筆」 on screen until a search keeps fewer rows.
-  expect((a.container.querySelector('.ui-dt-result') as HTMLElement).classList.contains('ui-visually-hidden')).toBe(true);
+  expect(a.container.querySelector('.ui-dt-result')).toBeNull();
   // Counts are numbers only on screen; the unit stays for screen readers.
   const count = tabs.querySelector('.ui-tab-count') as HTMLElement;
   expect(count.textContent).toBe('2 筆');
@@ -942,4 +960,59 @@ test('columns: a short text column is at least 128 px, a long column does not ta
   const acts = row.querySelector('.ui-dt-acts') as HTMLElement;
   await waitFor(() => expect(getComputedStyle(acts).opacity).toBe('1'));
   expect(acts.getBoundingClientRect().left).toBeGreaterThanOrEqual(time.getBoundingClientRect().right - 1);
+});
+
+test('bulk bar: a toolbar above the table while rows are selected; the header row keeps its column headers', async () => {
+  await page.viewport(1280, 900);
+  const user = userEvent.setup();
+  const rows = [
+    { id: 'a', name: 'alpha' },
+    { id: 'b', name: 'beta' },
+  ];
+  render(<DataTable label="項目" columns={cols} rows={rows} urlSync={false} selectable bulkActions={() => <Button>刪除</Button>} />);
+  await user.click(screen.getByRole('checkbox', { name: '選取第 1 筆' }));
+  const bar = screen.getByRole('toolbar', { name: '已選 1 筆' });
+  expect(bar.closest('[role="table"]')).toBeNull();
+  const table = screen.getByRole('table');
+  // the select-all checkbox and 名稱 stay in the header row
+  expect(table.querySelectorAll('.ui-dt-head [role="columnheader"]').length).toBe(2);
+  expect(within(table).getByRole('checkbox', { name: '全選' }).getAttribute('aria-checked')).toBe('mixed');
+  await user.click(within(bar).getByRole('button', { name: '取消選取' }));
+  expect(screen.queryByRole('toolbar')).toBeNull();
+});
+
+test('toolbar={false}: no search, buttons or count; mono: IDs in Geist Mono, the row link too', () => {
+  const rows = [
+    { id: 'a', code: 'JOB-0012', name: 'alpha' },
+    { id: 'b', code: 'JOB-0013', name: 'beta' },
+  ];
+  const { container } = render(
+    <DataTable
+      label="工作"
+      toolbar={false}
+      columns={[
+        { key: 'code', label: 'ID', mono: true },
+        { key: 'name', label: '名稱' },
+      ]}
+      rows={rows}
+      rowHref={(r) => '#' + r.id}
+      urlSync={false}
+    />,
+  );
+  expect(container.querySelector('.ui-dt-tools')).toBeNull();
+  expect(screen.queryByRole('searchbox')).toBeNull();
+  const link = screen.getByRole('link', { name: 'JOB-0012' });
+  expect(getComputedStyle(link).fontFamily).toMatch(/Geist Mono/);
+  expect(getComputedStyle(container.querySelector('[data-col="name"][role="cell"]') as HTMLElement).fontFamily).not.toMatch(/Geist Mono/);
+});
+
+test('pages: the current page is quiet (accent text on accent-soft); a disabled arrow keeps 4.5:1', () => {
+  const rows = Array.from({ length: 12 }, (_, i) => ({ id: String(i), name: 'row ' + i }));
+  render(<DataTable label="分頁" columns={cols} rows={rows} urlSync={false} />);
+  const cur = screen.getByRole('button', { name: '1' });
+  expect(getComputedStyle(cur).opacity).toBe('1');
+  expect(getComputedStyle(cur).color).not.toBe(getComputedStyle(cur).backgroundColor);
+  const prev = screen.getByRole('button', { name: '上一頁' }) as HTMLButtonElement;
+  expect(prev.disabled).toBe(true);
+  expect(getComputedStyle(prev).opacity).toBe('1');
 });

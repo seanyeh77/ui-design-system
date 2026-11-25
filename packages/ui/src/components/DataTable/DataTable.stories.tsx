@@ -229,7 +229,7 @@ export const BesidePanel = {
           urlSync={false}
           search={false}
           columns={[
-            { key: 'fn', label: '函式', width: 160 },
+            { key: 'fn', label: '函式', width: 160, mono: true },
             { key: 'file', label: '檔案', width: 220, render: (r) => <UI.InlineCode href={'#' + r.file}>{r.file}</UI.InlineCode>, searchText: (r) => r.file },
             { key: 'n', label: '呼叫次數', numeric: true, unit: '次', width: 112 },
             { key: 'via', label: '經由', width: 120 },
@@ -279,7 +279,7 @@ export const NarrowLongText = {
         urlSync={false}
         search={false}
         columns={[
-          { key: 'fn', label: '函式', width: 128 },
+          { key: 'fn', label: '函式', width: 128, mono: true },
           {
             key: 'ok',
             label: '結果',

@@ -204,9 +204,10 @@ button.ui-md-link.is-row {
 .ui-md-table th {
   position: relative;
 }
+/* The last border is the table's edge: its 24 px stay inside the last heading. */
 .ui-md-table th:last-child .ui-col-resize {
   right: 0;
-  width: 6px;
+  width: 24px;
 }
 .ui-md-table th:last-child .ui-col-resize::after {
   left: auto;

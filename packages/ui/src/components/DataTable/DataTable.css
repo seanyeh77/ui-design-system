@@ -438,12 +438,32 @@
 .ui-dt-cell.is-lastcol {
   border-right: 0;
 }
+/* mono: IDs, codes and paths in Geist Mono with figures of one width, the row link too. */
+.ui-dt-cell.is-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.ui-dt-cell.is-mono .ui-dt-rowlink {
+  font-weight: 500;
+}
+/* Measures the text's size for the column widths (DataTable's measuring effect): never seen. */
+.ui-dt-probe {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.ui-dt-probe::before {
+  content: '0,000,000 字';
+}
 /* An empty cell's 「—」: muted, so it does not read as content. */
 .ui-dt-none {
   color: var(--ink-muted);
 }
 .ui-dt-cell.is-num {
-  justify-content: flex-end;
+  /* safe: a number wider than its cell (text spacing added before the column is measured again) is cut at its end,
+     never at its first digits. */
+  justify-content: safe flex-end;
   text-align: right;
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
@@ -465,18 +485,32 @@
 .ui-dt-head .ui-dt-cell {
   font-family: var(--font-sans);
 }
-/* A2: the right border of each heading drags (internal/tableTools ColResize, shared with Markdown tables). */
+/* A2: the right border of each heading drags (internal/tableTools ColResize, shared with Markdown tables). Its hit
+   area is 24 px wide (WCAG 2.5.8), centred on the border: 12 px over this heading's padding and 12 px over the next
+   one's, so it never covers a sort button (which has no padding of its own here). The heading lets it reach past its
+   edge; the sort button cuts a heading that does not fit instead. */
+.ui-dt-head .ui-dt-cell {
+  overflow: visible;
+}
 .ui-dt-head .ui-dt-cell:not(.is-sticky) {
   position: relative;
 }
 .ui-dt-head .ui-col-resize {
-  right: 0;
-  width: 8px;
+  right: -12px;
+  width: 24px;
 }
-.ui-dt-head .ui-col-resize::after {
+/* The last heading has no neighbour: its border is the table's edge, so the 24 px stay inside, over its padding. */
+.ui-dt-head .ui-dt-cell.is-lastcol .ui-col-resize {
+  right: 0;
+}
+.ui-dt-head .ui-dt-cell.is-lastcol .ui-col-resize::after {
   left: auto;
-  right: -1px;
+  right: 0;
   transform: none;
+}
+/* The last column keeps 24 px free at its end for that border (unless the row actions' room is already there). */
+.ui-dt:not(.has-acts) .ui-dt-row > .ui-dt-cell.is-lastcol {
+  padding-right: 24px;
 }
 /* B2: 「放大表格」 above the table's top right, as on Markdown tables. */
 .ui-dt-scroll.is-paged {
@@ -491,8 +525,9 @@
   align-items: center;
   gap: 4px;
   min-height: 32px;
-  margin: 0 -4px;
-  padding: 0 4px;
+  max-width: 100%;
+  min-width: 0;
+  padding: 0;
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -503,6 +538,11 @@
 }
 .ui-dt-cell.is-num .ui-dt-sort {
   flex-direction: row-reverse;
+}
+.ui-dt-sort > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .ui-dt-arrow {
   opacity: 0;
@@ -518,6 +558,10 @@
 }
 .ui-dt-sort.is-on {
   color: var(--accent-text);
+}
+/* The sort button has no padding (the column border's hit area sits right beside it): its ring goes outside. */
+.ui-dt-head .ui-dt-sort:focus-visible {
+  outline-offset: 2px;
 }
 .ui-dt-sort.is-on .ui-dt-arrow {
   opacity: 1;
@@ -594,27 +638,33 @@
 .ui-dt.has-acts .ui-dt-row > .ui-dt-cell.is-lastcol {
   padding-right: calc(12px + var(--dt-acts-w, 72px));
 }
+/* While rows are selected: a toolbar above the table (the header row stays), on accent-soft. */
 .ui-dt-bulk {
   display: flex;
-  gap: 12px;
-  padding-right: 8px;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--control-height);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-4);
+  border-radius: var(--radius-md);
   background: var(--accent-soft);
   color: var(--accent-text);
 }
-.ui-dt-bulk .ui-dt-cell {
-  border-right: 0;
-}
 .ui-dt-bulk-count {
   font-size: var(--text-compact);
+  font-weight: 600;
+  white-space: nowrap;
 }
 .ui-dt-bulk-actions {
   margin-left: auto;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
 }
 .ui-dt-bulk-close {
-  width: 32px;
-  height: 32px;
+  flex: none;
+  width: var(--control-height);
+  height: var(--control-height);
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -657,13 +707,20 @@
   font-weight: 600;
   cursor: pointer;
 }
+/* The current page: quiet, accent text on accent-soft (not a solid fill that reads as a second primary button). */
 .ui-dt-page.is-on {
-  background: var(--accent);
+  background: var(--accent-soft);
   border-color: var(--accent);
-  color: var(--on-accent);
+  color: var(--accent-text);
 }
+.ui-dt-page:not(:disabled):not(.is-on):hover {
+  background: var(--surface-sub);
+}
+/* No previous or next page: no border and muted, still 4.5:1 for the arrow (not a faded button under 3:1). */
 .ui-dt-page:disabled {
-  opacity: 0.4;
+  border-color: transparent;
+  background: transparent;
+  color: var(--ink-muted);
   cursor: default;
 }
 
@@ -788,13 +845,8 @@
   .ui-card.is-flush > .ui-dt > .ui-dt-scroller > .ui-dt-scroll {
     border-top: 1px solid var(--line);
   }
-  .ui-dt-head:not(.ui-dt-bulk) {
+  .ui-dt-head {
     display: none;
-  }
-  .ui-dt-bulk {
-    position: static;
-    border: 0;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   }
   .ui-dt-body .ui-dt-row {
     display: grid;
@@ -836,16 +888,32 @@
        and break mid-word (「ucp_worker_progre / ss」). */
     overflow-wrap: break-word;
   }
+  /* Each field on one line: its name (small, muted) in the left 40 %, the value in the rest, wrapping there. A name
+     too long for its 40 % is cut with …; the value never moves under it. */
+  .ui-dt-body .ui-dt-cell[data-label]:not(.is-m-title, .is-m-status) {
+    position: relative;
+    min-height: 20px;
+    margin-top: var(--space-1);
+    padding-left: calc(40% + var(--space-3));
+  }
   .ui-dt-body .ui-dt-cell[data-label]::before {
     content: attr(data-label);
-    display: block;
-    margin-bottom: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 40%;
+    overflow: hidden;
+    text-overflow: ellipsis;
     color: var(--ink-muted);
     font-family: var(--font-sans);
-    font-size: var(--text-mini);
-    line-height: 18px;
+    font-size: var(--text-small);
+    line-height: inherit;
     font-weight: 400;
     white-space: nowrap;
+  }
+  .ui-dt .ui-dt-body .ui-dt-row > .ui-dt-cell.is-lastcol,
+  .ui-dt .ui-dt-total > .ui-dt-cell.is-lastcol {
+    padding-right: 0;
   }
   .ui-dt-body .ui-dt-cell.ui-dt-sel {
     grid-column: 1;
@@ -874,21 +942,25 @@
   .ui-dt-body .ui-dt-cell.is-m-hide {
     display: none;
   }
-  /* Phone cards: the actions at the title row's end, always shown; the 32 px quiet buttons (48 px touch area) pull
-     into the card's padding so they do not make the title row taller. */
+  /* Phone cards: the actions on a line of their own at the card's end, right-aligned and always shown, so the status
+     at the title row's end lines up on every card whether or not it has actions. The 32 px quiet buttons (48 px touch
+     area) pull into the card's padding. */
   .ui-dt-body .ui-dt-cell.ui-dt-acts {
     position: static;
-    grid-column: 4;
-    grid-row: 1;
+    grid-column: 1 / -1;
+    grid-row: auto;
     display: flex;
     justify-content: flex-end;
     align-items: center;
     gap: 4px;
     width: auto;
-    margin: -6px -8px -6px var(--space-1);
+    margin: 0 -8px -6px 0;
     padding: 0;
     background: none;
     opacity: 1;
+  }
+  .ui-dt-body .ui-dt-cell.ui-dt-acts:empty {
+    display: none;
   }
   .ui-dt.has-acts .ui-dt-row > .ui-dt-cell.is-lastcol {
     padding-right: 0;
@@ -1013,7 +1085,7 @@
   white-space: nowrap;
 }
 .ui-dt-sortpop {
-  width: 400px;
+  width: 480px;
   max-width: min(calc(100vw - 16px), var(--available-width, 100vw));
   padding: 16px;
   box-sizing: border-box;
@@ -1105,6 +1177,11 @@
   background: var(--accent-soft);
   color: var(--accent-text);
   font-weight: 600;
+}
+/* 上移 and 下移: quiet 32 px IconButtons, the single-pointer way to reorder levels. */
+.ui-dt-sortmove {
+  flex: none;
+  display: inline-flex;
 }
 .ui-dt-sortnone {
   margin: 0;

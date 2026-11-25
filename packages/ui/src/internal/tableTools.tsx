@@ -20,7 +20,8 @@ export const MIN_COL = 48;
 export const COL_STEP = 16;
 
 /** The right border of a header cell, dragged to set the column's width. ← → 16 px, Enter or a double-click back
- *  to the widths by content. Hidden on touch screens (CSS), where 「放大表格」 shows the whole table instead. */
+ *  to the widths by content. A click without dragging (one pointer, WCAG 2.5.7) steps the width up: 1.5 times, twice,
+ *  then back to the width by content. Hidden on touch screens (CSS), where 「放大表格」 shows the whole table instead. */
 export function ColResize(p: {
   /** The column's name: the border is called 「調整「名稱」欄寬」. */
   name: string;
@@ -30,17 +31,36 @@ export function ColResize(p: {
   min?: number;
   /** The width when a drag or a key starts: the set width, or the drawn one. */
   start: () => number;
+  /** A new width (px), from a drag, a key or a click. */
   onWidth: (px: number) => void;
+  /** Back to the width by content (Enter, a double-click, the last click step). */
   onReset: () => void;
+  /** A drag starts (true) or ends (false). */
   onDragging?: (on: boolean) => void;
 }) {
   const [on, setOn] = React.useState(false);
-  const from = React.useRef<{ x: number; w: number } | null>(null);
+  const from = React.useRef<{ x: number; w: number; moved: boolean } | null>(null);
+  // The click steps: the width they started from and the last one set, so a drag or a key in between starts over.
+  const steps = React.useRef<{ base: number; n: number; last: number } | null>(null);
   const min = p.min ?? MIN_COL;
   const set = (w: number) => p.onWidth(Math.max(min, Math.round(w)));
   const drag = (v: boolean) => {
     setOn(v);
     p.onDragging?.(v);
+  };
+  const step = () => {
+    const cur = steps.current && Math.abs(steps.current.last - p.width) <= 1 ? steps.current : { base: p.start(), n: 0, last: -1 };
+    const n = cur.n + 1;
+    if (n >= STEPS.length + 1) {
+      steps.current = null;
+      p.onReset();
+      announce(tr('已還原「{name}」欄寬', { name: p.name }));
+      return;
+    }
+    const w = Math.max(min, Math.round(cur.base * STEPS[n - 1]));
+    steps.current = { base: cur.base, n, last: w };
+    p.onWidth(w);
+    announce(tr('「{name}」欄寬 {n} px', { name: p.name, n: w }));
   };
   return (
     <span
@@ -48,6 +68,7 @@ export function ColResize(p: {
       role="separator"
       aria-orientation="vertical"
       aria-label={tr('調整「{name}」欄寬', { name: p.name })}
+      aria-description={tr('拖曳或按 ← → 調整；按一下依序加寬，按 Enter 還原')}
       aria-valuenow={Math.round(p.width)}
       aria-valuemin={min}
       tabIndex={0}
@@ -57,15 +78,23 @@ export function ColResize(p: {
         e.preventDefault();
         e.stopPropagation();
         e.currentTarget.setPointerCapture?.(e.pointerId);
-        from.current = { x: e.clientX, w: p.start() };
+        from.current = { x: e.clientX, w: p.start(), moved: false };
         drag(true);
       }}
       onPointerMove={(e) => {
-        if (from.current) set(from.current.w + e.clientX - from.current.x);
+        const f = from.current;
+        if (!f) return;
+        // A few px of jitter in a click is not a drag.
+        if (!f.moved && Math.abs(e.clientX - f.x) < DRAG_MIN) return;
+        f.moved = true;
+        steps.current = null;
+        set(f.w + e.clientX - f.x);
       }}
       onPointerUp={() => {
+        const clicked = from.current && !from.current.moved;
         from.current = null;
         drag(false);
+        if (clicked) step();
       }}
       onPointerCancel={() => {
         from.current = null;
@@ -73,6 +102,7 @@ export function ColResize(p: {
       }}
       onDoubleClick={(e) => {
         e.stopPropagation();
+        steps.current = null;
         p.onReset();
       }}
       onKeyDown={(e) => {
@@ -80,16 +110,23 @@ export function ColResize(p: {
         if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
           e.preventDefault();
           e.stopPropagation();
+          steps.current = null;
           set(p.start() + (e.key === 'ArrowRight' ? COL_STEP : -COL_STEP));
         } else if (e.key === 'Enter') {
           e.preventDefault();
           e.stopPropagation();
+          steps.current = null;
           p.onReset();
         }
       }}
     />
   );
 }
+
+// A click on a column border: the width it started from times these, then back to the width by content.
+const STEPS = [1.5, 2];
+// A pointer that moves less than this (px) between down and up clicked.
+const DRAG_MIN = 4;
 
 /** The 「放大表格」 icon: 32 px, no border, at a Markdown table's top right; in a DataTable's toolbar (inToolbar) it is a
  *  toolbar button like 「複製成 Markdown」. */
