@@ -104,3 +104,19 @@
 .ui-meter-marks.is-stacked > span.is-danger {
   top: 18px;
 }
+/* Forced colors (Windows high contrast): the zones' backgrounds are replaced, so the track gets an outline and the
+   value's dot and the level marks keep system colours of their own. */
+@media (forced-colors: active) {
+  .ui-meter-track {
+    border: 1px solid CanvasText;
+  }
+  .ui-meter-dot {
+    forced-color-adjust: none;
+    background: Highlight;
+    box-shadow: 0 0 0 2px Canvas;
+  }
+  .ui-meter-mark {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+}
