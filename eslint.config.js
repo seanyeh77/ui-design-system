@@ -24,4 +24,6 @@ export default tseslint.config(
     },
   },
   { ...ui.configs.recommended, files: ['packages/blocks/src/**/*.tsx', 'packages/ui/src/**/*.stories.tsx'] },
+  // Stories frame their examples with plain padding and font sizes; the templates, which projects copy, get the full set.
+  { files: ['packages/ui/src/**/*.stories.tsx'], rules: { 'ui/no-raw-size': 'off' } },
 );

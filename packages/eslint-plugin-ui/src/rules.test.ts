@@ -1,5 +1,6 @@
 import { RuleTester } from 'eslint';
 import { describe, it } from 'vitest';
+import tsParser from '@typescript-eslint/parser';
 import { rules } from './index';
 
 RuleTester.describe = describe;
@@ -30,11 +31,33 @@ tester.run('no-raw-color', rules['no-raw-color'], {
   ],
 });
 tester.run('no-native-controls', rules['no-native-controls'], {
-  valid: ['<Select options={[]} />', '<input type="text" />'],
+  valid: [
+    '<Select options={[]} />',
+    '<TextField label="名稱" />',
+    '<Link href="/docs">文件</Link>',
+    '<ui.Button>儲存</ui.Button>',
+    '<input type="hidden" name="id" value="1" />',
+    '<input type={kind} />',
+    '<button type="button" className="ui-link-btn" onClick={go}>重看導覽</button>',
+    { code: '<a href="/docs">文件</a>', options: [{ allow: ['a'] }] },
+    { code: '<input type="range" />', options: [{ allow: ['input[type=range]'] }] },
+  ],
   invalid: [
     { code: '<select />', errors: 1 },
     { code: '<input type="checkbox" />', errors: 1 },
     { code: '<table />', errors: 1 },
+    { code: '<textarea />', errors: 1 },
+    { code: '<input />', errors: 1 },
+    { code: '<input type="text" />', errors: 1 },
+    { code: '<input type="search" />', errors: 1 },
+    { code: '<input type="email" />', errors: 1 },
+    { code: '<input type="password" />', errors: 1 },
+    { code: '<input type="number" />', errors: 1 },
+    { code: '<input type="range" />', errors: 1 },
+    { code: '<input type={secret ? "password" : "text"} />', errors: 2 },
+    { code: '<a href="/docs">文件</a>', errors: [{ message: 'Native <a>: use Link from @seanyeh77/ui.' }] },
+    { code: '<button onClick={go}>儲存</button>', errors: 1 },
+    { code: '<button />', options: [{ allow: ['a'] }], errors: 1 },
   ],
 });
 tester.run('no-nested-card', rules['no-nested-card'], {
@@ -50,6 +73,8 @@ tester.run('one-primary-button', rules['one-primary-button'], {
     { code: '<Card><Button variant="primary">儲存</Button><Button variant="primary">發布</Button></Card>', errors: 1 },
     { code: '<Card><Button variant="primary">儲存</Button>{open && <Button variant="primary">發布</Button>}</Card>', errors: 1 },
     { code: '<Card footer={<Button variant="primary">發布</Button>}><Button variant="primary">儲存</Button></Card>', errors: 1 },
+    { code: '<Card><Button variant="primary">儲存</Button><Button variant={main ? "primary" : "secondary"}>發布</Button></Card>', errors: 1 },
+    { code: '<Card><Button variant={a && "primary"}>儲存</Button><Button variant="primary">發布</Button></Card>', errors: 1 },
   ],
 });
 tester.run('verb-labels', rules['verb-labels'], {
@@ -57,8 +82,18 @@ tester.run('verb-labels', rules['verb-labels'], {
   invalid: [{ code: '<Button>確定</Button>', errors: 1 }],
 });
 tester.run('danger-confirm', rules['danger-confirm'], {
-  valid: ['<Button variant="danger" confirm={{ title: "刪除？" }}>刪除</Button>', '<Button variant="danger" confirmed>刪除</Button>'],
-  invalid: [{ code: '<Button variant="danger">刪除</Button>', errors: 1 }],
+  valid: [
+    '<Button variant="danger" confirm={{ title: "刪除？" }}>刪除</Button>',
+    '<Button variant="danger" confirmed>刪除</Button>',
+    '<Button variant={busy ? "secondary" : "quiet"}>取消</Button>',
+    '<Button variant={x ? "danger" : "quiet"} confirm={{ title: "刪除？" }}>刪除</Button>',
+  ],
+  invalid: [
+    { code: '<Button variant="danger">刪除</Button>', errors: 1 },
+    { code: '<Button variant={x ? "danger" : "quiet"}>刪除</Button>', errors: 1 },
+    { code: '<Button variant={x ? "quiet" : "danger"}>刪除</Button>', errors: 1 },
+    { code: '<Button variant={(x && "danger") as Variant}>刪除</Button>', errors: 1, languageOptions: { parser: tsParser } },
+  ],
 });
 
 describe('configs.recommended', () => {
@@ -93,4 +128,41 @@ tester.run('no-tailwind-defaults', rules['no-tailwind-defaults'], {
     { code: 'const c = cn(`p-2 rounded-xl ${x}`);', errors: 1 },
     { code: 'const b = cva("p-2", { compoundVariants: [{ shape: "rounded", class: "shadow-lg" }] });', errors: 1 },
   ],
+});
+
+tester.run('no-raw-size', rules['no-raw-size'], {
+  valid: [
+    '<div style={{ padding: "var(--space-4)", gap: cssVar("space-2") }} />',
+    '<div style={{ margin: 0, padding: "0", borderRadius: "var(--radius-md)" }} />',
+    '<div style={{ width: 320, height: "12px", top: 4 }} />',
+    '<div style={{ padding: "var(--space-4, 16px)" }} />',
+    '<div style={{ marginLeft: "auto", boxShadow: "none", fontFamily: "var(--font-mono)" }} />',
+    '<div style={{ padding: `calc(var(--space-4) * 2)` }} />',
+    '<div style={{ gap: wide ? "var(--space-4)" : "var(--space-2)" }} />',
+    '<div className="p-4 gap-2 text-small rounded-md shadow-card font-mono w-[320px]" />',
+    '<div className="p-[var(--space-3)] text-[#fff] text-[length:var(--text-small)]" />',
+  ],
+  invalid: [
+    { code: '<div style={{ padding: 12 }} />', errors: 1 },
+    { code: '<div style={{ padding: "12px 16px" }} />', errors: 1 },
+    { code: '<div style={{ marginTop: "0.75rem" }} />', errors: 1 },
+    { code: '<div style={{ gap: wide ? 16 : 8 }} />', errors: 2 },
+    { code: '<div style={{ fontSize: 13 }} />', errors: [{ message: /text-small/ }] },
+    { code: '<div style={{ borderRadius: "10px" }} />', errors: [{ message: /radius-md/ }] },
+    { code: '<div style={{ boxShadow: "0 1px 2px rgba(0,0,0,.1)" }} />', errors: 1 },
+    { code: '<div style={{ fontFamily: "Inter, sans-serif" }} />', errors: [{ message: /font-sans/ }] },
+    { code: '<div style={{ padding: `${x}px 8px` }} />', errors: 1 },
+    { code: '<div className="text-[13px] p-[7px]" />', errors: 2 },
+    { code: '<div className="hover:rounded-[10px] shadow-[0_1px_2px_black] font-[Inter]" />', errors: 3 },
+    { code: 'const c = cn("gap-[6px]", on && "-mt-[2px]");', errors: 2 },
+  ],
+});
+
+describe('configs.recommended includes no-raw-size', () => {
+  it('warns on a raw padding', async () => {
+    const { Linter } = await import('eslint');
+    const plugin = (await import('./index')).default;
+    const out = new Linter().verify('export const X = () => <div style={{ padding: 12 }} />;', [plugin.configs.recommended], 'x.tsx');
+    if (out.length !== 1 || out[0].ruleId !== 'ui/no-raw-size' || out[0].severity !== 1) throw new Error(JSON.stringify(out));
+  });
 });

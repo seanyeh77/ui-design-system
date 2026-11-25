@@ -68,7 +68,10 @@ if (process.env.SITE_PAST_VERSIONS === '1') {
   for (const v of versions.filter((v) => /^\d+\.\d+\.\d+$/.test(v) && newer(v) && v !== uiVersion)) {
     const tmp = mkdtempSync(join(tmpdir(), 'ui-site-'));
     try {
-      const tgz = execFileSync('npm', ['pack', `@seanyeh77/ui@${v}`, '--silent', '--pack-destination', tmp], { encoding: 'utf8' }).trim().split('\n').pop();
+      const tgz = execFileSync('npm', ['pack', `@seanyeh77/ui@${v}`, '--silent', '--pack-destination', tmp], { encoding: 'utf8' })
+        .trim()
+        .split('\n')
+        .pop();
       execFileSync('tar', ['-xzf', join(tmp, tgz ?? ''), '-C', tmp, ...NO_BUILD_FILES.map((f) => `package/dist/${f}`)]);
       writeVersion(v, join(tmp, 'package/dist'));
     } catch (e) {
