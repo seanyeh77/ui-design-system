@@ -37,6 +37,7 @@ export interface TimelineEvent {
 }
 
 export interface EventTimelineProps {
+  /** The events, newest first. */
   events: TimelineEvent[];
   /** What the list is, for screen readers, e.g. 「近 4 小時的事件」. */
   label: string;
@@ -44,6 +45,7 @@ export interface EventTimelineProps {
   empty?: string;
   /** Your own kinds (an order's 建立, 付款, 出貨…), added to the built-in four. */
   kinds?: Record<string, TimelineKind>;
+  /** Extra class on the root element. */
   className?: string;
 }
 

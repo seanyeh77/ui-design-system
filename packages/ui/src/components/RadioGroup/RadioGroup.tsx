@@ -21,6 +21,7 @@ interface RadioGroupBase<V extends string> {
   disabled?: boolean;
   /** Form field name: the chosen value is sent with a native form. */
   name?: string;
+  /** Extra class on the root element. */
   className?: string;
 }
 
@@ -29,6 +30,7 @@ export type RadioGroupProps<V extends string = string> = RadioGroupBase<V> &
     | {
         /** Shown above the options and used as the group's name. */
         label: string;
+        /** Not with label: the visible label is the name. */
         'aria-label'?: never;
       }
     | {

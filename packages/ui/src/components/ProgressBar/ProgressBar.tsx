@@ -4,9 +4,11 @@ import { cx } from '../../internal/util';
 export interface ProgressBarProps {
   /** 0 to 100. */
   value: number;
+  /** Visible text above the bar; also its name. */
   label?: string;
   /** The bar's name for screen readers when there is no visible label (「a.pdf 上傳進度」). */
   'aria-label'?: string;
+  /** Extra class on the root element. */
   className?: string;
 }
 

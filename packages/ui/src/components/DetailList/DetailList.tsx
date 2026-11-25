@@ -7,6 +7,7 @@ export interface DetailListItem {
 }
 
 export interface DetailListProps {
+  /** The rows: a label and its value each. */
   items: DetailListItem[];
   /** The label column. Default: 30 % of the width (at least 96 px). 'auto': as wide as the longest label (at most
    *  40 %), the same on every row, 24 px before the values; a number: that many px. Under 600 px labels go above. */
@@ -14,6 +15,7 @@ export interface DetailListProps {
   /** small (default): 13 px, muted. body: the value's size (16 px) and the ink color, for wide panels where a pale small
    *  label is hard to read. Under 600 px labels stay 13 px. */
   labelSize?: 'small' | 'body';
+  /** Extra class on the root element. */
   className?: string;
 }
 

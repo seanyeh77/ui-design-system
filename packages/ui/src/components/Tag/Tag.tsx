@@ -12,6 +12,7 @@ includeIcons(phInfo, phTrendUp);
 export type TagTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
 
 export interface TagProps {
+  /** The words, e.g. 「外部」 or 「預測」. */
   children?: React.ReactNode;
   /** An icon before the words: the tag then takes the size of the text beside it, e.g. 'trend-up' with 「預測」, 'info'
    *  with 「示範資料」 beside the brand. */
@@ -21,6 +22,7 @@ export interface TagProps {
   tone?: TagTone;
   /** @deprecated Use icon and tone: 'forecast' is icon="trend-up" tone="info", 'demo' is icon="info". */
   variant?: 'plain' | 'forecast' | 'demo';
+  /** Extra class on the root element. */
   className?: string;
 }
 

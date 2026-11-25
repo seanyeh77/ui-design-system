@@ -20,11 +20,17 @@ export interface SuggestionProps {
   copyText?: string;
   /** Default 「複製修正」. */
   copyLabel?: string;
+  /** Called with the copied text after a copy. */
   onCopy?: (text: string) => void;
+  /** Called when the clipboard refuses the copy. */
   onCopyError?: () => void;
+  /** Spans that look like file.c:86 become links; return undefined when the reference has no target. */
   refHref?: RefHref;
+  /** Called when a reference is pressed, for apps that open it themselves. */
   onRef?: OnRef;
+  /** Which spans are references. Default: a file name with a line number. */
   isRef?: (span: string) => boolean;
+  /** Extra class on the root element. */
   className?: string;
 }
 

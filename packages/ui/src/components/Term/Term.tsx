@@ -25,8 +25,11 @@ export interface TermProps {
   code?: string;
   /** One link-style action at the bottom. */
   action?: { label: string; onClick?: () => void };
+  /** Spans in text that look like file.c:86 become links; return undefined when the reference has no target. */
   refHref?: RefHref;
+  /** Called when a reference is pressed, for apps that open it themselves. */
   onRef?: OnRef;
+  /** Which spans are references. Default: a file name with a line number. */
   isRef?: (span: string) => boolean;
   /** `icon` (default): the word with a small question mark, opened by a press. `inline`: a dashed underline inside a
    *  sentence; the card opens on Enter or a press, after resting the pointer on the word for 500 ms, and as a sheet on
@@ -37,6 +40,7 @@ export interface TermProps {
   openOnFocus?: boolean;
   /** -1 inside a widget that moves focus with its own keys (CodeView). */
   tabIndex?: number;
+  /** Extra class on the root element. */
   className?: string;
 }
 

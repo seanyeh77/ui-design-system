@@ -4,6 +4,7 @@ import { cx } from '../../internal/util';
 export interface FormGridProps {
   /** The fields; give a field className="is-full" to span both columns. */
   children?: React.ReactNode;
+  /** Extra class on the root element. */
   className?: string;
 }
 

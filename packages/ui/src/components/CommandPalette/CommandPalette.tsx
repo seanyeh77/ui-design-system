@@ -66,6 +66,7 @@ export interface CommandPaletteProps<T extends PaletteItem = PaletteItem> {
   onOpenChange?: (open: boolean, reason?: OpenChangeReason) => void;
   /** Every item that can be found. */
   items: T[];
+  /** Called with the item the person opens (Enter or a press). */
   onSelect?: (item: T) => void;
   /** Default 「搜尋」. */
   placeholder?: string;
@@ -82,6 +83,7 @@ export interface CommandPaletteProps<T extends PaletteItem = PaletteItem> {
   kinds?: Record<string, IconSource>;
   /** false: items are already filtered (server search with onQueryChange). */
   filter?: boolean;
+  /** Called on every change of the search text, for results the app fetches itself. */
   onQueryChange?: (query: string) => void;
   /** Shows 「搜尋中」 when there are no items yet. */
   loading?: boolean;
@@ -92,6 +94,7 @@ export interface CommandPaletteProps<T extends PaletteItem = PaletteItem> {
   limit?: number;
   /** Ctrl K / ⌘K toggles it. Default true. */
   hotkey?: boolean;
+  /** The search text when the palette opens. */
   defaultQuery?: string;
   /** Default 「搜尋」. */
   label?: string;

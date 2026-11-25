@@ -36,6 +36,7 @@ const LEGEND_DEFAULT: GraphLegendItem[] = [
 export interface GraphLegendProps {
   /** Default: 確定的關係, 推測的關係, 外部項目. Pass your domain's words. */
   items?: GraphLegendItem[];
+  /** Extra class on the root element. */
   className?: string;
 }
 

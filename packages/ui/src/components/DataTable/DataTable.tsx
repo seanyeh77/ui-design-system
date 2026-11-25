@@ -32,6 +32,7 @@ const SEL = 40;
 export type { DataTableColumn, DataTableFilter, DataTableView, FilterOption, FilterValue, RangeValue, Row, RowKey, Total } from './types';
 
 export interface DataTableProps<R extends Row = Record<string, unknown>> {
+  /** The columns, in order; key names a field of the row (checked by TypeScript). */
   columns: DataTableColumn<R>[];
   /** Give each row an `id` so selection and animations follow the row, not its position. */
   rows: R[];
@@ -112,6 +113,7 @@ export interface DataTableProps<R extends Row = Record<string, unknown>> {
   onCopyError?: () => void;
   /** Default 「沒有符合的資料」. */
   emptyText?: string;
+  /** Extra class on the root element. */
   className?: string;
 }
 

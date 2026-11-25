@@ -27,16 +27,23 @@ export interface UploadFile {
 }
 
 export interface FileUploadProps {
+  /** The field's label above the drop zone. */
   label?: string;
+  /** The files added so far, with their upload progress and status. */
   files?: UploadFile[];
+  /** Called with the files the person picked or dropped; upload them and update files. */
   onAdd?: (files: File[]) => void;
+  /** Called by a file's × button. */
   onRemove?: (file: UploadFile) => void;
+  /** Called by 「重試」 on a file whose status is danger. */
   onRetry?: (file: UploadFile) => void;
   /** Written inside the drop zone, e.g. 「每個最大 100 MB」. */
   limitText?: string;
+  /** File types the picker offers, as in <input accept>, e.g. ".pdf,image/*". */
   accept?: string;
   /** Default true. */
   multiple?: boolean;
+  /** Extra class on the root element. */
   className?: string;
 }
 

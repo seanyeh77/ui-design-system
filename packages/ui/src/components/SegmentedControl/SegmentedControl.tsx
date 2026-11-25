@@ -35,6 +35,7 @@ export interface SegmentedControlProps<V extends string = string> {
   label: string;
   /** Icons only, the words in a tooltip; for a bar such as Workbench's mainBar. Default false. */
   iconOnly?: boolean;
+  /** Extra class on the root element. */
   className?: string;
 }
 

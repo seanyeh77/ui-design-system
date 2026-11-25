@@ -22,8 +22,11 @@ export interface NotificationItem {
 }
 
 export interface NotificationBellProps {
+  /** The notifications, newest first; unread ones count on the bell. */
   items: NotificationItem[];
+  /** Called with the notification the person opens. */
   onOpen?: (item: NotificationItem) => void;
+  /** Called by 「全部標為已讀」; without it the button is not shown. */
   onReadAll?: () => void;
   /** Default 「沒有通知」. */
   emptyText?: string;

@@ -15,6 +15,7 @@ interface CheckboxBase {
   name?: string;
   /** What a checked box sends with the form. Default 'on'. */
   value?: string;
+  /** Extra class on the root element. */
   className?: string;
 }
 
@@ -23,6 +24,7 @@ export type CheckboxProps = CheckboxBase &
     | {
         /** Text to the right of the box; also its name. */
         label: React.ReactNode;
+        /** Not needed with label: the visible text is the name. */
         'aria-label'?: string;
       }
     | {

@@ -17,6 +17,7 @@ export interface LocaleProviderProps {
   locale: string;
   /** The currency of format.money; default: the current one. */
   currency?: string;
+  /** The part of the app rendered in this locale. */
   children?: React.ReactNode;
 }
 

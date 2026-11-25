@@ -16,6 +16,7 @@ export interface TimeControlProps {
   status: string;
   /** Second line, smaller and gray: e.g. the range of the records or the last update. */
   detail?: string;
+  /** Extra class on the root element. */
   className?: string;
 }
 

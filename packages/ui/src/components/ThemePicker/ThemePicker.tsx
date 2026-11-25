@@ -18,6 +18,7 @@ export interface ThemePickerProps {
   onChange?: (theme: ThemeSetting) => void;
   /** Default 「主題」. */
   label?: string;
+  /** Extra class on the root element. */
   className?: string;
 }
 

@@ -3,7 +3,9 @@ import { cx } from '../../internal/util';
 import { codeSpans, hasCodeSpan } from '../../internal/codeSpans';
 
 interface InlineCodeBase {
+  /** The code, path or ID. */
   children?: React.ReactNode;
+  /** Extra class on the root element. */
   className?: string;
 }
 type Target =
@@ -17,6 +19,7 @@ export type InlineCodeProps = InlineCodeBase &
         look?: 'chip';
         /** Makes it a link. */
         href?: string;
+        /** Makes it a button-like link that runs this. */
         onClick?: (e: React.MouseEvent<HTMLElement>) => void;
       }
     | ({
@@ -74,10 +77,13 @@ export interface CodeTextProps {
   text: string;
   /** Spans that look like file.c:86 become links; return undefined when the reference has no target. */
   refHref?: RefHref;
+  /** Called when a reference is pressed, for apps that open it themselves. */
   onRef?: OnRef;
   /** Which spans are references. Default: a file name with a line number. */
   isRef?: (span: string) => boolean;
+  /** The element to render. Default span. */
   as?: 'span' | 'p' | 'div' | 'li';
+  /** Extra class on the root element. */
   className?: string;
 }
 

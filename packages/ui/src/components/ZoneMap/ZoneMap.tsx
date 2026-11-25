@@ -55,6 +55,7 @@ export interface ZoneMapProps {
   selectedId?: string | null;
   /** @deprecated use onChange (it gets the id first, the zone second). */
   onSelect?: (zone: Zone) => void;
+  /** Extra class on the root element. */
   className?: string;
 }
 

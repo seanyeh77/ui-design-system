@@ -129,6 +129,7 @@ export interface TreeListProps {
   onOpen?: (file: TreeNode) => void;
   /** Shown when there are no items. Default 「這裡還沒有檔案」 (files) or 「沒有項目」 (plain). */
   emptyText?: string;
+  /** Extra class on the root element. */
   className?: string;
 }
 

@@ -88,6 +88,7 @@ export interface LineChartProps {
   height?: number;
   /** A status band under the x axis, aligned with the points (StatusBand without its own spacing). */
   status?: Omit<StatusBandProps, 'count' | 'times' | 'legend' | 'className'>;
+  /** Extra class on the root element. */
   className?: string;
 }
 

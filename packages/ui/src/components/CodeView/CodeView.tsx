@@ -57,7 +57,9 @@ export interface CodeViewProps<L extends CodeLink = CodeLink> {
   context?: number;
   /** Path in the header; its extension picks the language. */
   file?: string;
+  /** Makes the file name in the header a link. */
   fileHref?: string;
+  /** Called when the file name in the header is pressed (a link in an app without URLs). */
   onFile?: (e: React.MouseEvent<HTMLElement>) => void;
   /** Header text when there is no file. */
   title?: string;
@@ -120,6 +122,7 @@ export interface CodeViewProps<L extends CodeLink = CodeLink> {
    *  range is in view; a range taller than the view puts its first line at the top. Focus and selected text stay.
    *  null or undefined: none. */
   peek?: number | { from: number; to: number } | null;
+  /** Extra class on the root element. */
   className?: string;
   /** focusTarget() moves keyboard and screen-reader focus to the target line. */
   ref?: React.Ref<CodeViewHandle>;

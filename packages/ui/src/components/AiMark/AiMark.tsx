@@ -6,6 +6,7 @@ export interface AiMarkProps {
   text?: string;
   /** What screen readers say, when it should differ from text. Default: text in parentheses, 「（AI 撰寫）」. */
   label?: string;
+  /** Extra class on the root element. */
   className?: string;
 }
 

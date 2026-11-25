@@ -83,6 +83,7 @@ export interface SideNavProps {
   sections: NavSection[];
   /** Id of the current page. */
   value: string;
+  /** Called with the id of the item the person picks. */
   onChange?: (id: string) => void;
   /** 72 px with icons only, labels as tooltips. */
   collapsed?: boolean;
@@ -98,6 +99,7 @@ export interface SideNavProps {
   brand?: React.ReactNode | NavBrand;
   /** Default 「主要導覽」. */
   label?: string;
+  /** Extra class on the root element. */
   className?: string;
 }
 

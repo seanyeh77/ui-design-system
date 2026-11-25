@@ -24,6 +24,7 @@ export interface DatePickerProps extends FieldProps {
   /** An error from your own check (「請選擇開始日期」): the cause and the fix. Red border, the warning icon and this line
    *  under the field, announced when it appears. A date typed in the wrong format gets its own error. `backticks` are code. */
   error?: string;
+  /** Extra class on the root element. */
   className?: string;
 }
 

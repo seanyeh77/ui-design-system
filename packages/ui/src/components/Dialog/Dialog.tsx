@@ -23,6 +23,7 @@ interface DialogBase {
    *  focus on the safe button (取消) and does not close on a press outside. Default 'neutral'. ('default' is the
    *  old name of 'neutral'.) */
   tone?: 'neutral' | 'danger' | 'default';
+  /** Extra class on the root element. */
   className?: string;
   /** @deprecated the id is generated. */
   titleId?: string;
@@ -38,6 +39,7 @@ interface DialogConfirm {
   cancelLabel?: string;
   /** Spinner on the confirming button while the action runs; the button keeps focus. */
   confirmLoading?: boolean;
+  /** Not with actions: give confirmLabel and onConfirm, or your own buttons in actions. */
   actions?: never;
 }
 
@@ -61,6 +63,7 @@ interface DialogModal {
   onOpenChange?: (open: boolean, reason?: OpenChangeReason) => void;
   /** @deprecated use onOpenChange: called on Esc, a press on the backdrop, × and 取消. */
   onClose?: () => void;
+  /** A real dialog over the page (the default). modal={false} draws a static panel inside the page instead. */
   modal?: true;
 }
 

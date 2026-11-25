@@ -58,7 +58,9 @@ export interface SectionProps {
   actions?: React.ReactNode;
   /** Heading level of the title. Default 3. The size stays 20 px whatever the level. */
   level?: 2 | 3 | 4 | 5 | 6;
+  /** The content shown while the section is open. */
   children?: React.ReactNode;
+  /** Extra class on the root element. */
   className?: string;
 }
 
@@ -177,6 +179,7 @@ export interface SectionGroupProps {
   /** false: no row above the sections; put <SectionGroupToggle /> where you want it, such as the card's title row next
    *  to its other icon buttons. It must be inside the SectionGroup. Default true. */
   bar?: boolean;
+  /** Extra class on the root element. */
   className?: string;
 }
 
@@ -210,6 +213,7 @@ export function SectionGroup({ children, actions, bar = true, className }: Secti
 }
 
 export interface SectionGroupToggleProps {
+  /** Extra class on the root element. */
   className?: string;
 }
 

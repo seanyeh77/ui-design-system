@@ -20,6 +20,7 @@ export interface DrawerProps {
   onOpenChange?: (open: boolean, reason?: OpenChangeReason) => void;
   /** @deprecated use onOpenChange. Called when the drawer closes. */
   onClose?: () => void;
+  /** The drawer's heading and name. */
   title: string;
   /** One sentence under the title on what the drawer is for; read with the title when it opens (aria-describedby). */
   description?: string;
@@ -36,6 +37,7 @@ export interface DrawerProps {
   confirmTitle?: string;
   /** The sentence of the close confirmation; `backticks` are code. */
   confirmText?: string;
+  /** The form or details; the buttons stay fixed at the bottom. */
   children?: React.ReactNode;
 }
 

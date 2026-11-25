@@ -7,6 +7,7 @@ export interface TextFieldProps extends FieldProps, Omit<React.InputHTMLAttribut
   value?: string;
   /** Receives the new text, then the native event: onChange={(v) => setName(v)}. */
   onChange?: (value: string, event: React.ChangeEvent<HTMLInputElement>) => void;
+  /** The underlying <input>. */
   ref?: React.Ref<HTMLInputElement>;
 }
 

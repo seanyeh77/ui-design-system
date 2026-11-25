@@ -9,6 +9,7 @@ import { devWarn } from '../../internal/dev';
 export interface PopoverProps extends OpenStateProps {
   /** Text of the trigger button. */
   label: string;
+  /** Icon before the trigger's text. */
   icon?: IconSource;
   /** A number badge on the trigger, e.g. how many filters are on. 0 shows nothing. */
   count?: number;

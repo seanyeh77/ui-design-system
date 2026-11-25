@@ -9,7 +9,9 @@ import phX from '../../icons/ph/x';
 includeIcons(phMagnifyingGlass, phX);
 
 export interface SearchFieldProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
+  /** The search text (controlled). */
   value: string;
+  /** Called with the new text on every change. */
   onChange: (value: string) => void;
   /** aria-label. Default 「搜尋」. */
   label?: string;

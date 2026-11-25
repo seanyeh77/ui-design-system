@@ -17,8 +17,11 @@ export interface TabItem<V extends string = string> {
 }
 
 export interface TabsProps<V extends string = string> {
+  /** The tabs, in order. */
   items: TabItem<V>[];
+  /** The id of the selected tab (controlled). */
   value: V;
+  /** Called with the id of the tab the person picks. */
   onChange?: (id: V) => void;
   /** aria-label of the tab list. */
   label?: string;
@@ -28,6 +31,7 @@ export interface TabsProps<V extends string = string> {
   /** Counts show the number only; the unit is still read by screen readers and announced. For a row of status counts
    *  (DataTable's summary) where the unit is the same on every tab. Default false. */
   hideUnit?: boolean;
+  /** Extra class on the root element. */
   className?: string;
 }
 

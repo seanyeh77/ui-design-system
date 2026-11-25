@@ -9,7 +9,9 @@ export interface GridProps {
   /** Equal columns from 1280 px (960–1279 px: 4 becomes 2, 6 becomes 3; 600–959 px: 2; under 600 px: 1), or a ratio
    *  such as [2, 1] for a main column and an aside (one column under 960 px). Default 3. */
   columns?: 1 | 2 | 3 | 4 | 6 | GridRatio;
+  /** The cards, one per cell. */
   children: React.ReactNode;
+  /** Extra class on the root element. */
   className?: string;
 }
 
@@ -34,7 +36,9 @@ export function Grid({ columns = 3, children, className }: GridProps) {
 }
 
 export interface PageProps {
+  /** The blocks of the page, top to bottom: Grid, Card, Section. */
   children: React.ReactNode;
+  /** Extra class on the root element. */
   className?: string;
 }
 

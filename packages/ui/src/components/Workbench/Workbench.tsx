@@ -74,6 +74,7 @@ export interface WorkbenchProps {
   children?: React.ReactNode;
   /** Accessible name of the whole layout. Default 「編輯器」. */
   label?: string;
+  /** Extra class on the root element. */
   className?: string;
   /** Called with the layout on the first render and after every change (a tab picked or moved, a region opened or
    *  closed, a size changed), for example to put the panel's current tab in the URL. */

@@ -14,6 +14,7 @@ export interface CardProps extends Omit<React.HTMLAttributes<HTMLElement>, 'titl
   padding?: boolean;
   /** Element to render. Default 'section'. */
   as?: 'section' | 'div' | 'article' | 'aside' | 'form';
+  /** The block's content. */
   children?: React.ReactNode;
 }
 

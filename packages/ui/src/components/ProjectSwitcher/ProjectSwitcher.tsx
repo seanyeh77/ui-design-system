@@ -29,10 +29,13 @@ export interface ProjectSwitcherProps {
   statusLabel?: string;
   /** With onChange, a list to switch project. */
   options?: ProjectOption[];
+  /** The id of the current project. */
   value?: string;
+  /** Called with the id of the project the person picks. */
   onChange?: (id: string) => void;
   /** Under the list, e.g. a link to all projects. */
   footer?: React.ReactNode;
+  /** Extra class on the root element. */
   className?: string;
 }
 

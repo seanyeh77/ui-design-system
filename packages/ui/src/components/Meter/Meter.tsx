@@ -6,8 +6,11 @@ import { tr } from '../../i18n';
 export interface MeterProps {
   /** What is measured, e.g. 「A 區進氣溫度」; also the name screen readers hear. */
   label: string;
+  /** The current value. */
   value: number;
+  /** The low end of the scale. */
   min: number;
+  /** The high end of the scale. */
   max: number;
   /** From this value on the state is 「⚠ 注意」 (warning). Higher values are worse. */
   warn?: number;
@@ -17,6 +20,7 @@ export interface MeterProps {
   unit?: string;
   /** Decimals of the value and marks. Default 0. */
   decimals?: number;
+  /** Extra class on the root element. */
   className?: string;
 }
 

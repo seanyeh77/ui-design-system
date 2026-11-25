@@ -29,6 +29,7 @@ export interface MultiSelectProps extends FieldProps {
   placeholder?: string;
   /** Default 「找不到符合的選項」. */
   emptyText?: string;
+  /** Extra class on the root element. */
   className?: string;
 }
 

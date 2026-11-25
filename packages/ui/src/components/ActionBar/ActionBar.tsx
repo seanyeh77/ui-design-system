@@ -28,7 +28,9 @@ export type ActionBarAction =
     });
 
 export interface ActionBarProps {
+  /** The actions, in order: all buttons in a row; under 600 px only the primary one, the others in a 「更多」 menu. */
   actions: ActionBarAction[];
+  /** Extra class on the root element. */
   className?: string;
 }
 

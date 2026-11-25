@@ -31,6 +31,7 @@ export interface PageHeaderProps {
   more?: MenuItem[];
   /** Texts: `more` is the name of the ⋯ button (default 「更多操作」). */
   labels?: { more?: string };
+  /** Extra class on the root element. */
   className?: string;
 }
 

@@ -12,14 +12,17 @@ const ERR_COPY: Record<number, [string, string]> = {
 export interface ErrorPageProps {
   /** 404, 403 and 500 come with their own title and sentence. */
   code: number;
+  /** Default: the standard wording for the code, e.g. 「找不到這個頁面」 for 404. */
   title?: string;
   /** One sentence on what happened and what to do; `backticks` are code. */
   description?: string;
   /** Default: history.back(). */
   onBack?: () => void;
+  /** Called by 「回到首頁」 instead of following homeHref. */
   onHome?: () => void;
   /** Default '/'. */
   homeHref?: string;
+  /** Extra class on the root element. */
   className?: string;
 }
 

@@ -34,6 +34,7 @@ export interface SelectProps<V extends string = string> extends FieldProps {
   placeholder?: string;
   /** Default 「搜尋」. */
   searchPlaceholder?: string;
+  /** Extra class on the root element. */
   className?: string;
 }
 

@@ -20,6 +20,7 @@ export interface SplitPaneProps {
   label?: string;
   /** After every change, with the side panel's new width in px. */
   onResize?: (b: number) => void;
+  /** Extra class on the root element. */
   className?: string;
 }
 

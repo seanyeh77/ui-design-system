@@ -9,6 +9,7 @@ export interface BreadcrumbItem {
 export interface BreadcrumbProps {
   /** From the top level down; the last one is the current page. */
   items: BreadcrumbItem[];
+  /** Extra class on the root element. */
   className?: string;
 }
 

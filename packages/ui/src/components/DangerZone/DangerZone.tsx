@@ -14,6 +14,7 @@ export interface DangerZoneProps {
   onAction: () => void;
   /** The confirm dialog: name the object in the title. */
   confirm: DangerConfirm;
+  /** Extra class on the root element. */
   className?: string;
 }
 

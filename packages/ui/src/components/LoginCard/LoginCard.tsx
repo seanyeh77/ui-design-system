@@ -28,6 +28,7 @@ export interface LoginCardProps {
   forgotHref?: string;
   /** The sign-in is running: the button shows a spinner and ignores presses, keeping focus. */
   loading?: boolean;
+  /** Extra class on the root element. */
   className?: string;
 }
 

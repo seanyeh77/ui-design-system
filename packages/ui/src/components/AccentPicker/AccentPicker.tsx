@@ -23,6 +23,7 @@ export interface AccentPickerProps {
   onChange?: (hex: string) => void;
   /** Default 「強調色」. */
   label?: string;
+  /** Extra class on the root element. */
   className?: string;
 }
 

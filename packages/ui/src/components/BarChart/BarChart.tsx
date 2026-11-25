@@ -30,6 +30,7 @@ export interface BarChartProps {
   /** Height of the bars' area in px, or 'fill' to fill the parent's height (a Card in a Grid row as tall as its
    *  neighbours), at least 160 px. Default 200. */
   height?: number | 'fill';
+  /** Extra class on the root element. */
   className?: string;
 }
 

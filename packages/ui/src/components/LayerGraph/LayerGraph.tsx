@@ -170,6 +170,7 @@ export interface LayerGraphProps {
   listLabels?: { nodes?: string; edges?: string };
   /** @deprecated use storageKey. */
   scrollKey?: string;
+  /** Extra class on the root element. */
   className?: string;
 }
 

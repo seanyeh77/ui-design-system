@@ -557,6 +557,7 @@ export interface MarkdownProps {
   terms?: readonly TermDef[];
   /** 'first' (default): each word only where it first appears in a paragraph, list item or table cell. 'all': everywhere. */
   termsMark?: TermsMark;
+  /** Extra class on the root element. */
   className?: string;
 }
 

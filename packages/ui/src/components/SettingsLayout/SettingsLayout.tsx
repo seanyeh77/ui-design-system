@@ -31,6 +31,7 @@ export interface SettingsLayoutProps {
   /** @deprecated call toast('已儲存', { id: 'saved' }) when a change is saved; AppShell shows it. Until removed: a
    *  non-empty text shows through toast(), an empty one closes it. */
   toast?: string;
+  /** Extra class on the root element. */
   className?: string;
 }
 
@@ -114,6 +115,7 @@ export interface SettingsSectionProps {
   description?: string;
   /** Fields and SettingsRows. */
   children?: React.ReactNode;
+  /** Extra class on the root element. */
   className?: string;
 }
 
@@ -135,6 +137,7 @@ export interface SettingsRowProps {
   description?: string;
   /** The control at the right end: a Switch (or a Select). */
   children: React.ReactElement<{ 'aria-describedby'?: string }>;
+  /** Extra class on the root element. */
   className?: string;
 }
 

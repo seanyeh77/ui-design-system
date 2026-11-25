@@ -4,6 +4,7 @@ import { cx } from '../../internal/util';
 export interface LoadingBarProps {
   /** Announced to screen readers. Default 「載入中」. */
   label?: string;
+  /** Extra class on the root element. */
   className?: string;
 }
 

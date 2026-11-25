@@ -17,6 +17,7 @@ export interface SwitchProps {
   'aria-describedby'?: string;
   /** Form field name: an on switch sends 'on' with a native form. */
   name?: string;
+  /** Extra class on the root element. */
   className?: string;
 }
 

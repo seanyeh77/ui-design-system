@@ -30,6 +30,7 @@ export interface IconProps {
   strokeWidth?: number;
   /** The Fill version, for a selected item. */
   filled?: boolean;
+  /** Extra class on the root element. */
   className?: string;
 }
 

@@ -44,6 +44,7 @@ export interface ConsoleLayoutProps {
   bottom?: React.ReactNode;
   /** Cards added at the end of the side panel on tall screens: `[{ id, minHeight: 1040, node }]`. */
   extras?: ConsoleExtra[];
+  /** Extra class on the root element. */
   className?: string;
 }
 

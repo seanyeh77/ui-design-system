@@ -36,6 +36,7 @@ export interface IconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLBut
   /** A first-use hint: a dot on the button and a bubble below it until the user acts on it or closes it. Pass
    *  undefined once it was handled (useTour's tour.hint() does this). */
   hint?: IconButtonHint;
+  /** The underlying <button>. */
   ref?: React.Ref<HTMLButtonElement>;
 }
 

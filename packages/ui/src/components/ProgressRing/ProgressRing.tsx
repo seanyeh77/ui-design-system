@@ -8,6 +8,7 @@ export interface ProgressRingProps {
   label: string;
   /** Diameter in px. Default 72. */
   size?: number;
+  /** Extra class on the root element. */
   className?: string;
 }
 

@@ -46,6 +46,7 @@ export interface TourProps {
   skippable?: boolean;
   /** Controlled step index. */
   step?: number;
+  /** Called with the new step index (from 0) when the person moves on or back. */
   onStepChange?: (index: number) => void;
 }
 

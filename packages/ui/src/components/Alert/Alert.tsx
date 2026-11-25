@@ -30,6 +30,7 @@ export interface AlertProps {
   onAction?: () => void;
   /** Adds × for info and success; warning and danger stay until the problem is solved. */
   onDismiss?: () => void;
+  /** Extra class on the root element. */
   className?: string;
 }
 

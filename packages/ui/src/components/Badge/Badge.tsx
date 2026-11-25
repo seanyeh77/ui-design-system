@@ -46,6 +46,7 @@ interface BadgeBase {
   tone?: BadgeTone;
   /** @deprecated Every Badge is now a mark and text without a chip; remove the prop. */
   variant?: 'chip' | 'dot';
+  /** Extra class on the root element. */
   className?: string;
 }
 

@@ -13,13 +13,16 @@ export interface MobileTab {
 export interface MobileTabBarProps {
   /** 3 to 5 top-level pages. */
   items: MobileTab[];
+  /** The id of the selected tab. */
   value: string;
+  /** Called with the id of the tab the person picks. */
   onChange?: (id: string) => void;
   /** Default 「主要導覽」. */
   label?: string;
   /** Default true: an 11 px label under each icon (MA). false: icons only, each named by its aria-label, as in
    *  photo apps, for a bar whose icons people already know. */
   labels?: boolean;
+  /** Extra class on the root element. */
   className?: string;
 }
 

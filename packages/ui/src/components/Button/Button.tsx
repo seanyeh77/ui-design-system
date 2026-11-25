@@ -15,6 +15,7 @@ interface ButtonBase extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>,
   loading?: boolean;
   /** Leading icon: a built-in name such as 'plus', or custom path data. */
   icon?: IconSource;
+  /** The underlying <button>. */
   ref?: React.Ref<HTMLButtonElement>;
 }
 
@@ -39,6 +40,7 @@ export type ButtonProps =
       variant: 'danger';
       /** Opens a Dialog first; onClick runs only after the person confirms. */
       confirm: DangerConfirm;
+      /** Not with confirm: a button with confirm always asks first. */
       confirmed?: never;
     })
   | (ButtonBase & {

@@ -22,6 +22,7 @@ export interface DateRangePickerProps extends FieldProps {
   onChange: (value: DateRange) => void;
   /** Shown when no period is chosen. Default 「選擇期間」. */
   placeholder?: string;
+  /** Extra class on the root element. */
   className?: string;
 }
 

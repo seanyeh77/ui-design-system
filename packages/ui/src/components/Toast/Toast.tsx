@@ -230,6 +230,7 @@ export interface ToastProps {
   actionLabel?: string;
   /** Runs on the action button. */
   onAction?: () => void;
+  /** Extra class on the root element. */
   className?: string;
 }
 

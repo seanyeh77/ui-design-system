@@ -24,6 +24,7 @@ export interface StatusBandProps {
   times?: string[];
   /** The legend under the band. Default true. */
   legend?: boolean;
+  /** Extra class on the root element. */
   className?: string;
 }
 
