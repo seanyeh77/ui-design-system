@@ -1393,3 +1393,10 @@
   border-inline: 0;
   border-radius: 0;
 }
+/* In a padless Card the first column's text starts at the Card's content edge (the Card padding, 16 px), the same
+   left edge as the toolbar above and the KPI cards and Cards around it. */
+@media (min-width: 600px) {
+  .ui-card.is-flush > .ui-dt .ui-dt-row > .ui-dt-cell:first-child:not(.ui-dt-sel, .ui-dt-exp) {
+    padding-left: var(--space-4);
+  }
+}

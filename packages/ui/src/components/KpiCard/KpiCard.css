@@ -3,7 +3,9 @@
   flex-direction: column;
   gap: 6px;
   min-width: 0;
-  padding: 18px;
+  box-sizing: border-box;
+  /* The Card padding: a KPI row and the Cards under it share one left edge. */
+  padding: var(--space-4);
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow-card);
@@ -63,8 +65,12 @@
   justify-items: end;
   vertical-align: bottom;
 }
+/* 萬 and 億 of an abbreviated figure: drawn like the unit (the text font, half size, muted), not as big as the digits. */
 .ui-kpi-cjk {
   font-family: var(--font-sans);
+  font-size: 0.5em;
+  font-weight: 600;
+  color: var(--ink-muted);
 }
 .ui-kpi-sizer,
 .ui-kpi-live {
@@ -98,7 +104,11 @@
 .ui-kpi-verdict.is-danger {
   color: var(--danger-text);
 }
+/* In a row of compact KPIs (ConsoleLayout's top bar): every card the same width while they fit, each at least as wide
+   as its content. */
 .ui-console-kpis > .ui-kpi {
+  flex: 1 1 0;
+  min-width: max-content;
   padding: 6px var(--space-4);
   border-radius: 0;
   background: transparent;
