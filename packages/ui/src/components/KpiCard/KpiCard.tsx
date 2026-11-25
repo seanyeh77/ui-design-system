@@ -26,11 +26,13 @@ export interface KpiCardProps {
   delta?: number;
   /** '%' (default) or 'pt' for percentage points. */
   deltaUnit?: '%' | 'pt';
-  /** Whether the change is good. Default: delta > 0. Set false where up is bad (error rate, cost). */
+  /** Which way is better: 'up' (default; revenue, users) or 'down' (error rate, response time, cost). Sets good or bad from delta's sign. */
+  direction?: 'up' | 'down';
+  /** Overrides direction: whether this change is good (true) or bad (false), whatever its sign. */
   good?: boolean;
   /** Recent values for the sparkline. */
   spark?: number[];
-  /** Default 「較上週」. */
+  /** The comparison period after the change. Default 「較上週」. */
   compareLabel?: string;
   /** Its own class names. */
   className?: string;
@@ -60,7 +62,7 @@ function sansCjk(text: string): React.ReactNode[] {
 
 /** One figure with its change and a sparkline. It is a card: put several in a grid, not inside another Card. */
 export function KpiCard(props: KpiCardProps) {
-  const { label, value, unit, decimals = 0, delta, deltaUnit, good, spark, compareLabel, size = 'default', verdict, target, className } = props;
+  const { label, value, unit, decimals = 0, delta, deltaUnit, direction = 'up', good, spark, compareLabel, size = 'default', verdict, target, className } = props;
   const compact = size === 'compact';
   devWarn(compact && !!spark, 'KpiCard', 'size="compact" draws no sparkline, so spark is ignored. Drop spark, or use the default size.');
   devWarn(props.format === 'percent' && !unit, 'KpiCard', 'format=\'percent\' shows the number only; pass unit="%" for the smaller % after it.');
@@ -69,7 +71,9 @@ export function KpiCard(props: KpiCardProps) {
   useFitText(valRef, [value, props.format, unit, decimals, props.compact, props.currency, I18N.locale]);
   const hasDelta = typeof delta === 'number';
   const up = hasDelta && delta > 0;
-  const isGood = good ?? up;
+  const flat = hasDelta && delta === 0;
+  // No change is neither good nor bad: no arrow, no word, muted.
+  const isGood = good ?? (direction === 'down' ? hasDelta && delta < 0 : up);
   // The change follows decimals when it is given (decimals={1}: 「0.4 個百分點」, not 「0.40」).
   const dTxt = hasDelta
     ? deltaUnit === 'pt'
@@ -107,13 +111,14 @@ export function KpiCard(props: KpiCardProps) {
       ) : null}
       {hasDelta ? (
         <div className="ui-kpi-delta">
-          <span className={cx('ui-kpi-change', isGood ? 'is-good' : 'is-bad')}>
-            {up ? '▲ ' : '▼ '}
+          <span className={cx('ui-kpi-change', flat ? 'is-flat' : isGood ? 'is-good' : 'is-bad')}>
+            {flat ? '' : up ? '▲ ' : '▼ '}
             {digits(dTxt)}
-            {/* Good or bad is not only a colour (WCAG 1.4.1): said in words to screen readers. */}
-            <span className="ui-visually-hidden">{isGood ? tr('，改善') : tr('，變差')}</span>
           </span>
-          <span className="ui-kpi-note">{compareLabel || tr('較上週')}</span>
+          {/* Good or bad is not only a colour (WCAG 1.4.1): the word follows the comparison period, muted. */}
+          <span className="ui-kpi-note">
+            {(compareLabel || tr('較上週')) + (flat ? '' : isGood ? tr('（改善）') : tr('（變差）'))}
+          </span>
         </div>
       ) : null}
       {verdict || target ? (

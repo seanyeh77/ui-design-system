@@ -8,9 +8,9 @@ const now = new Date(2026, 10, 4, 15, 0);
 export const sample: DashboardProps = {
   kpis: [
     { label: '本月營收', value: 12840000, format: 'money', delta: 8.2, spark: [8, 9, 9.5, 10, 11, 12.8] },
-    { label: '預算使用率', value: 74.5, format: 'percent', unit: '%', delta: 3.1, deltaUnit: 'pt', good: false, spark: [58, 61, 63, 66, 71.4, 74.5] },
+    { label: '預算使用率', value: 74.5, format: 'percent', unit: '%', delta: 3.1, deltaUnit: 'pt', direction: 'down', spark: [58, 61, 63, 66, 71.4, 74.5] },
     { label: '準時完成率', value: 92.4, format: 'percent', unit: '%', delta: 1.8, deltaUnit: 'pt', spark: [88, 89.5, 90.1, 89.8, 90.6, 92.4] },
-    { label: '平均回應時間', value: 184, unit: 'ms', delta: -12.5, good: true, spark: [230, 221, 214, 206, 210, 184] },
+    { label: '平均回應時間', value: 184, unit: 'ms', delta: -12.5, direction: 'down', spark: [230, 221, 214, 206, 210, 184] },
   ],
   trend: { labels: ['第 1 週', '第 2 週', '第 3 週', '第 4 週', '第 5 週', '第 6 週'], series: [{ name: '完成', values: [12, 18, 15, 22, 26, 24] }] },
   rows: NAMES.map((name, i) => ({
