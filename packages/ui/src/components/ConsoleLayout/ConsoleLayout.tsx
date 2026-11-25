@@ -22,7 +22,7 @@ export interface ConsoleExtra {
 export interface ConsoleLayoutProps {
   /** The product or screen name, the page's only heading: 「設施監控」. */
   title: string;
-  /** Right after the title: `<Tag icon="info">示範資料</Tag>`. Same size and color as the text around it. */
+  /** Right after the title: a Tag 「示範資料」 with the info icon. Same size and color as the text around it. */
   tags?: React.ReactNode;
   /** Right side, before the KPIs: one short state in plain words, 「AI 最佳化中」. Shown in body size and ink color;
    *  pass plain text, not a Badge. */

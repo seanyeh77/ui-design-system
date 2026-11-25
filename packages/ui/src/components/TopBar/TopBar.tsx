@@ -14,7 +14,7 @@ includeIcons(phListBullets, phMagnifyingGlass);
 export interface TopBarProps {
   /** The page title, shown once: either here or as the page's own heading. */
   title?: string;
-  /** Right after the title, e.g. `<Tag icon="info">示範資料</Tag>`: the size of the title. */
+  /** Right after the title, e.g. a Tag 「示範資料」 with the info icon: the size of the title. */
   tags?: React.ReactNode;
   /** @deprecated A breadcrumb goes at the top of the content: put `<Breadcrumb items={…} />` first in the page. */
   breadcrumb?: BreadcrumbItem[];

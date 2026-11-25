@@ -28,7 +28,7 @@ export interface AppShellProps {
   /** The page title, shown once in the top bar. Leave it out when the page has its own title (PageHeader with
    *  `title` on a detail page); never both. */
   title?: string;
-  /** Right after the title in the top bar, e.g. `<Tag icon="info">示範資料</Tag>`. */
+  /** Right after the title in the top bar, e.g. a Tag 「示範資料」 with the info icon. */
   tags?: React.ReactNode;
   /** @deprecated A breadcrumb goes at the top of the content: put `<Breadcrumb items={…} />` first in the page. */
   breadcrumb?: BreadcrumbItem[];
