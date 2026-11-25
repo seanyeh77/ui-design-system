@@ -42,10 +42,10 @@ h('div', { style: { background: 'var(--heat-6)', color: UI.textOn('heat-6') } },
 
 ## 預測、非實測
 
-在有填色的元素加 class `ui-forecast`：疊上 45° 斜線（線 4 px、間距 9 px，顏色 `forecast-stripe`，是文字色 14% 不透明），底色和文字不變。旁邊或裡面放 `Tag variant="forecast"`「預測」。
+在有填色的元素加 class `ui-forecast`：疊上 45° 斜線（線 4 px、間距 9 px，顏色 `forecast-stripe`，是文字色 14% 不透明），底色和文字不變。旁邊或裡面放 `Tag icon="trend-up" tone="info"`「預測」。
 
 ```js
-h('div', { className: 'ui-forecast', style: { background: 'var(--heat-4)' } }, '25.8 °C ', h(UI.Tag, { variant: 'forecast' }, '預測'));
+h('div', { className: 'ui-forecast', style: { background: 'var(--heat-4)' } }, '25.8 °C ', h(UI.Tag, { icon: 'trend-up', tone: 'info' }, '預測'));
 ```
 
 ## 監控畫面的字級

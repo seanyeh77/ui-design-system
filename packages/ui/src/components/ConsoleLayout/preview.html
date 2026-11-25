@@ -50,7 +50,7 @@
         var ph = React.useState(15);
         return h(U.ConsoleLayout, {
           title: '設施監控',
-          tags: h(U.Tag, { variant: 'demo' }, '示範資料'),
+          tags: h(U.Tag, { icon: 'info' }, '示範資料'),
           status: 'AI 最佳化中',
           kpis: [
             h(U.KpiCard, { key: 'e', size: 'compact', label: '預測誤差', value: 0.4, decimals: 1, unit: '°C', verdict: { tone: 'success', text: '預測準確' }, target: '目標 ≤ 0.5 °C' }),

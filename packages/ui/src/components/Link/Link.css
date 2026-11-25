@@ -1,0 +1,19 @@
+/* Link: accent text, always underlined (a link in a sentence is told apart by more than its colour), a thin line
+   that thickens on hover. Bare <a> in Markdown or older content gets the same look from base.css. */
+.ui-textlink {
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+}
+.ui-textlink:hover {
+  text-decoration-thickness: 2px;
+}
+/* The arrow stays inline, so a long link still wraps like the sentence around it. */
+.ui-textlink-icon {
+  display: inline-block;
+  margin-left: 2px;
+  vertical-align: -2px;
+}

@@ -47,12 +47,12 @@ export function NotificationBell({ items, onOpen, onReadAll, emptyText }: Notifi
       align="end"
       sideOffset={8}
       className="ui-noti"
-      aria-label={tr('通知')}
+      aria-label={tr('通知中心')}
       trigger={
         <button
           type="button"
           className={cx('ui-iconbtn', 'ui-bell', open && 'is-open')}
-          aria-label={unread ? tr('通知，{n} 則未讀', { n: unread }) : tr('通知')}
+          aria-label={unread ? tr('通知中心，{n} 則未讀', { n: unread }) : tr('通知中心')}
         >
           <Icon name="bell" />
           {unread ? (

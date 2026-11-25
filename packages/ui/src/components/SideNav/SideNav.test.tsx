@@ -48,3 +48,25 @@ test('SideNav: the pin and collapse buttons name themselves with a Tooltip on th
   await expect.poll(() => document.querySelector('.ui-tooltip')?.textContent).toBe('釘選側邊欄');
   expect(document.querySelector('.ui-tooltip')?.getAttribute('data-side')).toBe('right');
 });
+
+test('SideNav: the pin and collapse icons sit on the same vertical line as the item icons, open and collapsed', async () => {
+  for (const collapsed of [false, true]) {
+    const { container, unmount } = render(
+      <div style={{ height: 600, display: 'flex' }}>
+        <SideNav sections={SECTIONS} value="home" collapsed={collapsed} onToggle={() => {}} onPin={() => {}} />
+      </div>,
+    );
+    const centre = (el: Element) => {
+      const r = el.getBoundingClientRect();
+      return r.left + r.width / 2;
+    };
+    const item = centre(container.querySelector('.ui-nav-icon') as Element);
+    // Open, they sit side by side: the first lines up; collapsed, they stack and both line up.
+    const icons = Array.from(container.querySelectorAll('.ui-nav-collapse .ui-icon'));
+    for (const icon of collapsed ? icons : icons.slice(0, 1)) {
+      expect(Math.abs(centre(icon) - item)).toBeLessThan(0.6);
+      expect(icon.getBoundingClientRect().width).toBe(22);
+    }
+    unmount();
+  }
+});

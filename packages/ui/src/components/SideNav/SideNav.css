@@ -221,13 +221,16 @@
 .ui-nav-collapse:hover {
   background: var(--surface-sub);
 }
-/* Pin and collapse at the bottom left: side by side at 240 px, one above the other at 72 px. */
+/* Pin and collapse at the bottom left: side by side at 240 px, one above the other at 72 px. Their 22 px icons sit on
+   the same vertical line as the item icons above (10 px item padding + half the icon = 21 px from the list's edge),
+   so the 48 px buttons start 3 px left of the list. */
 .ui-nav-foot {
   flex: 0 0 auto;
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
   margin-top: 8px;
+  margin-left: calc(21px - var(--touch-target) / 2);
 }
 .ui-nav-foot > .ui-nav-collapse {
   margin-top: 0;

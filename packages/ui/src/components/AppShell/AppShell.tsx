@@ -9,6 +9,7 @@ import { cx, store, useMedia, useNarrow } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { ensureAnnouncer } from '../../announce';
 import { focusMain } from '../../internal/focusMain';
+import { ShellTitle } from '../../internal/shell';
 import { includeIcons } from '../../icons/store';
 import phDotsThree from '../../icons/ph/dots-three';
 
@@ -24,8 +25,12 @@ export interface AppShellProps {
    *  alone, a link named by `name`; open or pinned, the name fades in beside it. Plain text gets its first character as
    *  the mark. */
   brand?: React.ReactNode | NavBrand;
-  /** The page title, shown once in the top bar. Do not repeat it as a heading in the page. */
+  /** The page title, shown once in the top bar. Leave it out when the page has its own title (PageHeader with
+   *  `title` on a detail page); never both. */
   title?: string;
+  /** Right after the title in the top bar, e.g. `<Tag icon="info">示範資料</Tag>`. */
+  tags?: React.ReactNode;
+  /** @deprecated A breadcrumb goes at the top of the content: put `<Breadcrumb items={…} />` first in the page. */
   breadcrumb?: BreadcrumbItem[];
   /** Opens search (CommandPalette). */
   onSearch?: () => void;
@@ -61,6 +66,7 @@ export function AppShell({
   onNavigate,
   brand,
   title,
+  tags,
   breadcrumb,
   onSearch,
   actions,
@@ -69,6 +75,11 @@ export function AppShell({
   defaultPinned = false,
   className,
 }: AppShellProps) {
+  devWarn(
+    breadcrumb,
+    'AppShell',
+    '`breadcrumb` is deprecated: in the top bar it repeats the page title. Put <Breadcrumb items={…} /> first in the page content instead.',
+  );
   const phone = useNarrow();
   // 600 to 1024 px (tablets, narrow windows): no sidebar; the top bar's menu button opens the whole nav in a drawer.
   const tablet = useMedia('(min-width: 600px) and (max-width: 1024px)');
@@ -144,6 +155,7 @@ export function AppShell({
   React.useEffect(() => {
     ensureAnnouncer();
   }, []);
+  const shellTitle = React.useMemo(() => ({ inShell: true, title: !!title }), [title]);
   return (
     <div className={cx('ui-shell', phone && 'is-phone', className)}>
       {/* First stop for the keyboard: skips the navigation. */}
@@ -211,14 +223,15 @@ export function AppShell({
         <TopBar
           className={cx('ui-shell-top', hidden && 'is-hidden')}
           title={title}
+          tags={tags}
           breadcrumb={breadcrumb}
           onSearch={onSearch ?? false}
           onMenu={tablet ? () => setMoreOpen(true) : undefined}
         >
           {actions}
         </TopBar>
-        <main ref={main} className="ui-shell-main" tabIndex={-1}>
-          {children}
+        <main ref={main} id="main" className="ui-shell-main" tabIndex={-1}>
+          <ShellTitle.Provider value={shellTitle}>{children}</ShellTitle.Provider>
         </main>
         {phone && tabs.length ? <MobileTabBar items={tabs} value={tabValue} onChange={onTab} labels={tabLabels} /> : null}
         {phone || tablet ? (

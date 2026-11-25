@@ -11,7 +11,7 @@ export type { ActionBarAction, ActionBarProps } from './components/ActionBar/Act
 export { Alert } from './components/Alert/Alert';
 export type { AlertProps, AlertTone } from './components/Alert/Alert';
 export { Badge } from './components/Badge/Badge';
-export type { BadgeProps, BadgeStatus } from './components/Badge/Badge';
+export type { BadgePreset, BadgeProps, BadgeStatus, BadgeTone } from './components/Badge/Badge';
 export { BarChart } from './components/BarChart/BarChart';
 export type { BarChartProps, BarDatum } from './components/BarChart/BarChart';
 export { Breadcrumb } from './components/Breadcrumb/Breadcrumb';
@@ -68,6 +68,8 @@ export type { GraphLegendItem, GraphLegendProps } from './components/Graph/Graph
 export { IconButton } from './components/IconButton/IconButton';
 export type { IconButtonHint, IconButtonProps } from './components/IconButton/IconButton';
 export { InlineCode, isCodeRef, CodeText } from './components/InlineCode/InlineCode';
+export { Link } from './components/Link/Link';
+export type { LinkProps } from './components/Link/Link';
 export { Markdown, safeHref } from './components/Markdown/Markdown';
 export type { MarkdownProps } from './components/Markdown/Markdown';
 export { Section, SectionGroup, SectionGroupToggle } from './components/Section/Section';

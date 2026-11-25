@@ -16,6 +16,7 @@
 @import './styles/field.css' layer(ui.components);
 @import './styles/motion.css' layer(ui.components);
 @import './styles/chart.css' layer(ui.components);
+@import './components/Link/Link.css' layer(ui.components);
 @import './components/InlineCode/InlineCode.css' layer(ui.components);
 @import './components/Button/Button.css' layer(ui.components);
 @import './components/Dialog/Dialog.css' layer(ui.components);

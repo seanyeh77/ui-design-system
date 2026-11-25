@@ -206,14 +206,14 @@ export function SideNav({ sections, value, onChange, collapsed = false, onToggle
                 aria-label={pinned ? tr('取消釘選') : tr('釘選側邊欄')}
                 onClick={onPin}
               >
-                <Icon name="push-pin" size={20} filled={pinned} />
+                <Icon name="push-pin" size={22} filled={pinned} />
               </button>
             </Tooltip>
           ) : null}
           {onToggle ? (
             <Tooltip label={toggleLabel} side="right" describe={false}>
               <button type="button" className="ui-nav-collapse" aria-label={toggleLabel} onClick={onToggle}>
-                <Icon name="sidebar-simple" size={20} />
+                <Icon name="sidebar-simple" size={22} />
               </button>
             </Tooltip>
           ) : null}

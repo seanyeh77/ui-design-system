@@ -22,7 +22,7 @@ export const Monitoring = {
     return (
       <UI.ConsoleLayout
         title="設施監控"
-        tags={<UI.Tag variant="demo">示範資料</UI.Tag>}
+        tags={<UI.Tag icon="info">示範資料</UI.Tag>}
         status="AI 最佳化中"
         kpis={[
           <UI.KpiCard key="e" size="compact" label="預測誤差" value={0.4} decimals={1} unit="°C" target="目標 ≤ 0.5 °C" />,

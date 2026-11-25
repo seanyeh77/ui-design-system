@@ -7,7 +7,7 @@
 ```js
 h(UI.ConsoleLayout, {
   title: '設施監控',
-  tags: h(UI.Tag, { variant: 'demo' }, '示範資料'),
+  tags: h(UI.Tag, { icon: 'info' }, '示範資料'),
   status: 'AI 最佳化中',
   kpis: [h(UI.KpiCard, { key: 'e', size: 'compact', label: '預測誤差', value: 0.4, decimals: 1, unit: '°C', target: '目標 ≤ 0.5 °C' })],
   clock: '即時',
@@ -24,7 +24,7 @@ h(UI.ConsoleLayout, {
 
 ## 細節
 
-- 頂列：左邊 `title`（整頁唯一的標題）和 `tags`（例如 `Tag variant="demo"`「示範資料」）；右邊依序是 `status`、`kpis`、`clock`、全螢幕按鈕。頂列的字都是 16 px、同一個顏色：`status` 傳一般文字（例如「AI 最佳化中」），不要用 Badge 或狀態色。
+- 頂列：左邊 `title`（整頁唯一的標題）和 `tags`（例如 `Tag icon="info"`「示範資料」）；右邊依序是 `status`、`kpis`、`clock`、全螢幕按鈕。頂列的字都是 16 px、同一個顏色：`status` 傳一般文字（例如「AI 最佳化中」），不要用 Badge 或狀態色。
 - `kpis` 放 `KpiCard size="compact"`，在頂列裡去掉卡片底色和陰影，中間用 1 px 線分開。
 - `main`：主視覺，例如裝 ZoneMap 的 Card；填滿左邊的格子，放不下時在卡片裡捲動。卡片裡是由上而下排的欄，ZoneMap 加 `fill` 就會撐滿卡片剩下的高度。
 - `side`：側欄的卡片，由上到下，例如 TimeControl、EventTimeline。側欄 400 px（版面寬度小於 1280 px 時 360 px），放不下時側欄自己捲動。
@@ -38,7 +38,7 @@ h(UI.ConsoleLayout, {
 ```js
 h(UI.ConsoleLayout, {
   title: '設施監控',
-  tags: h(UI.Tag, { variant: 'demo' }, '示範資料'),
+  tags: h(UI.Tag, { icon: 'info' }, '示範資料'),
   status: 'AI 最佳化中',
   kpis: [
     h(UI.KpiCard, { key: 'e', size: 'compact', label: '預測誤差', value: 0.4, decimals: 1, unit: '°C', target: '目標 ≤ 0.5 °C' }),

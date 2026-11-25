@@ -25,7 +25,7 @@ function Demo() {
         }}
         brand={{
           mark: <span style={{ display: 'block', width: 24, height: 24, borderRadius: 6, background: 'var(--accent)' }} />,
-          name: '[專案名稱]',
+          name: '專案中心',
           href: '#',
         }}
         sections={[

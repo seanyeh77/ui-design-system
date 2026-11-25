@@ -1,0 +1,23 @@
+<!-- @dsCard group="Navigation" height=160 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>Link — preview</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      ReactDOM.createRoot(document.getElementById('root')).render(
+        h(
+          'div',
+          { className: 'ui-stack' },
+          h('p', { style: { margin: 0 } }, '這筆訂單已出貨，', h(U.Link, { href: '#order' }, '查看訂單'), '；退貨規定見', h(U.Link, { href: 'https://example.com/help', external: true }, '使用說明'), '。'),
+          h('p', { style: { margin: 0 } }, '沒有 class 的連結（Markdown、舊內容）：', h('a', { href: '#legacy' }, '舊頁面'), '。'),
+        ),
+      );
+    </script>
+  </body>
+</html>

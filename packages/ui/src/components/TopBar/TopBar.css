@@ -28,13 +28,21 @@
   gap: 10px;
   min-width: 0;
 }
-/* Phones: the project switcher's name gives way before the page title, which keeps its width up to 45 % of the bar
-   before it is cut, rather than 「A…」. Wider, the title shrinks as before. */
-@media (max-width: 599px) {
-  .ui-topbar-title {
-    flex: 0 0 auto;
-    max-width: 45%;
-  }
+/* The project switcher's name gives way before the page title, which keeps its width up to 45 % of the bar before it
+   is cut, rather than 「A…」. */
+.ui-topbar-title {
+  flex: 0 0 auto;
+  max-width: 45%;
+}
+/* tags: right after the title, the title's size (a Tag with an icon takes the size of the text beside it). */
+.ui-topbar-tags {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: calc(var(--space-2) - var(--space-4));
+  font-size: var(--text-h4);
+  white-space: nowrap;
 }
 .ui-search {
   display: inline-flex;
@@ -64,6 +72,10 @@
   .ui-topbar {
     padding: 0 var(--space-3) 0 var(--space-4);
     gap: var(--space-2);
+  }
+  .ui-topbar-tags {
+    margin-left: 0;
+    font-size: inherit;
   }
   .ui-topbar .ui-search {
     display: none;
