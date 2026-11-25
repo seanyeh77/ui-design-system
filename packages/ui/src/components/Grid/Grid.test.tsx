@@ -1,3 +1,4 @@
+import type * as React from 'react';
 import { afterEach, expect, test } from 'vitest';
 import { page } from 'vitest/browser';
 import { render } from '@testing-library/react';
@@ -106,4 +107,40 @@ test('Grid: columns={[2, 1]} is a main column twice the aside from 960 px, one c
   expect(Math.abs(a - 2 * b)).toBeLessThan(1);
   await page.viewport(800, 800);
   expect(cols(grid)).toBe(1);
+});
+
+test('Grid: a Page as one cell stacks its cards 24 px apart, the same as the columns', async () => {
+  await page.viewport(1280, 900);
+  const { container } = render(
+    <Grid columns={[2, 1]}>
+      <Page>
+        <div style={{ height: 100 }}>主要 1</div>
+        <div style={{ height: 100 }}>主要 2</div>
+      </Page>
+      <div style={{ height: 80 }}>側欄</div>
+    </Grid>,
+  );
+  const [a, b] = [...container.querySelectorAll('.ui-page > div')].map((e) => e.getBoundingClientRect());
+  expect(b.top - a.bottom).toBe(24);
+  const side = (container.querySelector('.ui-grid > div:last-child') as HTMLElement).getBoundingClientRect();
+  expect(side.left - a.right).toBe(24);
+});
+
+test('Grid: equal columns stretch a row to its tallest card, a ratio stays at the top; align overrides both', async () => {
+  await page.viewport(1280, 900);
+  const cells = (columns: React.ComponentProps<typeof Grid>['columns'], align?: 'start' | 'stretch') => {
+    const { container, unmount } = render(
+      <Grid columns={columns} align={align}>
+        <div style={{ minHeight: 200 }}>高</div>
+        <div>矮</div>
+      </Grid>,
+    );
+    const h = [...container.querySelectorAll('.ui-grid > div')].map((e) => Math.round(e.getBoundingClientRect().height));
+    unmount();
+    return h;
+  };
+  expect(cells(2)[1]).toBe(200);
+  expect(cells([2, 1])[1]).toBeLessThan(200);
+  expect(cells([2, 1], 'stretch')[1]).toBe(200);
+  expect(cells(2, 'start')[1]).toBeLessThan(200);
 });
