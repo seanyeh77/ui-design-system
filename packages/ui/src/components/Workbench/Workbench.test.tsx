@@ -358,7 +358,7 @@ test('landmarks: the product name is the h1; the main view and its bar sit in ma
   expect(screen.getByRole('separator', { name: '右側欄寬度' }).closest('aside')?.getAttribute('aria-label')).toBe('右側欄');
   expect(screen.getByRole('separator', { name: '下方面板高度' }).closest('section')?.getAttribute('aria-label')).toBe('下方面板');
   // The borders stay on the regions' edges.
-  const exBox = ex.closest('aside')!.getBoundingClientRect();
+  const exBox = (ex.closest('aside') as HTMLElement).getBoundingClientRect();
   const sep = ex.getBoundingClientRect();
   expect(Math.abs(sep.left + sep.width / 2 - exBox.right)).toBeLessThanOrEqual(1);
 });

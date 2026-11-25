@@ -575,20 +575,17 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
   const def = React.useMemo(() => defaults(views, p.defaultLayout), [views, p.defaultLayout]);
   // The default layout on the server and the first browser render, then the stored one (also when another tab changes it).
   const parseLayout = React.useCallback((raw: string) => restore(raw, def), [def]);
-  const [lay, saveLay] = useStored<WorkbenchLayout>(key, parseLayout, def);
-  // The layout as last set, for updates without storage.
-  const layNow = React.useRef(lay);
-  React.useLayoutEffect(() => {
-    layNow.current = lay;
-  }, [lay]);
-  // An update reads the layout from storage (or the last one set), so two updates in one event build on each other.
+  const [stored, saveLay] = useStored<WorkbenchLayout>(key, parseLayout, def);
+  // Without storageKey: the layout lives in this component's state until the page reloads.
+  const [mem, setMem] = React.useState<WorkbenchLayout | null>(null);
+  const lay = key ? stored : (mem ?? def);
+  // An update reads the layout from storage (or the state), so two updates in one event build on each other.
   const setLay = React.useCallback(
     (u: WorkbenchLayout | ((l: WorkbenchLayout) => WorkbenchLayout)) => {
-      const raw = key ? readStored(key) : null;
-      const cur = key ? (raw ? restore(raw, def) : def) : layNow.current;
-      const next = typeof u === 'function' ? u(cur) : u;
-      layNow.current = next;
-      saveLay(next);
+      if (!key) return setMem((m) => (typeof u === 'function' ? u(m ?? def) : u));
+      const raw = readStored(key);
+      const cur = raw ? restore(raw, def) : def;
+      saveLay(typeof u === 'function' ? u(cur) : u);
     },
     [key, def, saveLay],
   );

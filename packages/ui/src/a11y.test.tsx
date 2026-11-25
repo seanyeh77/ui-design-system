@@ -702,8 +702,23 @@ test('Tabs and SegmentedControl look different: Tabs an underline on a baseline 
   await page.viewport(1280, 800);
   render(
     <>
-      <UI.Tabs label="內容" value="a" items={[{ id: 'a', label: '概要' }, { id: 'b', label: '紀錄' }]} />
-      <UI.SegmentedControl label="顯示方式" value="list" onChange={() => {}} options={[{ value: 'list', label: '清單' }, { value: 'grid', label: '格狀' }]} />
+      <UI.Tabs
+        label="內容"
+        value="a"
+        items={[
+          { id: 'a', label: '概要' },
+          { id: 'b', label: '紀錄' },
+        ]}
+      />
+      <UI.SegmentedControl
+        label="顯示方式"
+        value="list"
+        onChange={() => {}}
+        options={[
+          { value: 'list', label: '清單' },
+          { value: 'grid', label: '格狀' },
+        ]}
+      />
     </>,
   );
   const list = screen.getByRole('tablist');

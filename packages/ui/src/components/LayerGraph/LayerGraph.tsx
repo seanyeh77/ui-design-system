@@ -651,8 +651,7 @@ export function LayerGraph(props: LayerGraphProps) {
   const { ref: scrollRef, more: scrollMore, overflows, scrolled, onScroll } = useScrollHint();
   const uid = React.useId().replace(/:/g, '');
   const [view, setView] = React.useState<'graph' | 'list'>('graph');
-  const allIds = all.map((n) => n.id).join('\u0000');
-  const memKey = React.useMemo(() => p.scrollKey ?? idsKey(allIds.split('\u0000')), [p.scrollKey, allIds]);
+  const memKey = p.scrollKey ?? idsKey(all.map((n) => n.id));
   // Back to the same diagram: where it was scrolled to (FB).
   React.useLayoutEffect(() => {
     const el = scrollRef.current;
