@@ -23,12 +23,13 @@ const form = useFormErrors(values, (v) => ({
 - 每個欄位都要給 `name`，和 `validate` 回傳的 key 相同：送出時靠它找到第一個有錯的欄位並移過去。Select、DatePicker 這類選擇器也用 `name`，焦點會移到它看得見的控制項。
 - `validate` 每個欄位回傳一句「原因加修正方式」，沒問題時回傳 `undefined`。
 - 不要在 `onChange` 裡自己設錯誤：打字到一半（「2026/1」）還不算錯。
+- 改完自動儲存的頁面（設定頁）沒有送出：離開欄位時 `form.onBlur('name')` 回傳這個欄位是否正確，正確才存：`onBlur={() => form.onBlur('name') && save()}`。只要判斷時用 `form.isValid('name')`。
 - 存檔後要清掉「已離開、已送出」的紀錄時呼叫 `form.reset()`。
 - 送出按鈕不要因為有錯而停用：停用的按鈕不能告訴使用者哪裡錯。
 
 ## 細節
 
-- 回傳 `{ errors, touched, onBlur, submit, reset }`。`errors` 只有該顯示的錯誤；`touched` 是離開過的欄位。
+- 回傳 `{ errors, touched, onBlur, isValid, submit, reset }`。`errors` 只有該顯示的錯誤；`touched` 是離開過的欄位。
 - `submit(handler)` 回傳事件處理函式：沒有錯時呼叫 `handler(values)`；有錯時全部顯示，下一個畫面更新後把焦點移到頁面順序中第一個有錯的欄位，欄位用 `aria-describedby` 念出它的錯誤。
 - 規則的來源：`docs/forms.md` 的錯誤訊息一節。
 

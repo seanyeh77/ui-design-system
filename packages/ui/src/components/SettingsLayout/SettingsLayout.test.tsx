@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { page } from 'vitest/browser';
-import { SettingsLayout, SettingsRow, SettingsSection, Switch } from '../../index';
+import { Button, SettingsLayout, SettingsRow, SettingsSection, Switch } from '../../index';
 
 const cats = [
   {
@@ -18,6 +18,7 @@ const cats = [
 ];
 
 test('SettingsLayout: categories in a named nav; the open one is aria-current, and a click switches the content', async () => {
+  await page.viewport(1280, 800);
   const onChange = vi.fn();
   render(<SettingsLayout title="設定" categories={cats} onChange={onChange} />);
   expect(screen.getByRole('heading', { level: 1, name: '設定' })).toBeTruthy();
@@ -41,11 +42,12 @@ test('SettingsLayout: value controls the open category; an unknown id shows the 
 });
 
 test('SettingsLayout: the open category goes into the URL hash and comes back from it; the name is announced', async () => {
-  history.replaceState(null, '', location.pathname + location.search + '#members');
+  await page.viewport(1280, 800);
+  history.replaceState(null, '', location.pathname + location.search + '#settings-members');
   const { unmount } = render(<SettingsLayout categories={cats} />);
   expect(screen.getByText('成員內容')).toBeTruthy();
   await userEvent.setup().click(screen.getByRole('button', { name: '一般' }));
-  expect(location.hash).toBe('#general');
+  expect(location.hash).toBe('#settings-general');
   await new Promise((r) => setTimeout(r, 200));
   expect(document.querySelector('[aria-live="polite"]')?.textContent).toBe('一般');
   unmount();
@@ -72,4 +74,48 @@ test('SettingsLayout: on a phone the sections fill the width', async () => {
   const section = container.querySelector('.ui-settings-section') as HTMLElement;
   expect(Math.round(section.getBoundingClientRect().width)).toBe(Math.round(body.getBoundingClientRect().width));
   await page.viewport(1280, 800);
+});
+
+test('SettingsLayout: a plain #members still opens it; a hash route (#/settings) is never rewritten', async () => {
+  await page.viewport(1280, 800);
+  history.replaceState(null, '', location.pathname + location.search + '#members');
+  const a = render(<SettingsLayout categories={cats} />);
+  expect(screen.getByText('成員內容')).toBeTruthy();
+  a.unmount();
+  history.replaceState(null, '', location.pathname + location.search + '#/settings');
+  const b = render(<SettingsLayout categories={cats} />);
+  expect(screen.getByText('一般內容')).toBeTruthy();
+  await userEvent.setup().click(screen.getByRole('button', { name: '成員' }));
+  expect(screen.getByText('成員內容')).toBeTruthy();
+  expect(location.hash).toBe('#/settings');
+  b.unmount();
+  history.replaceState(null, '', location.pathname + location.search);
+});
+
+test('SettingsLayout on a phone: the categories are the Tabs used everywhere else', async () => {
+  await page.viewport(390, 800);
+  render(<SettingsLayout categories={cats} urlSync={false} />);
+  const list = screen.getByRole('tablist', { name: '設定分類' });
+  expect(list.classList.contains('ui-tabs')).toBe(true);
+  expect(screen.getByRole('tab', { name: '一般' }).getAttribute('aria-selected')).toBe('true');
+  await userEvent.setup().click(screen.getByRole('tab', { name: '成員' }));
+  expect(screen.getByText('成員內容')).toBeTruthy();
+  await page.viewport(1280, 800);
+});
+
+test('SettingsSection: actions at the right end of the title row', async () => {
+  await page.viewport(1280, 800);
+  const { container } = render(
+    <div style={{ width: 600 }}>
+      <SettingsSection title="通知" actions={<Button variant="quiet">還原預設</Button>}>
+        <p>內容</p>
+      </SettingsSection>
+    </div>,
+  );
+  const head = container.querySelector('.ui-settings-head') as HTMLElement;
+  const btn = screen.getByRole('button', { name: '還原預設' });
+  const title = screen.getByRole('heading', { name: '通知' });
+  expect(Math.abs(btn.getBoundingClientRect().right - head.getBoundingClientRect().right)).toBeLessThan(1);
+  const mid = (e: Element) => e.getBoundingClientRect().top + e.getBoundingClientRect().height / 2;
+  expect(Math.abs(mid(btn) - mid(title))).toBeLessThan(2);
 });

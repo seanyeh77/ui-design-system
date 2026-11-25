@@ -9,8 +9,11 @@ export interface UseFormErrors<V> {
   errors: FormErrors<V>;
   /** The fields that were left at least once. */
   touched: Partial<Record<keyof V & string, boolean>>;
-  /** Call from a field's onBlur: onBlur={() => form.onBlur('name')}. Its error shows from then on. */
-  onBlur: (name: keyof V & string) => void;
+  /** Call from a field's onBlur: onBlur={() => form.onBlur('name')}. Its error shows from then on. Returns whether the
+   *  field is valid now, so a settings page saves on blur only then: if (form.onBlur('name')) save(). */
+  onBlur: (name: keyof V & string) => boolean;
+  /** Whether one field passes validate now, shown or not: form.isValid('name'). */
+  isValid: (name: keyof V & string) => boolean;
   /** Wraps your submit handler: shows every error and focuses the first invalid field (by its `name`), or runs handler
    *  with the values when there are none. Use as <form onSubmit={form.submit(save)}> or onClick={form.submit(save)}. */
   submit: (handler: (values: V) => void) => (event?: React.SyntheticEvent) => void;
@@ -28,11 +31,19 @@ export function useFormErrors<V extends Record<string, unknown>>(values: V, vali
   const all = validate(values);
   const errors: FormErrors<V> = {};
   for (const k of Object.keys(all) as (keyof V & string)[]) if (all[k] && (sent || touched[k])) errors[k] = all[k];
+  // The values of this render, read by isValid, onBlur and submit: set during render, so isValid called while
+  // rendering already sees them.
   const latest = React.useRef({ values, validate });
-  React.useLayoutEffect(() => {
-    latest.current = { values, validate };
-  });
-  const onBlur = React.useCallback((name: keyof V & string) => setTouched((t) => (t[name] ? t : { ...t, [name]: true })), []);
+  latest.current = { values, validate };
+  // Read from the latest values and validate (a blur right after typing sees the typed text).
+  const isValid = React.useCallback((name: keyof V & string) => !latest.current.validate(latest.current.values)[name], []);
+  const onBlur = React.useCallback(
+    (name: keyof V & string) => {
+      setTouched((t) => (t[name] ? t : { ...t, [name]: true }));
+      return isValid(name);
+    },
+    [isValid],
+  );
   const submit = React.useCallback(
     (handler: (values: V) => void) => (event?: React.SyntheticEvent) => {
       event?.preventDefault();
@@ -62,5 +73,5 @@ export function useFormErrors<V extends Record<string, unknown>>(values: V, vali
     setTouched({});
     setSent(false);
   }, []);
-  return { errors, touched, onBlur, submit, reset };
+  return { errors, touched, onBlur, isValid, submit, reset };
 }
