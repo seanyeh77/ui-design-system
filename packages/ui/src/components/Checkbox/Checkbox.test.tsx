@@ -7,7 +7,15 @@ test('Checkbox and Radio: the focus outline and click area wrap the box and its 
     <div style={{ width: 1000 }}>
       <Checkbox label="接收通知" />
       <Checkbox label="每週摘要" />
-      <RadioGroup label="頻率" value="d" onChange={() => {}} options={[{ value: 'd', label: '每天' }, { value: 'w', label: '每週' }]} />
+      <RadioGroup
+        label="頻率"
+        value="d"
+        onChange={() => {}}
+        options={[
+          { value: 'd', label: '每天' },
+          { value: 'w', label: '每週' },
+        ]}
+      />
     </div>,
   );
   const [a, b] = screen.getAllByRole('checkbox');

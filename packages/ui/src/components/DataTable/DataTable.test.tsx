@@ -113,7 +113,10 @@ test('loading: toolbar and header stay, skeleton rows in the columns shape, no e
 
 test('columns and filters written inline: a render with the same columns does not sort and filter again', () => {
   let reads = 0;
-  const rows = [{ id: 'a', name: 'b' }, { id: 'b', name: 'a' }];
+  const rows = [
+    { id: 'a', name: 'b' },
+    { id: 'b', name: 'a' },
+  ];
   const Table = ({ tick }: { tick: number }) => (
     <DataTable
       caption={'專案 ' + (tick >= 0 ? '' : tick)}

@@ -62,7 +62,22 @@ function sansCjk(text: string): React.ReactNode[] {
 
 /** One figure with its change and a sparkline. It is a card: put several in a grid, not inside another Card. */
 export function KpiCard(props: KpiCardProps) {
-  const { label, value, unit, decimals = 0, delta, deltaUnit, direction = 'up', good, spark, compareLabel, size = 'default', verdict, target, className } = props;
+  const {
+    label,
+    value,
+    unit,
+    decimals = 0,
+    delta,
+    deltaUnit,
+    direction = 'up',
+    good,
+    spark,
+    compareLabel,
+    size = 'default',
+    verdict,
+    target,
+    className,
+  } = props;
   const compact = size === 'compact';
   devWarn(compact && !!spark, 'KpiCard', 'size="compact" draws no sparkline, so spark is ignored. Drop spark, or use the default size.');
   devWarn(props.format === 'percent' && !unit, 'KpiCard', 'format=\'percent\' shows the number only; pass unit="%" for the smaller % after it.');
@@ -116,9 +131,7 @@ export function KpiCard(props: KpiCardProps) {
             {digits(dTxt)}
           </span>
           {/* Good or bad is not only a colour (WCAG 1.4.1): the word follows the comparison period, muted. */}
-          <span className="ui-kpi-note">
-            {(compareLabel || tr('較上週')) + (flat ? '' : isGood ? tr('（改善）') : tr('（變差）'))}
-          </span>
+          <span className="ui-kpi-note">{(compareLabel || tr('較上週')) + (flat ? '' : isGood ? tr('（改善）') : tr('（變差）'))}</span>
         </div>
       ) : null}
       {verdict || target ? (

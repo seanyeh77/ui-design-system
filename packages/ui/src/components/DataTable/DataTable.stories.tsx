@@ -173,7 +173,13 @@ export const Defaults = {
 // the rows; a table without summary tabs says how many there are (「6 筆」).
 const JOB_COLUMNS: UI.DataTableColumn<Job>[] = [
   { key: 'title', label: '標題', secondary: (r) => r.note },
-  { key: 'status', label: '狀態', mobile: 'status', render: (r) => <UI.Badge status={r.status}>{JSL[r.status]}</UI.Badge>, searchText: (r) => JSL[r.status] ?? '' },
+  {
+    key: 'status',
+    label: '狀態',
+    mobile: 'status',
+    render: (r) => <UI.Badge status={r.status}>{JSL[r.status]}</UI.Badge>,
+    searchText: (r) => JSL[r.status] ?? '',
+  },
   { key: 'secs', label: '長度', format: 'duration' },
   { key: 'created', label: '建立時間', format: 'relative' },
 ];

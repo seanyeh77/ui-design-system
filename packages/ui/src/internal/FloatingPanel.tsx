@@ -52,11 +52,7 @@ export function FloatingPanel({
   const within = boundary?.current ?? undefined;
   const popup = React.useRef<HTMLDivElement>(null);
   const initialFocus =
-    focusOnOpen === false
-      ? false
-      : typeof focusOnOpen === 'string'
-        ? () => popup.current?.querySelector<HTMLElement>(focusOnOpen) ?? true
-        : undefined;
+    focusOnOpen === false ? false : typeof focusOnOpen === 'string' ? () => popup.current?.querySelector<HTMLElement>(focusOnOpen) ?? true : undefined;
   return (
     <Popover.Root open={open} onOpenChange={(next, details) => onOpenChange(next, baseReason(details?.reason))}>
       <Popover.Trigger render={trigger} openOnHover={openOnHover} delay={delay} closeDelay={150} />

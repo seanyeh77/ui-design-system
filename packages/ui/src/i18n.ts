@@ -286,7 +286,6 @@ export const I18N: I18nState = {
       '（在新分頁開啟）': ' (opens in a new tab)',
       '{lang} 程式碼': '{lang} code',
       檢視: 'Views',
-      
       '{n} / {total} {unit}': '{n} / {total} {unit}',
       '{n} / {total}': '{n} / {total}',
       '{total} {unit}中的 {n} {unit}': '{n} of {total} {unit}',

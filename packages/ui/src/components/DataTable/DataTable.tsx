@@ -1097,7 +1097,9 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     const rowsAll = list.map((x) => x.r);
     // Numbers in Geist Mono, the words (「合計」「平均」「筆」) and the unit in the text font.
     if (ci === 0 && !how)
-      return <span className="ui-dt-qty">{monoNums(tr('合計 {n} {unit}', { n: '\u0001', unit: unitOf(rowsAll.length) }), [format.number(rowsAll.length)])}</span>;
+      return (
+        <span className="ui-dt-qty">{monoNums(tr('合計 {n} {unit}', { n: '\u0001', unit: unitOf(rowsAll.length) }), [format.number(rowsAll.length)])}</span>
+      );
     if (typeof how === 'function') return how(rowsAll);
     if (how === 'sum' || how === 'avg') {
       const sum = rowsAll.reduce((a, r) => a + (Number(get(r, c.key)) || 0), 0);
@@ -1233,7 +1235,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const countText = p.loading
     ? tr('載入中')
     : filtered
-      ? format.fractionLabel(list.length, baseCount, unitOf(baseCount)) : `${format.number(list.length)} ${unitOf(list.length)}`;
+      ? format.fractionLabel(list.length, baseCount, unitOf(baseCount))
+      : `${format.number(list.length)} ${unitOf(list.length)}`;
   const toolsView = (inZoom: boolean, inHead = false) => (
     <div className={cx('ui-dt-tools', inHead && 'is-inhead', summaryView && !inZoom && !inHead && 'has-summary', onerow && !inZoom && !inHead && 'is-onerow')}>
       {summaryView && !inZoom && !inHead ? <div className="ui-dt-sumwrap">{summaryView}</div> : null}
@@ -1325,7 +1328,9 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const bulkView =
     selectable && selIds.length && p.bulkActions ? (
       <div className="ui-dt-bulk" role="toolbar" aria-label={tr('已選 {n} {unit}', { n: selIds.length, unit: unitOf(selIds.length) })}>
-        <span className="ui-dt-bulk-count">{monoNums(tr('已選 {n} {unit}', { n: '\u0001', unit: unitOf(selIds.length) }), [format.number(selIds.length)])}</span>
+        <span className="ui-dt-bulk-count">
+          {monoNums(tr('已選 {n} {unit}', { n: '\u0001', unit: unitOf(selIds.length) }), [format.number(selIds.length)])}
+        </span>
         <span className="ui-dt-bulk-actions">{p.bulkActions(selIds, clear)}</span>
         <button type="button" className="ui-dt-bulk-close" aria-label={tr('取消選取')} onClick={clear}>
           <Icon name="x" size={16} />
