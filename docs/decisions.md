@@ -1519,6 +1519,32 @@ AI 定的細節（待確認）：
 - 重複的規則：按鈕層級留在 Button 的用法，Toast 的時間與復原留在 Toast 的用法；guidelines.md 那兩處改成指向 `ui docs Button`、`ui docs Toast` 的一句。
 - CodeView、Markdown 的 README 縮到 8 KB 以內：只有外觀數值（間距、顏色、毫秒）和互動細節的部分搬到 `docs/maintaining/<Name>.md`，props 和用法留在 README。
 
+## 2026-11-25 第三輪修正
+
+0.46.0 發布後獨立驗證找到的問題。使用者把設計選擇交給 agent：「都照你的意見，因為我外來新專案每個前端都會使用 design system，不要讓前端只支持特定場景為原則去判斷，另外希望是 agent 能夠使用者個 design 使用越少的 token 或是更專注於設計網頁與 UX 這樣最好」、「全部都交給 subagent，最後驗證也是」。
+
+### AI 定的細節（待確認）
+
+- Icon 的 server render 與 hydrate：只畫 `preloadIcons` 載入過的圖示（Icon 模組本身不帶任何圖示），元件 `includeIcons` 帶入的圖示在瀏覽器裡第一次畫面就有，server 的 HTML 裡是空白方框，hydrate 後立即補上。另一個做法（每個元件在 render 時把圖示本身傳給 Icon）要改約 80 處呼叫，沒有採用。
+- 帶筆數的篩選摘要一律用 DataTable `summary` 的分段外觀（使用者確認過）；底線 Tabs 只用來切換不同內容，內容分頁也可以帶數字（「檔案 12 個」），單位照寫。LayerGraph 的「圖／清單」改成 SegmentedControl。
+- Tabs 的基準線一律跨滿容器寬度（`display: flex; width: 100%`），DataTable 摘要例外（分段外觀保持內容寬度）；分頁和下方內容的間距 `space-4` 由版面的間距給（`ui-stack`、SettingsLayout 手機版），Tabs 本身不加外距。
+- Graph 範例：只把 `svg` 包在捲動容器裡，圖例放在容器外。
+- DataTable 手機卡片的日期和時間：各自是 `inline-block`、最寬 100 %，放得下時不換行，比卡片窄時才在裡面換行（`overflow-wrap: anywhere`）。
+- EmptyState 在手機上：說明超過 2 行時整塊（標題、說明、步驟、按鈕）一起靠左，2 行以內全部置中；用說明的高度除以行高判斷，寬度改變時重新判斷。
+- DataTable `loading`：載入條依格式取常見寬度（`date` 128 px、`dateTime` 184 px、`relative` 72 px、`duration` 64 px、`money` 96 px、`percent` 和數字 56 px、`mono` 112 px），量欄寬時標題以完整寬度計算；載入中不顯示頁碼和「共 N 筆」。`mono` 欄永遠不是主要欄，沒有其他文字欄時沒有欄位占剩下的寬度。
+- 同一列一種字級：EventTimeline 的時間和說明同大小（原本 13 px 和 16 px，採「同一列一種大小」，不採「次要文字小一級」）；DataTable 列裡的程式碼和路徑（含 `is-location`）用列的字級；手機卡片的欄位名稱用值的行高（`line-height: 1lh`），對齊值的基線。
+- `ui check` 的原生控制項：`<button>`、`<a href>`、文字類 `<input>`（沒有 type、text、email、password、number、tel、url）和 `<textarea>` 也算，自己有 `ui-*` class 的和 `.ui-md`（Markdown）裡的不算；Breadcrumb 的連結加上 `ui-crumb-link` class。開著的對話框、抽屜、選單的截圖只拍視窗大小。
+- TextField 的 `prefix`、`suffix`、`unit`：三者都是 `ink-muted`、15 px（和輸入的字同大小）；有任何一個時外框畫在外層（和密碼欄位相同的做法），焦點外框圍住整個框；`unit` 緊接在輸入的字後面（沒有字時在 placeholder 後面），`suffix` 固定在框的結尾；三者都加進 `aria-describedby`。
+- `themeScript` 是字串常數，不收參數：preset 由 server 的 `<html data-theme-preset>` 決定；強調色的 token 由 `setAccent` 算好存在 localStorage（`ui-accent-vars`），目前主題用畫出來的底色，另一個主題用 token 預設的底色。
+- 發布時更新釘住的版本：根目錄的 `version-packages` script（`changeset version` 之後跑 `scripts/pin-version.ts`），Release 的 changesets/action 用 `version-script` 呼叫它；`pnpm lint` 檢查 AGENTS.md、README.md 和套件版本一致。
+- LoadingBar 在減少動態效果時：靜止、跨滿軌道的強調色斜紋（45°，6 px 一條），不用固定長度的一段，避免看起來像完成了某個比例。
+- MobileTabBar 有文字時：膠囊 28 px 高，上下置中在 22 px 圖示上，圖示和文字之間 6 px。
+- KpiCard `unit="%"` 沒給 `decimals` 時 1 位小數。Checkbox 和 Radio 改用 grid：方框對齊第一行，單行時仍在 40 px 裡置中。MultiSelect 的「清除」放進 Tab 順序。貨幣符號（`NT$`、`US$` 等兩個大寫字母加 `$`，以及 `$`、`€`、`£`、`¥`、`₩`）和後面的數字之間用不換行空格，`CodeText` 也套用。
+- Alert：有動作按鈕時 ✕ 和按鈕上下置中在同一條線（窄的 Alert 按鈕移到下一列時 ✕ 留在右上）；✕ 的框右緣對齊內距，和沒有 ✕ 時按鈕的右緣相同。
+- Badge 新增 `paused`：「已暫停」、`warning`、空心加兩條直線；「已停權」用 `paused` 加文字。
+- 範本：清單與詳細頁的編輯抽屜用 `useFormErrors`，「儲存」只在沒有變更時停用，不因錯誤停用；Dashboard 的示範資料改成相對今天的最近 30 天，趨勢圖改為「每日完成的任務」，KPI「本月營收」改為「營收」。
+- Cover 預覽填滿頁寬，圖固定 480 px 靠右。
+
 ## 待確認清單（2026-11-25 整理）
 
 整份檔案裡標成「AI 定的細節（待確認）」、還沒確認的項目，一項一行；行號指向原文，原文沒有改。實驗室的代號後面括號寫出那個選項是什麼。
@@ -1695,6 +1721,25 @@ AI 定的細節（待確認）：
 - 第 1518 行（2026-11-25 驗證後修正：工具與文件）：字型：`@seanyeh77/tokens` 另外產生 `fonts-latin.css`（Inter、Geist Mono，約 18 KB）和 `fonts-tc.css`（Noto Sans TC…
 - 第 1519 行（2026-11-25 驗證後修正：工具與文件）：重複的規則：按鈕層級留在 Button 的用法，Toast 的時間與復原留在 Toast 的用法
 - 第 1520 行（2026-11-25 驗證後修正：工具與文件）：CodeView、Markdown 的 README 縮到 8 KB 以內：只有外觀數值（間距、顏色、毫秒）和互動細節的部分搬到 `docs/maintaining/<Name>.md`，props …
+- 第 1528 行（2026-11-25 第三輪修正）：Icon 的 server render 與 hydrate：只畫 `preloadIcons` 載入過的圖示（Icon 模組本身不帶任何圖示）
+- 第 1529 行（2026-11-25 第三輪修正）：帶筆數的篩選摘要一律用 DataTable `summary` 的分段外觀（使用者確認過）
+- 第 1530 行（2026-11-25 第三輪修正）：Tabs 的基準線一律跨滿容器寬度（`display: flex; width: 100%`），DataTable 摘要例外（分段外觀保持內容寬度）
+- 第 1531 行（2026-11-25 第三輪修正）：Graph 範例：只把 `svg` 包在捲動容器裡，圖例放在容器外
+- 第 1532 行（2026-11-25 第三輪修正）：DataTable 手機卡片的日期和時間：各自是 `inline-block`、最寬 100 %
+- 第 1533 行（2026-11-25 第三輪修正）：EmptyState 在手機上：說明超過 2 行時整塊（標題、說明、步驟、按鈕）一起靠左，2 行以內全部置中
+- 第 1534 行（2026-11-25 第三輪修正）：DataTable `loading`：載入條依格式取常見寬度（`date` 128 px、`dateTime` 184 px、`relative` 72 px、`duration` 64 px、`money` 96 px、`percent` 和數字 56 px、`mono` 112 px）
+- 第 1535 行（2026-11-25 第三輪修正）：同一列一種字級：EventTimeline 的時間和說明同大小（原本 13 px 和 16 px，採「同一列一種大小」，不採「次要文字小一級」）
+- 第 1536 行（2026-11-25 第三輪修正）：`ui check` 的原生控制項：`<button>`、`<a href>`、文字類 `<input>`（沒有 type、text、email、password、number、tel、url）和 `<textarea>` 也算
+- 第 1537 行（2026-11-25 第三輪修正）：TextField 的 `prefix`、`suffix`、`unit`：三者都是 `ink-muted`、15 px（和輸入的字同大小）
+- 第 1538 行（2026-11-25 第三輪修正）：`themeScript` 是字串常數，不收參數：preset 由 server 的 `<html data-theme-preset>` 決定
+- 第 1539 行（2026-11-25 第三輪修正）：發布時更新釘住的版本：根目錄的 `version-packages` script（`changeset version` 之後跑 `scripts/pin-version.ts`）
+- 第 1540 行（2026-11-25 第三輪修正）：LoadingBar 在減少動態效果時：靜止、跨滿軌道的強調色斜紋（45°，6 px 一條），不用固定長度的一段，避免看起來像完成了某個比例
+- 第 1541 行（2026-11-25 第三輪修正）：MobileTabBar 有文字時：膠囊 28 px 高，上下置中在 22 px 圖示上，圖示和文字之間 6 px
+- 第 1542 行（2026-11-25 第三輪修正）：KpiCard `unit="%"` 沒給 `decimals` 時 1 位小數
+- 第 1543 行（2026-11-25 第三輪修正）：Alert：有動作按鈕時 ✕ 和按鈕上下置中在同一條線（窄的 Alert 按鈕移到下一列時 ✕ 留在右上）
+- 第 1544 行（2026-11-25 第三輪修正）：Badge 新增 `paused`：「已暫停」、`warning`、空心加兩條直線
+- 第 1545 行（2026-11-25 第三輪修正）：範本：清單與詳細頁的編輯抽屜用 `useFormErrors`，「儲存」只在沒有變更時停用，不因錯誤停用
+- 第 1546 行（2026-11-25 第三輪修正）：Cover 預覽填滿頁寬，圖固定 480 px 靠右
 
 ### 更早的版本
 
