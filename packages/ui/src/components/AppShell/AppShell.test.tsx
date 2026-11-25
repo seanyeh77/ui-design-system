@@ -54,7 +54,7 @@ test('phones: a tab for a group opens its first page', async () => {
   expect(onNavigate).toHaveBeenCalledWith('p1');
 });
 
-test('AppShell from 600 to 1023 px: no sidebar; the top bar menu opens the navigation in a drawer', async () => {
+test('AppShell from 600 to 1024 px: no sidebar; the top bar menu opens the navigation in a drawer', async () => {
   await page.viewport(820, 900);
   const onNavigate = vi.fn();
   const { container } = render(
@@ -82,6 +82,42 @@ test('AppShell from 600 to 1023 px: no sidebar; the top bar menu opens the navig
   await userEvent.setup().click(screen.getByRole('button', { name: '總覽' }));
   expect(onNavigate).toHaveBeenCalledWith('home');
   await page.viewport(1280, 900);
+});
+
+test('AppShell at 1024 px still uses the drawer; above 1024 px the sidebar shows', async () => {
+  await page.viewport(1024, 768);
+  const { container } = render(
+    <AppShell nav={nav} value="home" onNavigate={() => {}} title="總覽">
+      <p>內容</p>
+    </AppShell>,
+  );
+  expect(container.querySelector('.ui-sidenav')).toBeNull();
+  expect(screen.getByRole('button', { name: '開啟導覽' })).toBeTruthy();
+  await page.viewport(1025, 768);
+  await waitFor(() => expect(container.querySelector('.ui-sidenav')).not.toBeNull());
+  expect(screen.queryByRole('button', { name: '開啟導覽' })).toBeNull();
+});
+
+test.each([
+  [390, 844],
+  [1280, 900],
+])('AppShell at %i px: the document never scrolls, also with visually hidden text deep in the content', async (w, h) => {
+  await page.viewport(w, h);
+  document.body.style.margin = '0';
+  render(
+    <AppShell nav={nav} value="home" onNavigate={() => {}} title="總覽">
+      {Array.from({ length: 40 }, (_, i) => (
+        <p key={i}>
+          第 {i + 1} 段<span className="ui-visually-hidden">隱藏的說明 {i + 1}</span>
+          <span style={{ position: 'absolute' }}>絕對定位</span>
+        </p>
+      ))}
+    </AppShell>,
+  );
+  await waitFor(() => expect(document.querySelector('.ui-shell-main')).not.toBeNull());
+  expect(document.documentElement.scrollHeight).toBe(innerHeight);
+  expect(document.documentElement.scrollWidth).toBe(innerWidth);
+  document.body.style.margin = '';
 });
 
 test('the skip link has no shadow off screen, so nothing darkens the corner; Tab shows it with its shadow', async () => {

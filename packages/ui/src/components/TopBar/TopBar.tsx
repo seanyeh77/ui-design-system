@@ -24,7 +24,7 @@ export interface TopBarProps {
   searchLabel?: string;
   /** Right side: NotificationBell, ProjectSwitcher, the account menu. */
   children?: React.ReactNode;
-  /** A menu button at the left that opens the navigation (AppShell from 600 to 1023 px). */
+  /** A menu button at the left that opens the navigation (AppShell from 600 to 1024 px). */
   onMenu?: () => void;
   /** Extra class on the root element. */
   className?: string;

@@ -61,8 +61,8 @@ const CLOSE_DELAY = 300;
 export { focusMain };
 const MORE = '\u0000more';
 
-/** The dashboard frame: sidebar (240 px, 72 px collapsed) from 1024 px, a drawer from the top bar's menu button from
- *  600 to 1023 px, and bottom tabs on phones.
+/** The dashboard frame: sidebar (240 px, 72 px collapsed) above 1024 px, a drawer from the top bar's menu button from
+ *  600 to 1024 px, and bottom tabs on phones.
  *  The top bar hides while scrolling down and returns when scrolling up. */
 export function AppShell({
   nav,
@@ -85,9 +85,10 @@ export function AppShell({
     '`breadcrumb` is deprecated: in the top bar it repeats the page title. Put <Breadcrumb items={…} /> first in the page content instead.',
   );
   const phone = useNarrow();
-  // 600 to 1023 px (tablets, narrow windows): no sidebar; the top bar's menu button opens the whole nav in a drawer.
-  // 1024 px is the navigation's own edge, separate from the page-layout breakpoint bp-desktop (960 px).
-  const tablet = useMedia('(min-width: 600px) and (max-width: 1023px)');
+  // 600 to 1024 px (tablets, narrow windows, a 1024 px tablet in landscape included): no sidebar; the top bar's menu
+  // button opens the whole nav in a drawer. 1024 px is the navigation's own edge, separate from the page-layout
+  // breakpoint bp-desktop (960 px).
+  const tablet = useMedia('(min-width: 600px) and (max-width: 1024px)');
   // Stored choices: the same on the server and the first render in the browser (none stored), then the stored ones.
   const [storedCollapsed, setStoredCollapsed] = useStored<string | null>(COLLAPSE_KEY, asText, null);
   const [storedPin, setStoredPin] = useStored<string | null>(PIN_KEY, asText, null);

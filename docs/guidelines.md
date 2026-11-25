@@ -40,7 +40,7 @@
 - Dashboard 類用 `AppShell`；監控畫面用 `ConsoleLayout`；程式碼工具用 `Workbench`；展示類（產品介紹、說明網站）只用頂部導覽，見 [layout.md](layout.md)。
 - 內容滿版，`Page` 上下排區塊，`Grid` 排卡片：等寬 `columns={3}`，不等寬給比例 `columns={[2, 1]}`（主要內容加側欄）。每個區塊一張 `Card`。
 - 頁面標題只出現一次：清單頁、Dashboard、設定頁寫在頂部列（AppShell `title`）；詳細頁是那筆資料的名稱，寫在 `PageHeader`，AppShell 不給 `title`。麵包屑放在內容最上方（`Breadcrumb`），不放頂部列。
-- 斷點：手機小於 600 px、平板 600 到 959 px、桌面 960 px 以上（大螢幕 1280 px 以上）。AppShell 的導覽另以 1024 px 為界：600 到 1023 px 改成導覽抽屜，1024 px 以上有側邊欄，小於 600 px 改成底部分頁列。手機上長文字靠左。
+- 斷點：手機小於 600 px、平板 600 到 959 px、桌面 960 px 以上（大螢幕 1280 px 以上）。AppShell 的導覽另以 1024 px 為界：600 到 1024 px（含 1024 px）改成導覽抽屜，大於 1024 px 有側邊欄，小於 600 px 改成底部分頁列。手機上長文字靠左。
 
 ## 常見頁面
 
