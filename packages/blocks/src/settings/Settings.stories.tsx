@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Settings, type SettingsValues } from './Settings';
 
-export default { title: 'Blocks/Settings', component: Settings };
+export default { title: 'Blocks/Settings', component: Settings, parameters: { layout: 'fullscreen' } };
 
 function Demo() {
   const [values, setValues] = React.useState<SettingsValues>({ name: 'SeanYeh', email: 'sean@example.com', notifyEmail: true, notifyWeekly: false });

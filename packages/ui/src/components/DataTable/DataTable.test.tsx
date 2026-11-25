@@ -1019,6 +1019,9 @@ test('columns: a short text column is at least 128 px, a long column does not ta
   const time = row.querySelector('time') as HTMLElement;
   const cell = time.closest('[role="cell"]') as HTMLElement;
   expect(cell.scrollWidth).toBeLessThanOrEqual(cell.clientWidth + 1);
+  // In the table the date and its time stay on one line (the break between them is only for phone cards).
+  expect(time.getClientRects()).toHaveLength(1);
+  expect(time.getBoundingClientRect().height).toBeLessThan(30);
   const acts = row.querySelector('.ui-dt-acts') as HTMLElement;
   await waitFor(() => expect(getComputedStyle(acts).opacity).toBe('1'));
   expect(acts.getBoundingClientRect().left).toBeGreaterThanOrEqual(time.getBoundingClientRect().right - 1);

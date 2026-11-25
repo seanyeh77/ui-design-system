@@ -432,6 +432,11 @@
 .ui-dt-nowrap {
   white-space: nowrap;
 }
+/* Chromium breaks at <wbr> even inside white-space: nowrap: in the table a date and its time stay on one line. The
+   phone cards turn the break back on. */
+.ui-dt-time wbr {
+  display: none;
+}
 /* Hugging columns are measured on one line (DataTable adds is-measuring for the read only). */
 .ui-dt.is-measuring .ui-dt-cell.is-hug {
   white-space: nowrap;
@@ -925,6 +930,9 @@
   /* A date with its time wraps only between the two (each part is whole, see .ui-dt-nowrap). */
   .ui-dt-body .ui-dt-cell .ui-dt-time {
     white-space: normal;
+  }
+  .ui-dt-body .ui-dt-cell .ui-dt-time wbr {
+    display: inline;
   }
   .ui-dt-body .ui-dt-cell.is-num {
     white-space: normal;
