@@ -50,6 +50,8 @@ jobs:
       - id: changesets
         uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
         with:
+          # changeset version, then the pinned release in AGENTS.md and README.md (scripts/pin-version.ts).
+          version-script: pnpm run version-packages
           publish-script: pnpm release
       # The "Version packages" pull request is pushed with the workflow token, and GitHub starts no normal CI run for
       # it: its pull_request run waits for an approval nobody gives and ends as "failure" with 0 jobs when the pull

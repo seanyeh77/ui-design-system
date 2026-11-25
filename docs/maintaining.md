@@ -43,7 +43,7 @@ pnpm workspace。`pnpm install` 之後，`pnpm check` 依序 build、型別檢�
 
 - 改到已發布的套件就加 changeset（`pnpm changeset`）；不需要發布的改動加空的（`pnpm changeset --empty`）。
 - Release（`publish.yml`）和 Docs site（`pages.yml`）都在 `main` 的 push 跑完 CI 且成功後才開始（`workflow_run`），用的是 CI 測過的那個 commit；CI 失敗時兩者都不跑。Docs site 也可以在 Actions 手動執行，重建目前的 `main`。
-- Release 有 changeset 時開或更新「Version packages」PR。這個 PR 由 workflow token 推送，GitHub 不會自動對它跑 CI，所以 Release 用 `workflow_dispatch` 在 `changeset-release/main` 上啟動 CI，結果掛在 PR 的 commit 上。合併它之後，`main` 的 CI 成功時 Release 經由 trusted publishing 發布到 npm（每個套件在 npmjs.com 把這個 repo 的 `publish.yml` 設為 Trusted Publisher，不用 token）。
+- Release 有 changeset 時開或更新「Version packages」PR：它跑 `pnpm run version-packages`，也就是 `changeset version` 之後 `scripts/pin-version.ts` 把 AGENTS.md 和 README.md 釘住的版本（`/dist/<version>/`、jsDelivr 的 `@<version>`）改成新版本；`pnpm lint` 檢查兩者一致。這個 PR 由 workflow token 推送，GitHub 不會自動對它跑 CI，所以 Release 用 `workflow_dispatch` 在 `changeset-release/main` 上啟動 CI，結果掛在 PR 的 commit 上。合併它之後，`main` 的 CI 成功時 Release 經由 trusted publishing 發布到 npm（每個套件在 npmjs.com 把這個 repo 的 `publish.yml` 設為 Trusted Publisher，不用 token）。
 - commit 不加 Claude 的 co-author 或 Claude-Session trailer。
 
 ## 設計決策
