@@ -9,7 +9,7 @@ import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs, type ParseArgsConfig } from 'node:util';
-import type { Page } from 'playwright';
+import type { Locator, Page } from 'playwright';
 import { measure, type Findings } from './measure';
 import { GROUPS, GUIDES, summary, usageBlock } from './usage';
 import { DEFAULT_TOLERANCE, type Tolerance } from './compare';
@@ -265,15 +265,16 @@ const axeScript = () => (axeSource ??= readFileSync(createRequire(import.meta.ur
  * pass: every other rule gives the same result as in light). preload off: axe would fetch the stylesheets again,
  * which fails on file:// pages and shows up as console errors.
  */
-async function axeRun(page: Page, contrastOnly = false): Promise<string[]> {
+async function axeRun(page: Page, contrastOnly = false, skip: string[] = []): Promise<string[]> {
   if (!(await page.evaluate(() => 'axe' in window))) await page.addScriptTag({ content: axeScript() });
   const found = await page.evaluate(
-    async ({ tags, contrastOnly }) => {
+    async ({ tags, contrastOnly, skip }) => {
       type Violation = { id: string; impact?: string | null; help: string; nodes: { target: unknown[] }[] };
       const axe = (window as unknown as { axe: { run: (ctx: Document, o: object) => Promise<{ violations: Violation[] }> } }).axe;
       const runOnly = contrastOnly ? { type: 'rule', values: ['color-contrast'] } : { type: 'tag', values: tags };
       // target-size is ui check's own 24 px check, with the inline exemptions above.
-      const r = await axe.run(document, { runOnly, resultTypes: ['violations'], preload: false, rules: { 'target-size': { enabled: false } } });
+      const rules = Object.fromEntries(['target-size', ...skip].map((id) => [id, { enabled: false }]));
+      const r = await axe.run(document, { runOnly, resultTypes: ['violations'], preload: false, rules });
       return r.violations.map((v) => ({
         id: v.id,
         impact: v.impact ?? '',
@@ -282,7 +283,7 @@ async function axeRun(page: Page, contrastOnly = false): Promise<string[]> {
         target: String(v.nodes[0]?.target?.[0] ?? ''),
       }));
     },
-    { tags: AXE_TAGS, contrastOnly },
+    { tags: AXE_TAGS, contrastOnly, skip },
   );
   return found.map((v) => `${v.id} (${v.impact}): ${v.help}; ${v.count} element${v.count === 1 ? '' : 's'}, e.g. ${v.target}`);
 }
@@ -351,7 +352,8 @@ function findStates({ popups, max }: { popups: string; max: number }) {
           .map((id) => document.getElementById(id)?.textContent ?? '')
           .join(' ')
       : '';
-    return (el.getAttribute('aria-label') || labelled || el.textContent || el.getAttribute('placeholder') || el.tagName.toLowerCase())
+    const label = (el as HTMLInputElement).labels?.[0]?.textContent ?? '';
+    return (el.getAttribute('aria-label') || labelled || label || el.textContent || el.getAttribute('placeholder') || el.tagName.toLowerCase())
       .trim()
       .replace(/\s+/g, ' ')
       .slice(0, 24);
@@ -462,10 +464,11 @@ async function check(targets: string[], opts: CheckOptions) {
               }
               return out;
             };
-            const checkState = async (label: string, click: () => Promise<void>, close: boolean) => {
+            // trigger: a menu or dialog opener, closed again afterwards (Escape, else a second click).
+            const checkState = async (label: string, target: Locator, trigger: boolean) => {
               const before = errors.length;
               try {
-                await click();
+                await target.click({ timeout: 3000 });
               } catch (e) {
                 return `could not click ${label}: ${String(e).split('\n')[0]}`;
               }
@@ -474,12 +477,19 @@ async function check(targets: string[], opts: CheckOptions) {
               const found = problemsOf(newOnly(after), phone, opts.strict);
               if (errors.length > before) found.unshift('console errors: ' + errors.slice(before, before + 5).join(' | '));
               if (opts.axe) {
-                const more = (await run(() => axeRun(page)).catch(() => [] as string[])).filter((v) => !knownAxe.has(axeKey(v)));
+                // A modal menu or dialog hides the rest of the page from screen readers (aria-hidden) while focus stays
+                // trapped inside it: axe's aria-hidden-focus on that hidden rest is not a problem of the open state.
+                const skip = trigger ? ['aria-hidden-focus'] : [];
+                const more = (await run(() => axeRun(page, false, skip)).catch(() => [] as string[])).filter((v) => !knownAxe.has(axeKey(v)));
                 if (more.length) found.push('accessibility (axe-core): ' + more.join(' | '));
               }
-              if (close) {
+              if (trigger) {
                 await page.keyboard.press('Escape');
                 await page.waitForTimeout(150);
+                if ((await target.getAttribute('aria-expanded').catch(() => null)) === 'true') {
+                  await target.click({ timeout: 3000 }).catch(() => undefined);
+                  await page.waitForTimeout(150);
+                }
               }
               return found.length ? `after opening ${label}: ${found.join(' / ')}` : '';
             };
@@ -490,13 +500,13 @@ async function check(targets: string[], opts: CheckOptions) {
                 stateProblems.push(`--open ${sel}: nothing on the page matches`);
                 continue;
               }
-              const r = await checkState(`--open ${sel}`, () => target.click({ timeout: 3000 }), true);
+              const r = await checkState(`--open ${sel}`, target, true);
               if (r) stateProblems.push(r);
             }
             if (opts.interact) {
               const states = await run(() => page.evaluate(findStates, { popups: TOOLBAR_POPUPS, max: MAX_STATES }));
               for (const st of states) {
-                const r = await checkState(st.label, () => page.locator(`[data-ui-check-state="${st.id}"]`).click({ timeout: 3000 }), st.kind === 'popup');
+                const r = await checkState(st.label, page.locator(`[data-ui-check-state="${st.id}"]`), st.kind === 'popup');
                 // A click that fails (an element moved away by an earlier state) is not the page's problem.
                 if (r && !r.startsWith('could not click')) stateProblems.push(r);
               }

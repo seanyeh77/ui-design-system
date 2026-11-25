@@ -171,6 +171,11 @@ export function measure(): Findings {
     if (t.inline || t.el.matches('.ui-lg-hit') || wholeRow(t.el)) continue;
     const cx = t.r.left + t.r.width / 2;
     const cy = t.r.top + t.r.height / 2;
+    // A target under an open menu or popover cannot be reached until it closes: not counted while covered.
+    if (cx >= 0 && cy >= 0 && cx < innerWidth && cy < innerHeight) {
+      const top = document.elementFromPoint(cx, cy);
+      if (top && !t.el.contains(top) && !top.contains(t.el)) continue;
+    }
     const near = targets.find((o) => {
       if (o === t || o.el.contains(t.el) || t.el.contains(o.el)) return false;
       // Distance from this center to the other target's box, and to the other's center when it is undersized too.
