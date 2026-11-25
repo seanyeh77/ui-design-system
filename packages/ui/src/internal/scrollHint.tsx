@@ -17,7 +17,10 @@ export function useScrollHint<E extends HTMLElement = HTMLDivElement>() {
   const measure = React.useCallback(() => {
     const el = ref.current;
     if (!el) return;
-    const wide = el.scrollWidth > el.clientWidth + 1;
+    // Only a box that scrolls sideways can have more to the right: with overflow visible (DataTable's phone cards)
+    // scrollWidth still counts content past the edge, which drew a fade and 「左右滑動」 where nothing scrolls.
+    const ox = getComputedStyle(el).overflowX;
+    const wide = ox !== 'visible' && ox !== 'clip' && el.scrollWidth > el.clientWidth + 1;
     setOverflows(wide);
     setMore(wide && el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
   }, []);

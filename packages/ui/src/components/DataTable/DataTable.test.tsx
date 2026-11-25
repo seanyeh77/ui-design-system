@@ -513,6 +513,97 @@ test('DataTable widths: a heading border drags with ← →; Enter back to width
   expect(Math.abs(head().getBoundingClientRect().width - w0)).toBeLessThanOrEqual(1);
 });
 
+type Rec = { id: string; name: string; sub: string; status: 'done'; secs: number; updated: string };
+const recCols: DataTableColumn<Rec>[] = [
+  { key: 'name', label: '標題', secondary: (r) => r.sub },
+  { key: 'status', label: '狀態', mobile: 'status', render: () => <span className="ui-badge">完成</span> },
+  { key: 'secs', label: '長度', format: 'duration' },
+  { key: 'updated', label: '最後更新', format: 'relative' },
+];
+const recRows: Rec[] = [0, 1, 2].map((i) => ({
+  id: 'r' + i,
+  name: `錄音 2026/11/1${i}（一）13:28`,
+  sub: '我會有很多想像是經過的學長，我會有很多事情是這樣子的然後',
+  status: 'done',
+  secs: 2803 + i * 1000,
+  updated: new Date(Date.now() - (i + 5) * 86_400_000).toISOString(),
+}));
+const centerY = (r: DOMRect) => r.top + r.height / 2;
+test("phone cards: checkbox and status centred on the title's first line; bulk and row checkboxes in one column", async () => {
+  await page.viewport(390, 844);
+  const { container } = render(
+    <Card padding={false}>
+      <DataTable<Rec>
+        label="轉錄紀錄"
+        columns={recCols}
+        rows={recRows}
+        urlSync={false}
+        selectable
+        bulkActions={() => <Button>刪除</Button>}
+        summary={{
+          key: 'status',
+          items: [
+            { value: 'fail', label: '失敗' },
+            { value: 'done', label: '完成' },
+          ],
+        }}
+      />
+    </Card>,
+  );
+  await userEvent.setup().click(screen.getByRole('checkbox', { name: '選取第 1 筆' }));
+  await waitFor(() => expect(container.querySelector('.ui-dt-bulk')).not.toBeNull());
+  const rows = [...container.querySelectorAll<HTMLElement>('.ui-dt-body .ui-dt-row')];
+  expect(rows[0].classList.contains('is-selected')).toBe(true);
+  const boxes = rows.map((r) => (r.querySelector('.ui-dt-sel [role="checkbox"]') as HTMLElement).getBoundingClientRect());
+  const titles = rows.map((r) => r.querySelector('.is-m-title') as HTMLElement);
+  for (let i = 0; i < rows.length; i++) {
+    // The first line of the title (its main text, above the secondary line).
+    const main = (titles[i].querySelector('.ui-dt-main') as HTMLElement).getBoundingClientRect();
+    expect(main.height).toBeLessThan(40);
+    expect(Math.abs(centerY(boxes[i]) - centerY(main))).toBeLessThanOrEqual(1);
+    const badge = (rows[i].querySelector('.is-m-status .ui-badge') as HTMLElement).getBoundingClientRect();
+    expect(Math.abs(centerY(badge) - centerY(main))).toBeLessThanOrEqual(1);
+  }
+  // The selected row's accent bar does not move its content: same checkbox and title x as the other rows.
+  for (const b of boxes) expect(b.left).toBeCloseTo(boxes[0].left, 0);
+  const titleX = titles.map((t) => t.getBoundingClientRect().left);
+  for (const x of titleX) expect(x).toBeCloseTo(titleX[0], 0);
+  // The bulk bar carries 「全選」 (the header row is hidden on phones) in the rows' checkbox column, its count where the
+  // titles start.
+  const bulk = container.querySelector('.ui-dt-bulk') as HTMLElement;
+  const all = within(bulk).getByRole('checkbox', { name: '全選' });
+  expect(all.getAttribute('aria-checked')).toBe('mixed');
+  expect(all.getBoundingClientRect().left).toBeCloseTo(boxes[0].left, 0);
+  expect((bulk.querySelector('.ui-dt-bulk-count') as HTMLElement).getBoundingClientRect().left).toBeCloseTo(titleX[0], 0);
+  await userEvent.setup().click(all);
+  expect(screen.getByRole('checkbox', { name: '選取第 3 筆' }).getAttribute('aria-checked')).toBe('true');
+  await page.viewport(1280, 800);
+});
+test('phone cards: no sideways fade or 「左右滑動」 when nothing scrolls, even with content past the edge', async () => {
+  await page.viewport(390, 844);
+  const { container } = render(
+    <DataTable<Rec> label="轉錄紀錄" columns={recCols} rows={recRows} urlSync={false} selectable bulkActions={() => <Button>刪除</Button>} />,
+  );
+  await userEvent.setup().click(screen.getByRole('checkbox', { name: '選取第 1 筆' }));
+  // Something wider than the cards (a page's own content): the box does not scroll on phones, so no hint either way.
+  const wide = document.createElement('div');
+  wide.style.width = '900px';
+  wide.style.height = '1px';
+  (container.querySelector('.ui-dt-scroll') as HTMLElement).append(wide);
+  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const scroller = container.querySelector('.ui-dt-scroller') as HTMLElement;
+  expect(scroller.classList.contains('has-more')).toBe(false);
+  const after = getComputedStyle(scroller, '::after');
+  expect(after.display === 'none' || after.opacity === '0').toBe(true);
+  expect(container.querySelector('.ui-scroll-hint')).toBeNull();
+  // No mask or gradient on the cards themselves.
+  for (const el of container.querySelectorAll<HTMLElement>('.ui-dt-scroll, .ui-dt-body .ui-dt-row, .ui-dt-bulk')) {
+    expect(getComputedStyle(el).maskImage).toBe('none');
+    expect(getComputedStyle(el).backgroundImage).toBe('none');
+  }
+  wide.remove();
+  await page.viewport(1280, 800);
+});
 test('DataTable widths: no borders, zoom or copy on phone cards', async () => {
   await page.viewport(390, 800);
   render(<DataTable columns={fnCols} rows={fnRows} label="受影響的函式" urlSync={false} />);

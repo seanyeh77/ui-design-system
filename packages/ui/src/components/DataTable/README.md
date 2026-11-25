@@ -51,7 +51,7 @@ const columns: DataTableColumn<Import>[] = [
 - 搜尋：預設搜尋所有欄位，按「/」移到搜尋框；`search.keys` 限定欄位，`render` 的欄位給 `searchText`；`search: false` 拿掉搜尋框。筆數：有 `summary` 時「全部 24」已經是筆數，工具列只在搜尋或篩選後顯示「10 / 24 筆」；沒有 `summary` 時一頁內的表格顯示「24 筆」，有頁碼時由下方的「第 1–10 筆，共 24 筆」說。螢幕閱讀器一律念得到筆數。每一處筆數的單位是 `unit`（預設 `summary.unit`，再沒有是「筆」）。
 - `toolbar={false}`：沒有工具列，給 3 到 5 列、不需要搜尋和篩選的小表格；點欄位標題仍可排序。
 - 排序：點欄位標題，Shift＋點加成下一層；`defaultSort`、`maxSort`，`sortValue` 給排序用的值，`sortable: false` 不能排序。
-- `selectable` 加 `bulkActions={(ids, clear) => …}`：勾選後表格上方出現「已選 n 筆」和批次按鈕；看不到的列自動取消勾選。
+- `selectable` 加 `bulkActions={(ids, clear) => …}`：勾選後表格上方出現「已選 n 筆」和批次按鈕；看不到的列自動取消勾選；手機卡片沒有表頭，「全選」放在這一列的最前面，和列的勾選框同一欄。
 - `rowHref={(row) => url}`：整列是連結（中鍵、Ctrl＋點開新分頁）；SPA 另給 `onRowOpen` 推路由。第一欄的 `render` 裡不再放連結。
 - `totals={{ amount: 'sum', rate: 'avg' }}`：合計列，有金額或數量要加總時才開（看情況）。`stickyFirst`：欄位多、常橫向捲動時固定第一欄（看情況）。`views`：幾組固定的看法（「我負責的」）時才開（看情況）。
 - 欄位：`hidden: true` 一開始不顯示（「⋯」的「欄位」可以打開）；`width` 只是最小寬度；`grow` 改變分剩下寬度的份數；`long: true` 的長文字截斷並可展開；`fullText` 給縮短的格子完整文字；`currency`、`decimals` 調整格式。

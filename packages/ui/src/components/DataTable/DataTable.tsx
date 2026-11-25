@@ -1356,8 +1356,12 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const bulkView =
     selectable && selIds.length && p.bulkActions ? (
       <div className="ui-dt-bulk" role="toolbar" aria-label={tr('已選 {n} {unit}', { n: selIds.length, unit: unitOf(selIds.length) })}>
-        <span className="ui-dt-bulk-count">
-          {monoNums(tr('已選 {n} {unit}', { n: '\u0001', unit: unitOf(selIds.length) }), [format.number(selIds.length)])}
+        <span className="ui-dt-bulk-lead">
+          {/* Phone cards hide the header row and its 「全選」: the bar carries it, in the rows' checkbox column. */}
+          {narrow ? <RowCheck v={allOn ? true : mixed ? 'mixed' : false} label={tr('全選')} onClick={() => toggle(visIds, !allOn)} /> : null}
+          <span className="ui-dt-bulk-count">
+            {monoNums(tr('已選 {n} {unit}', { n: '\u0001', unit: unitOf(selIds.length) }), [format.number(selIds.length)])}
+          </span>
         </span>
         <span className="ui-dt-bulk-actions">{p.bulkActions(selIds, clear)}</span>
         <button type="button" className="ui-dt-bulk-close" aria-label={tr('取消選取')} onClick={clear}>
