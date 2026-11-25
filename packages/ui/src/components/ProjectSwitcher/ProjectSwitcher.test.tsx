@@ -58,3 +58,32 @@ test('a name shorter than 3em keeps its own width: no gap before 「·」', () =
   r.selectNodeContents(name);
   expect(Math.abs(name.getBoundingClientRect().width - r.getBoundingClientRect().width)).toBeLessThan(1);
 });
+
+test('short of room the status words go whole, then the name alone is cut: never 「web-a… ..」', () => {
+  for (const width of [150, 110]) {
+    const { container, unmount } = render(
+      <div style={{ width, display: 'flex' }}>
+        <ProjectSwitcher project="web-app-production" status="live" />
+      </div>,
+    );
+    const text = must(container.querySelector<HTMLElement>('.ui-projsw-text'));
+    const status = must(container.querySelector<HTMLElement>('.ui-projsw-status'));
+    const name = must(container.querySelector<HTMLElement>('.ui-projsw-name'));
+    // The status sits on the cut-off second line, below the box.
+    expect(status.getBoundingClientRect().top).toBeGreaterThanOrEqual(text.getBoundingClientRect().bottom);
+    expect(name.scrollWidth).toBeGreaterThan(name.clientWidth);
+    expect(container.querySelector('.ui-projsw-mark .ui-badge')).not.toBeNull();
+    unmount();
+  }
+});
+
+test('with room, the name and the status sit on the one line', () => {
+  const { container } = render(
+    <div style={{ width: 600, display: 'flex' }}>
+      <ProjectSwitcher project="web-app" status="stale" />
+    </div>,
+  );
+  const text = must(container.querySelector<HTMLElement>('.ui-projsw-text'));
+  const status = must(container.querySelector<HTMLElement>('.ui-projsw-status'));
+  expect(status.getBoundingClientRect().top).toBe(text.getBoundingClientRect().top);
+});

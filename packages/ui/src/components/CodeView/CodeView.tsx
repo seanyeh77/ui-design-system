@@ -877,8 +877,12 @@ export function CodeView<L extends CodeLink = CodeLink>({
   return (
     <div
       className={cx('ui-cv', !lineNumbers && 'no-nums', header === 'float' && 'is-float', className)}
-      role="region"
-      aria-label={file || title || tr('原始碼')}
+      // A region (a landmark) only when it has a name of its own; a nameless block (a fence in Markdown) is a group named by
+      // its language, so a document with many code blocks does not get many 「原始碼」 landmarks.
+      role={file || title ? 'region' : 'group'}
+      aria-label={
+        file || title || (lang !== 'plain' ? tr('{lang} 程式碼', { lang: tr((languageLabel || undefined) ?? LANGUAGE_NAMES[lang] ?? lang) }) : tr('原始碼'))
+      }
     >
       {head}
       <pre

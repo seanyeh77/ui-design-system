@@ -2,6 +2,7 @@ import type * as React from 'react';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { IS_MAC, SHORTCUT, TOUCH_ONLY, cx, useMedia } from '../../internal/util';
+import { devWarn } from '../../internal/dev';
 import { Breadcrumb, type BreadcrumbItem } from '../Breadcrumb/Breadcrumb';
 import { IconButton } from '../IconButton/IconButton';
 import { includeIcons } from '../../icons/store';
@@ -13,6 +14,9 @@ includeIcons(phListBullets, phMagnifyingGlass);
 export interface TopBarProps {
   /** The page title, shown once: either here or as the page's own heading. */
   title?: string;
+  /** Right after the title, e.g. a Tag 「示範資料」 with the info icon: the size of the title. */
+  tags?: React.ReactNode;
+  /** @deprecated A breadcrumb goes at the top of the content: put `<Breadcrumb items={…} />` first in the page. */
   breadcrumb?: BreadcrumbItem[];
   /** Opens search (CommandPalette). false hides the search entry. */
   onSearch?: (() => void) | false;
@@ -26,12 +30,18 @@ export interface TopBarProps {
 }
 
 /** The bar at the top of a dashboard page: title or breadcrumb on the left, search and tools on the right. */
-export function TopBar({ title, breadcrumb, onSearch, searchLabel, children, onMenu, className }: TopBarProps) {
+export function TopBar({ title, tags, breadcrumb, onSearch, searchLabel, children, onMenu, className }: TopBarProps) {
   const touch = useMedia(TOUCH_ONLY);
+  devWarn(
+    breadcrumb,
+    'TopBar',
+    '`breadcrumb` is deprecated: a breadcrumb in the top bar repeats the page title. Put <Breadcrumb items={…} /> first in the page content instead.',
+  );
   return (
     <header className={cx('ui-topbar', className)}>
       {onMenu ? <IconButton className="ui-topbar-menu" icon="list-bullets" label={tr('開啟導覽')} onClick={onMenu} /> : null}
       {title ? <h1 className="ui-topbar-title">{title}</h1> : null}
+      {tags ? <div className="ui-topbar-tags">{tags}</div> : null}
       {breadcrumb ? <Breadcrumb items={breadcrumb} /> : null}
       <div className="ui-topbar-end">
         {onSearch !== false ? (

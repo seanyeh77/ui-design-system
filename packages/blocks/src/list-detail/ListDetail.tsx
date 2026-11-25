@@ -114,6 +114,8 @@ export function ListDetail({ items, owners, onSave }: ListDetailProps) {
               onClick={() => {
                 if (draft) onSave({ ...draft, updated: new Date() });
                 close();
+                // TODO(integrator): show 「已儲存」 here with the new toast API, e.g. toast('已儲存'), and render <Toaster />
+                // once in the page (the Toast component becomes toast() + <Toaster />).
               }}
             >
               儲存

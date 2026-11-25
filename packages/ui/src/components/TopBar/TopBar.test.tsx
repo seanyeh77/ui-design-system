@@ -62,5 +62,21 @@ test('ProjectSwitcher short of room on a desktop: the status gives way before th
   const status = container.querySelector<HTMLElement>('.ui-projsw-status');
   if (!name || !status) throw new Error('no chip');
   expect(name.scrollWidth).toBeLessThanOrEqual(name.clientWidth);
-  expect(status.scrollWidth).toBeGreaterThan(status.clientWidth);
+  // The status goes whole: it wraps to the cut-off second line of the one-line box, not 「快照 a0…」.
+  const box = container.querySelector<HTMLElement>('.ui-projsw-text');
+  expect(status.getBoundingClientRect().top).toBeGreaterThanOrEqual(box?.getBoundingClientRect().bottom ?? 0);
+});
+
+test('TopBar on a desktop: short of room the project switcher shrinks before the page title', async () => {
+  await page.viewport(1024, 800);
+  const { container } = render(
+    <div style={{ width: 640 }}>
+      <TopBar title="訂單出貨管理總覽" onSearch={() => {}}>
+        <ProjectSwitcher project="web-app-production-east" status="live" />
+      </TopBar>
+    </div>,
+  );
+  const title = container.querySelector<HTMLElement>('.ui-topbar-title');
+  if (!title) throw new Error('no title');
+  expect(title.scrollWidth).toBeLessThanOrEqual(title.clientWidth);
 });

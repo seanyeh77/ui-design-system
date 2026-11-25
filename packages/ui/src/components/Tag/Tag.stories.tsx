@@ -15,3 +15,18 @@ export const Default = {
     </div>
   ),
 };
+
+export const Source = {
+  render: () => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 20, fontWeight: 700 }}>
+      機房監控
+      <UI.Tag icon="info">示範資料</UI.Tag>
+      <span style={{ fontSize: 16, fontWeight: 400 }}>
+        25.8 °C{' '}
+        <UI.Tag icon="trend-up" tone="info">
+          預測
+        </UI.Tag>
+      </span>
+    </div>
+  ),
+};

@@ -279,9 +279,10 @@
 .ui-cv .is-string {
   color: var(--code-constant);
 }
+/* Comments are gray and upright: the fonts have no italic face, and a slanted CJK comment (synthetic italic) reads
+   badly. */
 .ui-cv .is-comment {
   color: var(--ink-muted);
-  font-style: italic;
 }
 .ui-cv-more {
   display: inline-flex;

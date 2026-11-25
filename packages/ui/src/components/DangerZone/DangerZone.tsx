@@ -17,7 +17,7 @@ export interface DangerZoneProps {
   className?: string;
 }
 
-/** A red-bordered block at the bottom of a settings page for delete-type actions; the button asks to confirm. */
+/** The last block of a settings page for delete-type actions: a card with a red title; the button asks to confirm. */
 export function DangerZone({ title, description, actionLabel, onAction, confirm, className }: DangerZoneProps) {
   const label = actionLabel || tr('刪除');
   return (

@@ -16,6 +16,7 @@
 @import './styles/field.css' layer(ui.components);
 @import './styles/motion.css' layer(ui.components);
 @import './styles/chart.css' layer(ui.components);
+@import './components/Link/Link.css' layer(ui.components);
 @import './components/InlineCode/InlineCode.css' layer(ui.components);
 @import './components/Button/Button.css' layer(ui.components);
 @import './components/Dialog/Dialog.css' layer(ui.components);
@@ -43,6 +44,7 @@
 @import './components/TopBar/TopBar.css' layer(ui.components);
 @import './components/SideNav/SideNav.css' layer(ui.components);
 @import './components/Menu/Menu.css' layer(ui.components);
+@import './components/PageHeader/PageHeader.css' layer(ui.components);
 @import './components/Popover/Popover.css' layer(ui.components);
 @import './components/Drawer/Drawer.css' layer(ui.components);
 @import './components/ThemePicker/ThemePicker.css' layer(ui.components);

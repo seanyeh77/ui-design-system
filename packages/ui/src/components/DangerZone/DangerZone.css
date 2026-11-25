@@ -1,15 +1,16 @@
+/* A card like the SettingsSections beside it (same shadow and padding); only the title is red. */
 .ui-danger {
-  padding: 18px;
-  border: 1px solid var(--danger);
+  padding: var(--space-4);
   border-radius: var(--radius-lg);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 .ui-danger-title {
   margin: 0;
-  font-size: var(--text-lead);
+  font-size: var(--text-title);
   font-weight: 700;
   color: var(--danger-text);
 }

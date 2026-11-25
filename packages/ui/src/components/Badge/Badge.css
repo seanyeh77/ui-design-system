@@ -1,64 +1,38 @@
+/* Badge: a mark and text, no chip and no shadow, everywhere (a raised chip reads as a button). The text takes the size
+   and weight of the text beside it; only the attention tones (warning, danger) colour their text and are bold. The
+   mark keeps its tone's colour and its shape. */
 .ui-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: var(--chip-height);
-  padding: 0 12px 0 10px;
-  border-radius: var(--radius-chip);
-  background: var(--surface);
-  box-shadow: var(--shadow-chip);
-  color: var(--ink);
-  font-size: var(--text-small);
-  font-weight: 500;
+  gap: 6px;
+  color: var(--ink-muted);
   white-space: nowrap;
-  box-sizing: border-box;
+  vertical-align: middle;
 }
 .ui-badge-mark {
   flex: 0 0 15px;
 }
-.ui-badge-draft .ui-badge-mark {
+/* The mark beside text, on the same ground: the status text colours, which reach 4.5:1 on every ground (bg, surfaces,
+   accent-soft, table row hover and zebra), so the mark is 3:1 or more wherever the badge goes. */
+.ui-badge.is-neutral .ui-badge-mark {
   color: var(--ink-muted);
 }
-/* A mark beside text, on the same ground: the status text colors, which reach 4.5:1 on every ground (bg, surfaces,
-   accent-soft, table row hover and zebra), so the mark is 3:1 or more wherever the badge goes. */
-.ui-badge-doing .ui-badge-mark {
+.ui-badge.is-info .ui-badge-mark {
   color: var(--accent-text);
 }
-.ui-badge-review .ui-badge-mark {
-  color: var(--warning-text);
-}
-.ui-badge-done .ui-badge-mark {
+.ui-badge.is-success .ui-badge-mark {
   color: var(--success-text);
 }
-.ui-badge-fail .ui-badge-mark {
-  color: var(--danger-text);
-}
-/* The dot form: a mark and text, no chip and no shadow. variant="dot", and every Badge inside a Card or a DataTable
-   (a raised chip on a raised card reads as a button). Only the attention states (fail, review, doing) color their
-   text; done and draft stay calm in ink-muted. The mark keeps its status color and shape. */
-.ui-badge:is(.is-dot, .ui-card *, .ui-dt *) {
-  height: auto;
-  padding: 0;
-  gap: 6px;
-  background: transparent;
-  box-shadow: none;
-  /* the size and weight of the text beside it (a status cell reads like the other cells); states that need
-     attention are bold */
-  font-size: inherit;
-  font-weight: inherit;
-}
-.ui-badge:is(.is-dot, .ui-card *, .ui-dt *):is(.ui-badge-fail, .ui-badge-review, .ui-badge-doing) {
+.ui-badge.is-warning {
+  color: var(--warning-text);
   font-weight: 600;
 }
-.ui-badge:is(.is-dot, .ui-card *, .ui-dt *):is(.ui-badge-done, .ui-badge-draft) {
-  color: var(--ink-muted);
-}
-.ui-badge:is(.is-dot, .ui-card *, .ui-dt *).ui-badge-fail {
+.ui-badge.is-danger {
   color: var(--danger-text);
+  font-weight: 600;
 }
-.ui-badge:is(.is-dot, .ui-card *, .ui-dt *).ui-badge-review {
-  color: var(--warning-text);
-}
-.ui-badge:is(.is-dot, .ui-card *, .ui-dt *).ui-badge-doing {
-  color: var(--accent-text);
+@media (forced-colors: active) {
+  .ui-badge .ui-badge-mark {
+    color: CanvasText;
+  }
 }

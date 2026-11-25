@@ -87,3 +87,80 @@ a.ui-wb-brand:focus-visible,
 .ui-dt-cell :is(.ui-code.is-link.is-location, *):focus-visible {
   outline-offset: -2px;
 }
+
+/* ---------- Forced colours (Windows high contrast) ----------
+   The system replaces every colour with a few of its own and drops backgrounds and shadows, so anything that only a
+   fill or a shadow shows would vanish: the focus outline, selection marks drawn as a filled bar or pill, status dots
+   drawn as a background, the on state of a switch, check box or radio. These take system colours instead (Highlight
+   for selection and focus, CanvasText for marks), and selected items get a 2 px outline or their mark back. */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline-color: Highlight;
+  }
+  /* Selection marks drawn as a filled shape. */
+  .ui-nav-bar,
+  .ui-settings-cat.is-on::before,
+  .ui-radio-dot {
+    forced-color-adjust: none;
+    background: Highlight;
+  }
+  /* Status dots drawn as a background (unread, needs attention). */
+  .ui-noti-dot,
+  .ui-tree-mark {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+  /* Search matches. */
+  .ui-mark {
+    forced-color-adjust: none;
+    background: Mark;
+    color: MarkText;
+  }
+  /* Indicators that are a raised surface (tabs, segmented control): an outline in the highlight colour. */
+  .ui-tabs-ind,
+  .ui-seg-ind,
+  .ui-tabbar-pill {
+    border-color: Highlight;
+    border-width: 2px;
+  }
+  /* Selected rows and options whose only sign was a tinted background. */
+  .ui-tree-row.is-selected,
+  .ui-dt-body .ui-dt-row.is-selected,
+  .ui-projsw-opt.is-on,
+  .ui-themepick-opt.is-on,
+  .ui-swatch.is-on {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+  /* On states drawn as a fill. */
+  .ui-switch.is-on,
+  .ui-check.is-on .ui-check-box,
+  .ui-check-box.is-on {
+    forced-color-adjust: none;
+    border-color: Highlight;
+    background: Highlight;
+    color: HighlightText;
+  }
+  .ui-switch.is-on .ui-switch-thumb {
+    forced-color-adjust: none;
+    background: HighlightText;
+    color: Highlight;
+  }
+  .ui-switch:not(.is-on) .ui-switch-thumb {
+    forced-color-adjust: none;
+    background: CanvasText;
+    color: Canvas;
+  }
+  .ui-radio.is-on .ui-radio-ring {
+    border-color: Highlight;
+  }
+  /* Cards and overlays lose their shadow: a 1 px border keeps their edge. */
+  .ui-card,
+  .ui-settings-section,
+  .ui-danger,
+  .ui-alert,
+  .ui-kpi,
+  .ui-tree:not(.is-bare) {
+    border: 1px solid CanvasText;
+  }
+}

@@ -19,6 +19,7 @@ function D() {
     <div style={{ padding: 20, height: 520, boxSizing: 'border-box', overflow: 'auto' }}>
       <UI.SettingsLayout
         title="設定"
+        urlSync={false}
         toast={t}
         categories={[
           {
@@ -42,8 +43,7 @@ function D() {
             label: '通知',
             content: (
               <UI.SettingsSection title="通知" description="改完會自動儲存。">
-                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  Email 通知
+                <UI.SettingsRow label="Email 通知" description="部署失敗時寄到帳號的 Email。">
                   <UI.Switch
                     label="Email 通知"
                     checked={a}
@@ -52,7 +52,7 @@ function D() {
                       saved();
                     }}
                   />
-                </label>
+                </UI.SettingsRow>
               </UI.SettingsSection>
             ),
           },

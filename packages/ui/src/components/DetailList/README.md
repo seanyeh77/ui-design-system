@@ -4,19 +4,19 @@
 
 一個項目的詳細欄位，例如選取的函式、訂單、使用者：名稱在左、值在右，窄時名稱在上、值在下。
 
-```js
-h(UI.DetailList, {
-  items: [
-    { label: '定義', value: h(UI.InlineCode, { href: '/code/ops.c#L55' }, 'src/server/hooks/ops.c:55') },
-    { label: '元件', value: 'src/server' },
-    { label: '關係', value: '1 個 caller · 呼叫 4 個函式' },
-  ],
-});
+```tsx
+<DetailList
+  items={[
+    { label: '訂單編號', value: <InlineCode>ORD-1024</InlineCode> },
+    { label: '狀態', value: <Badge status="doing">出貨中</Badge> },
+    { label: '負責人', value: '王小明' },
+  ]}
+/>
 ```
 
 - 依照元件本身的寬度切換：600 px 以上名稱在左（13 px 次要文字，不換行）、值在右；比較窄時名稱在上、值在下，全部靠左，和手機表格卡片一致。
 - 值可以放任何元素：`InlineCode` 連結、`Tag`、`Badge`。
-- 寬面板（例如 1300 px 的側邊面板）：設 `labelWidth: 'auto'` 與 `labelSize: 'body'`。
+- 寬面板（例如 1300 px 的側邊面板）：設 `labelWidth="auto"` 與 `labelSize="body"`。
 
 ## 細節
 

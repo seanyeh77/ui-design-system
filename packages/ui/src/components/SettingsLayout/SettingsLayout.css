@@ -54,12 +54,14 @@
 .ui-settings-content {
   flex: 1 1 auto;
   min-width: 0;
+  /* Fields 760 px wide at most: a 1000 px name field reads as a text area. */
+  max-width: 760px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-8);
 }
 .ui-settings-section {
-  padding: 18px;
+  padding: var(--space-4);
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow-card);
@@ -69,11 +71,34 @@
 }
 .ui-settings-h {
   margin: 0;
-  font-size: var(--text-lead);
+  font-size: var(--text-title);
   font-weight: 700;
 }
 .ui-settings-desc {
   margin: -6px 0 0;
+  font-size: var(--text-compact);
+  color: var(--ink-muted);
+}
+/* SettingsRow: label and sentence on the left, the control on the right; the whole row is the label. Rows are
+   separated by a line, the first one has none. */
+.ui-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: var(--touch-target);
+  cursor: pointer;
+}
+.ui-settings-row + .ui-settings-row {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+}
+.ui-settings-rowtext {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ui-settings-rowdesc {
   font-size: var(--text-compact);
   color: var(--ink-muted);
 }
@@ -86,6 +111,7 @@
 @media (max-width: 599px) {
   .ui-settings-body {
     flex-direction: column;
+    align-items: stretch;
   }
   .ui-settings-nav {
     position: static;

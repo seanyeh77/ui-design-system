@@ -8,11 +8,13 @@ export interface SwitchProps {
   /** What it turns on; becomes aria-label. Put the visible text next to it in the row. */
   label: string;
   disabled?: boolean;
+  /** Id of a sentence that explains the setting (SettingsRow sets it). */
+  'aria-describedby'?: string;
   className?: string;
 }
 
 /** An on/off setting that applies at once. The thumb stretches like a droplet while it moves. */
-export function Switch({ checked, onChange, label, disabled, className }: SwitchProps) {
+export function Switch({ checked, onChange, label, disabled, 'aria-describedby': describedBy, className }: SwitchProps) {
   const on = !!checked;
   const [pressing, setPressing] = React.useState(false);
   const W = 48;
@@ -28,6 +30,7 @@ export function Switch({ checked, onChange, label, disabled, className }: Switch
       role="switch"
       aria-checked={on}
       aria-label={label}
+      aria-describedby={describedBy}
       disabled={disabled}
       className={cx('ui-switch', on && 'is-on', className)}
       onClick={() => onChange?.(!on)}

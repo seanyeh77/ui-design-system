@@ -22,3 +22,21 @@ test('newest first, the kind read aloud, and the empty text', () => {
   rerender(<EventTimeline label="事件" empty="近 4 小時沒有事件" events={[]} />);
   expect(screen.getByText('近 4 小時沒有事件')).not.toBeNull();
 });
+
+test('own kinds, an actor, and a date above each day when the events span several days', () => {
+  render(
+    <EventTimeline
+      label="訂單紀錄"
+      kinds={{ paid: { icon: 'check-circle', label: '付款', tone: 'success' } }}
+      events={[
+        { time: new Date(2026, 10, 23, 18, 40), kind: 'manual', text: '建立訂單' },
+        { time: new Date(2026, 10, 24, 9, 12), kind: 'paid', text: '付款', actor: '王小明' },
+      ]}
+    />,
+  );
+  expect(screen.getByRole('img', { name: '付款' })).not.toBeNull();
+  expect(screen.getByText('王小明')).not.toBeNull();
+  const dates = Array.from(document.querySelectorAll('.ui-events-date')).map((d) => d.textContent);
+  expect(dates).toEqual(['2026/11/24（二）', '2026/11/23（一）']);
+  expect(screen.getByRole('list', { name: '2026/11/24（二）' }).querySelectorAll('li')).toHaveLength(1);
+});

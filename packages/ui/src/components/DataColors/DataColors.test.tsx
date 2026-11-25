@@ -54,8 +54,10 @@ test('heatToken and divergeToken map values to steps', () => {
 test('Tag forecast and demo read on the page in both themes', () => {
   render(
     <p>
-      <Tag variant="forecast">預測</Tag>
-      <Tag variant="demo">示範資料</Tag>
+      <Tag icon="trend-up" tone="info">
+        預測
+      </Tag>
+      <Tag icon="info">示範資料</Tag>
     </p>,
   );
   const hex = (c: string) =>

@@ -54,3 +54,16 @@ test('Alert: info and success can be closed with onDismiss; warning and danger c
   rerender(<Alert tone="info" title="沒有 onDismiss" />);
   expect(screen.queryByRole('button')).toBeNull();
 });
+
+test('Alert: the action is 40 px and starts at the same place with or without ✕; no coloured stripe', () => {
+  const { container } = render(
+    <div style={{ width: 600 }}>
+      <Alert tone="info" title="新版本" actionLabel="更新" onAction={() => {}} onDismiss={() => {}} />
+      <Alert tone="warning" title="憑證快到期" actionLabel="更新" onAction={() => {}} />
+    </div>,
+  );
+  const [a, b] = Array.from(container.querySelectorAll('.ui-alert-action')).map((el) => el.getBoundingClientRect());
+  expect(a.height).toBe(40);
+  expect(a.left).toBe(b.left);
+  expect(getComputedStyle(container.querySelector('.ui-alert') as Element, '::before').content).toBe('none');
+});

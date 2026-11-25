@@ -23,6 +23,11 @@
 .ui-grid.is-6 {
   --cols: 6;
 }
+/* A ratio ([2, 1]): main and aside side by side from 960 px; one column below, the aside under the main. */
+.ui-grid.is-ratio {
+  grid-template-columns: var(--grid-ratio);
+  align-items: start;
+}
 @media (max-width: 1279px) {
   .ui-grid.is-4 {
     --cols: 2;
@@ -34,6 +39,9 @@
 @media (max-width: 959px) {
   .ui-grid:not(.is-1) {
     --cols: 2;
+  }
+  .ui-grid.is-ratio {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 @media (max-width: 599px) {

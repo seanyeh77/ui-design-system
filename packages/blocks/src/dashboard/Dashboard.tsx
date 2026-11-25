@@ -17,7 +17,8 @@ import {
 
 /* Dashboard: KPI cards, one trend chart and the table of records, inside the app frame.
    Replace the sample data with yours; keep the order (figures, trend, records). KPIs show only
-   figures the table cannot: its summary already counts the projects per status. */
+   figures the table cannot: its summary already counts the projects per status. Give every KPI a sparkline (spark)
+   or none, so the cards line up. */
 
 export interface ProjectRow {
   id: string;
@@ -71,6 +72,7 @@ export function Dashboard({ kpis, trend, rows, notifications }: DashboardProps) 
         <Card title="每週完成的任務">
           <LineChart label="每週完成的任務" labels={trend.labels} series={trend.series} unit="個" />
         </Card>
+        {/* TODO(integrator): once DataTable has toolbar={false}, decide whether this short table keeps only its summary row. */}
         <Card title="專案" padding={false}>
           <DataTable
             label="專案"

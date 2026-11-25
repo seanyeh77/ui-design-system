@@ -112,7 +112,7 @@ test('Menu: a danger item asks 「Delete?」 in English, with a half-width quest
 
 test('NotificationBell: an unread notification is read as unread', async () => {
   render(<NotificationBell items={[{ id: 1, title: '部署完成', read: false }]} />);
-  await userEvent.setup().click(screen.getByRole('button', { name: '通知，1 則未讀' }));
+  await userEvent.setup().click(screen.getByRole('button', { name: '通知中心，1 則未讀' }));
   expect(await screen.findByRole('button', { name: /^未讀，\s*部署完成/ })).toBeTruthy();
 });
 

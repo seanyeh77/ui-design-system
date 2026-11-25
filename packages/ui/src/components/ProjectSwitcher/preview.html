@@ -14,8 +14,7 @@
         var s = React.useState('web-build');
         return h(
           'div',
-          { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 4px' } },
-          h('strong', { style: { fontSize: 17 } }, '流程'),
+          { style: { display: 'flex', justifyContent: 'flex-end', padding: '8px 4px' } },
           h(U.ProjectSwitcher, {
             project: 'web-app',
             status: 'live',
@@ -26,12 +25,12 @@
               { id: 'web-rt', label: 'web-app', detail: 'runtime 環境' },
               { id: 'api', label: 'api-server', detail: 'build 環境' },
             ],
-            footer: h('a', { href: '#', style: { color: 'var(--accent-text)' } }, '所有資料來源設定'),
+            footer: h(U.Link, { href: '#sources' }, '所有資料來源設定'),
           }),
         );
       }
-      // A top bar with a page title, search, help and the switcher with a long status. On a phone the
-      // status is the dot and the name stays whole; short of room on a desktop the status gives way first.
+      // One top bar (one header on the page) with a page title, search, help and the switcher with a long status. On a
+      // phone the status is the mark and the name stays whole; short of room the status words go first, whole.
       function Bar(props) {
         var s = React.useState('live');
         return h(
@@ -55,7 +54,7 @@
           ),
         );
       }
-      ReactDOM.createRoot(document.getElementById('root')).render(h('div', null, h(Demo), h(Bar, { width: 520 }), h(Bar, { width: 9999 })));
+      ReactDOM.createRoot(document.getElementById('root')).render(h('div', null, h(Demo), h(Bar, { width: 520 })));
     </script>
   </body>
 </html>

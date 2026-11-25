@@ -1,7 +1,3 @@
-.ui-card-head:has(> .ui-dt-tools.is-inhead) {
-  flex-wrap: wrap;
-  row-gap: var(--space-2);
-}
 /* The title keeps about 12 characters before the tools move to a row of their own under it, right-aligned. */
 .ui-card-head:has(> .ui-dt-tools.is-inhead) > .ui-card-title {
   flex: 1 1 12em;
@@ -23,8 +19,9 @@
 }
 .ui-card-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2) var(--space-3);
   min-height: 40px;
   margin-bottom: var(--space-3);
 }
@@ -40,9 +37,11 @@
 .ui-card.is-flush > .ui-card-head:only-child {
   padding-bottom: var(--space-4);
 }
+/* The title keeps at least 8 characters: when the actions do not fit beside that, they move to a row of their own
+   under it, right-aligned, instead of cutting the title to 「訂..」. */
 .ui-card-title {
-  flex: 1 1 auto;
-  min-width: 0;
+  flex: 1 1 8em;
+  min-width: min(8em, 100%);
   margin: 0;
   font-size: var(--text-title);
   font-weight: 700;
@@ -58,7 +57,7 @@
   /* Always at the right end, with or without a title beside them. */
   margin-left: auto;
 }
-:is(.ui-card, .ui-tree, .ui-settings-section, .ui-dialog, .ui-drawer) :is(.ui-tree, .ui-kpi, .ui-settings-section, .ui-alert) {
+:is(.ui-card, .ui-tree, .ui-settings-section, .ui-dialog, .ui-drawer) :is(.ui-tree, .ui-kpi, .ui-settings-section, .ui-danger, .ui-alert) {
   box-shadow: none;
 }
 :is(.ui-card, .ui-settings-section) :is(.ui-kpi, .ui-alert) {
