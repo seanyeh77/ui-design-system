@@ -1149,3 +1149,39 @@ test('loading: columns as wide as when loaded, headings whole, a mono ID column 
   for (const k of ['created', 'amount']) expect(Math.abs(after[k] - before[k])).toBeLessThanOrEqual(16);
   expect(container.querySelector('.ui-dt-range')?.textContent).toContain('共 12 筆');
 });
+
+test('phone cards: a field name sits on the value baseline; code in a row is the row size', async () => {
+  await page.viewport(390, 844);
+  const { container, unmount } = render(
+    <DataTable
+      label="檔案"
+      rows={[{ id: 1, name: 'web', file: 'src/app.ts', owner: '王小明' }]}
+      columns={[
+        { key: 'name', label: '名稱' },
+        { key: 'owner', label: '負責人' },
+        { key: 'file', label: '檔案', render: (r) => <InlineCode href={'#' + r.file}>{r.file}</InlineCode> },
+      ]}
+    />,
+  );
+  const cell = container.querySelector<HTMLElement>('.ui-dt-body [data-col="owner"]')!;
+  // A baseline probe: an empty inline-block sits on the baseline of the text around it.
+  const probe = (el: HTMLElement, font: string) => {
+    const s = document.createElement('span');
+    s.style.cssText = `display:inline-block;width:0;height:0;vertical-align:baseline;font:${font}`;
+    el.prepend(s);
+    const y = s.getBoundingClientRect().top;
+    s.remove();
+    return y;
+  };
+  const before = getComputedStyle(cell, '::before');
+  const label = document.createElement('span');
+  label.textContent = '負責人';
+  label.style.cssText = `position:absolute;top:0;left:0;font-size:${before.fontSize};line-height:${before.lineHeight}`;
+  cell.append(label);
+  expect(Math.abs(probe(label, `${before.fontSize} sans-serif`) - probe(cell, 'inherit'))).toBeLessThanOrEqual(2);
+  label.remove();
+  const row = getComputedStyle(container.querySelector('.ui-dt-body [data-col="file"]')!).fontSize;
+  expect(getComputedStyle(container.querySelector('.ui-dt-body .ui-code')!).fontSize).toBe(row);
+  unmount();
+  await page.viewport(1280, 900);
+});

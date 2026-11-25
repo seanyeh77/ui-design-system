@@ -27,7 +27,7 @@
 
 ## 細節
 
-- 時間用 Geist Mono 13 px 灰字（24 小時制）；說明是內文大小；日期 13 px 灰色粗體。
+- 時間用 Geist Mono 灰字（24 小時制），和說明同一個大小（同一列一種字級）；做的人灰字、不拆開換行；日期 13 px 灰色粗體（自成一列）。
 - 圖示 20 px、沒有底色，螢幕閱讀器念類型名稱。內建類型：`alert` warning 圖示、`warning-text` 色；`switch` 左右箭頭、`accent-text`；`ai` 星芒、灰；`manual` 人像、灰。
 - `tone` 的顏色：`info` 用 `accent-text`，`success`、`warning`、`danger` 用各自的文字色。
 - 沒有定義的 `kind` 顯示一個灰色圓點，開發模式會提醒加進 `kinds`。

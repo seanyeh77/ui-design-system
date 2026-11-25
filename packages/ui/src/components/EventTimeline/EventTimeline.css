@@ -23,8 +23,8 @@
   border-bottom: 0;
 }
 .ui-events-time {
+  /* The row's size: the time, the icon and the sentence are one row, so one text size. */
   font-family: var(--font-mono);
-  font-size: var(--text-small);
   color: var(--ink-muted);
   font-variant-numeric: tabular-nums;
 }
@@ -64,6 +64,8 @@
 }
 .ui-events-actor {
   color: var(--ink-muted);
+  /* A name stays whole: it moves to the next line rather than splitting (「系／統」). */
+  white-space: nowrap;
 }
 .ui-events-empty {
   margin: 0;

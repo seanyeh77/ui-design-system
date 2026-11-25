@@ -439,6 +439,11 @@
 .ui-dt-time wbr {
   display: none;
 }
+/* Code and paths in a row are the row's size, in Geist Mono: one text size per row. */
+.ui-dt-body .ui-dt-cell .ui-code,
+.ui-dt-body .ui-dt-cell .ui-code.is-link.is-location {
+  font-size: inherit;
+}
 /* Hugging columns are measured on one line (DataTable adds is-measuring for the read only), headings at their full
    width too, so a column is never narrower than its heading, also while it holds only loading bars. */
 .ui-dt.is-measuring .ui-dt-cell.is-hug {
@@ -967,7 +972,8 @@
     color: var(--ink-muted);
     font-family: var(--font-sans);
     font-size: var(--text-small);
-    line-height: inherit;
+    /* The value's line height (1lh here is the cell's), so the smaller name sits on the value's baseline. */
+    line-height: 1lh;
     font-weight: 400;
     white-space: nowrap;
   }
