@@ -20,14 +20,12 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  height: 36px;
   padding: 0 10px;
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: var(--text-compact);
   text-align: left;
   white-space: nowrap;
   cursor: pointer;

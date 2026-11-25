@@ -19,12 +19,12 @@ test('DangerZone: a heading, the consequence, and a button that only asks at fir
   expect(screen.getByText('刪除後，所有專案和資料都無法復原。')).toBeTruthy();
   await user.click(screen.getByRole('button', { name: '刪除帳號' }));
   expect(onAction).not.toHaveBeenCalled();
-  const dialog = await screen.findByRole('dialog', { name: '刪除帳號？' });
+  const dialog = await screen.findByRole('alertdialog', { name: '刪除帳號？' });
   expect(within(dialog).getByText('無法復原。')).toBeTruthy();
   // The dialog's danger button carries the same verb.
   await user.click(within(dialog).getByRole('button', { name: '刪除帳號' }));
   expect(onAction).toHaveBeenCalledTimes(1);
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
 });
 
 test('DangerZone: 取消 and Escape close the dialog and do nothing', async () => {
@@ -33,13 +33,13 @@ test('DangerZone: 取消 and Escape close the dialog and do nothing', async () =
   // Default label 「刪除」.
   const btn = screen.getByRole('button', { name: '刪除' });
   await user.click(btn);
-  const dialog = await screen.findByRole('dialog', { name: '刪除 api-gateway？' });
+  const dialog = await screen.findByRole('alertdialog', { name: '刪除 api-gateway？' });
   await user.click(within(dialog).getByRole('button', { name: '取消' }));
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
   await user.click(btn);
-  await screen.findByRole('dialog', { name: '刪除 api-gateway？' });
+  await screen.findByRole('alertdialog', { name: '刪除 api-gateway？' });
   await user.keyboard('{Escape}');
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
   expect(onAction).not.toHaveBeenCalled();
 });
 

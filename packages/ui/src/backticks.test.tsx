@@ -118,7 +118,7 @@ test('Drawer confirmText: `code` shows as InlineCode in the close confirmation',
     </UI.Drawer>,
   );
   await userEvent.setup().click(screen.getByRole('button', { name: '關閉' }));
-  const body = await screen.findByText((_, n) => !!n?.classList.contains('ui-dialog-body'));
+  const body = await screen.findByText((_, n) => !!n?.classList.contains('ui-drawer-ask-text'));
   expect(codes(body)).toEqual(['make deps']);
   expect(body.textContent).toBe('執行 make deps 安裝相依套件。');
 });

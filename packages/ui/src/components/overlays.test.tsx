@@ -32,7 +32,7 @@ describe('danger actions are confirmed', () => {
     );
     await user.click(screen.getByRole('button', { name: '刪除' }));
     expect(onClick).not.toHaveBeenCalled();
-    const dialog = await screen.findByRole('dialog', { name: '刪除 api？' });
+    const dialog = await screen.findByRole('alertdialog', { name: '刪除 api？' });
     await user.click(within(dialog).getByRole('button', { name: '刪除' }));
     expect(onClick).toHaveBeenCalledTimes(1);
   });
@@ -48,7 +48,7 @@ describe('danger actions are confirmed', () => {
     );
     await user.click(screen.getByRole('button', { name: '刪除' }));
     expect(onSubmit).not.toHaveBeenCalled();
-    const dialog = await screen.findByRole('dialog', { name: '刪除帳號？' });
+    const dialog = await screen.findByRole('alertdialog', { name: '刪除帳號？' });
     await user.click(within(dialog).getByRole('button', { name: '刪除' }));
     expect(onSubmit).toHaveBeenCalledTimes(1);
   });
@@ -59,7 +59,7 @@ describe('danger actions are confirmed', () => {
     await user.click(screen.getByRole('button', { name: '更多操作' }));
     await user.click(await screen.findByRole('menuitem', { name: '刪除' }));
     expect(onSelect).not.toHaveBeenCalled();
-    await screen.findByRole('dialog', { name: '刪除這筆？' });
+    await screen.findByRole('alertdialog', { name: '刪除這筆？' });
     await user.click(screen.getByRole('button', { name: '刪除' }));
     expect(onSelect).toHaveBeenCalledTimes(1);
   });
@@ -94,9 +94,16 @@ test('Drawer with unsaved changes asks before closing', async () => {
     </Drawer>,
   );
   await user.click(await screen.findByRole('button', { name: '關閉' }));
-  await screen.findByRole('dialog', { name: '放棄未儲存的變更？' });
+  // Asked in the drawer's own footer, with focus on the safe 繼續編輯.
+  const ask = await screen.findByRole('group', { name: '放棄未儲存的變更？' });
+  expect(screen.getByRole('dialog', { name: '編輯' }).contains(ask)).toBe(true);
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: '繼續編輯' })));
   expect(onClose).not.toHaveBeenCalled();
-  await user.click(screen.getByRole('button', { name: '放棄' }));
+  // 繼續編輯: back to editing, focus back on ×.
+  await user.click(screen.getByRole('button', { name: '繼續編輯' }));
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: '關閉' })));
+  await user.click(screen.getByRole('button', { name: '關閉' }));
+  await user.click(await screen.findByRole('button', { name: '放棄' }));
   expect(onClose).toHaveBeenCalledTimes(1);
 });
 
@@ -327,7 +334,7 @@ test('Drawer: the footer 取消 from requestClose asks before discarding changes
   );
   await user.click(await screen.findByRole('button', { name: '取消' }));
   expect(onClose).not.toHaveBeenCalled();
-  expect(await screen.findByRole('dialog', { name: '放棄未儲存的變更？' })).toBeTruthy();
+  expect(await screen.findByRole('group', { name: '放棄未儲存的變更？' })).toBeTruthy();
 });
 
 test('SideNav collapsed: a parent opens its first page', async () => {

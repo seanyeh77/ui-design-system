@@ -10,7 +10,7 @@ const tour = useTour('first-visit');
 <IconButton icon="question" label="導覽" onClick={tour.start} hint={tour.hint('導覽：三個步驟介紹這一頁。')} />
 <Tour
   open={tour.open}
-  onClose={tour.close}
+  onOpenChange={tour.onOpenChange}
   steps={[
     { target: 'search', title: '搜尋', text: '搜尋函式、檔案、元件與環境變數。快捷鍵 Ctrl K。' },
     { target: 'tree', title: '流程樹', text: '名稱旁的標籤是關係的來源，點選問號查看依據。' },
@@ -44,7 +44,7 @@ const tour = useTour('first-visit');
 ```js
 const tour = UI.useTour('first-visit');
 h(UI.Tour, {
-  open: tour.open, onClose: tour.close,
+  open: tour.open, onOpenChange: tour.onOpenChange,
   steps: [
     { target: 'search', title: '搜尋', text: '搜尋函式、檔案、元件與環境變數。快捷鍵 Ctrl K。' },
     { target: 'tree', title: '流程樹', text: '名稱旁的標籤是關係的來源，點選問號查看依據。' },

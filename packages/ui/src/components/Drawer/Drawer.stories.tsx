@@ -25,7 +25,7 @@ function D() {
       </UI.Button>
       <UI.Drawer
         open={open}
-        onClose={close}
+        onOpenChange={(o) => !o && close()}
         title="編輯專案"
         dirty={dirty}
         actions={(requestClose) => (
@@ -41,8 +41,8 @@ function D() {
           label="名稱"
           required
           value={name}
-          onChange={(e) => {
-            setName(e.target.value);
+          onChange={(v) => {
+            setName(v);
             setDirty(true);
           }}
         />

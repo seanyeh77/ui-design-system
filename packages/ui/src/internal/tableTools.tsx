@@ -102,7 +102,7 @@ export function ZoomButton({ onClick, inToolbar }: { onClick: () => void; inTool
 export function TableDialog(p: { open: boolean; onClose: () => void; title?: string; children: React.ReactNode }) {
   if (!p.open) return null;
   return (
-    <Dialog open onClose={p.onClose} title={p.title || tr('表格')} className="ui-table-dialog">
+    <Dialog open onOpenChange={(o) => !o && p.onClose()} title={p.title || tr('表格')} className="ui-table-dialog">
       <div
         className="ui-table-dialog-body"
         onClick={(e) => {

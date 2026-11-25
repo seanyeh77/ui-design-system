@@ -7,6 +7,7 @@ import { tr } from '../../i18n';
 import { announce } from '../../announce';
 import { cx, seenOnly, store, resizeObserver } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
+import { useOpenState } from '../../internal/open';
 import type { IconButtonHint } from '../IconButton/IconButton';
 
 export interface TourStep {
@@ -29,8 +30,16 @@ export interface TourStep {
 }
 
 export interface TourProps {
-  open: boolean;
+  /** Controlled: shown while true (useTour's `open`). */
+  open?: boolean;
+  /** Uncontrolled: whether it starts open. */
+  defaultOpen?: boolean;
+  /** Called with false and why it ended: 'done' (完成 on the last step) or 'skip' (略過 or Esc). Pass useTour's
+   *  `onOpenChange`. */
+  onOpenChange?: (open: boolean, reason?: 'done' | 'skip') => void;
+  /** The steps, 3 to 5, in order. */
   steps: TourStep[];
+  /** @deprecated use onOpenChange: called with why the tour ended. */
   onClose?: (reason: 'done' | 'skip') => void;
   /** 「略過」 and Esc end the tour early. Default true. */
   skippable?: boolean;
@@ -41,7 +50,7 @@ export interface TourProps {
 
 const TOUR_KEY = 'ui-tour:';
 
-/** Opens the tour once per browser: { open, start, close, seen, hint }. Pass close to Tour's onClose; start() shows
+/** Opens the tour once per browser: { open, onOpenChange, start, close, seen, hint }. Pass open and onOpenChange to Tour; start() shows
  *  it again. hint(text) gives IconButton's `hint` for the button that starts the tour: a page that uses it shows the dot
  *  and the bubble instead of opening the tour by itself. 「開始」 starts the tour; × and finishing it hide the hint for
  *  good (the same record as seen). */
@@ -58,13 +67,16 @@ export function useTour(key: string) {
     store(TOUR_KEY + key, '1');
     setSeen(true);
   };
+  const close = () => {
+    remember();
+    setOpen(false);
+  };
   return {
     open,
+    /** Tour's onOpenChange: closing records the tour as seen. */
+    onOpenChange: (next: boolean) => (next ? setOpen(true) : close()),
     start: () => setOpen(true),
-    close: () => {
-      remember();
-      setOpen(false);
-    },
+    close,
     seen,
     /** IconButton's `hint` for the button that starts this tour, or undefined once seen or while the tour is open. */
     hint: (text: string, action?: string): IconButtonHint | undefined => {
@@ -164,7 +176,9 @@ function placeCard(rect: Box | null, cardH: number, prefer: 'bottom' | 'top', ar
 }
 
 /** The first-use walkthrough: the page goes dark except the part being introduced, with a card beside it. */
-export function Tour({ open, steps, onClose, skippable = true, step: controlled, onStepChange }: TourProps) {
+export function Tour({ open: openProp, defaultOpen, onOpenChange, steps, onClose, skippable = true, step: controlled, onStepChange }: TourProps) {
+  devWarn(!!onClose, 'Tour', 'onClose is deprecated: pass onOpenChange (useTour gives tour.onOpenChange). It still works for now.');
+  const [open, setOpen] = useOpenState({ open: openProp, defaultOpen, onOpenChange: onOpenChange as (o: boolean, r?: string) => void });
   const [inner, setInner] = React.useState(0);
   const i = Math.max(0, Math.min(steps.length - 1, controlled ?? inner));
   const step = steps[i];
@@ -182,7 +196,10 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
     onStepChange?.(n);
     if (controlled == null) setInner(n);
   };
-  const end = (why: 'done' | 'skip') => onClose?.(why);
+  const end = (why: 'done' | 'skip') => {
+    setOpen(false, why);
+    onClose?.(why);
+  };
   useReturnFocus(open);
   // A new step after 下一步 or 上一步: its count, title and text are read (focus stays on the button, which does not read
   // them). The first step is read as the dialog opens.

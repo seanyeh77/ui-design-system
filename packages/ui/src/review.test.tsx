@@ -104,7 +104,7 @@ test('Menu: a danger item asks 「Delete?」 in English, with a half-width quest
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: 'More actions' }));
     await user.click(await screen.findByRole('menuitem', { name: 'Delete' }));
-    await waitFor(() => expect(screen.getByRole('dialog').textContent).toContain('Delete?'));
+    await waitFor(() => expect(screen.getByRole('alertdialog').textContent).toContain('Delete?'));
   } finally {
     setLocale('zh-TW');
   }
