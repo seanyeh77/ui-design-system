@@ -43,3 +43,22 @@
   width: 130px;
   font-family: var(--font-mono);
 }
+/* Windows high contrast: the swatches keep their own colors (otherwise every one turns ButtonFace and disappears),
+   each with a CanvasText ring; the chosen one gets a second ring in Highlight. */
+@media (forced-colors: active) {
+  .ui-swatch {
+    forced-color-adjust: none;
+    box-shadow:
+      0 0 0 2px Canvas,
+      0 0 0 3px CanvasText;
+  }
+  .ui-swatch.is-on {
+    box-shadow:
+      0 0 0 2px Canvas,
+      0 0 0 4px Highlight;
+  }
+  .ui-accentpick-preview {
+    forced-color-adjust: none;
+    border-color: CanvasText;
+  }
+}

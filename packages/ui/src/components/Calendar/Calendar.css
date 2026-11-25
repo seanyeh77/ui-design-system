@@ -90,3 +90,10 @@
 .ui-cal-day.is-today.is-sel::after {
   background: var(--on-accent);
 }
+/* Windows high contrast: the accent fill of the chosen day is dropped, so it gets an outline as well as bold. */
+@media (forced-colors: active) {
+  .ui-cal-day.is-sel {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}
