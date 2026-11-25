@@ -80,9 +80,13 @@
 .ui-req {
   color: var(--danger-text);
 }
+/* As wide as the box and its text (max-content, up to the container, then the text wraps): the focus outline and the
+   click area wrap the control, not the whole row, as on Switch. Still a block, so each sits on its own line. */
 .ui-check,
 .ui-radio {
   display: flex;
+  width: max-content;
+  max-width: 100%;
   align-items: center;
   gap: 12px;
   min-height: var(--control-height);
