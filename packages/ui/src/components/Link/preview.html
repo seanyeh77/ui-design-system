@@ -15,7 +15,7 @@
           'div',
           { className: 'ui-stack' },
           h('p', { style: { margin: 0 } }, '這筆訂單已出貨，', h(U.Link, { href: '#order' }, '查看訂單'), '；退貨規定見', h(U.Link, { href: 'https://example.com/help', external: true }, '使用說明'), '。'),
-          h('p', { style: { margin: 0 } }, '沒有 class 的連結（Markdown、舊內容）：', h('a', { href: '#legacy' }, '舊頁面'), '。'),
+          h(U.Markdown, null, '沒有 class 的連結（Markdown 內容）：[舊頁面](#legacy)。'),
         ),
       );
     </script>

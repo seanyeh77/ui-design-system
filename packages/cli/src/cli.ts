@@ -56,7 +56,7 @@ const HELP_CHECK = `ui check <file or URL>... [--shots DIR] [--strict] [--wait M
   --no-interact    skips the automatic tabs, categories and toolbar menus (--open still runs).
   --no-axe         skips the axe-core pass.
   --shots DIR      saves a full-page screenshot of each width and theme in DIR (<name>-<width>-<theme>.png, <name> as
-                   in ui shots), and one of each opened state (<name>-<width>-light-<state>.png).
+                   in ui shots), and one of each opened state (<name>-<width>-light-<state>.png; an open dialog, drawer or menu at the viewport size).
   --strict         also fails on inline text links under 48 px.
   --wait MS        waits this long after load before measuring (default 800).
   Exits 2 when a page cannot be checked at all: it does not load, or the check itself crashes.`;
@@ -491,11 +491,14 @@ async function check(targets: string[], opts: CheckOptions) {
             ? await run(() => axeRun(page, theme === 'dark')).catch((e: unknown) => [`axe-core could not run: ${String(e).split('\n')[0]}`])
             : [];
           if (axe.length) problems.push('accessibility (axe-core): ' + axe.join(' | '));
-          const shoot = async (suffix: string) => {
+          const shoot = async (suffix: string, overlay = false) => {
             if (!opts.shots) return;
+            const path = join(opts.shots, `${shotName(stem, width, theme).slice(0, -4)}${suffix}.png`);
+            // An open dialog, drawer or menu covers the viewport: a shot of the viewport, not of the page behind it.
+            if (overlay) return void (await page.screenshot({ path }));
             // The full page, with what scrolls inside the page's own scroll container (AppShell's main area).
             await growToScrollContainer(page, viewport, () => page.waitForTimeout(150));
-            await page.screenshot({ path: join(opts.shots, `${shotName(stem, width, theme).slice(0, -4)}${suffix}.png`), fullPage: true });
+            await page.screenshot({ path, fullPage: true });
             await page.setViewportSize(viewport);
           };
           await shoot('');
@@ -540,8 +543,9 @@ async function check(targets: string[], opts: CheckOptions) {
                 const more = (await run(() => axeRun(page, false, skip)).catch(() => [] as string[])).filter((v) => !knownAxe.has(axeKey(v)));
                 if (more.length) found.push('accessibility (axe-core): ' + more.join(' | '));
               }
-              // A shot of the opened state, named after it: Button-390-light-the-menu-of-更多.png.
-              await shoot(`-${cleanName(label)}`);
+              // A shot of the opened state, named after it: Button-390-light-the-menu-of-更多.png. An overlay (trigger) is
+              // shot at the viewport's size.
+              await shoot(`-${cleanName(label)}`, trigger);
               if (trigger) {
                 await page.keyboard.press('Escape');
                 await page.waitForTimeout(150);

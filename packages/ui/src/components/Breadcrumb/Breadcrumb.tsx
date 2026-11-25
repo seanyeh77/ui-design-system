@@ -22,7 +22,15 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
           const last = i === items.length - 1;
           return (
             <li key={i}>
-              {last ? <span aria-current="page">{it.label}</span> : it.href ? <a href={it.href}>{it.label}</a> : <span>{it.label}</span>}
+              {last ? (
+                <span aria-current="page">{it.label}</span>
+              ) : it.href ? (
+                <a className="ui-crumb-link" href={it.href}>
+                  {it.label}
+                </a>
+              ) : (
+                <span>{it.label}</span>
+              )}
               {last ? null : (
                 <span className="ui-crumb-sep" aria-hidden="true">
                   ›

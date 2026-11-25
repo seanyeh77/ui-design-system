@@ -238,3 +238,27 @@ test('an AppShell page whose document scrolls is reported', async (t) => {
   assert.match((await run(shell(24))).docScroll, /document \d+ px tall/);
   assert.equal((await run(shell(0))).docScroll, '');
 });
+
+test('hand-written buttons, links and text fields are native controls; component ones and Markdown links are not', async (t) => {
+  if (skip) return t.skip(skip);
+  const res = await run(
+    `<button>儲存</button><a href="#x">查看</a><input type="text" aria-label="名稱"><textarea aria-label="備註"></textarea>` +
+      `<button class="ui-btn">取消</button><a class="ui-link" href="#y">說明</a><input class="ui-input" aria-label="搜尋">` +
+      `<div class="ui-md"><p><a href="#z">文件</a></p></div>`,
+  );
+  assert.equal(res.native.length, 4);
+  assert.match(res.native.join(' '), /Button or IconButton/);
+  assert.match(res.native.join(' '), /use Link/);
+  assert.match(res.native.join(' '), /use TextField/);
+  assert.match(res.native.join(' '), /use TextArea/);
+  assert.doesNotMatch(res.native.join(' '), /取消|說明|文件/);
+});
+
+test('a field box counts as the control in a toolbar row', async (t) => {
+  if (skip) return t.skip(skip);
+  const res = await run(
+    `<div class="ui-dt-actions" style="display:flex;gap:8px"><div class="ui-field-box" style="height:48px;display:flex"><input class="ui-input" style="height:30px"></div><button class="ui-btn" style="height:40px">篩選</button></div>`,
+  );
+  assert.equal(res.mixed.length, 1);
+  assert.match(res.mixed[0], /48 px/);
+});

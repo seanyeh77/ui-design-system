@@ -240,9 +240,17 @@ export function measure(): Findings {
     'input[type=file]': 'FileUpload',
     'input[type=color]': 'AccentPicker',
   };
+  const UI_CLASS = '[class^="ui-"], [class*=" ui-"]';
+  // Buttons, links and text fields too: a hand-written one misses the focus ring, the sizes and the states.
+  replacements.button = 'Button or IconButton';
+  replacements['a[href]'] = 'Link';
+  replacements['input:is(:not([type]), [type=text], [type=email], [type=password], [type=number], [type=tel], [type=url])'] = 'TextField';
+  replacements.textarea = 'TextArea';
   for (const [q, use] of Object.entries(replacements))
-    // Controls a component renders carry its ui-* class; anything else is hand-written.
-    for (const el of document.querySelectorAll(q)) if (visible(el) && !el.matches('[class^="ui-"], [class*=" ui-"]')) out.native.push(`<${q}> → use ${use}`);
+    // Controls a component renders carry its ui-* class; Markdown content holds what its author wrote (links). Anything
+    // else is hand-written.
+    for (const el of document.querySelectorAll(q))
+      if (visible(el) && !el.matches(UI_CLASS) && !el.closest('.ui-md')) out.native.push(`${describe(el)} → use ${use}`);
 
   // 6. Text that must stay on one line: buttons, tabs, table headers, labels, interface headings. Headings in
   // Markdown content (.ui-md-h) are written by the document's author, whose length the page cannot control: they wrap.
@@ -321,7 +329,7 @@ export function measure(): Findings {
   // instead of its tabs; controls inside another control (the clear button of a search field) are part of it. Only
   // the outermost toolbar is measured.
   const bars = '.ui-dt-tools, .ui-dt-actions, .ui-card-actions, [role=toolbar]';
-  const boxes = '.ui-searchfield, .ui-pwfield, .ui-datefield, .ui-ms, .ui-select, [role=tablist]';
+  const boxes = '.ui-searchfield, .ui-pwfield, .ui-datefield, .ui-field-box, .ui-ms, .ui-select, [role=tablist]';
   const controls = 'button, a[href], input:not([type=hidden]), [role=button], [role=combobox], ' + boxes;
   for (const bar of document.querySelectorAll(bars)) {
     if (out.mixed.length >= 6) break;
