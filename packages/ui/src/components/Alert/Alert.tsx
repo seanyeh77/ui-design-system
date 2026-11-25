@@ -20,18 +20,20 @@ const ALERT_ICONS: Record<AlertTone, CustomIcon> = {
 export interface AlertProps {
   /** Default 'info'. danger is announced at once (role alert). */
   tone?: AlertTone;
+  /** One short line, bold. */
   title?: string;
   /** The cause and the fix, at most 2 short sentences; in a string, `backticks` are code. */
   children?: React.ReactNode;
-  /** A verb, such as 重試. */
+  /** A verb, such as 重試: an outline button under the text. */
   actionLabel?: string;
+  /** Runs when the action button is pressed. */
   onAction?: () => void;
   /** Adds × for info and success; warning and danger stay until the problem is solved. */
   onDismiss?: () => void;
   className?: string;
 }
 
-/** A message inside the page with a colored bar and icon. */
+/** A message inside the page: a card with the tone's icon, a title, a sentence and an optional action under it. */
 export function Alert({ tone = 'info', title, children, actionLabel, onAction, onDismiss, className }: AlertProps) {
   const t = ALERT_ICONS[tone] ? tone : 'info';
   const canClose = (t === 'info' || t === 'success') && onDismiss;
@@ -41,12 +43,13 @@ export function Alert({ tone = 'info', title, children, actionLabel, onAction, o
       <div className="ui-alert-content">
         {title ? <div className="ui-alert-title">{title}</div> : null}
         {children ? <div className="ui-alert-body">{codeText(children)}</div> : null}
+        {/* Under the text, not at the right end: with or without ✕ every action starts at the same place. */}
+        {actionLabel ? (
+          <button type="button" className="ui-btn ui-btn-secondary ui-alert-action" onClick={onAction}>
+            {actionLabel}
+          </button>
+        ) : null}
       </div>
-      {actionLabel ? (
-        <button type="button" className="ui-btn ui-btn-secondary ui-alert-action" onClick={onAction}>
-          {actionLabel}
-        </button>
-      ) : null}
       {canClose ? (
         <button type="button" className="ui-alert-close" aria-label={tr('關閉提示')} onClick={onDismiss}>
           <Icon name="x" size={16} />

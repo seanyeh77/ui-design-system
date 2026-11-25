@@ -69,6 +69,8 @@ export { IconButton } from './components/IconButton/IconButton';
 export type { IconButtonHint, IconButtonProps } from './components/IconButton/IconButton';
 export { InlineCode, isCodeRef, CodeText } from './components/InlineCode/InlineCode';
 export { Link } from './components/Link/Link';
+export { PageHeader } from './components/PageHeader/PageHeader';
+export type { PageHeaderAction, PageHeaderProps } from './components/PageHeader/PageHeader';
 export type { LinkProps } from './components/Link/Link';
 export { Markdown, safeHref } from './components/Markdown/Markdown';
 export type { MarkdownProps } from './components/Markdown/Markdown';
