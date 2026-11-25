@@ -31,19 +31,17 @@ export function useFormErrors<V extends Record<string, unknown>>(values: V, vali
   const all = validate(values);
   const errors: FormErrors<V> = {};
   for (const k of Object.keys(all) as (keyof V & string)[]) if (all[k] && (sent || touched[k])) errors[k] = all[k];
-  // The values of this render, read by isValid, onBlur and submit: set during render, so isValid called while
-  // rendering already sees them.
   const latest = React.useRef({ values, validate });
-  latest.current = { values, validate };
-  // Read from the latest values and validate (a blur right after typing sees the typed text).
-  const isValid = React.useCallback((name: keyof V & string) => !latest.current.validate(latest.current.values)[name], []);
-  const onBlur = React.useCallback(
-    (name: keyof V & string) => {
-      setTouched((t) => (t[name] ? t : { ...t, [name]: true }));
-      return isValid(name);
-    },
-    [isValid],
-  );
+  React.useLayoutEffect(() => {
+    latest.current = { values, validate };
+  });
+  // From this render's values: called while rendering or from a field's onBlur (which runs after the render of the
+  // last key typed).
+  const isValid = (name: keyof V & string) => !all[name];
+  const onBlur = (name: keyof V & string) => {
+    setTouched((t) => (t[name] ? t : { ...t, [name]: true }));
+    return isValid(name);
+  };
   const submit = React.useCallback(
     (handler: (values: V) => void) => (event?: React.SyntheticEvent) => {
       event?.preventDefault();

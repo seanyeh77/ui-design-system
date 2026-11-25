@@ -276,6 +276,17 @@ interface Measured {
 }
 const UNMEASURED: Measured = { fit: {}, clipped: null, want: {}, roomy: false, actsW: null, onerow: false };
 
+/** The value from the render where sig last changed: a new array that says the same thing keeps the old one, so memos
+ *  that depend on it do not run again. */
+function useSameWhile<T>(value: T, sig: string): T {
+  const [kept, setKept] = React.useState({ value, sig });
+  if (kept.sig !== sig) {
+    setKept({ value, sig });
+    return value;
+  }
+  return kept.value;
+}
+
 /** What the columns say, as text: changes when a key, label or format changes, not when the array is rebuilt. */
 function columnsSig(cols: readonly DataTableColumn<never>[]): string {
   return cols
@@ -300,19 +311,14 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const { columns: cols, rows, pageSize = 10, urlSync = true, urlKey, search = {}, selectable = false, stickyFirst: sticky = false } = p;
   // Columns, filters and views are often written inline (a new array every render): the memos below follow what they
   // say (keys, formats, options), read through refs, not the arrays' identity, so a render does not sort and filter again.
-  const colsSig = columnsSig(cols);
-  const colsRef = React.useRef(cols);
-  colsRef.current = cols;
-  const filtersSig = filtersSigOf(p.filters, p.filter);
-  const filtersIn = React.useRef({ filters: p.filters, filter: p.filter });
-  filtersIn.current = { filters: p.filters, filter: p.filter };
+  const memoCols = useSameWhile(cols, columnsSig(cols));
+  const given = useSameWhile({ filters: p.filters, filter: p.filter }, filtersSigOf(p.filters, p.filter));
   const filters: ResolvedFilter<R>[] = React.useMemo(() => {
-    const { filters: given, filter } = filtersIn.current;
-    const list = given ? [...given] : [];
-    if (filter && !list.length)
-      list.push({ key: filter.key, label: filter.label || colsRef.current.find((c) => c.key === filter.key)?.label || filter.key, options: filter.options });
+    const list = given.filters ? [...given.filters] : [];
+    const f = given.filter;
+    if (f && !list.length) list.push({ key: f.key, label: f.label || memoCols.find((c) => c.key === f.key)?.label || f.key, options: f.options });
     return resolveFilters(list, rows);
-  }, [filtersSig, colsSig, rows]);
+  }, [given, memoCols, rows]);
   const countUnit: CountUnit = p.unit ?? p.summary?.unit ?? '筆';
   const unitOf = (n: number) => unitFor(countUnit, n);
   const fromUrl = () => (urlSync && typeof location !== 'undefined' ? readUrl(urlKey, filters) : { q: '', values: {} });
@@ -484,13 +490,11 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     (!searching || searchHit(r, cols, filters, q, searchKeys)) && filters.every((f) => f.key === skip || matches(f, r, values[f.key]));
   // View, summary, search, filters and sort run again only when one of them or the rows change, not on every render
   // (a hover, a selection, a measured width).
-  const viewsRef = React.useRef(p.views);
-  viewsRef.current = p.views;
-  const viewsSig = p.views ? p.views.map((v) => v.id + '\u0002' + !!v.filter).join('\u0001') : null;
+  const views = useSameWhile(p.views, p.views ? p.views.map((v) => v.id + '\u0002' + !!v.filter).join('\u0001') : '');
   const { all, sumAll, list } = React.useMemo(() => {
-    const cols = colsRef.current;
+    const cols = memoCols;
     let all = rows.map((r, i) => ({ r, i }));
-    const viewObj = viewsRef.current?.find((v) => v.id === view);
+    const viewObj = views?.find((v) => v.id === view);
     if (viewObj?.filter) all = all.filter((x) => viewObj.filter?.(x.r));
     const sumAll = all;
     if (sumKey && sumVal !== 'all') all = all.filter((x) => String(get(x.r, sumKey)) === sumVal);
@@ -521,19 +525,20 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
       });
     }
     return { all, sumAll, list };
-  }, [rows, colsSig, filters, values, q, searching, searchKeysKey, sort, view, viewsSig, sumKey, sumVal]);
+  }, [rows, memoCols, filters, values, q, searching, searchKeysKey, sort, view, views, sumKey, sumVal]);
   const baseCount = all.length;
   const activeN = filters.filter((f) => isActive(values[f.key])).length;
   // After the search, a filter, the summary or the view changes (not on first render): 「顯示 6 筆」.
   const shownKey = `${q}|${valuesKey}|${sumVal}|${view}`;
   const firstKey = React.useRef(shownKey);
   const shownN = list.length;
+  const shownText = tr('顯示 {n} {unit}', { n: format.number(shownN), unit: unitOf(shownN) });
   React.useEffect(() => {
     if (shownKey === firstKey.current) return;
     firstKey.current = '';
-    const t = setTimeout(() => announce(tr('顯示 {n} {unit}', { n: format.number(shownN), unit: unitOf(shownN) })), 400);
+    const t = setTimeout(() => announce(shownText), 400);
     return () => clearTimeout(t);
-  }, [shownKey, shownN]);
+  }, [shownKey, shownText]);
   const pages = Math.max(1, Math.ceil(list.length / pageSize));
   const pageNow = Math.min(page, pages - 1);
   const start = pageNow * pageSize;

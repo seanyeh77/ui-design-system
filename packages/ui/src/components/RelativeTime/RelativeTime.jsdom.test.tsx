@@ -43,9 +43,9 @@ test('RelativeTime: the server renders the full date and time, the hydrated page
   expect(renderToString(<RelativeTime value={EVENT} />)).toContain('2026/11/18（三）09:50');
   vi.useRealTimers();
   const c = await serverThenClient(<RelativeTime value={EVENT} />);
-  const t = c.querySelector('time')!;
-  expect(t.textContent).toBe('3 小時前');
-  expect(t.getAttribute('datetime')).toBe(EVENT.toISOString());
+  const t = c.querySelector('time');
+  expect(t?.textContent).toBe('3 小時前');
+  expect(t?.getAttribute('datetime')).toBe(EVENT.toISOString());
 });
 
 test('DataTable format relative: the hydrated table shows the browser clock’s relative time', async () => {
