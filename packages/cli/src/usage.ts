@@ -41,3 +41,33 @@ export function summary(md: string): string {
   }
   return line;
 }
+
+/** The groups of the component list, in order, with their Chinese names (llms.txt and ui list use the same). */
+export const GROUPS: Record<string, string> = {
+  Foundations: '基礎',
+  Layout: '版面',
+  Actions: '按鈕',
+  Forms: '表單',
+  Data: '數據呈現',
+  Status: '狀態',
+  Feedback: '回饋',
+  Overlays: '浮層',
+  Navigation: '導覽',
+  Appearance: '外觀',
+  Pages: '頁面範本',
+};
+
+/** The reading order for an agent: the core rules every page needs, then a topic file only when the page has that topic. */
+export const GUIDES: [string, string][] = [
+  ['guidelines', 'Core rules every page needs (read first): look, type, controls, layout, formats, copy, status, accessibility, checks'],
+  ['layout', 'Page frames, navigation, search and first-use tours: when you lay out a frame yourself'],
+  ['forms', 'Which input component to use and how to arrange a form'],
+  ['data', 'Tables, result lists, file trees, KPIs and charts'],
+  ['monitoring', 'Full-screen always-on monitoring screens (ConsoleLayout and its parts)'],
+  ['code', 'Code-reading tools: code views, architecture graphs, project docs'],
+  ['theme', 'Every token, theme and accent settings, the accent derivation, the Slidev teaching preset'],
+  ['motion', 'Animation durations and effects, when you animate something yourself'],
+];
+
+/** A component's group, from the first line of its preview.html: <!-- @dsCard group="Data" height=400 -->. */
+export const groupOf = (previewHtml: string) => /group="([^"]+)"/.exec(previewHtml)?.[1] ?? 'Other';

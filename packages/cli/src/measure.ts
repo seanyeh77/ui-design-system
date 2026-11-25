@@ -15,6 +15,14 @@ export interface Findings {
   raised: string[];
   /** Page CSS outside any cascade layer, on element or universal selectors (resets, starter CSS), that overrides a declaration of a component. */
   unlayered: string[];
+  /** Whether the page has <meta name="viewport">: without it a phone lays the page out 980 px wide. */
+  viewportMeta: boolean;
+  /** Interface text cut off by overflow: hidden or an ellipsis, with no tooltip or title giving the full text. */
+  truncated: string[];
+  /** Text that lies outside the box of its card (an axis label drawn past the edge), shown over it or clipped away. */
+  outside: string[];
+  /** Targets under 24 x 24 px whose 24 px circle meets another target (WCAG 2.2, 2.5.8): the desktop minimum. */
+  small24: string[];
 }
 
 export function measure(): Findings {
@@ -30,6 +38,10 @@ export function measure(): Findings {
     mixed: [],
     raised: [],
     unlayered: [],
+    viewportMeta: !!document.querySelector('meta[name="viewport" i]'),
+    truncated: [],
+    outside: [],
+    small24: [],
   };
   const describe = (el: Element) => {
     let s = el.tagName.toLowerCase();
@@ -44,10 +56,15 @@ export function measure(): Findings {
     const p = el.parentElement;
     return !!p && [...p.childNodes].some((n) => n.nodeType === 3 && !!n.textContent?.trim());
   };
+  // Text only for screen readers: a 1 px box, or clipped away (clip: rect(0 0 0 0), clip-path: inset(50%)).
+  const srOnly = (el: Element, cs = getComputedStyle(el)) => {
+    const r = el.getBoundingClientRect();
+    return (r.width <= 1 && r.height <= 1) || /rect\(0(px)?,? 0(px)?,? 0(px)?,? 0(px)?\)/.test(cs.clip) || cs.clipPath === 'inset(50%)';
+  };
   const visible = (el: Element) => {
     const cs = getComputedStyle(el);
     const r = el.getBoundingClientRect();
-    return cs.visibility !== 'hidden' && cs.display !== 'none' && r.width > 0 && r.height > 0;
+    return cs.visibility !== 'hidden' && cs.display !== 'none' && r.width > 0 && r.height > 0 && !srOnly(el, cs);
   };
 
   // 1. Horizontal overflow (checked at 390 px by the caller).
@@ -69,12 +86,28 @@ export function measure(): Findings {
   const sel =
     'a[href], button, input:not([type=hidden]), select, textarea, summary, [role=button], [role=tab], [role=switch], [role=checkbox], [role=radio], [role=option], [role=menuitem], [role=link], [tabindex]:not([tabindex="-1"])';
   const control = sel.replace(', [tabindex]:not([tabindex="-1"])', '') + ', [role=slider], [role=separator], [role=combobox], [role=treeitem]';
+  // A link whose whole row or card opens it too (DataTable's a.ui-dt-rowlink, a card that is clickable as a whole): the
+  // row is the touch target. An ancestor up to the row or card that shows a pointer and is at least 48 px tall counts.
+  const wholeRow = (el: Element) => {
+    if (el.matches('.ui-dt-rowlink')) return true;
+    if (!el.matches('a[href]')) return false;
+    for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+      if (getComputedStyle(a).cursor === 'pointer' && a.getBoundingClientRect().height >= 47.5) return true;
+      if (a.matches('tr, [role=row], li, [role=listitem], .ui-card, article')) break;
+    }
+    return false;
+  };
+  // Every target's box, for the 24 px spacing check below.
+  const targets: { el: HTMLElement; r: DOMRect; w: number; h: number; inline: boolean }[] = [];
+  // In a line of text (a link in a sentence, a code reference in a list item, anything in Markdown content) a target's
+  // size is set by the line height: WCAG 2.5.8 exempts it.
+  const inText = (el: Element, cs: CSSStyleDeclaration) => isInline(el, cs) || cs.display === 'inline' || !!el.closest('.ui-md');
   for (const el of new Set(document.querySelectorAll<HTMLElement>(sel))) {
     if (el.closest('[aria-hidden="true"], [inert]')) continue;
     const cs = getComputedStyle(el);
     if (cs.visibility === 'hidden' || cs.display === 'none' || cs.pointerEvents === 'none') continue;
     const r = el.getBoundingClientRect();
-    if (!r.width || !r.height) continue;
+    if (!r.width || !r.height || srOnly(el, cs)) continue;
     // A region focusable only so the keyboard can scroll it (a code block, pre.ui-cv-body; a Markdown table,
     // .ui-md-table-wrap; any scroll box with tabindex="0"): content, not a control. Tapping it does nothing, and a
     // finger scrolls it anyway. Only an element with no control tag or widget role counts.
@@ -114,7 +147,12 @@ export function measure(): Findings {
         h = Math.max(h, ph);
       }
     }
+    targets.push({ el, r, w, h, inline: inText(el, cs) });
     if (w >= 47.5 && h >= 47.5) continue;
+    if (wholeRow(el)) {
+      out.inline.push(`${describe(el)} (its row or card is the target)`);
+      continue;
+    }
     // A selectable line in a LayerGraph: its label is the touch target; a line without one is hard to tap on phones,
     // which its README accepts. Listed with the exempt targets, not as a failure.
     if (el.matches('.ui-lg-hit')) {
@@ -122,6 +160,32 @@ export function measure(): Findings {
       continue;
     }
     (isInline(el, cs) ? out.inline : out.small).push(`${describe(el)} ${Math.round(w)} x ${Math.round(h)} px`);
+  }
+
+  // 2b. Targets under 24 x 24 px (WCAG 2.2, 2.5.8, the minimum on any screen). The spacing exception: an undersized
+  // target passes when a 24 px circle on its center meets no other target and no other undersized target's circle.
+  // Inline links in text and the exempt lines above are left out, as in the 48 px check.
+  for (const t of targets) {
+    if (out.small24.length >= 60) break;
+    if (t.w >= 23.5 && t.h >= 23.5) continue;
+    if (t.inline || t.el.matches('.ui-lg-hit') || wholeRow(t.el)) continue;
+    const cx = t.r.left + t.r.width / 2;
+    const cy = t.r.top + t.r.height / 2;
+    // A target under an open menu or popover cannot be reached until it closes: not counted while covered.
+    if (cx >= 0 && cy >= 0 && cx < innerWidth && cy < innerHeight) {
+      const top = document.elementFromPoint(cx, cy);
+      if (top && !t.el.contains(top) && !top.contains(t.el)) continue;
+    }
+    const near = targets.find((o) => {
+      if (o === t || o.el.contains(t.el) || t.el.contains(o.el)) return false;
+      // Distance from this center to the other target's box, and to the other's center when it is undersized too.
+      const dx = Math.max(o.r.left - cx, 0, cx - o.r.right);
+      const dy = Math.max(o.r.top - cy, 0, cy - o.r.bottom);
+      if (Math.hypot(dx, dy) < 12) return true;
+      const small = o.w < 23.5 || o.h < 23.5;
+      return small && Math.hypot(o.r.left + o.r.width / 2 - cx, o.r.top + o.r.height / 2 - cy) < 24;
+    });
+    if (near) out.small24.push(`${describe(t.el)} ${Math.round(t.w)} x ${Math.round(t.h)} px, next to ${describe(near.el)}`);
   }
 
   // 3. A card inside a card: two nested elements that both cast an outer shadow with blur.
@@ -185,6 +249,62 @@ export function measure(): Findings {
       }),
     );
     if (wraps) out.wrapped.push(describe(el));
+  }
+
+  // 6b. Interface text cut off: a button, tab, table header, heading or title whose text overflows its box under
+  // overflow: hidden or text-overflow: ellipsis. Passes when the full text is at hand: a title attribute, a Tooltip
+  // (data-ui-tip) or an aria-label on the element or around it. Markdown content is the author's and is left out.
+  const titled = (n: Element, el: Element) => {
+    if (n.closest('[title], [data-ui-tip]')) return true;
+    const named = n.closest('[aria-label]');
+    return !!named && (named === el || el.contains(named));
+  };
+  const cut = (el: HTMLElement) => {
+    const cs = getComputedStyle(el);
+    if (cs.overflowX === 'visible' && cs.textOverflow !== 'ellipsis') return false;
+    if (/auto|scroll/.test(cs.overflowX)) return false;
+    return el.scrollWidth > el.clientWidth + 1 && !!el.textContent?.trim();
+  };
+  const labels = '.ui-btn, .ui-tab, [role=tab], [role=columnheader], h1, h2, h3, h4, h5, h6, [class*="-title"]';
+  // Titles are the system's ui-…-title classes (ui-card-title, ui-dialog-title); other classes that only contain "-title" are not.
+  const isLabel = (el: Element) =>
+    !el.matches('[class*="-title"]') || el.matches(labels.replace(', [class*="-title"]', '')) || [...el.classList].some((c) => /^ui-[\w-]+-title$/.test(c));
+  for (const el of [...document.querySelectorAll<HTMLElement>(labels)].filter(isLabel)) {
+    if (out.truncated.length >= 30) break;
+    if (!visible(el) || el.closest('.ui-md, .ui-md-h, [aria-hidden="true"]')) continue;
+    const hit = [el, ...el.querySelectorAll<HTMLElement>('*')].find((n) => visible(n) && cut(n) && !titled(n, el));
+    if (hit) out.truncated.push(`${describe(el)}: "${(hit.textContent || '').trim().slice(0, 32)}" is cut off`);
+  }
+
+  // 6c. Text outside its card: a label (a chart's axis label, a long word) that lies past the card's edge, drawn over
+  // the border or clipped away. Text inside a scroll box within the card scrolls into view and is left out.
+  for (const card of document.querySelectorAll<HTMLElement>('.ui-card')) {
+    if (out.outside.length >= 6) break;
+    if (!visible(card)) continue;
+    const box = card.getBoundingClientRect();
+    const scrolls = (n: Element) => {
+      for (let a = n.parentElement; a && a !== card; a = a.parentElement)
+        if (/auto|scroll/.test(getComputedStyle(a).overflowX + getComputedStyle(a).overflowY)) return true;
+      return false;
+    };
+    const past = (r: DOMRect) =>
+      r.width > 1 && r.height > 1 && (r.left < box.left - 1 || r.right > box.right + 1 || r.top < box.top - 1 || r.bottom > box.bottom + 1);
+    const walkText = document.createTreeWalker(card, NodeFilter.SHOW_TEXT);
+    for (let n = walkText.nextNode(); n; n = walkText.nextNode()) {
+      const parent = n.parentElement;
+      if (!parent || !n.textContent?.trim() || !visible(parent) || scrolls(parent)) continue;
+      // Visually hidden text (clip: rect(0 0 0 0), 1 px boxes) is for screen readers.
+      if (parent.closest('[class*="sr-only"], [class*="visually-hidden"]') || getComputedStyle(parent).position === 'fixed') continue;
+      const range = document.createRange();
+      range.selectNodeContents(n);
+      const r = [...range.getClientRects()].find(past);
+      if (r) {
+        out.outside.push(
+          `${describe(card)}: "${n.textContent.trim().slice(0, 24)}" ${Math.round(Math.max(box.left - r.left, r.right - box.right, box.top - r.top, r.bottom - box.bottom))} px outside`,
+        );
+        break;
+      }
+    }
   }
 
   // 7. One row of controls with mixed heights: in a toolbar, controls on the same line must share one height.

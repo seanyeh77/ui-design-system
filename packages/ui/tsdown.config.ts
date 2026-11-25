@@ -18,7 +18,7 @@ export default defineConfig([
     dts: true,
     sourcemap: true,
     clean: true,
-    external: [/^react($|\/)/, /^react-dom($|\/)/, /^@base-ui\//],
+    deps: { neverBundle: [/^react($|\/)/, /^react-dom($|\/)/, /^@base-ui\//, /^@seanyeh77\/tokens($|\/)/] },
     // The components need the browser: frameworks with server components must treat every module but the format
     // helpers as client code.
     outputOptions: { banner: (chunk) => (chunk.moduleIds.every((id) => SERVER_SAFE.test(id)) ? '' : "'use client';") },
@@ -32,7 +32,7 @@ export default defineConfig([
     minify: true,
     sourcemap: true,
     clean: false,
-    noExternal: [/.*/],
+    deps: { alwaysBundle: [/.*/] },
     define: { 'process.env.NODE_ENV': '"production"', __UI_DEV__: 'true' },
     // Every icon is inline here: the icon store reads names-inline.ts, which loads nothing, in place of names.ts and its
     // one dynamic import per icon.

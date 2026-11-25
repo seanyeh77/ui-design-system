@@ -1,6 +1,6 @@
 # @seanyeh77/ui
 
-SeanYeh 設計系統的 React 19 元件：有型別的 ES module，浮層（Dialog、Menu、Popover、Select…）建在 Base UI 上，樣式只用設計 token。套件也帶 `tokens.css`、自架字體、給沒有 build step 頁面用的 `bundle.js`，以及每個元件的 README 和使用規則（`docs/`）。
+SeanYeh 設計系統的 React 19 元件：有型別的 ES module，浮層（Dialog、Menu、Popover、Select…）建在 Base UI 上，樣式只用設計 token。套件也帶 `tokens.css`、自架字體（`fonts.css`，字型檔在一起安裝的 `@seanyeh77/tokens` 裡）、給沒有 build step 頁面用的 `bundle.js`，以及每個元件的 README 和使用規則（`docs/`）。
 
 ## 安裝
 

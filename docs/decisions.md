@@ -1298,3 +1298,23 @@ AI 定的細節（待確認）：
 - GraphLegend 只翻譯內建的預設圖例，頁面傳進來的文字照原樣顯示。
 - `consoleZoom` 是 ConsoleLayout 內部的規則：繼續匯出但標成 deprecated，呼叫時開發警告，下一次不相容的版本移除。
 - `focusMain` 的鍵盤或滑鼠偵測不再在 import 時掛上，改由 AppShell 和 `initTheme()` 呼叫 `installFocusMain()`。
+
+## 2026-11-25 全面審查修正：工具與發布
+
+使用者把細節交給 agent：「都照你的意見，因為我外來新專案每個前端都會使用 design system，不要讓前端只支持特定場景為原則去判斷，另外希望是 agent 能夠使用者個 design 使用越少的 token 或是更專注於設計網頁與 UX 這樣最好」、「全部都交給 subagent，最後驗證也是」。
+
+### AI 定的細節（待確認）
+
+- 發布與文件網站：Release（`publish.yml`，檔名不變，npm Trusted Publisher 仍對得上）和 Docs site 改成在 CI 於 main 的 push 成功後觸發（`workflow_run`），checkout CI 測過的 commit；main 已經前進到更新的 commit 時，Release 這次不做，交給新 commit 的 CI。Release 一次只跑一個、不中途取消；`id-token: write` 只給發布的 job。
+- 版本固定：npm 固定 `11.21.3`（不再用 `npm@latest`）；所有 actions 釘在 commit SHA，註解寫版本（checkout v7.0.1、setup-node v7.1.0、pnpm/action-setup v6.1.1、changesets/action v2.1.2、cache v6.1.0、upload-artifact v7.0.2、Pages 三個 action v6、v5、v5），全部跑在 Node 24，不再有 Node 20 的警告。changesets/action 從 v1 升到 v2，輸入改名為 `publish-script`。發布用 Node 22，和 CI 相同；Node 22 附的 npm 是 10，所以另外安裝 npm 11。
+- Version packages PR 的 CI：changesets/action 用 workflow token 推送，GitHub 不替它跑 CI；`pull_request` 的 run 會停在「等待核准」，PR 合併時變成「failure、0 個 job」。`ci.yml` 用 job 層級的條件跳過也沒用，核准發生在任何 job 之前。做法：Release 在建立或更新 PR 後，用 `workflow_dispatch` 對 `changeset-release/main` 啟動 CI（workflow token 可以這麼做），check 會掛在 PR 的 commit 上；接著刪掉那個等待核准的 `pull_request` run。不需要新的 secret。之後若加上 GitHub App token（傳給 changesets/action 的 `github-token`），PR 會自己觸發 CI，這一步可以拿掉。
+- CI 拆成 `check`（build、型別、lint、測試、changeset 檢查）和 `pages`（文件網站、ui check、畫面比對）兩個 job 並行，共用 `.github/actions/setup`。Chromium 依鎖定的 Playwright 版本快取，命中時只裝系統套件。Playwright 在 ui 與 cli 固定成同一個確切版本（`1.65.0`），測試會檢查兩邊一致；升級就要重新產生基準圖。Update visual baselines 改下載 oxipng 預編譯檔並核對 SHA-256。
+- PR 改到已發布的套件卻沒有 changeset 時 CI 失敗；只改測試這類不需要發布的改動，加空的 changeset（`pnpm changeset --empty`）。
+- 字型只放在 `@seanyeh77/tokens`，`@seanyeh77/ui` 改成依賴它，`@seanyeh77/ui/fonts.css` 用 `@import '@seanyeh77/tokens/fonts.css'` 交給 bundler 解析（Vite 用 npm 和 pnpm 安裝都確認過 456 個字型檔都有輸出）；`tokens.css` 只有約 6 KB，ui 仍附一份。`dist/bundle.js.map` 不進 npm 套件（文件網站保留），ES module 的 source map 保留，方便除錯。`@seanyeh77/ui` 的套件從 12.0 MB 降到 1.1 MB。
+- ESLint 外掛把 `@typescript-eslint/parser` 和它需要的 TypeScript 6 API 打包進 `dist`，套件只依賴 ESLint：TypeScript 7 專案（今天的 Vite react-ts 範本）安裝不再出現 ERESOLVE，也不會像另外安裝 `typescript@npm:@typescript/typescript6` 那樣換掉專案的 `tsc`。代價是外掛套件從約 7 KB 變成約 1.1 MB。
+- 文件網站多了 `/dist/<版本>/`（`bundle.js`、`styles.css`、`tokens.css`、`fonts.css`，字型共用 `/dist/fonts/`），從 0.45.0 起每次部署都從 npm 取回之前的版本；沒有 build step 的範例改用固定版本的網址，並加上 viewport meta。
+- ESLint 規則：`no-native-controls` 加上 `<textarea>`、`<button>`、`<a>`（用 `Link`）和沒有 type 或 type 為 text、search、email、password、number、range 的 `<input>`；`range` 的建議是 `TextField type="number"` 或 `SegmentedControl`（系統沒有 slider）。帶 `ui-` 開頭 class 的原生元素（`<button className="ui-link-btn">`）不算，專案可以用 `allow` 選項放行標籤。新規則 `no-raw-size` 在 recommended 裡是 warn，不是 error；Storybook 的 stories 不套用（範例外框用了大量固定 padding），頁面範本照樣檢查。
+- `ui check`：24 px 檢查只在 1280 px 跑，句子裡、`display: inline` 和 Markdown 內容裡的連結不算（WCAG 的行內例外）；axe-core 的 `target-size` 規則關掉，避免和這個檢查重複。深色只跑 axe 的 `color-contrast`，其他規則在淺色跑過就夠。自動點開的狀態只在淺色、兩種寬度檢查，每頁最多 12 個，只回報原本沒有的問題。截斷文字有 `title`、Tooltip（`data-ui-tip`）或 `aria-label` 給出全文時不算。打開選單或對話框的狀態不跑 axe 的 `aria-hidden-focus`（模組化的浮層把頁面其他部分標成 aria-hidden，焦點留在浮層裡），被浮層蓋住的目標不算 24 px 的擁擠。
+- `ui shots`：頁面本身不捲動、但有一個至少 60 % 視窗高的元素在捲動時，把視窗加高到內容全部露出（最多 12000 px）。目前沒有任何元件預覽受影響，基準圖不變。網址的檔名用路徑加 hash（`/` 是 `index`）。
+- Vitest：瀏覽器與 jsdom 測試都固定在 Asia/Taipei；瀏覽器測試的逾時改為 30 s（LayerGraph 與 css-split 在 2 核心的機器上接近 15 s）。
+- TypeScript 7.1 還只有 beta（`7.1.0-beta`），所以 tsdown 的「tsgo generator on TypeScript 7.0 is deprecated」警告還在；7.1 正式版出來後把根目錄的 `@typescript/native` 升上去。

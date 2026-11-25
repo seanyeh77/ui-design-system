@@ -1,5 +1,5 @@
-// Joins the style files into dist/styles.css and the per-component files in dist/css/, copies the token files and the
-// fonts next to the JavaScript in dist/, and the component READMEs and the guides into docs/ so an agent can read them
+// Joins the style files into dist/styles.css and the per-component files in dist/css/, copies tokens.css and points
+// fonts.css at @seanyeh77/tokens in dist/, and the component READMEs and the guides into docs/ so an agent can read them
 // from node_modules/@seanyeh77/ui/docs.
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { componentDependencies, componentSource, styleFiles, LAYER_ORDER, LAYER } from './styles.ts';
@@ -115,17 +115,30 @@ for (const f of components) {
 }
 if (problems.length) throw new Error(`postbuild:\n  ${problems.join('\n  ')}`);
 
+// tokens.css is small (about 6 KB): a copy, so @seanyeh77/ui/tokens.css works on its own, also from a CDN. The fonts
+// (about 11 MB) ship only in @seanyeh77/tokens, a dependency of this package: @seanyeh77/ui/fonts.css imports that
+// package's file, and the bundler resolves the import and the font URLs inside it.
 cpSync(new URL('dist/tokens.css', tokens), new URL('tokens.css', dist));
-cpSync(new URL('fonts.css', tokens), new URL('fonts.css', dist));
-cpSync(new URL('fonts', tokens), new URL('fonts', dist), { recursive: true });
+rmSync(new URL('fonts', dist), { recursive: true, force: true });
+writeFileSync(
+  new URL('fonts.css', dist),
+  "/* @seanyeh77/ui/fonts.css: the self-hosted fonts of @seanyeh77/tokens (a dependency of @seanyeh77/ui). */\n@import '@seanyeh77/tokens/fonts.css';\n",
+);
 
 const docs = new URL('docs/', root);
 mkdirSync(docs, { recursive: true });
 const componentDir = new URL('components/', src);
-for (const name of readdirSync(componentDir)) {
+// components.json: each component's group (from the first line of its preview.html), for `ui list`.
+const groups: { name: string; group: string }[] = [];
+for (const name of readdirSync(componentDir).sort()) {
   const readme = new URL(`${name}/README.md`, componentDir);
-  if (existsSync(readme)) cpSync(readme, new URL(`${name}.md`, docs));
+  if (!existsSync(readme)) continue;
+  cpSync(readme, new URL(`${name}.md`, docs));
+  const preview = new URL(`${name}/preview.html`, componentDir);
+  const group = existsSync(preview) ? (/group="([^"]+)"/.exec(readFileSync(preview, 'utf8'))?.[1] ?? 'Other') : 'Other';
+  groups.push({ name, group });
 }
+writeFileSync(new URL('components.json', docs), JSON.stringify(groups, null, 2) + '\n');
 // The guides: the core rules (guidelines.md) and the topic files. decisions.md is history, not something to build from.
 const guides = new URL('../../docs/', root);
 for (const file of readdirSync(guides)) if (file.endsWith('.md') && file !== 'decisions.md') cpSync(new URL(file, guides), new URL(file, docs));

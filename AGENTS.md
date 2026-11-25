@@ -33,7 +33,7 @@ Then:
 - Your own CSS uses tokens only: `var(--surface)`, `var(--space-4)` in CSS; `cssVar('ink-muted')` from `@seanyeh77/tokens` in style props (only token names compile); `bg-surface text-ink-muted` with the Tailwind theme.
 - TypeScript enforces most rules: icon names, `confirm` on danger buttons and menu items, `DataTable` column keys. Fix type errors instead of casting them away. In development the components warn in the console with the cause and the fix.
 - Items marked 看情況 ("situational") are not fixed rules: choose per context and say which way you chose.
-- Before you finish: run `npx @seanyeh77/ui-cli check <file or URL>`. It opens the page at 390 px and 1280 px, light and dark, and fails on console errors, horizontal overflow at 390 px, touch targets under 48 px, touch areas that spill past their control, a card inside a card, raw Markdown, native controls the system replaces, wrapped buttons, tabs, table headers or interface headings (headings inside Markdown content may wrap), controls of different heights in one toolbar, a status badge with a shadow in a table or card, and unlayered page CSS on element selectors (a reset or starter CSS) that overrides a component. Add `--shots shots/` and check the screenshots against the last section of `guidelines.md`.
+- Before you finish: run `npx @seanyeh77/ui-cli check <file or URL>`. It opens the page at 390 px and 1280 px, light and dark, and fails on console errors, horizontal overflow at 390 px, touch targets under 48 px, touch areas that spill past their control, a card inside a card, raw Markdown, native controls the system replaces, wrapped buttons, tabs, table headers or interface headings (headings inside Markdown content may wrap), controls of different heights in one toolbar, a status badge with a shadow in a table or card, unlayered page CSS on element selectors (a reset or starter CSS) that overrides a component, interface text cut off with no tooltip, text outside its card, targets under 24 px that crowd another at 1280 px, a missing viewport meta and axe-core's WCAG 2.2 AA rules. It also opens every tab, SettingsLayout category and toolbar menu and checks those states; `--open <selector>` adds a dialog or drawer. Add `--shots shots/` and check the screenshots against the last section of `guidelines.md`.
 
 ### Rules that are easy to miss
 
@@ -47,11 +47,11 @@ Then:
 
 ```bash
 npm i react react-dom @seanyeh77/ui @seanyeh77/tokens
-npm i -D @seanyeh77/eslint-plugin-ui @seanyeh77/ui-cli
+npm i -D eslint @seanyeh77/eslint-plugin-ui @seanyeh77/ui-cli
 npx playwright install chromium   # the browser ui check uses; or set CHROMIUM_PATH
 ```
 
-Until the packages are on npm, build them in a clone (`pnpm install && pnpm build`), pack them (`pnpm --filter @seanyeh77/ui pack`, same for the others) and install the `.tgz` files. `@seanyeh77/ui` carries `tokens.css` and the fonts too, so `@seanyeh77/tokens` is needed only for `cssVar()` and the Tailwind theme.
+The fonts ship once, in `@seanyeh77/tokens`, a dependency of `@seanyeh77/ui`: `@seanyeh77/ui/fonts.css` loads them from there. List `@seanyeh77/tokens` yourself, as above, to import `cssVar()` and the Tailwind theme (pnpm lets a project import only what it lists). The packages are ES modules only: TypeScript needs `moduleResolution` `bundler`, `node16` or `nodenext` (Vite and Next.js templates already use `bundler`).
 
 ```ts
 import '@seanyeh77/ui/fonts.css'; // self-hosted fonts: works offline
@@ -71,9 +71,9 @@ export default [ui.configs.recommended];
 - The system's CSS is in the cascade layer `ui` (`ui.tokens`, `ui.components`): your own unlayered CSS always overrides it, no specificity fight and no `!important`. With Tailwind v4, start the main CSS file with `@layer theme, base, ui, components, utilities;` (before `@import 'tailwindcss'`) so utility classes override components. Details and the per-component CSS (`@seanyeh77/ui/css/`) in `theme.md`.
 - Because unlayered CSS always wins, page-wide resets win too: delete the starter CSS of the project template (Vite's `index.css` and `App.css`), and put any reset or normalize CSS (`* { margin: 0 }`, `button { background: none }`, a CMS theme) in `@layer base { … }` or another layer declared before `ui`. `ui check` reports unlayered element or `*` rules that override a component.
 - React 19 is required. The module starts with `'use client'`, so it works in Next.js server components pages as client components. Server code that only formats dates, numbers or text imports from `@seanyeh77/ui/format` (no `'use client'`).
-- The ESLint config reads `.tsx` with the typescript-eslint parser, which needs the `typescript` 5 or 6 API. With TypeScript 7 only, also install `typescript@npm:@typescript/typescript6` as a dev dependency.
+- The ESLint plugin brings its own TSX parser and depends on nothing but ESLint, so it installs next to any TypeScript version, TypeScript 7 included. Templates that come with oxlint instead of ESLint (today's Vite templates) need `eslint` installed, as above, and an `eslint.config.js`.
 - Components need a browser: run component tests in a browser (Vitest browser mode) or jsdom. Every component renders and handles clicks and keys in jsdom with no setup and no polyfills; what needs layout is not computed there (measured column widths, overflow fades, positions of tooltips and popups, sizes that follow the container), so test those in Vitest browser mode.
-- pnpm may refuse a version published less than a day ago (`minimumReleaseAge`, in minutes: 1440 by default in pnpm 11, and set by many pnpm 10 projects). To install a just-released `@seanyeh77/ui`, allow that version in `pnpm-workspace.yaml`, e.g. `minimumReleaseAgeExclude: ['@seanyeh77/ui@0.43.0', '@seanyeh77/tokens@0.43.0']`, and remove the line after a day.
+- pnpm may refuse a version published less than a day ago (`minimumReleaseAge`, in minutes: 1440 by default in pnpm 11, and set by many pnpm 10 projects). To install a just-released `@seanyeh77/ui` once, run `pnpm add @seanyeh77/ui@<剛發布的版本> --config.minimum-release-age=0`; or allow it in `pnpm-workspace.yaml` with `minimumReleaseAgeExclude: ['@seanyeh77/ui@<剛發布的版本>', '@seanyeh77/tokens@<剛發布的版本>']` and remove the line after a day.
 
 ### Pages without a build step
 
@@ -81,11 +81,12 @@ export default [ui.configs.recommended];
 
 ```html
 <meta charset="utf-8">
-<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/fonts.css">
-<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/tokens.css">
-<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/styles.css">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.45.0/fonts.css">
+<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.45.0/tokens.css">
+<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.45.0/styles.css">
 <div id="root"></div>
-<script src="https://seanyeh77.github.io/ui-design-system/dist/bundle.js"></script>
+<script src="https://seanyeh77.github.io/ui-design-system/dist/0.45.0/bundle.js"></script>
 <script>
   const h = React.createElement;
   UI.initTheme();
@@ -93,7 +94,7 @@ export default [ui.configs.recommended];
 </script>
 ```
 
-For a single-file page that must work offline or in a sandbox that blocks this host, inline the same files. `bundle.js` keeps the development warnings on.
+Pin a version, as above: `/dist/<version>/` never changes, while `/dist/` without a version always serves the latest release and can break a finished page. The same files are on jsDelivr: `https://cdn.jsdelivr.net/npm/@seanyeh77/ui@0.45.0/dist/bundle.js` and `…/dist/styles.css`, `https://cdn.jsdelivr.net/npm/@seanyeh77/tokens@0.45.0/dist/tokens.css` and `…/tokens@0.45.0/fonts.css`. For a single-file page that must work offline or in a sandbox that blocks this host, inline the same files. `bundle.js` keeps the development warnings on.
 
 Scope: web UI and the tokens of SeanYeh's Slidev decks (the `teaching` preset, `data-theme="teaching"`: teal `#027874` accent, 0 px radius, no shadows, 1.5 px borders, light only; see `theme.md`). Slide layout, Notion documents and teaching diagrams follow SeanYeh's separate `teaching-materials-style` skill.
 
@@ -115,7 +116,7 @@ A pnpm workspace. `pnpm install`, then `pnpm check` builds, type-checks, lints a
 - Components: TypeScript strict, React 19 (`ref` is a prop), Base UI for anything that floats or traps focus. One JSDoc line per prop (it becomes the props table). Prefer types that make a wrong use fail to compile over a sentence in the README; add a `devWarn` with the cause and the fix for what types cannot catch. Export new components and their types from `src/index.ts`.
 - A new component needs `README.md`, a story and `preview.html` whose first line is `<!-- @dsCard group="Data" height=400 -->`, plus a test when it has behavior (`src/**/*.test.tsx`, Vitest in a real Chromium). Every story is also rendered, clicked and rendered on the server in jsdom (`src/components.jsdom.test.tsx`): check for browser-only APIs (`ResizeObserver`, Range measuring, canvas, `scrollIntoView`, pointer capture) before calling them, never polyfill a global.
 - A README starts with `## 用法`: one sentence (what it is, when to use it, what to use instead), a minimal example, and the 3 to 6 rules most often gotten wrong. Details follow in later `##` sections. The first sentence is the summary in `llms.txt` and `ui list`.
-- Where a rule goes: one component's rule in its README; a rule every page needs in `docs/guidelines.md` (keep it about 6 KB); a rule for one kind of page in its topic file. Say each rule once. A new topic file goes in the guides lists of `scripts/site.ts` and `apps/docs/scripts/pages.ts`.
+- Where a rule goes: one component's rule in its README; a rule every page needs in `docs/guidelines.md` (keep it about 6 KB); a rule for one kind of page in its topic file. Say each rule once. A new topic file goes in `GUIDES` of `packages/cli/src/usage.ts` (the reading order of `llms.txt` and `ui docs`) and in `apps/docs/scripts/pages.ts`.
 - Names and default texts are generic: no project's terms (no 「函式」 or 「編譯器」 as built-in words). A project passes its own words through props.
 - Visual regression: CI screenshots every `site/preview/*.html` at 390 px and 1280 px, light and dark, with `ui shots … --compare tests/visual/baseline --diff visual-diff`, and fails when a shot differs from its baseline (a pixel differs past color distance 0.1; more than 0.02 % of the pixels, or a new size, is a change). The job summary lists the changed shots; the `visual-diff` artifact holds `<name>-diff.png` (changes in red), `-expected.png` and `-actual.png`.
 - When the change is intended, or a new preview has no baseline yet: run the **Update visual baselines** workflow on the branch (Actions → Update visual baselines → Run workflow). It takes the shots on the same runner image and browser as CI, commits them as 「更新畫面基準圖」 and starts CI on that commit. Look at the diffs before you run it: it accepts every change. Do not commit baselines made on your own machine: fonts and the Chromium build render text a little differently, and CI then fails. Locally, `node packages/cli/dist/cli.js shots site/preview/<Name>.html --compare tests/visual/baseline --diff visual-diff` after `pnpm build && pnpm site` shows what changed, as far as your machine renders like CI.

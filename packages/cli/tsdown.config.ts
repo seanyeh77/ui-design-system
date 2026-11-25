@@ -8,5 +8,5 @@ export default defineConfig({
   dts: false,
   clean: true,
   fixedExtension: false,
-  external: ['playwright', 'pixelmatch', 'pngjs', /^@seanyeh77\//],
+  deps: { neverBundle: ['playwright', 'pixelmatch', 'pngjs', 'axe-core', /^@seanyeh77\//] },
 });

@@ -1,30 +1,58 @@
 name: CI
 
+# Release (publish.yml) and Docs site (pages.yml) start only after this workflow succeeds on a push to main.
+# The two jobs below are the checks to require in the branch protection of main: "check" and "pages".
 on:
   push:
     branches: [main]
   pull_request:
-  # Update visual baselines starts this after it commits new baselines (its own push does not start workflows).
+  # Started by Update visual baselines after it commits new baselines, and by Release on the "Version packages" pull
+  # request: a push or a pull request made with the workflow token starts no normal run (see publish.yml).
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+# One run per branch or pull request. A new push to a pull request cancels its older run; runs on main always finish,
+# because Release waits for their result.
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  # Build, types, lint, unit and browser tests, and the changeset check of pull requests.
   check:
     # Pinned, like Update visual baselines: the baselines are rendered on this image, and another one renders fonts differently.
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @seanyeh77/ui exec playwright install --with-deps chromium
+          # changeset status compares the pull request with main: full history on pull requests (0), one commit otherwise.
+          # Written this way round because 0 is falsy in expressions: `cond && 0 || 1` would always give 1.
+          fetch-depth: ${{ github.event_name != 'pull_request' && 1 || 0 }}
+      - uses: ./.github/actions/setup
+        with:
+          chromium: 'true'
+      # A pull request that changes a published package needs a changeset (pnpm changeset). Changes that need no
+      # release (tests only, for example) add an empty one: pnpm changeset --empty. The "Version packages" pull request
+      # removes the changesets, so it is not checked.
+      - name: Check that changed packages have a changeset
+        if: github.event_name == 'pull_request' && github.head_ref != 'changeset-release/main'
+        run: pnpm changeset status --since=origin/${{ github.base_ref }}
       - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
-      # The automatic part of "Before you finish" on every component preview.
+
+  # The automatic part of "Before you finish" on every component preview, and the visual regression check.
+  pages:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+        with:
+          chromium: 'true'
+      - run: pnpm build
       - id: site
         run: pnpm site
       - run: node packages/cli/dist/cli.js check site/preview/*.html --wait 400
@@ -36,7 +64,7 @@ jobs:
       - if: ${{ failure() && steps.visual.outcome == 'failure' }}
         run: cat visual-diff/summary.md >> "$GITHUB_STEP_SUMMARY"
       - if: ${{ failure() && steps.visual.outcome == 'failure' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: visual-diff
           path: visual-diff/

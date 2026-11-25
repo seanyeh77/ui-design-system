@@ -107,11 +107,14 @@ importers:
       '@seanyeh77/ui':
         specifier: workspace:^
         version: link:../ui
+      axe-core:
+        specifier: 4.14.1
+        version: 4.14.1
       pixelmatch:
         specifier: ^8.0.0
         version: 8.0.0
       playwright:
-        specifier: ^1.65.0
+        specifier: 1.65.0
         version: 1.65.0
       pngjs:
         specifier: ^7.0.0
@@ -123,13 +126,13 @@ importers:
 
   packages/eslint-plugin-ui:
     dependencies:
-      '@typescript-eslint/parser':
-        specifier: ^8.72.1
-        version: 8.72.1(@typescript/typescript6@6.0.2)(eslint@10.14.0)
       eslint:
         specifier: '>=9'
         version: 10.14.0
     devDependencies:
+      '@typescript-eslint/parser':
+        specifier: ^8.72.1
+        version: 8.72.1(@typescript/typescript6@6.0.2)(eslint@10.14.0)
       typescript:
         specifier: npm:@typescript/typescript6@^6.0.2
         version: '@typescript/typescript6@6.0.2'
@@ -141,10 +144,10 @@ importers:
       '@base-ui/react':
         specifier: ^1.9.0
         version: 1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-    devDependencies:
       '@seanyeh77/tokens':
         specifier: workspace:^
         version: link:../tokens
+    devDependencies:
       '@storybook/react':
         specifier: ^10.6.6
         version: 10.6.6(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(storybook@10.6.6(@types/react@19.3.0)(prettier@3.9.10)(react@19.3.1))(typescript@7.0.2)
@@ -167,7 +170,7 @@ importers:
         specifier: ^31.0.1
         version: 31.0.1
       playwright:
-        specifier: ^1.65.0
+        specifier: 1.65.0
         version: 1.65.0
       react:
         specifier: ^19.3.1
@@ -1704,6 +1707,10 @@ packages:
 
   axe-core@4.14.0:
     resolution: {integrity: sha512-9WTZxEjsZ7b13TH8JPmbV2z8CHbl80/2hm3XPEG4JgNdQLK81IBRXmSxHfMAOkSqQeRxT/0dwNDz2GOm3zzpcQ==}
+    engines: {node: '>=4'}
+
+  axe-core@4.14.1:
+    resolution: {integrity: sha512-FHfa+lmNjQZfJz1q8wKqIDwC6DExcHt/pkjNQb09a3NPjCKg2rhu5qb2S4r76ASyFNNtuFooJpZe37OgudVGtQ==}
     engines: {node: '>=4'}
 
   balanced-match@4.0.4:
@@ -4740,6 +4747,8 @@ snapshots:
   atomically@1.7.0: {}
 
   axe-core@4.14.0: {}
+
+  axe-core@4.14.1: {}
 
   balanced-match@4.0.4: {}
 
