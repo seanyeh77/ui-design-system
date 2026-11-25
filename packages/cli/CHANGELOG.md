@@ -1,5 +1,45 @@
 # @seanyeh77/ui-cli
 
+## 0.45.0
+
+### Minor Changes
+
+- 85e523d: `ui check` 多檢查：被截斷又沒有 Tooltip 或 title 的介面文字、跑出卡片外的文字、1280 px 時小於 24 px 又擠著別的目標的目標（WCAG 2.5.8）、axe-core 的 WCAG 2.0、2.1、2.2 A 與 AA 規則（`--no-axe` 關掉），並自動點開分頁、SettingsLayout 分類和工具列選單檢查打開後的畫面（`--no-interact` 關掉；`--open <selector>` 加上自己的狀態）。頁面沒有 viewport meta 時只回報一次「缺 viewport meta」，不再把觸控目標算在元件頭上；整列可點的列連結（DataTable 的 `a.ui-dt-rowlink`）不算小目標。`ui check` 用和 `ui shots` 相同的 Chromium。`ui shots` 的整頁截圖包含 AppShell 主內容裡捲動的部分；網址的截圖檔名改用路徑加 hash，不含冒號，同一個網站的頁面不再互相覆蓋。`--help` 印出各指令的說明。`ui docs` 不加名稱時先印閱讀順序，`ui list` 依分組列出元件（`@seanyeh77/ui` 的 `docs/components.json` 提供分組）。升級方式：用網址產生的基準圖要重新產生（檔名改了）；新的檢查找出的問題要修，或暫時加 `--no-axe`、`--no-interact`。
+
+### Patch Changes
+
+- fdfaeb2: 文件整理：
+  
+  - AppShell 的導覽抽屜在 600 到 1023 px，1024 px 以上有側邊欄（剛好 1024 px 寬的視窗現在有側邊欄）；文件和 `bp-desktop` 的說明寫清楚 1024 px 只是導覽的邊界，頁面排版的斷點仍是 600、960、1280 px。
+  - 套件的 `docs/` 多了 `agents.md`（做頁面的閱讀路徑）和 `icons.md`；`ui docs icons` 印出所有內建圖示名稱，`ui docs agents` 印出閱讀路徑。
+  - guidelines 補上常見頁面（清單、詳細、Dashboard、設定、表單）與狀態回饋（載入、失敗、空清單、Toast）的規則；每條規則只說一次。DataTable、LayerGraph、TreeList、Workbench、CodeView、Markdown 的 README 縮短，實作規格移到 repo 的 `docs/maintaining/`。
+  - 元件分組重新整理（`ui list`、llms.txt）：新增「版面與外框」「監控畫面」「程式碼與架構圖」「文字標記」，「頁面範本」改名「整頁元件」。`useFormErrors` 不再被 `ui docs` 當成指南。
+  - 每個匯出元件的 prop 都有一行 JSDoc（編輯器和 props 表格看得到）。
+  - tokens.json 的 `dur-toggle`、`dur-nav`、`space-5` 說明照實際用途改寫。
+- d3a0f11: 全面審查修正的整合：
+  
+  - AppShell 自動放一個 Toaster：AppShell 裡的頁面直接呼叫 `toast()`；頁面自己放了 `<Toaster />` 時改用頁面的。Toaster 還沒出現前呼叫的 `toast()` 會排隊，不再遺失。
+  - SettingsLayout 的 `toast` prop 改成 deprecated（開發時警告，仍可用）：改在儲存時呼叫 `toast('已儲存', { id: 'saved' })`。舊 prop 也經由 `toast()` 顯示，不再蓋住手機的分頁列。
+  - FileUpload 的 `status: 'error'` 改名為 `'danger'`；舊值仍可用，開發時警告。
+  - LoginCard 的「忘記密碼」改用 Link。觸控螢幕上清單選項與 DataTable 篩選的數字欄位至少 48 px；MultiSelect 打開清單時輸入框仍有名稱；DataTable 沒有資料時的 ARIA 表格結構完整；LineChart 資料表的「名稱（單位）」欄名有英文。
+  - 新字串的英文：DataTable 排序順序與欄寬調整、KpiCard 的「改善／變差」、圖表資料表的欄名。
+  - `ui check` 在頁面自己也跑 axe（Storybook 的無障礙 addon）時等它跑完，不再失敗。
+- Updated dependencies [48b2b67]
+- Updated dependencies [6d721ee]
+- Updated dependencies [a7061b3]
+- Updated dependencies [44764bc]
+- Updated dependencies [92da534]
+- Updated dependencies [fdfaeb2]
+- Updated dependencies [4a6088e]
+- Updated dependencies [183e1ff]
+- Updated dependencies [4a6088e]
+- Updated dependencies [d3a0f11]
+- Updated dependencies [693c84a]
+- Updated dependencies [523b0d5]
+- Updated dependencies [4a6088e]
+- Updated dependencies [85e523d]
+  - @seanyeh77/ui@0.45.0
+
 ## 0.44.0
 
 ### Patch Changes

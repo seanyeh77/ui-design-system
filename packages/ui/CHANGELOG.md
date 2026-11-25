@@ -1,5 +1,114 @@
 # @seanyeh77/ui
 
+## 0.45.0
+
+### Minor Changes
+
+- 6d721ee: 核心修正：SSR、主題、i18n 與日期。
+  
+  - SSR 與 hydration：存在 localStorage 的選擇（ThemePicker、AccentPicker、Section 的 `storageKey`、AppShell 側邊欄、`useTour`、DataTable 的 `widthKey`、LayerGraph 的高度與線上文字、Workbench 版面）和媒體查詢在伺服器與瀏覽器第一次渲染都用預設值，接手後才換成存下的值，不再有 hydration 不一致；其他分頁改了也會跟著變。ConsoleLayout 的全螢幕按鈕、KpiCard 與 ProgressRing 的數字動畫也一樣。
+  - 主題：`initTheme({ preset: 'teaching' })`（或根元素的 `data-theme-preset`）讓 `setTheme()` 不再蓋掉 teaching preset。沒選過強調色時不再寫 inline 的 `--accent*`，由 `tokens.css` 決定；新增 `resetAccent()`、`pickedAccent()`、`themePreset()`，並匯出 `storedTheme()`、`storedAccent()`。在沒有 `window` 的環境呼叫主題函式不會出錯。遷移：自己用 CSS 覆寫 `--accent` 的頁面改用 `setAccent()`；自己設 `data-theme="teaching"` 的頁面改用 `initTheme({ preset: 'teaching' })`。
+  - tokens：每個主題設 `color-scheme`（深色主題的原生捲軸與表單控制項跟著變深）；新匯出 `presets`；`usage` 說明統一成英文並修正 `space-5`、`sidebar-collapsed`。
+  - 日期：`format.relative` 跨過午夜以日曆天計算（凌晨 1 點看前一晚 10 點是「昨天」，不是「3 小時前」），7 個日曆天以上寫完整日期。新元件 `RelativeTime` 每分鐘自己更新（全頁共用一個計時器），DataTable 的 `format: 'relative'` 改用它。DataTable 欄位格式改寫成 `format: 'dateTime'`；`'datetime'` 仍可用，開發時警告。
+  - i18n：新增 `useLocale()`、`subscribeLocale()`、`<LocaleProvider locale>`（SSR 時一個請求一種語系）；`t()` 支援「情境::原文」的 key。補上缺少的英文翻譯，全形標點改經過翻譯。預設文字不再限定專案：LayerGraph 外部方框的預設標籤從「repo 外」改成「外部」（要原本的字請傳 `externalLabel="repo 外"`），英文的次數從「{n} calls」改成「{n} uses」，DataTable 長文字的「收合」英文仍是 Show less、其他地方的「收合」英文改成 Collapse。CommandPalette 的內建種類改用 `kind: 'page' | 'setting' | 'command' | 'file'`，名稱跟著語系；舊的中文種類名稱仍可用，開發時警告。GraphLegend 不再翻譯頁面自己傳的圖例文字。
+  - 開發警告：全部改成英文；`devWarn` 的條件與訊息可以是函式，正式版不再為了警告每次渲染掃過所有列。
+  - `consoleZoom` 標成 deprecated（開發時警告），之後的版本會從匯出移除；ConsoleLayout 自己會縮放。
+  - `focusMain` 不再在 import 時掛上 document 的事件，改由 AppShell 與 `initTheme()` 啟用。
+- a7061b3: 資料與圖表的全面審查修正。
+  
+  - DataTable：搜尋、篩選、排序與分頁改用 `useMemo`，量欄寬一次只更新一次 state；勾選後的批次操作列移到表格上方（`role="toolbar"`），表頭保留；欄寬邊框的點擊範圍 24 px，點一下邊框依序加寬（不必拖曳）；排序面板每層多「上移」「下移」，方向 radio 改成方向鍵切換；字距或行距改變時重新量欄寬；手機卡片的欄名和值同一行、操作按鈕自己一行；筆數只在搜尋或篩選後顯示；新的 `toolbar={false}` 與欄位 `mono: true`；展開欄有標題；頁碼改成安靜樣式，停用的箭頭維持 4.5:1；列勾選框在深色模式不再是灰底。
+  - 表格（DataTable、Markdown）裡有連結的 InlineCode 只顯示連結色的等寬字。
+  - BarChart、LineChart：y 軸寬度依刻度文字、刻度改用 1、2、5 的整數步距、新的 `format="compact"`（「50 萬」）、y 軸上方顯示單位；BarChart 新的 `height`（數字或 `'fill'`）；LineChart 的 x 軸標籤不再超出圖；播放頭是 `role="slider"`，看數值時是 `role="application"`，圖後面附只給螢幕閱讀器的資料表。
+  - Graph、LayerGraph：變淡時只淡化線與底色，文字改成 `ink-muted`（4.5:1）。LayerGraph 排版與繞線改用 `useMemo`，滑過只切換 class。
+  - KpiCard：螢幕閱讀器念得到數值，好壞多念「改善／變差」；「萬」「億」照單位的樣式；變化跟著 `decimals`；內距改成 16 px。
+  - Skeleton 看得見（`line` 色）且在減少動態時不動；ProgressBar、Meter 在強制色彩模式下不再消失。
+  - TreeList：日期與大小的數字用 Geist Mono；下載鈕改 quiet；「全部展開」改成圖示按鈕；標題 17 px；項目名稱包含畫面上的 meta。
+  - ZoneMap：熱度色階預設用資料的最小與最大值；畫面上的數值和單位之間加空格。
+  
+  升級方式（舊名稱下一版前仍可用，開發時 console 會提示）：
+  
+  - LayerGraph：`fns` 已移除，改用 `size`。`sizeLabel`、`countLabel`、`externalLabel`、`sharedLabel`、`sharedMeta`、`useLabel`、`inferredLabel`、`inferredText`、`declaredLabel`、`declaredLegend`、`declaredText`、`listLabels` 改成 `labels={{ size, count, external, shared, sharedMeta, use, inferred, inferredText, declared, declaredLegend, declaredText, listNodes, listEdges }}`；`selected`、`onSelect` 改成 `value`、`onChange`；`heightKey`、`scrollKey` 改成一個 `storageKey`。沒有 `storageKey` 時不再寫入 localStorage（原本「線上文字」開關會以方框 id 為鍵名寫入）。
+  - TreeList：`selectedId`、`onSelect(node)` 改成 `value`、`onChange(id, node)`；`selected`、`onSelectChange` 改成 `values`、`onValuesChange`。
+  - ZoneMap：`selectedId`、`onSelect(zone)` 改成 `value`、`onChange(id, zone)`。沒給 `min`、`max` 時色階改用資料的範圍；溫度圖要維持原本的 20 到 30 請自己傳 `min={20} max={30}`。
+  - DataTable：沒有篩選時不再顯示「n / n 筆」；勾選時表頭不再換成批次列，若有測試找 `.ui-dt-head.ui-dt-bulk`，改找 `role="toolbar"`。
+- 92da534: DataTable 用 `storageKey` 記住讀者拖出的欄寬和顯示的欄位，和其他會記住選擇的元件同名；`widthKey` 已棄用，仍然可用（存的資料不變），開發時 console 會警告改名。
+- 4a6088e: 回饋與按鈕：
+  
+  - 新增 `toast(message, { tone, action, id })`、`<Toaster />` 與 `useToast()`（Base UI Toast）：右下角（手機在底部分頁列上方）疊放，一直存在的 live region 念出新訊息。一般訊息 3 s 後消失；有動作的（例如「復原」）停留 10 s，滑鼠或焦點在訊息上時暫停，`undo: true` 時按 Ctrl Z（⌘Z）也能復原。`<Toast>` 仍可單獨畫出卡片，新增 `tone`。改法：頁面裡自己管 toast 文字和 `setTimeout` 的，改成在 app 放一個 `<Toaster />`，需要時呼叫 `toast('已儲存')`。
+  - `Button` 的 `loading` 改用 `aria-disabled` 加 `aria-busy`，不再設 `disabled`：焦點留在按鈕上，載入中按了不執行也不送出表單。檢查 `button.disabled` 的測試改看 `aria-disabled`。
+  - `Button` 與 `IconButton` 在有焦點時被停用，焦點移到同一組裡前一個控制項，不會掉到 `<body>`（例如 TimeControl 的「回到現在」）。
+  - 停用的 primary 按鈕保留淡淡的 `accent-soft` 底色。
+  - `ErrorPage` 的大號錯誤碼改用 Inter 的等寬數字（tabular-nums）。
+- 183e1ff: 字型檔只放在 `@seanyeh77/tokens`：`@seanyeh77/ui` 改成依賴它（安裝時自動一起裝），`@seanyeh77/ui/fonts.css` 改成 `@import '@seanyeh77/tokens/fonts.css'`，由 bundler 解析（Vite、webpack、Next.js 都可以），套件從約 12 MB 降到約 1 MB；`dist/bundle.js.map` 不再放進套件。升級方式：用 bundler 的專案不必改；在瀏覽器直接載入 `node_modules/@seanyeh77/ui/dist/fonts.css` 或從 CDN 載入 `@seanyeh77/ui/dist/fonts.css` 的頁面，改載入 `@seanyeh77/tokens/fonts.css`，或用文件網站固定版本的 `/dist/<版本>/fonts.css`。
+- 4a6088e: 表單欄位的 API 統一（破壞性變更，改法如下）：
+  
+  - `TextField` 的 `onChange` 改成 `onChange(value, event)`，第一個參數是新的文字。改法：`onChange={(e) => setName(e.target.value)}` 改成 `onChange={setName}`；需要事件時用第二個參數 `onChange={(v, e) => …}`。`TextArea` 也多了第二個參數 `event`。
+  - 新的共用型別 `FieldProps`：`label`（必填）、`hideLabel`、`hint`、`error`、`required`、`disabled`、`name`。`TextField`、`TextArea`、`Select`、`MultiSelect`、`DatePicker`、`DateRangePicker` 都用它，所以這些元件的 `label` 變成必填。改法：沒有標籤的欄位加上 `label="…"`，看不到標籤時加 `hideLabel`；`Select` 原本只給 `aria-label` 的改成 `label="…" hideLabel`（`aria-label` 仍可用一個版本，開發模式提醒）。
+  - `DateRangePicker` 的 `value` 與 `onChange` 改成 `[Date | null, Date | null]`，「清除」會送出 `[null, null]`；型別 `DateRange` 也是這個。改法：`onChange` 的處理函式接受 `null`。新增 `hint`、`error`、`required`、`disabled`、`name`；日曆圖示移到右邊，按鈕名稱包含畫面上的日期文字（WCAG 2.5.3）。
+  - `DatePicker` 新增 `disabled`、`name`、`hideLabel`；在 `FormGrid` 裡寬度填滿欄位。`MultiSelect` 新增 `hint`、`required`、`disabled`、`name`，「+n」念成「另外 n 個：…」。`TextArea` 的字數連到 `aria-describedby`，打到上限時念「已達 n 字上限」。`TextField` 保留你自己給的 `aria-describedby` 與 `aria-invalid`。
+  - `Checkbox`、`Switch`、`RadioGroup` 可以不受控：`defaultChecked`、`defaultValue`；`onChange` 多了第二個參數 `event`；新增 `name`。`Checkbox` 與 `RadioGroup` 一定要有 `label` 或 `aria-label`（型別檢查）。改法：沒有文字的 `<Checkbox />` 加 `aria-label`。
+  - `SegmentedControl` 改用 `options: { value, label, icon }[]`，和 Select、RadioGroup 相同；`items: { id, … }[]` 仍可用一個版本，開發模式提醒。高度改成 40 px（Workbench 的 `mainBar` 裡維持 28 px），觸控裝置 48 px；只有圖示時選中的圖示用 `ink` 色。
+  - `Calendar` 的 `focus` 改名 `month`（值改變時月曆跟著換頁）與 `defaultMonth`，新增 `onMonthChange`；`focus` 仍可用一個版本。
+  - `AccentPicker` 與 `ThemePicker` 有看得見的標籤（「強調色」「主題」）；色碼欄位改成離開欄位或按 Enter 時才檢查，錯誤與提示連到 `aria-describedby`。
+  - `FormGrid` 改用 container query：FormGrid 自己寬 640 px 以上才雙欄，放在 400 px 的 Drawer 裡維持單欄。FormGrid 裡多了一層 `.ui-formgrid-in`，自己的 CSS 選 `.ui-formgrid > *` 的要改成 `.ui-formgrid-in > *`。
+  - 新增 `useFormErrors(values, validate)`：離開欄位與送出時才顯示錯誤，送出時焦點移到第一個有錯的欄位。
+  - `LoginCard`：外層改成 `<main>`，底色 `bg`、最小高度 100dvh；送出有錯時焦點移到第一個有錯的欄位，錯誤不再同時用兩個 `role="alert"`；「顯示密碼」名稱固定，只改 `aria-pressed`；新增 `logo`。
+  - 選項的文字一律 15 px（`text-control`），Switch 旁 `<label>` 裡的文字也是。
+  - `Term variant="inline"`：鍵盤 focus 不再自動打開說明，按 Enter 或點一下才打開；要舊的行為時加 `openOnFocus`。
+  - Checkbox 與 Switch 在強制色彩模式（Windows 高對比）下用系統色，勾、橫線與圓鈕不再消失。
+- d3a0f11: 全面審查修正的整合：
+  
+  - AppShell 自動放一個 Toaster：AppShell 裡的頁面直接呼叫 `toast()`；頁面自己放了 `<Toaster />` 時改用頁面的。Toaster 還沒出現前呼叫的 `toast()` 會排隊，不再遺失。
+  - SettingsLayout 的 `toast` prop 改成 deprecated（開發時警告，仍可用）：改在儲存時呼叫 `toast('已儲存', { id: 'saved' })`。舊 prop 也經由 `toast()` 顯示，不再蓋住手機的分頁列。
+  - FileUpload 的 `status: 'error'` 改名為 `'danger'`；舊值仍可用，開發時警告。
+  - LoginCard 的「忘記密碼」改用 Link。觸控螢幕上清單選項與 DataTable 篩選的數字欄位至少 48 px；MultiSelect 打開清單時輸入框仍有名稱；DataTable 沒有資料時的 ARIA 表格結構完整；LineChart 資料表的「名稱（單位）」欄名有英文。
+  - 新字串的英文：DataTable 排序順序與欄寬調整、KpiCard 的「改善／變差」、圖表資料表的欄名。
+  - `ui check` 在頁面自己也跑 axe（Storybook 的無障礙 addon）時等它跑完，不再失敗。
+- 693c84a: 版面、狀態與範本的全面修正。
+  
+  - 新增 `Link`：文字連結，`accent-text` 色加底線，`external` 另開分頁並加圖示，`render` 給路由器的連結；沒有 class 的 `<a>`（Markdown、舊內容）也套用連結色，不再是瀏覽器預設的藍色。
+  - 新增 `PageHeader`：詳細頁的頁首（標題、狀態與一行資訊、一個主要按鈕、外框按鈕、「⋯」選單；手機上外框按鈕收進「⋯」）。標題只出現一次：詳細頁的標題給 PageHeader，AppShell 不給 `title`。
+  - 新增 `SettingsRow`：設定的一列（名稱、說明、右邊的 Switch），整列是 `<label>`。Switch 新增 `aria-describedby`。
+  - `Grid` 的 `columns` 可以給比例，例如 `[2, 1]`（主要內容加側欄），960 px 以下一欄。
+  - `Badge`：一律是狀態圓圈加文字，沒有底色和陰影；新增 `tone`（`neutral`、`info`、`success`、`warning`、`danger`）和 `closed`、`online`、`offline` 預設（型別 `BadgePreset`，`BadgeStatus` 仍是原本 5 種）；`fail` 的圓圈改成空心加 ×；只有 `warning`、`danger` 的文字上色加粗，`doing` 改成一般粗細。遷移：`variant` 已停用，直接拿掉；放在頁面上（不在 Card、DataTable 裡）的 Badge 不再是浮起的 Chip。
+  - `Tag`：`variant="forecast"` 換成 `icon="trend-up" tone="info"`，`variant="demo"` 換成 `icon="info"`；舊寫法這一版仍可用，開發模式會提醒。
+  - `AppShell`、`TopBar`：新增 `tags`（標題旁，例如「示範資料」）；`breadcrumb` 停用（麵包屑放在內容最上方的 `<Breadcrumb>`）；`<main>` 加上 `id="main"`；頂部列標題至少保留完整寬度或 45 %，專案切換器先縮。
+  - `ProjectSwitcher`：狀態改用 Badge 的圓圈；放不下時狀態文字整段拿掉，名稱只用一個「…」截斷。
+  - `Card`：標題至少保留 8 個字，放不下時 `actions` 換到標題下一列靠右。
+  - `Alert`：拿掉上緣色條；動作按鈕 40 px，移到內文下方（有沒有「✕」都對齊）；「✕」40 px。
+  - `EventTimeline`：`kind` 可以是任何字串，新增 `kinds`（圖示、名稱、tone）與 `actor`；跨好幾天時每天上方有日期。
+  - `SettingsLayout`：選中的分類寫進網址 hash（`urlSync`，給了 `value` 時不寫），換分類時念出名稱；手機上卡片撐滿寬度；內容最寬 760 px，卡片間距 32 px；在 AppShell 裡標題重複時提醒。`SettingsSection` 與 `DangerZone` 標題 17 px；`DangerZone` 改成卡片陰影、只有標題是紅色。
+  - `SideNav`：底部的圖釘和收合圖示 22 px，和項目圖示對齊。`NotificationBell` 的名稱改成「通知中心」。
+  - `CodeView`：沒有 `file` 或 `title` 時是以語言命名的 group（不是 landmark）；註解不再用斜體。
+  - 強制色彩模式（Windows 高對比）：焦點、選取指示、勾選與開關、狀態圓點和卡片邊緣都看得到。
+- 4a6088e: 浮層的開關與確認：
+  
+  - `Dialog`、`Drawer`、`Popover`、`Menu`、`CommandPalette`、`Tour` 都接受 `open`、`defaultOpen` 與 `onOpenChange(open, reason)`。`Dialog`、`Drawer`、`Tour` 的 `onClose` 仍可用一個版本，開發模式提醒。改法：`onClose={() => setOpen(false)}` 改成 `onOpenChange={setOpen}`；Tour 用 `useTour` 的 `tour.onOpenChange`，`reason` 是 `'done'` 或 `'skip'`。
+  - `Dialog` 的 props 改成聯集型別：`confirmLabel` 加 `onConfirm` 與 `actions` 只能擇一，`modal={false}` 的靜態面板不能同時給 `open`；寫錯組合時型別檢查不會過。`tone` 的 `'default'` 改名 `'neutral'`（舊名仍可用）。內文用 `aria-describedby` 連到框；`tone="danger"` 是 `role="alertdialog"`，焦點先到「取消」。測試裡找危險確認框的 `getByRole('dialog')` 要改成 `getByRole('alertdialog')`。
+  - `Drawer` 有未儲存的修改時，「放棄未儲存的變更？」出現在抽屜自己的底部，不再是蓋在頁面中間的對話框（測試裡改找 `getByRole('group', { name: '放棄未儲存的變更？' })`）。新增 `description`。
+  - `Popover` 的 `count` 只收數字（`count="2"` 改成 `count={2}`），新增 `unit`、`className`。
+  - Menu、Select、MultiSelect 與 DataTable 篩選面板的選項一律 40 px 高、文字 15 px。Tabs 整排高度改成 40 px。
+  - 新的型別 `OpenChangeReason`、`OpenStateProps`。
+
+### Patch Changes
+
+- 48b2b67: LineChart 與 BarChart 的 y 軸寬度一律用最後一次量到的標籤寬度：字型載入前後量到的值不同時，不再保留較早的值，同一頁每次畫出的圖都一樣。
+- 44764bc: DataTable 換頁或篩選時淡出的舊列複本設為 `inert`，裡面的連結與按鈕不能取得焦點，也不重複表格裡的 id，動畫期間不再違反 axe 的 aria-hidden-focus 規則。
+- fdfaeb2: 文件整理：
+  
+  - AppShell 的導覽抽屜在 600 到 1023 px，1024 px 以上有側邊欄（剛好 1024 px 寬的視窗現在有側邊欄）；文件和 `bp-desktop` 的說明寫清楚 1024 px 只是導覽的邊界，頁面排版的斷點仍是 600、960、1280 px。
+  - 套件的 `docs/` 多了 `agents.md`（做頁面的閱讀路徑）和 `icons.md`；`ui docs icons` 印出所有內建圖示名稱，`ui docs agents` 印出閱讀路徑。
+  - guidelines 補上常見頁面（清單、詳細、Dashboard、設定、表單）與狀態回饋（載入、失敗、空清單、Toast）的規則；每條規則只說一次。DataTable、LayerGraph、TreeList、Workbench、CodeView、Markdown 的 README 縮短，實作規格移到 repo 的 `docs/maintaining/`。
+  - 元件分組重新整理（`ui list`、llms.txt）：新增「版面與外框」「監控畫面」「程式碼與架構圖」「文字標記」，「頁面範本」改名「整頁元件」。`useFormErrors` 不再被 `ui docs` 當成指南。
+  - 每個匯出元件的 prop 都有一行 JSDoc（編輯器和 props 表格看得到）。
+  - tokens.json 的 `dur-toggle`、`dur-nav`、`space-5` 說明照實際用途改寫。
+- 523b0d5: 觸控裝置上 Workbench 的 `mainBar` 裡的 SegmentedControl 維持 28 px 高（每個選項的觸控範圍仍是 48 px），不再超出 36 px 的列。Badge 與 Toast 的預覽拿掉多出來的內距，和下方內容對齊。
+- 85e523d: `ui check` 多檢查：被截斷又沒有 Tooltip 或 title 的介面文字、跑出卡片外的文字、1280 px 時小於 24 px 又擠著別的目標的目標（WCAG 2.5.8）、axe-core 的 WCAG 2.0、2.1、2.2 A 與 AA 規則（`--no-axe` 關掉），並自動點開分頁、SettingsLayout 分類和工具列選單檢查打開後的畫面（`--no-interact` 關掉；`--open <selector>` 加上自己的狀態）。頁面沒有 viewport meta 時只回報一次「缺 viewport meta」，不再把觸控目標算在元件頭上；整列可點的列連結（DataTable 的 `a.ui-dt-rowlink`）不算小目標。`ui check` 用和 `ui shots` 相同的 Chromium。`ui shots` 的整頁截圖包含 AppShell 主內容裡捲動的部分；網址的截圖檔名改用路徑加 hash，不含冒號，同一個網站的頁面不再互相覆蓋。`--help` 印出各指令的說明。`ui docs` 不加名稱時先印閱讀順序，`ui list` 依分組列出元件（`@seanyeh77/ui` 的 `docs/components.json` 提供分組）。升級方式：用網址產生的基準圖要重新產生（檔名改了）；新的檢查找出的問題要修，或暫時加 `--no-axe`、`--no-interact`。
+- Updated dependencies [6d721ee]
+- Updated dependencies [fdfaeb2]
+- Updated dependencies [183e1ff]
+  - @seanyeh77/tokens@0.45.0
+
 ## 0.44.0
 
 ### Minor Changes
