@@ -9,8 +9,11 @@ export interface UseFormErrors<V> {
   errors: FormErrors<V>;
   /** The fields that were left at least once. */
   touched: Partial<Record<keyof V & string, boolean>>;
-  /** Call from a field's onBlur: onBlur={() => form.onBlur('name')}. Its error shows from then on. */
-  onBlur: (name: keyof V & string) => void;
+  /** Call from a field's onBlur: onBlur={() => form.onBlur('name')}. Its error shows from then on. Returns whether the
+   *  field is valid now, so a settings page saves on blur only then: if (form.onBlur('name')) save(). */
+  onBlur: (name: keyof V & string) => boolean;
+  /** Whether one field passes validate now, shown or not: form.isValid('name'). */
+  isValid: (name: keyof V & string) => boolean;
   /** Wraps your submit handler: shows every error and focuses the first invalid field (by its `name`), or runs handler
    *  with the values when there are none. Use as <form onSubmit={form.submit(save)}> or onClick={form.submit(save)}. */
   submit: (handler: (values: V) => void) => (event?: React.SyntheticEvent) => void;
@@ -32,7 +35,13 @@ export function useFormErrors<V extends Record<string, unknown>>(values: V, vali
   React.useLayoutEffect(() => {
     latest.current = { values, validate };
   });
-  const onBlur = React.useCallback((name: keyof V & string) => setTouched((t) => (t[name] ? t : { ...t, [name]: true })), []);
+  // From this render's values: called while rendering or from a field's onBlur (which runs after the render of the
+  // last key typed).
+  const isValid = (name: keyof V & string) => !all[name];
+  const onBlur = (name: keyof V & string) => {
+    setTouched((t) => (t[name] ? t : { ...t, [name]: true }));
+    return isValid(name);
+  };
   const submit = React.useCallback(
     (handler: (values: V) => void) => (event?: React.SyntheticEvent) => {
       event?.preventDefault();
@@ -62,5 +71,5 @@ export function useFormErrors<V extends Record<string, unknown>>(values: V, vali
     setTouched({});
     setSent(false);
   }, []);
-  return { errors, touched, onBlur, submit, reset };
+  return { errors, touched, onBlur, isValid, submit, reset };
 }

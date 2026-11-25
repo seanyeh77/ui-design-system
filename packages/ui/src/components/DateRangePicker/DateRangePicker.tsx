@@ -68,6 +68,8 @@ export function DateRangePicker({ label, hideLabel, hint, error, required, disab
         open={open}
         onOpenChange={toggle}
         className="ui-datepop ui-rangepop"
+        // Focus on the selected day, else today (the calendar's one day in the Tab order), not on 「上個月」.
+        focusOnOpen='.ui-cal-day[tabindex="0"]'
         aria-label={tr('選擇期間')}
         trigger={
           <button

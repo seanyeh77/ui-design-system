@@ -7,12 +7,13 @@ KPI 卡片，放在 Dashboard 最上方，用 `Grid` 排成一列。本身就是
 ```tsx
 <Grid columns={4}>
   <KpiCard label="本月營收" value={12840000} format="money" delta={8.2} spark={revenue} />
-  <KpiCard label="錯誤率" value={0.42} unit="%" decimals={2} delta={12} good={false} />
+  <KpiCard label="錯誤率" value={0.42} unit="%" decimals={2} delta={12} direction="down" compareLabel="較昨天" />
 </Grid>
 ```
 
 - 由上到下：標籤、大數字加單位、迷你折線（`spark`）、變化（`delta`）。
-- 變化的顏色看好壞、不看方向：`good` 預設為 `delta > 0`；錯誤率這種上升是壞事的指標設 `good={false}`。
+- 變化的顏色看好壞、不看方向：`direction` 是哪個方向比較好，預設 `'up'`（營收、人數）；錯誤率、回應時間、成本這種越低越好的指標設 `direction="down"`，下降就是綠色「改善」。`good` 只在要直接指定這次是好（`true`）或壞（`false`）時才給，會蓋過 `direction`。
+- 變化後面的比較期間寫在 `compareLabel`，預設「較上週」；期間選擇是「今天」時給「較昨天」。
 - 單位寫在 `unit`（人、ms、%）；金額用 `format="money"`；百分比的指標，變化用 `deltaUnit="pt"`（「個百分點」）。
 - 監控畫面的頂列用 `size="compact"`（見下方）。
 
@@ -23,7 +24,7 @@ KPI 卡片，放在 Dashboard 最上方，用 `Grid` 排成一列。本身就是
 - 大數字縮寫只出現在 KPI 卡片：1 萬以上寫成「1,284 萬」（`compact={false}` 可以關掉）；「萬」「億」和單位一樣是一般字體、一半大小、`ink-muted`，不和數字一樣大。金額顯示成「NT$ 1,284 萬」。`format="percent"` 只決定一位小數，% 用 `unit: '%'` 加上。
 - 數字進場時從 0 數上來（900 ms）。跳動途中用和最終值相同的單位和小數位數，寬度先保留給最終值，所以不會忽寬忽窄。
 - 卡片太窄、最終數字放不下時，字級自動從 31 px 縮小，最小 20 px。
-- 變化：▲／▼ 加百分比，後面接灰色「較上週」（`compareLabel` 可改）。給了 `decimals` 時變化也用同樣的小數位數（`decimals={1}` 寫「0.4 個百分點」，不寫「0.40」）；沒給時百分比 1 位、百分點 2 位。好壞除了顏色，螢幕閱讀器還會念「改善」或「變差」（WCAG 1.4.1）。
+- 變化：▲／▼ 表示方向，加百分比，後面接灰色「較上週（改善）」或「較上週（變差）」：好壞除了顏色也用灰色文字寫出來（WCAG 1.4.1），箭頭只表示方向。給了 `decimals` 時變化也用同樣的小數位數（`decimals={1}` 寫「0.4 個百分點」，不寫「0.40」）；沒給時百分比 1 位、百分點 2 位。`delta={0}` 沒有箭頭、不寫好壞，整行灰色。
 - 螢幕閱讀器念最後的數字和單位（一段只給螢幕閱讀器的文字）；跳動中的數字不念。
 
 ## 緊湊版（`size="compact"`）

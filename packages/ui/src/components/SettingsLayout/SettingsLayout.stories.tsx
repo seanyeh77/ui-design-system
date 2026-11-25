@@ -8,6 +8,8 @@ function D() {
     [a, setA] = React.useState(true);
   // One 「已儲存」 that restarts on every change. Inside AppShell the Toaster is already there.
   const saved = () => UI.toast('已儲存', { id: 'saved' });
+  // A text field saves when it is left and valid: onBlur returns whether it is.
+  const form = UI.useFormErrors({ name: n }, (v) => ({ name: v.name.trim() ? undefined : '名稱不能空白，請輸入顯示名稱。' }));
   return (
     <div style={{ padding: 20, height: 520, boxSizing: 'border-box', overflow: 'auto' }}>
       <UI.Toaster />
@@ -16,19 +18,24 @@ function D() {
         urlSync={false}
         categories={[
           {
-            id: 'profile',
-            label: '個人資料',
-            content: (
-              <UI.SettingsSection title="個人資料">
-                <UI.TextField label="名稱" value={n} onChange={setN} onBlur={saved} />
-              </UI.SettingsSection>
-            ),
-          },
-          {
             id: 'noti',
             label: '通知',
             content: (
-              <UI.SettingsSection title="通知" description="改完會自動儲存。">
+              <UI.SettingsSection
+                title="通知"
+                description="改完會自動儲存。"
+                actions={
+                  <UI.Button
+                    variant="quiet"
+                    onClick={() => {
+                      setA(true);
+                      saved();
+                    }}
+                  >
+                    還原預設
+                  </UI.Button>
+                }
+              >
                 <UI.SettingsRow label="Email 通知" description="部署失敗時寄到帳號的 Email。">
                   <UI.Switch
                     label="Email 通知"
@@ -39,6 +46,15 @@ function D() {
                     }}
                   />
                 </UI.SettingsRow>
+              </UI.SettingsSection>
+            ),
+          },
+          {
+            id: 'profile',
+            label: '個人資料',
+            content: (
+              <UI.SettingsSection title="個人資料">
+                <UI.TextField label="名稱" value={n} onChange={setN} onBlur={() => form.onBlur('name') && saved()} error={form.errors.name} />
               </UI.SettingsSection>
             ),
           },

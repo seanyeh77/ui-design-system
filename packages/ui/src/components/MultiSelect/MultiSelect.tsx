@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Combobox } from '@base-ui/react/combobox';
+import { announce } from '../../announce';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
@@ -55,6 +56,15 @@ export function MultiSelect({
 }: MultiSelectProps) {
   const id = React.useId();
   const [query, setQuery] = React.useState('');
+  // Whether the list is shown: Esc closes it then, and otherwise is left to the page (a Drawer or Dialog around it).
+  const [open, setOpen] = React.useState(false);
+  // Removing is said aloud: a chip's ×, Backspace or 清除.
+  const change = (next: string[]) => {
+    const gone = value.filter((v) => !next.includes(v));
+    if (!next.length && gone.length > 1) announce(tr('已清除{name}', { name: label }));
+    else if (gone.length === 1 && next.length === value.length - 1) announce(tr('已移除 {name}', { name: labelOf(gone[0]) }));
+    onChange(next);
+  };
   const labels = React.useMemo(() => new Map(options.map((o) => [o.value, o.label])), [options]);
   const labelOf = (v: string) => (v.startsWith(CREATE) ? tr('新增「{q}」', { q: v.slice(CREATE.length) }) : (labels.get(v) ?? v));
   const q = query.trim();
@@ -77,9 +87,10 @@ export function MultiSelect({
         value={value}
         inputValue={query}
         onInputValueChange={setQuery}
+        onOpenChange={setOpen}
         itemToStringLabel={labelOf}
         onValueChange={(next: string[]) => {
-          onChange(next.map((v) => (v.startsWith(CREATE) ? v.slice(CREATE.length) : v)));
+          change(next.map((v) => (v.startsWith(CREATE) ? v.slice(CREATE.length) : v)));
           setQuery('');
         }}
       >
@@ -114,12 +125,26 @@ export function MultiSelect({
                 // Hidden chips (+n) still count: Backspace removes the last value, not the last visible chip.
                 if (e.key === 'Backspace' && !query && value.length) {
                   e.preventBaseUIHandler();
-                  onChange(value.slice(0, -1));
+                  change(value.slice(0, -1));
+                }
+                // Esc with the list closed: Base UI would clear every value, with no undo. It clears only the typed
+                // text, if any; else it goes on to the Drawer or Dialog around the field, which closes.
+                if (e.key === 'Escape' && !open) {
+                  e.preventBaseUIHandler();
+                  if (query) {
+                    e.stopPropagation();
+                    setQuery('');
+                  }
                 }
               }}
             />
           </Combobox.Chips>
           {error ? <FieldErrorIcon inline /> : null}
+          {value.length > 1 && !disabled ? (
+            <Combobox.Clear className="ui-ms-clear" aria-label={tr('清除{name}', { name: label })}>
+              <Icon name="x" size={16} />
+            </Combobox.Clear>
+          ) : null}
         </Combobox.InputGroup>
         <Combobox.Portal>
           <Combobox.Positioner className="ui-float is-match" align="start" sideOffset={6}>

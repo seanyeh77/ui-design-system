@@ -45,9 +45,17 @@ export function Calendar({ month: monthProp, defaultMonth, onMonthChange, focus:
   // A new month prop (another value picked outside, a reset): move there, during render so there is no flash.
   const followKey = monthProp ? monthProp.getFullYear() * 12 + monthProp.getMonth() : null;
   const [followed, setFollowed] = React.useState(followKey);
+  // The day the keyboard is on: the only day in the Tab order (the focused, else the selected, else today, else the
+  // 1st), always in the month shown.
+  const [active, setActive] = React.useState<Date>(() => focus || new Date());
+  // The keyboard's day follows too: the new value, or today once the value is cleared (null).
   if (followKey !== followed) {
     setFollowed(followKey);
-    if (monthProp) setOwnMonth(first(monthProp));
+    const to = monthProp ?? (monthProp === null ? new Date() : null);
+    if (to) {
+      setOwnMonth(first(to));
+      setActive(to);
+    }
   }
   const setMonth = (d: Date) => {
     setOwnMonth(d);
@@ -56,9 +64,6 @@ export function Calendar({ month: monthProp, defaultMonth, onMonthChange, focus:
   const today = new Date();
   const y = month.getFullYear();
   const m = month.getMonth();
-  // The day the keyboard is on: the only day in the Tab order (the focused, else the selected, else today, else the
-  // 1st), always in the month shown.
-  const [active, setActive] = React.useState<Date>(() => focus || today);
   const cur = active.getFullYear() === y && active.getMonth() === m ? active : new Date(y, m, Math.min(active.getDate(), new Date(y, m + 1, 0).getDate()));
   const grid = React.useRef<HTMLDivElement>(null);
   const moveTo = React.useRef(false);

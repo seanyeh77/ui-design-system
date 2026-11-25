@@ -66,7 +66,7 @@ export function Select<V extends string = string>(props: SelectProps<V>) {
   ) : null;
   const trigger = (
     <>
-      <span className={cx(!current && 'is-placeholder')}>{current ? current.label : placeholder || tr('請選擇')}</span>
+      <span className={cx('ui-select-text', !current && 'is-placeholder')}>{current ? current.label : placeholder || tr('請選擇')}</span>
       {error ? <FieldErrorIcon inline /> : null}
       <Icon name="caret-down" size={16} className="ui-select-chev" />
     </>

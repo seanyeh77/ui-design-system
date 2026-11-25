@@ -69,7 +69,30 @@
   flex-direction: column;
   gap: 12px;
 }
+/* The title row, like a Card's: actions (「還原預設」) at the right end; when they do not fit beside 8 characters of the
+   title they move under it, right-aligned. The row is 40 px only when it has actions. */
+.ui-settings-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+.ui-settings-head:has(> .ui-settings-actions) {
+  min-height: var(--control-height);
+}
+.ui-settings-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
 .ui-settings-h {
+  flex: 1 1 8em;
+  min-width: min(8em, 100%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   margin: 0;
   font-size: var(--text-title);
   font-weight: 700;
@@ -107,19 +130,8 @@
     flex-direction: column;
     align-items: stretch;
   }
-  .ui-settings-nav {
-    position: static;
-    flex-direction: row;
-    overflow-x: auto;
-    flex-basis: auto;
-  }
-  .ui-settings-cat.is-on::before {
-    left: 8px;
-    right: 8px;
-    top: auto;
-    bottom: 0;
-    width: auto;
-    height: 3px;
-    border-radius: 3px 3px 0 0;
+  /* The categories as Tabs, like every other row of tabs: the row scrolls sideways when the names do not fit. */
+  .ui-settings-tabs {
+    align-self: stretch;
   }
 }

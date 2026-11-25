@@ -79,6 +79,8 @@ export function DatePicker({ label, hideLabel, value, onChange, hint, required, 
           onOpenChange={setOpen}
           anchor={field}
           className="ui-datepop"
+          // Focus on the selected day, else today (the calendar's one day in the Tab order), not on 「上個月」.
+          focusOnOpen='.ui-cal-day[tabindex="0"]'
           aria-label={tr('選擇日期')}
           trigger={
             <button type="button" className="ui-datefield-btn" aria-label={tr('開啟日曆')} disabled={disabled}>

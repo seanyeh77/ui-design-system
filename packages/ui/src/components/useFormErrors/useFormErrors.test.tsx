@@ -78,3 +78,36 @@ test('useFormErrors: submit shows every error and focuses the first invalid fiel
   await user.click(screen.getByRole('button', { name: '儲存' }));
   expect(onSave).toHaveBeenCalledWith({ name: 'api', env: 'dev', email: '' });
 });
+
+test('useFormErrors: isValid(name), and onBlur returns whether the field is valid, so a settings page saves on blur only then', async () => {
+  const save = vi.fn();
+  function Settings() {
+    const [v, setV] = React.useState({ name: 'api' });
+    const form = useFormErrors(v, (x) => ({ name: x.name.trim() ? undefined : '名稱不能空白，請輸入專案名稱。' }));
+    return (
+      <>
+        <TextField
+          label="名稱"
+          name="name"
+          value={v.name}
+          onChange={(name) => setV({ name })}
+          onBlur={() => form.onBlur('name') && save(v.name)}
+          error={form.errors.name}
+        />
+        <span data-testid="valid">{String(form.isValid('name'))}</span>
+      </>
+    );
+  }
+  render(<Settings />);
+  const user = userEvent.setup();
+  const name = screen.getByRole('textbox', { name: '名稱' });
+  await user.clear(name);
+  expect(screen.getByTestId('valid').textContent).toBe('false');
+  await user.tab();
+  expect(save).not.toHaveBeenCalled();
+  expect(name.getAttribute('aria-invalid')).toBe('true');
+  await user.type(name, 'web');
+  expect(screen.getByTestId('valid').textContent).toBe('true');
+  await user.tab();
+  expect(save).toHaveBeenCalledWith('web');
+});

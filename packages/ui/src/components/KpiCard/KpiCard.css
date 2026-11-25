@@ -51,6 +51,7 @@
 .ui-kpi-change.is-bad {
   color: var(--danger-text);
 }
+.ui-kpi-change.is-flat,
 .ui-kpi-note {
   color: var(--ink-muted);
 }

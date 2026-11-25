@@ -10,6 +10,7 @@ import {
   TextField,
   ThemePicker,
   toast,
+  useFormErrors,
   type NavSection,
 } from '@seanyeh77/ui';
 
@@ -54,9 +55,11 @@ export function Settings({ values, onChange, onDeleteAccount }: SettingsProps) {
   // Text fields: a draft while typing; saved when the field is left and the value is valid and changed.
   const [name, setName] = React.useState(values.name);
   const [email, setEmail] = React.useState(values.email);
-  const nameError = name.trim() ? undefined : '名稱不能空白，請輸入顯示名稱。';
-  const emailError = EMAIL.test(email) ? undefined : 'Email 格式不正確，例如 name@example.com';
-  const [left, setLeft] = React.useState({ name: false, email: false });
+  // Errors show once a field is left; onBlur returns whether the field is valid, so it saves only then.
+  const form = useFormErrors({ name, email }, (v) => ({
+    name: v.name.trim() ? undefined : '名稱不能空白，請輸入顯示名稱。',
+    email: EMAIL.test(v.email) ? undefined : 'Email 格式不正確，例如 name@example.com',
+  }));
 
   return (
     <AppShell nav={NAV} value="settings" onNavigate={() => {}} brand="專案中心" title="設定">
@@ -72,10 +75,9 @@ export function Settings({ values, onChange, onDeleteAccount }: SettingsProps) {
                   value={name}
                   onChange={(v) => setName(v)}
                   onBlur={() => {
-                    setLeft((l) => ({ ...l, name: true }));
-                    if (!nameError && name.trim() !== values.name) save({ name: name.trim() });
+                    if (form.onBlur('name') && name.trim() !== values.name) save({ name: name.trim() });
                   }}
-                  error={left.name ? nameError : undefined}
+                  error={form.errors.name}
                 />
                 <TextField
                   label="Email"
@@ -83,10 +85,9 @@ export function Settings({ values, onChange, onDeleteAccount }: SettingsProps) {
                   value={email}
                   onChange={(v) => setEmail(v)}
                   onBlur={() => {
-                    setLeft((l) => ({ ...l, email: true }));
-                    if (!emailError && email !== values.email) save({ email });
+                    if (form.onBlur('email') && email !== values.email) save({ email });
                   }}
-                  error={left.email ? emailError : undefined}
+                  error={form.errors.email}
                 />
               </SettingsSection>
             ),

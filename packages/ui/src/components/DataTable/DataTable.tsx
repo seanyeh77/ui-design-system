@@ -8,6 +8,7 @@ import { tr, unitFor, type CountUnit } from '../../i18n';
 import { Icon, type CustomIcon } from '../../icons/Icon';
 import { TOUCH_ONLY, copyText, cx, idPart, monoNums, reduced, resizeObserver, seenOnly, useMedia, useNarrow } from '../../internal/util';
 import { Tooltip } from '../Tooltip/Tooltip';
+import { Skeleton } from '../Skeleton/Skeleton';
 import { RelativeTime } from '../RelativeTime/RelativeTime';
 import { DEV, devWarn } from '../../internal/dev';
 import { useStored } from '../../internal/stored';
@@ -43,6 +44,14 @@ export interface DataTableProps<R extends Row = Record<string, unknown>> {
   summary?: { key: RowKey<R>; items: { value: string; label: string }[]; label?: string; unit?: CountUnit };
   /** aria-label when there is no caption. */
   label?: string;
+  /** What one row is, after every count (the summary, 「24 筆」, the pages, 「已選 2 筆」): 「個」, 「件」. A function gets
+   *  the count, for plurals in other languages. Default summary.unit, else 「筆」. */
+  unit?: CountUnit;
+  /** Data is still loading: the toolbar and header stay, and loadingRows skeleton rows of the columns' shape take the
+   *  rows' place. Default false. */
+  loading?: boolean;
+  /** How many skeleton rows loading shows. Default pageSize, at most 10. */
+  loadingRows?: number;
   /** Rows per page. Default 10. */
   pageSize?: number;
   /** Change it when the rows become a different data set: search, filters, sort, page, selection and summary reset. */
@@ -267,6 +276,44 @@ interface Measured {
 }
 const UNMEASURED: Measured = { fit: {}, clipped: null, want: {}, roomy: false, actsW: null, onerow: false };
 
+/** A date with its time, 「2026/11/18（三）04:51」: the date and the time each stay whole, and a phone card that has no
+ *  room for both breaks the line between them only. Text without 「）」 (other locales, 「2 小時前」) as it is. */
+function dateParts(text: string, mark: string): React.ReactNode {
+  const i = text.indexOf('）');
+  if (i < 0 || i === text.length - 1) return markMatch(text, mark);
+  return (
+    <>
+      <span className="ui-dt-nowrap">{markMatch(text.slice(0, i + 1), mark)}</span>
+      <wbr />
+      <span className="ui-dt-nowrap">{markMatch(text.slice(i + 1), mark)}</span>
+    </>
+  );
+}
+
+/** The value from the render where sig last changed: a new array that says the same thing keeps the old one, so memos
+ *  that depend on it do not run again. */
+function useSameWhile<T>(value: T, sig: string): T {
+  const [kept, setKept] = React.useState({ value, sig });
+  if (kept.sig !== sig) {
+    setKept({ value, sig });
+    return value;
+  }
+  return kept.value;
+}
+
+/** What the columns say, as text: changes when a key, label or format changes, not when the array is rebuilt. */
+function columnsSig(cols: readonly DataTableColumn<never>[]): string {
+  return cols
+    .map((c) =>
+      [c.key, c.label, c.format, c.numeric, c.mono, c.unit, c.currency, c.decimals, c.sortable, !!c.sortValue, !!c.searchText, !!c.render].join('\u0002'),
+    )
+    .join('\u0001');
+}
+/** The same for the filters: keys, labels, types and options; a match function counts only by being there. */
+function filtersSigOf(fs: readonly DataTableFilter<never>[] | undefined, f: { key: string; label?: string; options: FilterOption[] } | undefined): string {
+  return JSON.stringify([fs?.map((x) => [x.key, x.label, x.type, x.multiple, x.scale, x.unitLabel, x.options, !!x.match]), f]);
+}
+
 interface Snapshot {
   kind: 'sort' | 'next' | 'prev';
   rows: Record<string, { top: number; bg: string; node: HTMLElement }>;
@@ -276,12 +323,18 @@ interface Snapshot {
 /** The table for records: sort, search, filters, page numbers, selection with a bulk bar, row actions; cards on phones. */
 export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableProps<R>) {
   const { columns: cols, rows, pageSize = 10, urlSync = true, urlKey, search = {}, selectable = false, stickyFirst: sticky = false } = p;
+  // Columns, filters and views are often written inline (a new array every render): the memos below follow what they
+  // say (keys, formats, options), read through refs, not the arrays' identity, so a render does not sort and filter again.
+  const memoCols = useSameWhile(cols, columnsSig(cols));
+  const given = useSameWhile({ filters: p.filters, filter: p.filter }, filtersSigOf(p.filters, p.filter));
   const filters: ResolvedFilter<R>[] = React.useMemo(() => {
-    const list = p.filters ? [...p.filters] : [];
-    if (p.filter && !list.length)
-      list.push({ key: p.filter.key, label: p.filter.label || cols.find((c) => c.key === p.filter?.key)?.label || p.filter.key, options: p.filter.options });
+    const list = given.filters ? [...given.filters] : [];
+    const f = given.filter;
+    if (f && !list.length) list.push({ key: f.key, label: f.label || memoCols.find((c) => c.key === f.key)?.label || f.key, options: f.options });
     return resolveFilters(list, rows);
-  }, [p.filters, p.filter, cols, rows]);
+  }, [given, memoCols, rows]);
+  const countUnit: CountUnit = p.unit ?? p.summary?.unit ?? '筆';
+  const unitOf = (n: number) => unitFor(countUnit, n);
   const fromUrl = () => (urlSync && typeof location !== 'undefined' ? readUrl(urlKey, filters) : { q: '', values: {} });
   const maxSort = Math.max(1, p.maxSort ?? Infinity);
   const sortCols = cols.filter((c) => c.sortable !== false).map((c) => ({ key: c.key, label: c.label, numeric: isNum(c) }));
@@ -451,9 +504,11 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     (!searching || searchHit(r, cols, filters, q, searchKeys)) && filters.every((f) => f.key === skip || matches(f, r, values[f.key]));
   // View, summary, search, filters and sort run again only when one of them or the rows change, not on every render
   // (a hover, a selection, a measured width).
+  const views = useSameWhile(p.views, p.views ? p.views.map((v) => v.id + '\u0002' + !!v.filter).join('\u0001') : '');
   const { all, sumAll, list } = React.useMemo(() => {
+    const cols = memoCols;
     let all = rows.map((r, i) => ({ r, i }));
-    const viewObj = p.views?.find((v) => v.id === view);
+    const viewObj = views?.find((v) => v.id === view);
     if (viewObj?.filter) all = all.filter((x) => viewObj.filter?.(x.r));
     const sumAll = all;
     if (sumKey && sumVal !== 'all') all = all.filter((x) => String(get(x.r, sumKey)) === sumVal);
@@ -484,19 +539,20 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
       });
     }
     return { all, sumAll, list };
-  }, [rows, cols, filters, values, q, searching, searchKeysKey, sort, view, p.views, sumKey, sumVal]);
+  }, [rows, memoCols, filters, values, q, searching, searchKeysKey, sort, view, views, sumKey, sumVal]);
   const baseCount = all.length;
   const activeN = filters.filter((f) => isActive(values[f.key])).length;
   // After the search, a filter, the summary or the view changes (not on first render): 「顯示 6 筆」.
   const shownKey = `${q}|${valuesKey}|${sumVal}|${view}`;
   const firstKey = React.useRef(shownKey);
   const shownN = list.length;
+  const shownText = tr('顯示 {n} {unit}', { n: format.number(shownN), unit: unitOf(shownN) });
   React.useEffect(() => {
     if (shownKey === firstKey.current) return;
     firstKey.current = '';
-    const t = setTimeout(() => announce(tr('顯示 {n} 筆', { n: format.number(shownN) })), 400);
+    const t = setTimeout(() => announce(shownText), 400);
     return () => clearTimeout(t);
-  }, [shownKey, shownN]);
+  }, [shownKey, shownText]);
   const pages = Math.max(1, Math.ceil(list.length / pageSize));
   const pageNow = Math.min(page, pages - 1);
   const start = pageNow * pageSize;
@@ -584,13 +640,18 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
       ghost.style.backgroundColor = o.bg;
       body.appendChild(ghost);
       const to = sn.kind === 'next' ? -n : sn.kind === 'prev' ? n : n + 1 - j;
+      // Clipped to the table body while copies leave (is-leaving): they never draw below the table or its Card.
+      body.classList.add('is-leaving');
       ghost.animate(
         [
           { transform: 'none', opacity: 1 },
           { transform: `translateY(${to * rh}px)`, opacity: 0 },
         ],
         { duration: MOVE.dur, easing: MOVE.ease, fill: 'forwards' },
-      ).onfinish = () => ghost.remove();
+      ).onfinish = () => {
+        ghost.remove();
+        if (!body.querySelector(':scope > .ui-dt-ghost')) body.classList.remove('is-leaving');
+      };
     });
   });
 
@@ -642,7 +703,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     if (from < 0 || to < 0 || from === to) return toggle([id], !on);
     const next = { ...sel, ...Object.fromEntries(ids.slice(Math.min(from, to), Math.max(from, to) + 1).map((k) => [k, !on])) };
     setSel(next);
-    announce(tr('已選 {n} 筆', { n: ids.filter((k) => next[k]).length }));
+    const n = ids.filter((k) => next[k]).length;
+    announce(tr('已選 {n} {unit}', { n, unit: unitOf(n) }));
   };
   const clearFilters = () => {
     setValues({});
@@ -975,11 +1037,11 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
       const t =
         c.format === 'relative' ? (
           <RelativeTime className="ui-dt-time" value={d}>
-            {(text) => markMatch(text, mark)}
+            {(text) => dateParts(text, mark)}
           </RelativeTime>
         ) : (
           <time className="ui-dt-time" dateTime={isoOf(d, c.format === 'date')}>
-            {markMatch(cellText(c, raw), mark)}
+            {dateParts(String(cellText(c, raw) ?? ''), mark)}
           </time>
         );
       v = abs ? (
@@ -1053,7 +1115,10 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     const how = p.totals?.[c.key];
     const rowsAll = list.map((x) => x.r);
     // Numbers in Geist Mono, the words (「合計」「平均」「筆」) and the unit in the text font.
-    if (ci === 0 && !how) return <span className="ui-dt-qty">{monoNums(tr('合計 {n} 筆', { n: '\u0001' }), [format.number(rowsAll.length)])}</span>;
+    if (ci === 0 && !how)
+      return (
+        <span className="ui-dt-qty">{monoNums(tr('合計 {n} {unit}', { n: '\u0001', unit: unitOf(rowsAll.length) }), [format.number(rowsAll.length)])}</span>
+      );
     if (typeof how === 'function') return how(rowsAll);
     if (how === 'sum' || how === 'avg') {
       const sum = rowsAll.reduce((a, r) => a + (Number(get(r, c.key)) || 0), 0);
@@ -1162,7 +1227,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     <Tabs
       className="ui-dt-summary"
       label={summary.label || tr('依狀態篩選')}
-      unit={summary.unit || '筆'}
+      unit={countUnit}
       value={sumVal}
       onChange={(v) => {
         capture('sort');
@@ -1170,19 +1235,27 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         setPage(0);
       }}
       items={[
-        { id: 'all', label: tr('全部'), count: sumAll.length },
+        // No counts while loading: 「全部 0」 would be wrong.
+        { id: 'all', label: tr('全部'), count: p.loading ? undefined : sumAll.length },
         ...summary.items.map((it) => ({
           id: String(it.value),
           label: it.label,
-          count: sumAll.filter((x) => String(get(x.r, summary.key)) === String(it.value)).length,
+          count: p.loading ? undefined : sumAll.filter((x) => String(get(x.r, summary.key)) === String(it.value)).length,
         })),
       ]}
       hideUnit
     />
   ) : null;
-  // 「6 / 24 筆」 only while a search or filter keeps fewer rows: before that the summary tabs, the page range under the
-  // table or the rows themselves already say how many there are.
-  const showCount = list.length !== baseCount;
+  // With summary tabs: 「6 / 24 筆」 only while a search or filter keeps fewer rows (「全部 24」 already says how many).
+  // Without them: 「24 筆」 on one page, 「6 / 24 筆」 after a search or filter; with pages the range under the table says
+  // it. Screen readers always have the count (countText), shown or not.
+  const filtered = list.length !== baseCount;
+  const showCount = filtered || (!summary && pages <= 1 && !p.loading);
+  const countText = p.loading
+    ? tr('載入中')
+    : filtered
+      ? format.fractionLabel(list.length, baseCount, unitOf(baseCount))
+      : `${format.number(list.length)} ${unitOf(list.length)}`;
   const toolsView = (inZoom: boolean, inHead = false) => (
     <div className={cx('ui-dt-tools', inHead && 'is-inhead', summaryView && !inZoom && !inHead && 'has-summary', onerow && !inZoom && !inHead && 'is-onerow')}>
       {summaryView && !inZoom && !inHead ? <div className="ui-dt-sumwrap">{summaryView}</div> : null}
@@ -1227,9 +1300,14 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
             {/* Shown 「6 / 24 筆」; read 「24 筆中的 6 筆」, not 「6 斜線 24 筆」. The shown one is drawn by CSS, so the page's
                 text has only the readable one (no 「6 / 24 筆24 筆中的 6 筆」 when copied or read by a tool). */}
             <span aria-hidden="true">
-              {seenOnly(tr('{n} / {total} 筆', { n: '\u0001', total: '\u0002' }), [format.number(list.length), format.number(baseCount)])}
+              {filtered
+                ? seenOnly(tr('{n} / {total} {unit}', { n: '\u0001', total: '\u0002', unit: unitOf(baseCount) }), [
+                    format.number(list.length),
+                    format.number(baseCount),
+                  ])
+                : seenOnly(tr('{n} {unit}', { n: '\u0001', unit: unitOf(list.length) }), [format.number(list.length)])}
             </span>
-            <span className="ui-visually-hidden">{format.fractionLabel(list.length, baseCount, tr('筆'))}</span>
+            <span className="ui-visually-hidden">{countText}</span>
           </span>
         ) : null}
         {sortCols.length ? <SortButton cols={sortCols} levels={sort} max={maxSort} onChange={changeSort} boundary={inZoom ? zoomRef : rootRef} /> : null}
@@ -1268,24 +1346,52 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   // table: the header row and its column headers stay).
   const bulkView =
     selectable && selIds.length && p.bulkActions ? (
-      <div className="ui-dt-bulk" role="toolbar" aria-label={tr('已選 {n} 筆', { n: selIds.length })}>
-        <span className="ui-dt-bulk-count">{monoNums(tr('已選 {n} 筆', { n: '\u0001' }), [format.number(selIds.length)])}</span>
+      <div className="ui-dt-bulk" role="toolbar" aria-label={tr('已選 {n} {unit}', { n: selIds.length, unit: unitOf(selIds.length) })}>
+        <span className="ui-dt-bulk-count">
+          {monoNums(tr('已選 {n} {unit}', { n: '\u0001', unit: unitOf(selIds.length) }), [format.number(selIds.length)])}
+        </span>
         <span className="ui-dt-bulk-actions">{p.bulkActions(selIds, clear)}</span>
         <button type="button" className="ui-dt-bulk-close" aria-label={tr('取消選取')} onClick={clear}>
           <Icon name="x" size={16} />
         </button>
       </div>
     ) : null;
+  // loading: rows of the columns' shape, each cell a bar as wide as what it will hold. One row says 「載入中」 to screen
+  // readers; the bars are hidden from them.
+  const skeletonRows = (grid: React.CSSProperties) => {
+    const n = Math.max(1, p.loadingRows ?? Math.min(pageSize, 10));
+    const MAIN = ['72%', '56%', '64%', '48%'];
+    const widthOf = (c: DataTableColumn<R>, i: number) =>
+      c.key === mainKey ? MAIN[i % MAIN.length] : c.mobile === 'status' ? 64 : isDateCol(c) ? 112 : isNum(c) ? 56 : c.long ? '80%' : '60%';
+    return [
+      <div key="busy" role="row" className="ui-visually-hidden">
+        <div role="cell">{tr('載入中')}</div>
+      </div>,
+      ...Array.from({ length: n }, (_, i) => (
+        <div key={'skel' + i} aria-hidden="true" className={cx('ui-dt-row ui-dt-skelrow', i % 2 && 'is-even')} style={grid}>
+          {expander ? <div className={cx('ui-dt-cell ui-dt-exp', lead('exp').className)} style={lead('exp').style} /> : null}
+          {selectable ? <div className={cx('ui-dt-cell ui-dt-sel', lead('sel').className)} style={lead('sel').style} /> : null}
+          {shownCols.map((c, ci) => (
+            <div key={c.key} data-label={c.label} data-col={c.key} className={cellClass(c, ci, mobileClass(c, ci))} style={stickyStyle(ci)}>
+              <Skeleton width={widthOf(c, i)} />
+            </div>
+          ))}
+        </div>
+      )),
+    ];
+  };
   const tableView = (inZoom: boolean) => {
     const grid = inZoom ? zoomGrid : pageGrid;
     const pfx = inZoom ? uid + 'z' : uid;
     return (
       <div className={cx('ui-dt-scroller', scrollMore && !inZoom && 'has-more')}>
         <div className={cx('ui-dt-scroll', pages > 1 && 'is-paged')} ref={inZoom ? undefined : scrollRef} onScroll={inZoom ? undefined : onScroll}>
-          <div className="ui-dt-table" role="table" aria-label={p.label || p.caption}>
+          <div className="ui-dt-table" role="table" aria-label={p.label || p.caption} aria-busy={p.loading || undefined}>
             {headOf(inZoom)}
             <div ref={inZoom ? undefined : bodyRef} className="ui-dt-body" role="rowgroup">
-              {vis.length ? (
+              {p.loading ? (
+                skeletonRows(grid)
+              ) : vis.length ? (
                 vis.map((x, i) => {
                   const id = visIds[i];
                   const on = !!sel[id];
@@ -1446,7 +1552,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
       {pages > 1 ? (
         <div className="ui-dt-foot">
           <span className="ui-dt-range">
-            {monoNums(tr('第 {a}–{b} 筆，共 {n} 筆', { a: '\u0001', b: '\u0002', n: '\u0003' }), [
+            {monoNums(tr('第 {a}–{b} {unit}，共 {n} {unit}', { a: '\u0001', b: '\u0002', n: '\u0003', unit: unitOf(list.length) }), [
               start + 1,
               Math.min(list.length, start + pageSize),
               format.number(list.length),
@@ -1503,7 +1609,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                 {v.label}{' '}
                 <span className="ui-dt-view-n">
                   {format.number(vn)}
-                  <span className="ui-visually-hidden"> {unitFor('筆', vn)}</span>
+                  <span className="ui-visually-hidden"> {unitOf(vn)}</span>
                 </span>
               </button>
             );
@@ -1515,6 +1621,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
       {summaryView && (headSlot || p.toolbar === false) ? <div className="ui-dt-top">{summaryView}</div> : null}
       {p.toolbar === false ? null : headSlot ? createPortal(toolsView(false, true), headSlot) : toolsView(false)}
       {chipsView(false)}
+      {/* The count for screen readers when it is not shown (summary tabs or the page range say it on screen). */}
+      {showCount && p.toolbar !== false ? null : <span className="ui-visually-hidden">{countText}</span>}
       {bulkView}
       {tableView(false)}
       <ScrollHint show={overflows} done={scrolled} />

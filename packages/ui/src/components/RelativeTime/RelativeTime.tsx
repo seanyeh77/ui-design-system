@@ -23,7 +23,8 @@ function subscribe(f: () => void): () => void {
     }
   };
 }
-// The browser's tick is never 0, so the first render after hydration renders again with the browser's clock.
+// The browser's tick is never 0. The server render and the hydration pass read 0 and show the full date and time; the
+// render React does right after hydration reads the browser's tick and swaps in the relative text.
 const clientTick = () => tick || (tick = Date.now());
 const serverTick = () => 0;
 
@@ -38,14 +39,16 @@ export interface RelativeTimeProps extends Omit<React.ComponentPropsWithRef<'tim
  *  minute from one shared interval. Older than a week: the full date and time (format.relative). */
 export function RelativeTime({ value, children, ...rest }: RelativeTimeProps) {
   useLocale();
-  React.useSyncExternalStore(subscribe, clientTick, serverTick);
+  const now = React.useSyncExternalStore(subscribe, clientTick, serverTick);
   const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return null;
-  const text = format.relative(d);
+  // On the server and in the hydration pass (now is 0): the full date and time, which does not depend on the clock.
+  const hydrating = now === 0;
+  const text = hydrating ? format.dateTime(d) : format.relative(d);
   return (
-    // The server's clock and the browser's differ by the time the page takes to load: the text may differ at hydration,
-    // and is put right by the render that follows it.
-    <time {...rest} dateTime={d.toISOString()} suppressHydrationWarning>
+    // The key changes once the browser's clock is read, so React replaces the element instead of keeping the server's
+    // text: suppressHydrationWarning alone keeps the server DOM, and a later render with the same text never patches it.
+    <time key={hydrating ? 's' : 'c'} {...rest} dateTime={d.toISOString()} suppressHydrationWarning>
       {children ? children(text) : text}
     </time>
   );

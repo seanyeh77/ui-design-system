@@ -1442,6 +1442,30 @@ AI 定的細節（待確認）：
 - tokens.json：`dur-toggle`、`dur-nav`、`space-5` 的 `usage` 照實際用途改寫（分頁和開關的指示塊用 `dur-nav` 的水滴，不是 300 ms）。
 - 觸控裝置上 Workbench 的 `mainBar`（36 px）裡的 SegmentedControl 仍是 28 px 的外觀，和那一列的其他按鈕一樣只把每個選項的觸控範圍放大到 48 px；整組改成 48 px 高會超出 36 px 的列。
 
+## 2026-11-25 驗證後修正：資料、表單與設定
+
+使用者把細節交給 AI：「都照你的意見，因為我外來新專案每個前端都會使用 design system，不要讓前端只支持特定場景為原則去判斷，另外希望是 agent 能夠使用者個 design 使用越少的 token 或是更專注於設計網頁與 UX 這樣最好」、「全部都交給 subagent，最後驗證也是」。0.45.0 獨立驗證後的修正；下面是修正時 AI 選的做法。
+
+### AI 定的細節（待確認）
+
+- RelativeTime 伺服器渲染：伺服器和 hydration 那一次輸出完整日期時間（`format.dateTime`），讀到瀏覽器時鐘後換成相對時間，`<time>` 以新的 `key` 重建，保證畫面更新。沒有伺服器渲染的頁面第一次就是相對時間。
+- `format.relative`：60 s 以內的未來時間（兩邊時鐘差一點）和 1 分鐘內一樣寫「現在」，超過 60 s 的未來時間仍寫完整日期時間。
+- KpiCard `direction?: 'up' | 'down'`（哪個方向比較好，預設 `'up'`），好壞由 `delta` 的正負算出；`good` 留著當直接指定。不靠顏色的好壞：比較期間後面接灰色（`ink-muted`）的「（改善）」或「（變差）」，例如「▲ 8.2% 較上週（改善）」；▲／▼ 只表示方向。選這個是因為只多兩個灰字，不加新符號或底色。`delta={0}` 沒有箭頭、不寫好壞、整行灰色。
+- DataTable 筆數：沒有 `summary` 的一頁表格在工具列寫「24 筆」（篩選後「6 / 24 筆」）；有頁碼時由下方「第 1–10 筆，共 24 筆」說，工具列不重複。沒顯示筆數時表格裡留一份只給螢幕閱讀器的筆數（不是 live region：變化已經由 `announce` 念出）。
+- DataTable 新增 `unit`（每一列是什麼，預設 `summary.unit`，再沒有是「筆」）：摘要、工具列筆數、頁碼、「已選 n 筆」、合計列、朗讀都用它。放在表格上而不只在 `summary`，因為沒有摘要的表格也有筆數。
+- DataTable 手機卡片：欄位名稱固定 6 rem（96 px，約 6 個字，太長用「…」）；日期和時間各自不斷開，390 px 的卡片放不下「2026/11/18（三）04:51」時只在「）」後面換行（整串不換行會超出卡片）；數字仍可換行。
+- DataTable 換頁、切換摘要時滑出的列複本：動畫期間表格本體 `overflow: clip`（`is-leaving`），結束就拿掉，平常不裁切（焦點外框不受影響）。
+- DataTable 的欄位、篩選、常用檢視依內容（key、標籤、格式、選項）判斷是否重新排序篩選，不看陣列是不是同一個；函式（`sortValue`、`searchText`、`render`、`match`）只看有沒有給，換成內容不同的函式時要換 `key` 或 `resetKey`。README 範例和 list-detail 範本也把欄位移到元件外。
+- DataTable `loading`、`loadingRows`（預設每頁筆數，最多 10 列）：工具列和表頭留著，列換成 Skeleton，條的寬度依欄位：主要欄 72 %、56 %、64 %、48 % 輪流，狀態 64 px，日期 112 px，數字 56 px，`long` 80 %，其他 60 %。載入中摘要分段不寫筆數、不顯示 `emptyText`，表格 `aria-busy`，螢幕閱讀器念「載入中」。
+- MultiSelect：選單沒開時 Esc 交給外層（Drawer、Dialog 關閉）；框裡有輸入的字時只清掉輸入的字。選了 2 個以上時框的右端有 32 px 的「清除」（×，名稱「清除＋欄位名稱」）；1 個時用標籤的 × 就好。移除念「已移除 …」，清除念「已清除…」。框固定 40 px，手機寬度（小於 600 px）48 px，和其他欄位同一條規則（沒有另外依 `pointer: coarse` 加高，避免同一列欄位高度不同）。
+- Select：值或提示文字占滿剩下的寬度，錯誤圖示和箭頭一起在右端；太長的值用「…」。
+- DatePicker、DateRangePicker 打開時焦點在選中的日期（範圍是結束日，也就是顯示的月份），沒有值時在今天；值清空後日曆回到今天。
+- Checkbox、Radio：`display: flex` 加 `width: max-content`（最寬到容器，文字在裡面換行），點擊範圍和焦點外框只包住框和文字；仍是區塊，每個選項各占一行（不用 `inline-flex`，否則相鄰的勾選框會排在同一行）。
+- SettingsLayout 網址：hash 寫成 `#settings-<id>`，仍讀沒有前綴的 `#<id>`；hash 以 `#/` 開頭（hash 路由）時不讀也不寫。手機寬度的分類改用 `Tabs`。
+- SettingsSection `actions`：標題列右端，和 Card 的標題列同一個排法（放不下時換到標題下方靠右；有 actions 時標題列 40 px）。SettingsRow 的子元素是 Button 時開發模式提醒。
+- useFormErrors：`isValid(name)`；`onBlur(name)` 回傳欄位是否正確。`isValid` 讀這一次渲染的值（在渲染時更新），所以在渲染中呼叫也是最新的。
+- Toast：`(pointer: coarse) and (hover: none)` 時不顯示「Ctrl Z」，`aria-keyshortcuts` 留著。
+
 ## 待確認清單（2026-11-25 整理）
 
 整份檔案裡標成「AI 定的細節（待確認）」、還沒確認的項目，一項一行；行號指向原文，原文沒有改。實驗室的代號後面括號寫出那個選項是什麼。
