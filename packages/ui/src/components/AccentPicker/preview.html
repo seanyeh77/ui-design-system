@@ -35,20 +35,19 @@
             h('span', { style: { width: 16, height: 16, borderRadius: 4, background: v[0] } }),
             h('span', { style: { fontFamily: 'var(--font-mono)', fontSize: 13 } }, v[0]),
           ),
-          // Text in the accent: links, a selected tab, a status; the button and the bar keep the accent itself.
+          // Text in the accent: a selected tab, links, a status; the button and the bar keep the accent itself.
+          h(U.Tabs, {
+            label: '範例分頁',
+            value: t[0],
+            onChange: t[1],
+            items: [
+              { id: 'a', label: '總覽' },
+              { id: 'b', label: '設定' },
+            ],
+          }),
           h(
             'div',
             { style: { display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' } },
-            h(U.Tabs, {
-              label: '範例分頁',
-              value: t[0],
-              onChange: t[1],
-              unit: '筆',
-              items: [
-                { id: 'a', label: '全部', count: 12 },
-                { id: 'b', label: '錯誤', count: 3 },
-              ],
-            }),
             h(U.Badge, { status: 'doing' }),
             h(U.InlineCode, { href: '#src/theme.ts:78' }, 'src/theme.ts:78'),
             h(U.Button, { variant: 'primary' }, '儲存'),

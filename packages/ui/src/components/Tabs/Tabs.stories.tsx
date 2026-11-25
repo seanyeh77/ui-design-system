@@ -49,21 +49,21 @@ function Demo() {
 }
 export const Default = { render: () => <Demo /> };
 
-/** Counts carry their unit: `unit` on Tabs, or on one item. */
+/** Counts on tabs of different content carry their unit: `unit` on Tabs, or on one item. A filter summary with counts is
+ *  DataTable's `summary`, not Tabs. */
 export const WithCounts = {
   render: function WithCounts() {
-    const [val, setVal] = React.useState('all');
+    const [val, setVal] = React.useState('overview');
     return (
       <UI.Tabs
-        label="依狀態篩選"
-        unit="筆"
+        label="專案"
         value={val}
         onChange={setVal}
         items={[
-          { id: 'all', label: '全部', count: 6 },
-          { id: 'error', label: '錯誤', count: 4 },
-          { id: 'check', label: '要確認', count: 2 },
-          { id: 'notes', label: 'notes.md', count: 6, unit: '則' },
+          { id: 'overview', label: '總覽' },
+          { id: 'files', label: '檔案', count: 12, unit: '個' },
+          { id: 'comments', label: '留言', count: 6, unit: '則' },
+          { id: 'deploys', label: '部署', count: 3, unit: '次' },
         ]}
       />
     );

@@ -263,6 +263,8 @@
 /* The summary keeps the segmented look (a gray track, the current part a raised white pill), the user's choice for
    summaries; plain Tabs are underlined. */
 .ui-tabs.ui-dt-summary {
+  display: inline-flex;
+  width: auto;
   height: auto;
   padding: 4px;
   border-radius: var(--radius-md);

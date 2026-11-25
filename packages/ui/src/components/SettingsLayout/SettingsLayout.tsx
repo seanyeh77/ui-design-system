@@ -87,8 +87,14 @@ export function SettingsLayout({ title, categories, value, onChange, urlSync = t
   const choose = (c: SettingsCategory, said = false) => {
     if (c.id === item?.id) return;
     setOwn(c.id);
-    if (sync && typeof window !== 'undefined' && window.history?.replaceState && !hashRouted())
-      window.history.replaceState(window.history.state, '', location.pathname + location.search + '#' + HASH_PREFIX + encodeURIComponent(c.id));
+    if (sync && typeof window !== 'undefined' && window.history?.replaceState && !hashRouted()) {
+      // A sandboxed iframe can refuse history changes: the category still changes, only the address stays.
+      try {
+        window.history.replaceState(window.history.state, '', location.pathname + location.search + '#' + HASH_PREFIX + encodeURIComponent(c.id));
+      } catch {
+        /* the address is not updated */
+      }
+    }
     // Tabs (on a phone) say the name themselves.
     if (!said) announce(c.label);
     onChange?.(c.id);

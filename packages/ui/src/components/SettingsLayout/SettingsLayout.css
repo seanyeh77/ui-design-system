@@ -129,6 +129,7 @@
   .ui-settings-body {
     flex-direction: column;
     align-items: stretch;
+    gap: var(--space-4);
   }
   /* The categories as Tabs, like every other row of tabs: the row scrolls sideways when the names do not fit. */
   .ui-settings-tabs {

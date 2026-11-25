@@ -75,7 +75,7 @@ test('LayerGraph: a line and a box are never selected together', async () => {
 test('LayerGraph: Tab reaches the lines after the boxes; Enter selects, Escape clears', async () => {
   const onEdge = vi.fn();
   render(<Demo onEdge={onEdge} onBox={() => {}} />);
-  // The line-label switch, the 「圖／清單」 tabs, the three boxes, then the lines.
+  // The line-label switch, the 「圖／清單」 switch, the three boxes, then the lines.
   for (let k = 0; k < 6; k++) await user.tab();
   expect(document.activeElement?.getAttribute('aria-label')).toBe('src/ibmon 到 src/libibtrace，環境變數 IBTRACE_SHM');
   await user.keyboard('{Enter}');
@@ -258,7 +258,7 @@ test('LayerGraph: the list view shows every box and line as text, selectable lik
   const onEdge = vi.fn();
   const onBox = vi.fn();
   const { container } = render(<LayerGraph labels={{ size: '{n} 個函式' }} nodes={nodes} edges={edges} onChange={onBox} onSelectEdge={onEdge} />);
-  await user.click(screen.getByRole('tab', { name: '清單' }));
+  await user.click(screen.getByRole('radio', { name: '清單' }));
   const list = container.querySelector('.ui-lg-list');
   expect(list?.textContent).toContain('src/ibmon，91 個函式');
   expect(list?.textContent).toContain('src/ibmon →到 src/libibtrace：環境變數 IBTRACE_SHM（推測）');
@@ -368,7 +368,7 @@ test('LayerGraph: the 「線上文字」 switch shows or hides line labels and r
   // Its text is on screen too, not only the screen reader's name.
   expect(container.querySelector('.ui-lg-labels-switch')?.textContent).toBe('線上文字');
   // Beside 「圖／清單」, on its left.
-  const tabs = screen.getByRole('tablist', { name: '顯示方式' });
+  const tabs = screen.getByRole('radiogroup', { name: '顯示方式' });
   expect((container.querySelector('.ui-lg-labels-switch') as HTMLElement).getBoundingClientRect().right).toBeLessThanOrEqual(tabs.getBoundingClientRect().left);
   expect(quiet(container)).toBe(false);
   // A click on the text switches too.
@@ -385,7 +385,7 @@ test('LayerGraph: the 「線上文字」 switch shows or hides line labels and r
   // Not on the list, and gone with labelToggle={false}.
   const list = render(graph({ edgeLabels: 'hover' }));
   expect(screen.getByRole('switch', { name: '線上文字' }).getAttribute('aria-checked')).toBe('false');
-  await user.click(screen.getByRole('tab', { name: '清單' }));
+  await user.click(screen.getByRole('radio', { name: '清單' }));
   expect(screen.queryByRole('switch', { name: '線上文字' })).toBeNull();
   list.unmount();
   render(graph({ labelToggle: false }));
@@ -524,7 +524,7 @@ test('LayerGraph: a shared item counts every item that uses it, other shared ite
   const chip = [...container.querySelectorAll('.ui-lg-chip')].find((c) => c.textContent?.includes('src/common'));
   expect(chip?.querySelector('.ui-lg-shared-meta')?.textContent).toBe('3 個項目使用，共 15 次');
   // The list: the same three lines into src/common, 6 + 7 + 2 = 15 times.
-  await userEvent.setup().click(screen.getByRole('tab', { name: '清單' }));
+  await userEvent.setup().click(screen.getByRole('radio', { name: '清單' }));
   const into = [...container.querySelectorAll('.ui-lg-li')].filter((li) => /→到\s*src\/common：/.test(li.textContent ?? ''));
   expect(into.length).toBe(3);
   expect(into.reduce((a, li) => a + Number(/(\d+) 次/.exec(li.textContent ?? '')?.[1] ?? 0), 0)).toBe(15);
@@ -559,7 +559,7 @@ test('LayerGraph: an external box sits above every layer, dashed, 「外部」 a
   await userEvent.setup().click(box);
   expect(onSelect).toHaveBeenLastCalledWith('app');
   // The list says it is outside the repository.
-  await userEvent.setup().click(screen.getByRole('tab', { name: '清單' }));
+  await userEvent.setup().click(screen.getByRole('radio', { name: '清單' }));
   const li = [...container.querySelectorAll('.ui-lg-li')].find((l) => l.textContent?.startsWith('被追蹤的程式'));
   expect(li?.textContent).toBe('被追蹤的程式，外部');
 });
@@ -577,7 +577,7 @@ test('LayerGraph list in English: ASCII separators, no full-width punctuation', 
         onSelectEdge={() => {}}
       />,
     );
-    await userEvent.setup().click(screen.getByRole('tab', { name: 'List' }));
+    await userEvent.setup().click(screen.getByRole('radio', { name: 'List' }));
     const text = [...container.querySelectorAll('.ui-lg-li')].map((li) => li.textContent);
     expect(text).toEqual([
       'traced program, External',
@@ -737,7 +737,7 @@ test('LayerGraph: the external box keeps its whole name when the boxes narrow', 
 
 test('LayerGraph list: each relation button is named with its description, not only 「A → B」', async () => {
   render(<LayerGraph nodes={cmNodes} edges={cmEdges} legend={false} onSelectEdge={() => {}} labels={{ count: (n) => (n === 1 ? '1 call' : `${n} calls`) }} />);
-  await user.click(screen.getByRole('tab', { name: '清單' }));
+  await user.click(screen.getByRole('radio', { name: '清單' }));
   const names = screen.getAllByRole('button', { name: /^被追蹤的程式 到 src\/libibtrace/ }).map((b) => b.textContent);
   expect(names).toHaveLength(3);
   expect(new Set(names).size).toBe(3);
@@ -902,7 +902,7 @@ test('LayerGraph: a declared edge has long-short dashes, its label, 「宣告」
   expect(legend).toContain('推測的關係');
   expect(legend).toContain('專案宣告的關係');
   expect(container.querySelector('.ui-graph-legend .ui-graph-edge.is-declared')).not.toBeNull();
-  await user.click(screen.getByRole('tab', { name: '清單' }));
+  await user.click(screen.getByRole('radio', { name: '清單' }));
   expect(screen.getByText(/傳資料（ring）（宣告）/)).toBeTruthy();
 });
 
@@ -927,7 +927,7 @@ test('LayerGraph list in English: no gap before the comma after a box name', asy
   setLocale('en');
   try {
     const { container } = render(<LayerGraph nodes={nodes} edges={edges} onChange={() => {}} />);
-    await user.click(screen.getByRole('tab', { name: 'List' }));
+    await user.click(screen.getByRole('radio', { name: 'List' }));
     const li = container.querySelector('.ui-lg-li');
     const name = li?.querySelector('.ui-lg-libtn .ui-lg-liname');
     const meta = li?.querySelector(':scope > .ui-lg-limeta');
@@ -989,7 +989,7 @@ test('LayerGraph list: every relation can be selected, one into a shared item to
     );
   }
   render(<ListDemo />);
-  await user.click(screen.getByRole('tab', { name: '清單' }));
+  await user.click(screen.getByRole('radio', { name: '清單' }));
   const shared = screen.getByRole('button', { name: /src\/ibmon 到 src\/common/ });
   expect(shared.getAttribute('aria-pressed')).toBe('false');
   await user.click(shared);
@@ -1130,7 +1130,7 @@ test('LayerGraph: tag stays whole beside a cut name, in the list and in the name
   const warn = screen.getByRole('button', { name: /^routing_with_a_long_name\.py 受保護/ }).querySelector('.ui-lg-tag');
   expect(warn?.classList.contains('is-warning')).toBe(true);
   expect(warn?.querySelector('svg')).not.toBeNull();
-  await user.click(screen.getByRole('tab', { name: '清單' }));
+  await user.click(screen.getByRole('radio', { name: '清單' }));
   const items = [...container.querySelectorAll('.ui-lg-li')].map((li) => li.textContent);
   expect(items[0]).toBe('controller_with_a_long_name.py可修改，88 個項目');
   expect(screen.getByRole('button', { name: 'routing_with_a_long_name.py 受保護' })).toBeTruthy();
@@ -1165,7 +1165,7 @@ test('LayerGraph toolbar: the page own switch on the same row as 「圖／清單
     </div>,
   );
   const own = screen.getByRole('button', { name: '依檔案' }).getBoundingClientRect();
-  const view = screen.getByRole('tab', { name: '圖' }).getBoundingClientRect();
+  const view = screen.getByRole('radio', { name: '圖' }).getBoundingClientRect();
   expect(Math.abs(own.top + own.height / 2 - (view.top + view.height / 2))).toBeLessThan(2);
   expect(own.right).toBeLessThan(view.left);
 });

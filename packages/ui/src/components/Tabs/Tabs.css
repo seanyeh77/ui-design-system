@@ -1,9 +1,10 @@
 /* Tabs switch between different content: text on a 1 px baseline rule, the current tab underlined in the accent (an
    underline, not a raised pill, so it never reads like SegmentedControl, which switches how the same content shows).
-   40 px tall, the height of the controls beside it in a toolbar. */
+   40 px tall, the height of the controls beside it in a toolbar. The baseline runs the full width of the container. */
 .ui-tabs {
   position: relative;
-  display: inline-flex;
+  display: flex;
+  width: 100%;
   max-width: 100%;
   box-sizing: border-box;
   height: var(--control-height);
@@ -57,6 +58,18 @@
 .ui-tab.is-selected {
   color: var(--ink);
   font-weight: 700;
+}
+
+/* Forced colors drop backgrounds and box shadows: the underline is drawn in Highlight and the baseline is a border. */
+@media (forced-colors: active) {
+  .ui-tabs {
+    box-shadow: none;
+    border-bottom: 1px solid CanvasText;
+  }
+  .ui-tabs-ind {
+    forced-color-adjust: none;
+    background: Highlight;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

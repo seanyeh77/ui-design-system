@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { GraphLegend, type GraphLegendItem } from '../Graph/Graph';
-import { Tabs } from '../Tabs/Tabs';
+import { SegmentedControl } from '../SegmentedControl/SegmentedControl';
 import { IconButton } from '../IconButton/IconButton';
 import { Switch } from '../Switch/Switch';
 import { tr } from '../../i18n';
@@ -1732,13 +1732,14 @@ export function LayerGraph(props: LayerGraphProps) {
             </label>
           ) : null}
           {p.listView === false ? null : (
-            <Tabs
+            // The same content shown two ways: a SegmentedControl, not Tabs.
+            <SegmentedControl
               label={tr('顯示方式')}
               value={view}
               onChange={setView}
-              items={[
-                { id: 'graph', label: tr('圖') },
-                { id: 'list', label: tr('清單') },
+              options={[
+                { value: 'graph', label: tr('圖') },
+                { value: 'list', label: tr('清單') },
               ]}
             />
           )}
