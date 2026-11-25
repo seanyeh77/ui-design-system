@@ -104,6 +104,17 @@ import phSparkle from './ph/sparkle';
 import phTrendUp from './ph/trend-up';
 import phCornersIn from './ph/corners-in';
 import type { IconGlyph } from './glyph';
+import phPause from './ph/pause';
+import phPlay from './ph/play';
+import phProhibit from './ph/prohibit';
+import phReceipt from './ph/receipt';
+import phTruck from './ph/truck';
+import phPackage from './ph/package';
+import phCreditCard from './ph/credit-card';
+import phShoppingCart from './ph/shopping-cart';
+import phStorefront from './ph/storefront';
+import phMapPin from './ph/map-pin';
+import phPhone from './ph/phone';
 
 /** Every built-in icon. */
 export const ALL: readonly IconGlyph[] = [
@@ -209,4 +220,15 @@ export const ALL: readonly IconGlyph[] = [
   phSparkle,
   phTrendUp,
   phCornersIn,
+  phPause,
+  phPlay,
+  phProhibit,
+  phReceipt,
+  phTruck,
+  phPackage,
+  phCreditCard,
+  phShoppingCart,
+  phStorefront,
+  phMapPin,
+  phPhone,
 ];

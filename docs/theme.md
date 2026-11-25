@@ -113,7 +113,7 @@ import './ui.css';
 
 - 圖示組：Phosphor（MIT 授權，可商用），平常用 Regular 線條版；選中時換成同一個圖示的實心版（Fill）並用強調色，例如側邊欄和手機底部分頁列的選中項目。
 - 線寬：Phosphor 的線寬固定，不另外調整；自訂的 24 × 24 線條圖示用 2 px（`icon-stroke`）。
-- 用法：`h(UI.Icon, { name: 'house' })`，加 `filled: true` 用實心版；名稱照 Phosphor，內建 102 個，`npx @seanyeh77/ui-cli docs icons` 印出全部名稱（也接受 40 個 Lucide 名稱，例如 `trash-2`）。元件的 `icon` 屬性接受同樣的名稱，或自訂圖示的 24 px path。
+- 用法：`h(UI.Icon, { name: 'house' })`，加 `filled: true` 用實心版；名稱照 Phosphor，內建 113 個，`npx @seanyeh77/ui-cli docs icons` 印出全部名稱（也接受 40 個 Lucide 名稱，例如 `trash-2`）。元件的 `icon` 屬性接受同樣的名稱，或自訂圖示的 24 px path。
 - 自訂圖示 `d` 傳 SVG 標記字串（以 `<` 開頭）時會當成 HTML 直接放進 `<svg>`：只傳自己程式碼裡寫死的圖示，絕不傳使用者輸入或外部資料的字串。
 - 載入：每個圖示是一個獨立的模組，有 build 的專案只打包頁面用到的圖示，用法不變。元件固定會顯示的圖示（下拉箭頭、關閉的 x、勾號等）跟著元件一起打包，第一次畫面就有，server render 也有。用 `name` 或 `icon` 指定的其他圖示在第一次顯示時才載入：載入前是同樣大小的空白方框（版面不會跳動），載入後同一個圖示之後都立即顯示。server render 時這些圖示是空白方框，hydrate 後再補上。
 - 首屏的圖示想在第一次畫面就出現時，render 前先 `await preloadIcons(['house', 'gear'])`；不呼叫也能用，只是晚一個網路來回。import `icons` 的頁面會帶入全部圖示，所以只在真的需要全部名稱時才 import。`bundle.js` 內含全部圖示，一律立即顯示。
