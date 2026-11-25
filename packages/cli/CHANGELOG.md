@@ -1,5 +1,30 @@
 # @seanyeh77/ui-cli
 
+## 0.47.0
+
+### Minor Changes
+
+- 6914fef: `ui check`：手寫的 `<button>`、`<a href>`、文字 `<input>` 和 `<textarea>` 也算原生控制項（元件的 `ui-*` class 和 Markdown 內容除外）；同一列控制項高度的檢查把 `.ui-field-box` 當成一個控制項；開著的對話框、抽屜和選單的截圖只拍視窗大小。Breadcrumb 的連結加上 `ui-crumb-link` class。
+
+### Patch Changes
+
+- 7dcac36: 範本（`ui add`）：清單與詳細頁的編輯抽屜改用 `useFormErrors`，「儲存」不再因為錯誤而停用，按下時說明哪裡錯並移到那個欄位；Dashboard 的示範資料涵蓋預設期間（最近 30 天），趨勢圖改為每日完成的任務。
+- 481235c: `ui add` 只列出專案還沒裝的套件（`dependencies` 和 `devDependencies` 都看），包括 `react` 和 `react-dom`。
+- Updated dependencies [122d806]
+- Updated dependencies [bd4212e]
+- Updated dependencies [41d01e7]
+- Updated dependencies [f0bb1d2]
+- Updated dependencies [2ca3d57]
+- Updated dependencies [56a842b]
+- Updated dependencies [f890a81]
+- Updated dependencies [6e8a185]
+- Updated dependencies [481235c]
+- Updated dependencies [fafe0c5]
+- Updated dependencies [bac70a8]
+- Updated dependencies [acd850a]
+- Updated dependencies [6914fef]
+  - @seanyeh77/ui@0.47.0
+
 ## 0.46.0
 
 ### Minor Changes
