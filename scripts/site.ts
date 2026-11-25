@@ -93,10 +93,17 @@ for (const name of readdirSync(compDir).sort()) {
   if (existsSync(preview)) {
     const src = readFileSync(preview, 'utf8');
     group = groupOf(src);
-    // <body> may carry attributes (<body style="padding: 0">): start after the tag, whatever it holds.
+    // <body> may carry attributes (<body style="padding: 0">): they are kept, on the site's own <body>.
     const open = /<body[^>]*>/.exec(src);
     const body = src.slice(open ? open.index + open[0].length : 0, src.indexOf('</body>'));
-    writeFileSync(new URL(`preview/${name}.html`, site), head(name) + body + '</body>\n</html>\n');
+    // The preview's own <head> is replaced by the site's (self-hosted fonts, tokens, bundle.js), but its <style>
+    // elements are the page's layout (Cover): they move into the body, after the site's styles. A <script> in the head
+    // would be lost: it belongs in the body.
+    const ownHead = open ? src.slice(0, open.index) : '';
+    if (/<script\b/i.test(ownHead)) throw new Error(`${name}/preview.html: move the <script> in <head> into <body>; the site keeps only <style> from the head`);
+    const styles = (ownHead.match(/<style\b[^>]*>[\s\S]*?<\/style>/gi) ?? []).join('\n');
+    const page = head(name).replace(/<body>\n$/, `${open?.[0] ?? '<body>'}\n`) + (styles ? styles + '\n' : '') + body;
+    writeFileSync(new URL(`preview/${name}.html`, site), page + '</body>\n</html>\n');
   } else if (existsSync(readme)) group = groupOf(readFileSync(readme, 'utf8'));
   if (existsSync(readme)) {
     const md = readFileSync(readme, 'utf8');

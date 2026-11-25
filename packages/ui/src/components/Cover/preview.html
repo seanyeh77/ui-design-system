@@ -77,6 +77,21 @@
         line-height: 20px;
         color: var(--ink-muted);
       }
+      /* Narrower than the card (a phone): the words alone, the full width, the title smaller so it stays on one line. */
+      @media (max-width: 959px) {
+        .cover {
+          width: 100%;
+        }
+        .art {
+          display: none;
+        }
+        .words {
+          right: var(--space-6);
+        }
+        .name {
+          font-size: 48px;
+        }
+      }
     </style>
   </head>
   <body>
