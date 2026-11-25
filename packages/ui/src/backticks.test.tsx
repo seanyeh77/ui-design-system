@@ -48,7 +48,7 @@ const cases: [string, (t: string) => React.ReactElement, string][] = [
   ['Select error', (t) => <UI.Select label="部門" value="" onChange={() => {}} options={[{ value: 'a', label: 'A' }]} error={t} />, '.ui-field-error'],
   [
     'FileUpload error',
-    (t) => <UI.FileUpload label="附件" files={[{ id: 1, name: 'a.csv', status: 'error', error: t }]} onAdd={() => {}} />,
+    (t) => <UI.FileUpload label="附件" files={[{ id: 1, name: 'a.csv', status: 'danger', error: t }]} onAdd={() => {}} />,
     '.ui-upload-error',
   ],
   ['Alert children', (t) => <UI.Alert tone="warning">{t}</UI.Alert>, '.ui-alert-body'],
@@ -56,7 +56,7 @@ const cases: [string, (t: string) => React.ReactElement, string][] = [
   [
     'Dialog children',
     (t) => (
-      <UI.Dialog open title="刪除專案？" onClose={() => {}}>
+      <UI.Dialog open title="刪除專案？" onOpenChange={() => {}}>
         {t}
       </UI.Dialog>
     ),
@@ -113,7 +113,7 @@ test('NotificationBell body: `code` shows as InlineCode', async () => {
 
 test('Drawer confirmText: `code` shows as InlineCode in the close confirmation', async () => {
   render(
-    <UI.Drawer open dirty title="編輯" onClose={() => {}} confirmText={CODE}>
+    <UI.Drawer open dirty title="編輯" onOpenChange={() => {}} confirmText={CODE}>
       <p>內容</p>
     </UI.Drawer>,
   );

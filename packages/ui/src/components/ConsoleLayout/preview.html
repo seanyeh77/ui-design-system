@@ -65,9 +65,11 @@
               label: '設施分區',
               zones: ZONES,
               fill: true,
-              selectedId: sel[0],
-              onSelect: function (z) {
-                sel[1](z.id);
+              min: 20,
+              max: 30,
+              value: sel[0],
+              onChange: function (id) {
+                sel[1](id);
               },
             }),
           ),

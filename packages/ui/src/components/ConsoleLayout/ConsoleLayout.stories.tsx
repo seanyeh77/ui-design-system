@@ -31,7 +31,7 @@ export const Monitoring = {
         clock={replaying ? '回放中' : '即時'}
         main={
           <UI.Card title="設施分區">
-            <UI.ZoneMap label="設施分區" zones={ZONES} fill />
+            <UI.ZoneMap label="設施分區" zones={ZONES} fill min={20} max={30} />
           </UI.Card>
         }
         side={[

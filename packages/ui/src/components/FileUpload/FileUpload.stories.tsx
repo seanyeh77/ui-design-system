@@ -12,13 +12,13 @@ function D() {
         name: f.name,
         size: (f.size / 1048576).toFixed(1) + ' MB',
         progress: 0,
-        status: f.size > 104857600 ? 'error' : 'uploading',
+        status: f.size > 104857600 ? 'danger' : 'uploading',
         error: f.size > 104857600 ? '超過 100 MB 上限，請壓縮後再試。' : undefined,
       };
     });
     setS((o) => [...o, ...fs]);
     fs.forEach((f) => {
-      if (f.status === 'error') return;
+      if (f.status === 'danger') return;
       // Stops after 15 steps (7 % each) on its own too, so it does not outlive an unmounted story.
       let steps = 0;
       const t = setInterval(() => {

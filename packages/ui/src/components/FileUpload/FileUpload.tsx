@@ -2,6 +2,7 @@ import * as React from 'react';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
+import { devWarn } from '../../internal/dev';
 import { FieldLabel } from '../../internal/Field';
 import { ProgressBar } from '../ProgressBar/ProgressBar';
 import { includeIcons } from '../../icons/store';
@@ -19,7 +20,8 @@ export interface UploadFile {
   size?: string;
   /** 0 to 100 while uploading. */
   progress?: number;
-  status?: 'uploading' | 'done' | 'error';
+  /** 'danger': the upload failed; write why in `error`. ('error' is the old name of 'danger'.) */
+  status?: 'uploading' | 'done' | 'danger' | 'error';
   /** The cause and the fix, shown in red; `backticks` are code. */
   error?: string;
 }
@@ -40,6 +42,11 @@ export interface FileUploadProps {
 
 /** A one-line drop zone and a list of files with progress. The upload itself is yours: pass files with progress and status. */
 export function FileUpload({ label, files = [], onAdd, onRemove, onRetry, limitText, accept, multiple = true, className }: FileUploadProps) {
+  devWarn(
+    () => files.some((f) => f.status === 'error'),
+    'FileUpload',
+    "status: 'error' is the old name, kept for now. Write status: 'danger', the tone name the other components use.",
+  );
   const [drag, setDrag] = React.useState(false);
   const input = React.useRef<HTMLInputElement>(null);
   const add = (list: FileList | null) => {
@@ -85,7 +92,7 @@ export function FileUpload({ label, files = [], onAdd, onRemove, onRetry, limitT
       {files.length ? (
         <ul className="ui-upload-list">
           {files.map((fl) => {
-            const fail = fl.status === 'error';
+            const fail = fl.status === 'danger' || fl.status === 'error';
             return (
               <li key={fl.id ?? fl.name} className={cx('ui-upload-item', fail && 'is-error')}>
                 <Icon name="file" size={20} className="ui-upload-icon" />

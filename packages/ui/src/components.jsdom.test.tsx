@@ -187,8 +187,7 @@ const storedCases = [
     Story: () => (
       <UI.LayerGraph
         resizable
-        heightKey="hydration"
-        scrollKey="hydration"
+        storageKey="hydration"
         nodes={[
           { id: 'a', name: 'a', layer: 0 },
           { id: 'b', name: 'b', layer: 1 },
@@ -342,7 +341,7 @@ describe('interactions in jsdom', () => {
       return (
         <>
           <UI.Button onClick={() => setOpen(true)}>開啟</UI.Button>
-          <UI.Dialog open={open} title="設定" onClose={() => setOpen(false)} actions={<UI.Button onClick={() => setOpen(false)}>完成</UI.Button>}>
+          <UI.Dialog open={open} title="設定" onOpenChange={setOpen} actions={<UI.Button onClick={() => setOpen(false)}>完成</UI.Button>}>
             內容
           </UI.Dialog>
         </>

@@ -59,9 +59,9 @@ function Explorer({ sel, onSel }: { sel: string; onSel: (id: string) => void }) 
       label="檔案"
       items={TREE}
       defaultOpen={['harness', 'ctl']}
-      selectedId={sel}
-      onSelect={(n) => {
-        onSel(n.id);
+      value={sel}
+      onChange={(id, n) => {
+        onSel(id);
         if (!n.children) wb.explorerPicked();
       }}
     />

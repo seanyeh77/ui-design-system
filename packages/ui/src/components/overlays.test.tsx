@@ -71,7 +71,7 @@ test('Dialog closes on Esc and returns focus', async () => {
     return (
       <>
         <Button onClick={() => setOpen(true)}>開啟</Button>
-        <Dialog open={open} onClose={() => setOpen(false)} title="發布？" confirmLabel="發布" onConfirm={() => setOpen(false)}>
+        <Dialog open={open} onOpenChange={setOpen} title="發布？" confirmLabel="發布" onConfirm={() => setOpen(false)}>
           內容
         </Dialog>
       </>
@@ -89,7 +89,7 @@ test('Dialog closes on Esc and returns focus', async () => {
 test('Drawer with unsaved changes asks before closing', async () => {
   const onClose = vi.fn();
   render(
-    <Drawer open dirty onClose={onClose} title="編輯">
+    <Drawer open dirty onOpenChange={onClose} title="編輯">
       欄位
     </Drawer>,
   );
@@ -241,14 +241,14 @@ test('Tour steps forward and ends', async () => {
         { title: '第一步', text: 'a' },
         { title: '第二步', text: 'b' },
       ]}
-      onClose={onClose}
+      onOpenChange={onClose}
     />,
   );
   await screen.findByText('第一步');
   await user.click(screen.getByRole('button', { name: '下一步' }));
   await screen.findByText('第二步');
   await user.click(screen.getByRole('button', { name: '完成' }));
-  expect(onClose).toHaveBeenCalledWith('done');
+  expect(onClose).toHaveBeenCalledWith(false, 'done');
 });
 
 test('CommandPalette starts empty on every open', async () => {
@@ -301,7 +301,7 @@ test('ProjectSwitcher closes after picking', async () => {
 
 test('Drawer focuses the first field, not the close button', async () => {
   render(
-    <Drawer open onClose={() => {}} title="編輯">
+    <Drawer open onOpenChange={() => {}} title="編輯">
       <TextField label="名稱" />
     </Drawer>,
   );
@@ -320,7 +320,7 @@ test('Tooltip text describes its trigger', async () => {
 
 test('a menu inside a dialog is painted above it', async () => {
   render(
-    <Dialog open onClose={() => {}} title="設定">
+    <Dialog open onOpenChange={() => {}} title="設定">
       <Menu items={[{ label: '重新命名' }]} />
     </Dialog>,
   );
@@ -333,7 +333,7 @@ test('a menu inside a dialog is painted above it', async () => {
 test('Drawer: the footer 取消 from requestClose asks before discarding changes', async () => {
   const onClose = vi.fn();
   render(
-    <Drawer open dirty onClose={onClose} title="編輯" actions={(requestClose) => <Button onClick={requestClose}>取消</Button>}>
+    <Drawer open dirty onOpenChange={onClose} title="編輯" actions={(requestClose) => <Button onClick={requestClose}>取消</Button>}>
       <TextField label="名稱" />
     </Drawer>,
   );

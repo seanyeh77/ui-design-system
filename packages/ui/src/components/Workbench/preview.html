@@ -72,9 +72,9 @@
           label: '檔案',
           items: props.items,
           defaultOpen: ['harness', 'ctl'],
-          selectedId: props.sel,
-          onSelect: function (n) {
-            props.onSel(n.id);
+          value: props.sel,
+          onChange: function (id, n) {
+            props.onSel(id);
             if (!n.children) wb.explorerPicked();
           },
         });

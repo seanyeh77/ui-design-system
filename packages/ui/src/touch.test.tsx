@@ -61,8 +61,8 @@ function Page() {
           { from: 'a', to: 'c', count: 6 },
           { from: 'b', to: 'd', count: 2 },
         ]}
-        selected={sel}
-        onSelect={setSel}
+        value={sel}
+        onChange={setSel}
         selectedEdge={edge}
         onSelectEdge={setEdge}
       />

@@ -50,9 +50,9 @@ function Sample() {
         iconOnly
         value={seg}
         onChange={setSeg}
-        items={[
-          { id: 'a', label: '預覽', icon: 'eye' },
-          { id: 'b', label: '原始碼', icon: 'file-code' },
+        options={[
+          { value: 'a', label: '預覽', icon: 'eye' },
+          { value: 'b', label: '原始碼', icon: 'file-code' },
         ]}
       />
       <UI.Tabs

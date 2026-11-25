@@ -113,7 +113,7 @@ test('Tour gives focus back to what opened it on 完成 and on 略過', async ()
         </button>
         <UI.Tour
           open={open}
-          onClose={() => setOpen(false)}
+          onOpenChange={setOpen}
           steps={[
             { title: '一', text: '第一步。' },
             { title: '二', text: '第二步。' },
@@ -147,7 +147,7 @@ test('Tour keeps Tab inside its card and gives focus back on Escape', async () =
         </button>
         <UI.Tour
           open={open}
-          onClose={() => setOpen(false)}
+          onOpenChange={setOpen}
           steps={[
             { title: '一', text: '第一步。' },
             { title: '二', text: '第二步。' },
@@ -552,7 +552,7 @@ test('TreeList: tags are read in the name, ariaLabel replaces it, and a click on
     <UI.TreeList
       kind="plain"
       label="呼叫者"
-      onSelect={(n) => picked.push(n.id)}
+      onChange={(id) => picked.push(id)}
       items={[
         {
           id: 'hook',

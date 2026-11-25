@@ -274,7 +274,15 @@ function External() {
   const [edge, setEdge] = React.useState<string | null>(null);
   return (
     <div style={card}>
-      <UI.LayerGraph labels={{ size: '{n} 個函式', external: 'repo 外' }} nodes={nodes9} edges={edges9} value={sel} onChange={setSel} selectedEdge={edge} onSelectEdge={setEdge} />
+      <UI.LayerGraph
+        labels={{ size: '{n} 個函式', external: 'repo 外' }}
+        nodes={nodes9}
+        edges={edges9}
+        value={sel}
+        onChange={setSel}
+        selectedEdge={edge}
+        onSelectEdge={setEdge}
+      />
     </div>
   );
 }

@@ -164,7 +164,7 @@ test('LayerGraph: a shared item is a selectable box; the boxes that use it say h
   expect(chip.getAttribute('aria-pressed')).toBe('false');
   await user.click(chip);
   expect(onSelect).toHaveBeenLastCalledWith('common');
-  rerender(<LayerGraph nodes={withShared} edges={uses} selected="common" onChange={onSelect} />);
+  rerender(<LayerGraph nodes={withShared} edges={uses} value="common" onChange={onSelect} />);
   expect(chip.classList.contains('is-selected')).toBe(true);
   const badges = [...container.querySelectorAll('.ui-lg-use')].map((n) => n.textContent);
   expect(badges).toEqual(['使用 6 次', '使用 3 次']);
@@ -350,7 +350,7 @@ test('LayerGraph: edgeLabels="hover" hides line labels until the line is hovered
   rerender(<LayerGraph nodes={nodes} edges={edges} legend={false} edgeLabels="hover" onSelectEdge={() => {}} selectedEdge="shm" />);
   expect(quiet(container)).toBe(false);
   // The selected box shows the labels of its lines.
-  rerender(<LayerGraph nodes={nodes} edges={edges} legend={false} edgeLabels="hover" selected="ibmon" onChange={() => {}} />);
+  rerender(<LayerGraph nodes={nodes} edges={edges} legend={false} edgeLabels="hover" value="ibmon" onChange={() => {}} />);
   expect(quiet(container)).toBe(false);
 });
 
@@ -735,7 +735,7 @@ test('LayerGraph: the external box keeps its whole name when the boxes narrow', 
 });
 
 test('LayerGraph list: each relation button is named with its description, not only 「A → B」', async () => {
-  render(<LayerGraph nodes={cmNodes} edges={cmEdges} legend={false} onSelectEdge={() => {}} countLabel={(n) => (n === 1 ? '1 call' : `${n} calls`)} />);
+  render(<LayerGraph nodes={cmNodes} edges={cmEdges} legend={false} onSelectEdge={() => {}} labels={{ count: (n) => (n === 1 ? '1 call' : `${n} calls`) }} />);
   await user.click(screen.getByRole('tab', { name: '清單' }));
   const names = screen.getAllByRole('button', { name: /^被追蹤的程式 到 src\/libibtrace/ }).map((b) => b.textContent);
   expect(names).toHaveLength(3);
@@ -797,7 +797,7 @@ test('LayerGraph: a language without its own 「1 次」 uses its {n} form', () 
           { id: 'b', name: 'b', layer: 1 },
         ]}
         edges={[{ id: 'x', from: 'a', to: 'b', count: 1 }]}
-        selected="a"
+        value="a"
         onChange={() => {}}
         legend={false}
       />,

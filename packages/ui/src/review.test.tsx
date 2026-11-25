@@ -158,7 +158,7 @@ test('Calendar: one day in the Tab order; arrows, Home, End and PageDown move it
   onTestFinished(() => {
     vi.useRealTimers();
   });
-  render(<Calendar focus={new Date(2026, 10, 30)} />);
+  render(<Calendar defaultMonth={new Date(2026, 10, 30)} />);
   const day = () => document.activeElement?.getAttribute('aria-label') ?? '';
   const stops = [...document.querySelectorAll('.ui-cal-day')].filter((b) => b.getAttribute('tabindex') === '0');
   expect(stops).toHaveLength(1);
