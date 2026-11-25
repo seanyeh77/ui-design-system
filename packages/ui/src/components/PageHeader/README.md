@@ -11,7 +11,7 @@
     <PageHeader
       title="訂單 #1024"
       status={<Badge status="doing">出貨中</Badge>}
-      meta="建立於 2026/11/04（三）· 負責人 王小明"
+      meta={['建立於 2026/11/04（三）', '負責人 王小明']}
       primary={{ label: '出貨', onClick: ship }}
       actions={[{ label: '編輯', icon: 'pencil-simple', onClick: edit }]}
       more={[{ label: '刪除', icon: 'trash', danger: true, confirm: { title: '刪除訂單 #1024？' }, onSelect: remove }]}
@@ -25,6 +25,7 @@
 - 操作：`primary` 最多一個實心按鈕；`actions` 是外框按鈕，最多 3 個；其他和危險操作放 `more`（「⋯」選單，危險項目會先確認）。
 - 手機（小於 600 px）：只有 `primary` 保持按鈕，`actions` 收進「⋯」。
 - `status` 放 Badge，和 `meta` 在標題下同一行、同一個字級。
+- `meta` 給陣列時以「 · 」連起來，全形「）」後面不加空格（「（三）· 負責人」）；給字串時也照這個規則調整，日期的「）」和時間之間不留空格（「（三）13:00」）。
 
 ## 細節
 

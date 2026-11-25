@@ -161,8 +161,11 @@ export function AppShell({
     ensureAnnouncer();
   }, []);
   const shellTitle = React.useMemo(() => ({ inShell: true, title: !!title }), [title]);
+  // A page with its own title (PageHeader) and nothing else for the top bar: no empty 64 px strip. The bar stays
+  // whenever it holds something (actions, search, tags, the tablet's menu button).
+  const bare = !title && !tags && !actions && !onSearch && !breadcrumb?.length && !tablet;
   return (
-    <div className={cx('ui-shell', phone && 'is-phone', className)}>
+    <div className={cx('ui-shell', phone && 'is-phone', bare && 'is-bare', className)}>
       {/* First stop for the keyboard: skips the navigation. */}
       <a
         className="ui-skip"
@@ -224,16 +227,18 @@ export function AppShell({
         </div>
       )}
       <div className="ui-shell-body">
-        <TopBar
-          className={cx('ui-shell-top', hidden && 'is-hidden')}
-          title={title}
-          tags={tags}
-          breadcrumb={breadcrumb}
-          onSearch={onSearch ?? false}
-          onMenu={tablet ? () => setMoreOpen(true) : undefined}
-        >
-          {actions}
-        </TopBar>
+        {bare ? null : (
+          <TopBar
+            className={cx('ui-shell-top', hidden && 'is-hidden')}
+            title={title}
+            tags={tags}
+            breadcrumb={breadcrumb}
+            onSearch={onSearch ?? false}
+            onMenu={tablet ? () => setMoreOpen(true) : undefined}
+          >
+            {actions}
+          </TopBar>
+        )}
         <main ref={main} id="main" className="ui-shell-main" tabIndex={-1}>
           <ShellTitle.Provider value={shellTitle}>{children}</ShellTitle.Provider>
         </main>

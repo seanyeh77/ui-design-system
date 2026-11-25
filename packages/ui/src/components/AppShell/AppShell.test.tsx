@@ -261,3 +261,29 @@ test('brand as text: collapsed its first character in an accent square, named by
   expect(container.querySelector('.ui-nav-monogram')?.textContent).toBe('專');
   expect(screen.getByRole('img', { name: '專案中心' })).toBeTruthy();
 });
+
+test('a detail page (no title, nothing else for the top bar): no empty top bar; with actions the bar stays', async () => {
+  await page.viewport(1280, 900);
+  const { container, rerender } = render(
+    <AppShell nav={nav} value="home" onNavigate={() => {}}>
+      <p>內容</p>
+    </AppShell>,
+  );
+  expect(container.querySelector('.ui-topbar')).toBeNull();
+  const main = container.querySelector('.ui-shell-main') as HTMLElement;
+  expect(getComputedStyle(main).paddingTop).toBe('24px');
+  rerender(
+    <AppShell nav={nav} value="home" onNavigate={() => {}} actions={<button type="button">帳號</button>}>
+      <p>內容</p>
+    </AppShell>,
+  );
+  expect(container.querySelector('.ui-topbar')).not.toBeNull();
+  // Tablets keep the bar for the menu button.
+  await page.viewport(820, 900);
+  rerender(
+    <AppShell nav={nav} value="home" onNavigate={() => {}}>
+      <p>內容</p>
+    </AppShell>,
+  );
+  await waitFor(() => expect(screen.getByRole('button', { name: '開啟導覽' })).toBeTruthy());
+});

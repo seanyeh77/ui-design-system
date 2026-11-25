@@ -71,6 +71,13 @@
 .ui-shell.is-phone .ui-shell-main {
   padding: calc(var(--header-height) + var(--space-4)) var(--space-4) var(--space-6);
 }
+/* No top bar (a detail page whose PageHeader has the title, and nothing else for the bar): content starts at the top. */
+.ui-shell.is-bare .ui-shell-main {
+  padding-top: var(--space-6);
+}
+.ui-shell.is-bare.is-phone .ui-shell-main {
+  padding-top: var(--space-4);
+}
 @media (prefers-reduced-motion: reduce) {
   .ui-shell-top {
     transition: none;

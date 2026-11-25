@@ -10,7 +10,7 @@ export const Default = {
       <UI.PageHeader
         title="訂單 #1024"
         status={<UI.Badge status="doing">出貨中</UI.Badge>}
-        meta="建立於 2026/11/04（三）· 負責人 王小明"
+        meta={['建立於 2026/11/04（三）', '負責人 王小明']}
         primary={{ label: '出貨', onClick: () => {} }}
         actions={[
           { label: '編輯', icon: 'pencil-simple', onClick: () => {} },

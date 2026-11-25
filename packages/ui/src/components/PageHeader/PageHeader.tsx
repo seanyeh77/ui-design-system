@@ -21,8 +21,9 @@ export interface PageHeaderProps {
   title?: React.ReactNode;
   /** First on the line under the title, the size of the facts beside it: a Badge, e.g. <Badge status="doing" />. */
   status?: React.ReactNode;
-  /** Secondary facts after the status: 「建立於 2026/11/04（三）· 負責人 王小明」. */
-  meta?: React.ReactNode;
+  /** Secondary facts after the status: a list joined with 「 · 」 (no space after a full-width 「）」), or one text:
+   *  ['建立於 2026/11/04（三）', '負責人 王小明'] reads 「建立於 2026/11/04（三）· 負責人 王小明」. */
+  meta?: React.ReactNode | readonly React.ReactNode[];
   /** The page's one main action, a solid button at the right end. */
   primary?: PageHeaderAction;
   /** Other actions as outline buttons before it; on phones they go into the ⋯ menu. */
@@ -33,6 +34,22 @@ export interface PageHeaderProps {
   labels?: { more?: string };
   /** Extra class on the root element. */
   className?: string;
+}
+
+// A full-width closing bracket already leaves half a character of room: no space after it.
+const CLOSE = /[）」』】〕]$/;
+/** The facts as shown: a list joined with 「 · 」, and in text 「（三） · 」 written 「（三）· 」 and 「（三） 13:00」 written
+ *  「（三）13:00」 (the date format's rule). */
+function facts(meta: React.ReactNode | readonly React.ReactNode[]): React.ReactNode {
+  const tidy = (t: React.ReactNode) => (typeof t === 'string' ? t.replace(/([）」』】〕]) +(?=[·\d])/g, '$1') : t);
+  if (!Array.isArray(meta)) return tidy(meta as React.ReactNode);
+  const parts = (meta as readonly React.ReactNode[]).filter((m) => m != null && m !== false && m !== '');
+  return parts.map((m, i) => (
+    <React.Fragment key={i}>
+      {i ? (typeof parts[i - 1] === 'string' && CLOSE.test(parts[i - 1] as string) ? '· ' : ' · ') : null}
+      {tidy(m)}
+    </React.Fragment>
+  ));
 }
 
 /** The top of a detail page: the record's title (or none when the top bar has it), its status, one line of facts, and
@@ -56,7 +73,7 @@ export function PageHeader({ title, status, meta, primary, actions = [], more = 
         {status || meta ? (
           <div className="ui-pagehead-meta">
             {status ? <span className="ui-pagehead-status">{status}</span> : null}
-            {meta ? <span className="ui-pagehead-facts">{meta}</span> : null}
+            {meta ? <span className="ui-pagehead-facts">{facts(meta)}</span> : null}
           </div>
         ) : null}
       </div>
