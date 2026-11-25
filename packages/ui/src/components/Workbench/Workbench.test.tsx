@@ -28,7 +28,7 @@ function Picker() {
 const shell = (width: number, height = 640) => (
   <div style={{ width, height }}>
     <Workbench
-      id="test"
+      storageKey="test"
       brand={{ name: 'codemap', href: '#' }}
       crumbs={[{ label: 'harness' }, { label: 'controller.py' }]}
       actions={<Reset />}
@@ -161,7 +161,7 @@ test('phone: no product name; the whole path on the bar above the main view; sid
   expect(within(sheet).getByRole('tab', { selected: true }).textContent).toBe('問題');
   expect(screen.getByText('問題內容')).toBeTruthy();
   // The main view stays above it, not covered.
-  const main = screen.getByRole('main');
+  const main = document.querySelector('.ui-wb-main') as HTMLElement;
   expect(main.getBoundingClientRect().bottom).toBeLessThanOrEqual(sheet.getBoundingClientRect().top + 1);
   await user.click(within(sheet).getByRole('button', { name: '目前分頁往左移' }));
   expect(
@@ -214,7 +214,7 @@ test('show(id) from inside and through ref: the view becomes its region’s tab 
   render(
     <div style={{ width: 1440, height: 640 }}>
       <Workbench
-        id="show"
+        storageKey="show"
         ref={ref}
         views={views}
         defaultLayout={{ side: ['outline', 'refs'], panel: ['problems', 'output'], open: { panel: false, side: false } }}
@@ -245,7 +245,7 @@ test('show(id) on a narrow screen lays the side bar over the main view; on a pho
   const ref = React.createRef<WorkbenchHandle>();
   const { rerender } = render(
     <div style={{ width: 1000, height: 640 }}>
-      <Workbench id="show2" ref={ref} views={views} defaultLayout={{ side: ['outline', 'refs'], panel: ['problems', 'output'] }} />
+      <Workbench storageKey="show2" ref={ref} views={views} defaultLayout={{ side: ['outline', 'refs'], panel: ['problems', 'output'] }} />
     </div>,
   );
   await waitFor(() => expect(region('右側欄').classList.contains('is-drawer')).toBe(true));
@@ -255,7 +255,7 @@ test('show(id) on a narrow screen lays the side bar over the main view; on a pho
   expect(ref.current?.getLayout().open.side).toBe(true);
   rerender(
     <div style={{ width: 390, height: 720 }}>
-      <Workbench id="show2" ref={ref} views={views} defaultLayout={{ side: ['outline', 'refs'], panel: ['problems', 'output'] }} />
+      <Workbench storageKey="show2" ref={ref} views={views} defaultLayout={{ side: ['outline', 'refs'], panel: ['problems', 'output'] }} />
     </div>,
   );
   await waitFor(() => expect(ref.current?.phone).toBe(true));
@@ -270,7 +270,7 @@ test('show() with an unknown id does nothing and warns in development', async ()
   const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
   render(
     <div style={{ width: 1440, height: 640 }}>
-      <Workbench id="show3" ref={ref} views={views} />
+      <Workbench storageKey="show3" ref={ref} views={views} />
     </div>,
   );
   React.act(() => ref.current?.show('nope'));
@@ -285,7 +285,7 @@ function OpenOnMount({ width, view }: { width: number; view: string }) {
   }, [view]);
   return (
     <div style={{ width, height: 720 }}>
-      <Workbench id={'mount-' + width} ref={ref} views={views} defaultLayout={{ side: ['outline', 'refs'], panel: ['problems', 'output'] }} />
+      <Workbench storageKey={'mount-' + width} ref={ref} views={views} defaultLayout={{ side: ['outline', 'refs'], panel: ['problems', 'output'] }} />
     </div>
   );
 }
@@ -312,7 +312,7 @@ test('the breadcrumb and mainBar sit on a 36 px bar above the main view, in line
     return (
       <div style={{ width: 1440, height: 640 }}>
         <Workbench
-          id="bar"
+          storageKey="bar"
           crumbs={[{ label: 'harness' }, { label: 'controller.py' }]}
           mainBar={<IconButton variant="quiet" icon="arrow-square-out" label="用 VS Code 開啟" />}
           explorerFilter={{
@@ -342,7 +342,49 @@ test('the breadcrumb and mainBar sit on a 36 px bar above the main view, in line
   const filter = document.querySelector('.ui-wb-exfilter') as HTMLElement;
   expect(bar.getBoundingClientRect().bottom).toBe(tabRow.getBoundingClientRect().bottom);
   expect(filter.getBoundingClientRect().bottom).toBe(tabRow.getBoundingClientRect().bottom);
-  expect(screen.getByRole('main').getBoundingClientRect().top).toBe(bar.getBoundingClientRect().bottom);
+  expect((document.querySelector('.ui-wb-main') as HTMLElement).getBoundingClientRect().top).toBe(bar.getBoundingClientRect().bottom);
   await user.type(screen.getByRole('searchbox', { name: '篩選檔案與函式' }), 'sy');
   expect(seen).toEqual(['s', 'sy']);
+});
+
+test('landmarks: the product name is the h1; the main view and its bar sit in main; each border sits in its region', async () => {
+  render(shell(1440));
+  expect(screen.getByRole('heading', { level: 1, name: 'codemap' })).toBeTruthy();
+  const main = screen.getByRole('main', { name: '編輯器' });
+  expect(main.contains(screen.getByRole('navigation', { name: '路徑' }))).toBe(true);
+  expect(main.contains(screen.getByText('主畫面'))).toBe(true);
+  const ex = await screen.findByRole('separator', { name: '檔案總管寬度' });
+  expect(ex.closest('aside')?.getAttribute('aria-label')).toBe('檔案總管');
+  expect(screen.getByRole('separator', { name: '右側欄寬度' }).closest('aside')?.getAttribute('aria-label')).toBe('右側欄');
+  expect(screen.getByRole('separator', { name: '下方面板高度' }).closest('section')?.getAttribute('aria-label')).toBe('下方面板');
+  // The borders stay on the regions' edges.
+  const exBox = ex.closest('aside')!.getBoundingClientRect();
+  const sep = ex.getBoundingClientRect();
+  expect(Math.abs(sep.left + sep.width / 2 - exBox.right)).toBeLessThanOrEqual(1);
+});
+
+test('storageKey keeps the layout; without it nothing is stored; the deprecated id still works and warns', async () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  const { unmount } = render(
+    <div style={{ width: 1440, height: 640 }}>
+      <Workbench views={views} defaultLayout={{ side: ['outline'], panel: ['problems'] }}>
+        <p>主畫面</p>
+      </Workbench>
+    </div>,
+  );
+  await user.click(await screen.findByRole('button', { name: /^下方面板/ }));
+  expect(isOpen('下方面板')).toBe(false);
+  expect(Object.keys(localStorage).filter((k) => k.startsWith('ui-workbench:'))).toEqual([]);
+  unmount();
+  render(
+    <div style={{ width: 1440, height: 640 }}>
+      <Workbench id="old" views={views}>
+        <p>主畫面</p>
+      </Workbench>
+    </div>,
+  );
+  await user.click(await screen.findByRole('button', { name: /^下方面板/ }));
+  expect(JSON.parse(localStorage.getItem('ui-workbench:old') ?? '{}').open?.panel).toBe(false);
+  expect(warn.mock.calls.some((c) => String(c[0]).includes('`id` is deprecated'))).toBe(true);
+  warn.mockRestore();
 });

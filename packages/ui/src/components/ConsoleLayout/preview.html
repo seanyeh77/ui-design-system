@@ -53,7 +53,16 @@
           tags: h(U.Tag, { icon: 'info' }, '示範資料'),
           status: 'AI 最佳化中',
           kpis: [
-            h(U.KpiCard, { key: 'e', size: 'compact', label: '預測誤差', value: 0.4, decimals: 1, unit: '°C', verdict: { tone: 'success', text: '預測準確' }, target: '目標 ≤ 0.5 °C' }),
+            h(U.KpiCard, {
+              key: 'e',
+              size: 'compact',
+              label: '預測誤差',
+              value: 0.4,
+              decimals: 1,
+              unit: '°C',
+              verdict: { tone: 'success', text: '預測準確' },
+              target: '目標 ≤ 0.5 °C',
+            }),
             h(U.KpiCard, { key: 'p', size: 'compact', label: 'PUE', value: 1.42, decimals: 2, target: '目標 ≤ 1.45' }),
             h(U.KpiCard, { key: 's', size: 'compact', label: '今日節能', value: 186, unit: 'kWh', target: '約 12%' }),
           ],

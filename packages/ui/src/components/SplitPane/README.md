@@ -5,14 +5,7 @@
 主要區域和側邊面板並排，中間的分隔線可以拖拉，調整面板寬度。用在需要看長內容的面板，例如程式碼、詳細資料。
 
 ```tsx
-<SplitPane
-  a={<Card title="架構">…</Card>}
-  b={<CodeView file="src/server/shm.c" code={code} />}
-  defaultB={420}
-  minA={360}
-  minB={280}
-  storageKey="code-panel"
-/>
+<SplitPane a={<Card title="架構">…</Card>} b={<CodeView file="src/server/shm.c" code={code} />} defaultB={420} minA={360} minB={280} storageKey="code-panel" />
 ```
 
 - `a` 是主要區域（左），`b` 是側邊面板（右）；`defaultB`（px，預設 420）是面板一開始的寬度。

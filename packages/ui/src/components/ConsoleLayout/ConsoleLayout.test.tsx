@@ -49,3 +49,20 @@ test('phones get one column with every card, no side panel', async () => {
   expect(screen.queryByRole('button', { name: '全螢幕' })).toBeNull();
   await page.viewport(1280, 800);
 });
+
+test('landmarks: the title is the h1; the main view and the bottom row are in main, on phones the whole column', async () => {
+  await page.viewport(1280, 800);
+  const { unmount } = render(<Demo height={800} />);
+  expect(screen.getByRole('heading', { level: 1, name: '機房監控' })).toBeTruthy();
+  const main = screen.getByRole('main');
+  expect(main.textContent).toContain('主視覺');
+  expect(main.textContent).toContain('底列');
+  expect(main.textContent).not.toContain('時間控制');
+  // The bottom row is still laid out under the main view.
+  const view = screen.getByText('主視覺').getBoundingClientRect();
+  expect(screen.getByText('底列').getBoundingClientRect().top).toBeGreaterThanOrEqual(view.bottom);
+  unmount();
+  await page.viewport(390, 844);
+  render(<Demo height={844} />);
+  await expect.poll(() => screen.getByRole('main').textContent?.includes('時間控制')).toBe(true);
+});

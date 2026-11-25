@@ -58,6 +58,9 @@
   display: flex;
   align-items: stretch;
 }
+.ui-console-content {
+  display: contents;
+}
 .ui-console-main {
   grid-column: 1;
   grid-row: 2;

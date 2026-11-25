@@ -125,25 +125,29 @@ export function ConsoleLayout({ title, tags, status, kpis, clock, fullscreen = t
     <div ref={ref} className={cx('ui-console', phone && 'is-stacked', className)}>
       <div className="ui-console-frame" style={frameStyle}>
         {top}
-        <main className="ui-console-main">{main}</main>
-        {phone ? (
-          <>
-            {side}
-            {bottom}
-            {shown.map((x) => (
-              <React.Fragment key={x.id}>{x.node}</React.Fragment>
-            ))}
-          </>
-        ) : (
-          <>
-            <aside className="ui-console-side" aria-label={tr('側欄')}>
+        {/* The main landmark draws no box (display: contents): the main view and the bottom row stay grid cells, and
+            on phones the whole column after the top bar is in it. */}
+        <main className="ui-console-content">
+          <div className="ui-console-main">{main}</div>
+          {phone ? (
+            <>
               {side}
+              {bottom}
               {shown.map((x) => (
                 <React.Fragment key={x.id}>{x.node}</React.Fragment>
               ))}
-            </aside>
-            {bottom != null ? <div className="ui-console-bottom">{bottom}</div> : null}
-          </>
+            </>
+          ) : bottom != null ? (
+            <div className="ui-console-bottom">{bottom}</div>
+          ) : null}
+        </main>
+        {phone ? null : (
+          <aside className="ui-console-side" aria-label={tr('側欄')}>
+            {side}
+            {shown.map((x) => (
+              <React.Fragment key={x.id}>{x.node}</React.Fragment>
+            ))}
+          </aside>
         )}
       </div>
     </div>
