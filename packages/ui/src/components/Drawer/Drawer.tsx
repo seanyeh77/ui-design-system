@@ -66,11 +66,18 @@ export function Drawer({
     onClose?.();
   };
   // Unsaved changes: the question replaces the footer, in the drawer, instead of a dialog over the whole page.
-  const back = React.useRef<HTMLElement | null>(null);
+  const panel = React.useRef<HTMLDivElement>(null);
+  // Focus the first field (or action), not the close button.
+  const firstField = () =>
+    panel.current?.querySelector<HTMLElement>(
+      '.ui-drawer-body :is(input, textarea, select, button, [tabindex]):not([disabled], [tabindex="-1"]), .ui-drawer-foot button:not([disabled])',
+    ) ?? true;
+  // Where focus was before the question, to go back to after 繼續編輯.
+  const [back, setBack] = React.useState<HTMLElement | null>(null);
   const request = (reason: OpenChangeReason = 'cancel') => {
     if (!dirty) return close(reason);
     const a = document.activeElement;
-    back.current = a instanceof HTMLElement && a !== document.body ? a : null;
+    setBack(a instanceof HTMLElement && a !== document.body ? a : null);
     setAsking(true);
   };
   const keep = React.useRef<HTMLButtonElement>(null);
@@ -79,18 +86,11 @@ export function Drawer({
     if (asking) keep.current?.focus();
     // Back to editing: focus returns to where it was before the question (the × or the field), not to the page.
     else if (wasAsking.current && open) {
-      const to = back.current?.isConnected ? back.current : null;
-      const f = to ?? firstField();
+      const f = back?.isConnected ? back : firstField();
       if (f instanceof HTMLElement) f.focus();
     }
     wasAsking.current = asking;
-  }, [asking]);
-  const panel = React.useRef<HTMLDivElement>(null);
-  // Focus the first field (or action), not the close button.
-  const firstField = () =>
-    panel.current?.querySelector<HTMLElement>(
-      '.ui-drawer-body :is(input, textarea, select, button, [tabindex]):not([disabled], [tabindex="-1"]), .ui-drawer-foot button:not([disabled])',
-    ) ?? true;
+  }, [asking, back, open]);
   const foot = actions ? (typeof actions === 'function' ? actions(() => request('cancel')) : actions) : null;
   return (
     <Base.Root

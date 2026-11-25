@@ -13,7 +13,14 @@ function Form({ onSave }: { onSave: (v: { name: string; env: string; email: stri
   }));
   return (
     <form onSubmit={form.submit(onSave)} noValidate>
-      <TextField label="名稱" name="name" value={v.name} onChange={(name) => setV({ ...v, name })} onBlur={() => form.onBlur('name')} error={form.errors.name} />
+      <TextField
+        label="名稱"
+        name="name"
+        value={v.name}
+        onChange={(name) => setV({ ...v, name })}
+        onBlur={() => form.onBlur('name')}
+        error={form.errors.name}
+      />
       <Select
         label="環境"
         name="env"
@@ -25,7 +32,14 @@ function Form({ onSave }: { onSave: (v: { name: string; env: string; email: stri
         ]}
         error={form.errors.env}
       />
-      <TextField label="Email" name="email" value={v.email} onChange={(email) => setV({ ...v, email })} onBlur={() => form.onBlur('email')} error={form.errors.email} />
+      <TextField
+        label="Email"
+        name="email"
+        value={v.email}
+        onChange={(email) => setV({ ...v, email })}
+        onBlur={() => form.onBlur('email')}
+        error={form.errors.email}
+      />
       <Button variant="primary" type="submit">
         儲存
       </Button>

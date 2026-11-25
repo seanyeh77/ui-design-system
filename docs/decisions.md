@@ -1280,7 +1280,7 @@ AI 定的細節（待確認）：
 ### AI 定的細節（待確認）
 
 - 改了已確認的規則：Toast 原本是「右下角、3 s、附復原」。改成一般訊息仍是 3 s；有動作（「復原」）的訊息停留 10 s，滑鼠或焦點在訊息上時暫停計時（WCAG 2.2.1 時間可調整），並可按 Ctrl Z（Mac ⌘Z）復原，按鈕上寫出這個按鍵；焦點在輸入框時 Ctrl Z 留給輸入框。頁面不再自己管 state 和計時器：`toast()` 加一個 `<Toaster />`（Base UI Toast），多則由下往上疊，每則有 ×；手機在下方中間、分頁列上方。`tone` 預設 `success`（打勾），`danger` 立即念出（`role="alert"`）。
-- 改了已確認的規則：SegmentedControl 原本「高 28 px」「圖示選中時變實心、強調文字色」。改成 40 px（和工具列上的控制項同高，Tabs 也從 46 px 改成 40 px：分頁 34 px 加軌道上下 3 px），文字 15 px；只有圖示時選中的圖示用 `ink`，和文字版一樣靠白色小塊加 `line-strong` 框表示選中。Workbench 的 `mainBar`（36 px）裡維持 28 px，和那一列的其他按鈕同高。觸控裝置上整組 48 px。DataTable 摘要分段（32 px）沒有改，留給 DataTable 那邊對齊。
+- 改了已確認的規則：SegmentedControl 原本「高 28 px」「圖示選中時變實心、強調文字色」。改成 40 px（和工具列上的控制項同高，Tabs 也從 46 px 改成 40 px：分頁 32 px 加軌道上下 4 px，和 DataTable 摘要分段一樣），文字 15 px；只有圖示時選中的圖示用 `ink`，和文字版一樣靠白色小塊加 `line-strong` 框表示選中。Workbench 的 `mainBar`（36 px）裡維持 28 px，和那一列的其他按鈕同高。觸控裝置上整組 48 px。DataTable 的摘要分段本來就是 40 px，不用改。
 - Button 的 `loading` 不設 `disabled`，改用 `aria-disabled` 加 `aria-busy`，按了不執行：焦點留在按鈕上。按鈕在有焦點時被停用，焦點移到同一組（toolbar、group、form、section、對話框）裡前一個可用的控制項，沒有時後一個，再沒有時到主要內容（`focusMain`）。先找「前一個」，因為那通常是使用者剛走過來的地方（例如 TimeControl 的「回到現在」停用後到「回放」）。
 - 停用的 primary 按鈕：`accent-soft` 底加 `ink-muted` 字（4.5:1），和停用的 secondary／quiet（`surface-sub` 灰底）分得出來。
 - Dialog 的 `tone` 只有 `neutral` 和 `danger`（共用語意色的子集，另外三種對「要使用者決定的框」沒有意義）。`danger` 用 AlertDialog：焦點先到「取消」，點背景不關閉。一般 Dialog 打開時焦點在第一個按鈕（「取消」），不在 ×。

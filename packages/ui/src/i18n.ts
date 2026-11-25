@@ -14,7 +14,6 @@ export const I18N: I18nState = {
   messages: {
     en: {
       'Email 或帳號': 'Email or username',
-      '{label}：{a} 到 {b}': '{label}: {a} to {b}',
       '{n} 個百分點': '{n} pts',
       上一頁: 'Previous page',
       上個月: 'Previous month',

@@ -125,7 +125,7 @@ test('DateRangePicker: dates follow the language', () => {
   setLocale('en');
   try {
     render(<DateRangePicker label="Period" value={[new Date(2026, 10, 4), new Date(2026, 10, 9)]} onChange={() => {}} />);
-    const btn = screen.getByRole('button', { name: /^Period: / });
+    const btn = screen.getByRole('button', { name: /^Period / });
     expect(btn.textContent).toBe(`${format.date(new Date(2026, 10, 4), { weekday: false })} – ${format.date(new Date(2026, 10, 9), { weekday: false })}`);
     expect(btn.textContent).not.toContain('2026/11/04');
   } finally {
