@@ -84,11 +84,18 @@
    click area wrap the control, not the whole row, as on Switch. Still a block, so each sits on its own line. */
 .ui-check,
 .ui-radio {
-  display: flex;
+  /* A grid, not a flex row: the box sits on the first line of a label that wraps (align-items: start, see the box's
+     margin), while one line stays centred in the 40 px height (align-content: center). */
+  display: grid;
+  grid-template-columns: auto;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, max-content);
   width: max-content;
   max-width: 100%;
-  align-items: center;
-  gap: 12px;
+  justify-content: start;
+  align-items: start;
+  align-content: center;
+  column-gap: 12px;
   min-height: var(--control-height);
   padding: 0;
   border: 0;
@@ -98,6 +105,11 @@
   font-size: var(--text-control);
   text-align: left;
   cursor: pointer;
+}
+.ui-check > .ui-check-box,
+.ui-radio > .ui-radio-ring {
+  /* Centred on the first line of the label. */
+  margin-top: calc((1lh - 22px) / 2);
 }
 .ui-check:disabled,
 .ui-radio:disabled {

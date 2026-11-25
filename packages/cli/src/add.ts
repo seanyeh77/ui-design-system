@@ -51,15 +51,19 @@ export function addReport(t: Template, dir: string, r: { written: string[]; skip
   const lines = [`${t.title} (${t.name}) → ${rel(dir)}/`];
   for (const p of r.written) lines.push(`  wrote ${rel(p)}`);
   for (const p of r.skipped) lines.push(`  kept ${rel(p)} (exists; --force overwrites it)`);
-  const deps = t.dependencies.filter((d) => {
-    try {
-      const pkg = JSON.parse(readFileSync(join(cwd, 'package.json'), 'utf8')) as { dependencies?: Record<string, string> };
-      return !pkg.dependencies?.[d];
-    } catch {
-      return true;
-    }
-  });
-  if (deps.length) lines.push(`Install: npm i ${deps.join(' ')} react react-dom`);
+  // The packages the template imports that the project does not list yet (dependencies or devDependencies).
+  let listed: Record<string, string> = {};
+  try {
+    const pkg = JSON.parse(readFileSync(join(cwd, 'package.json'), 'utf8')) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+    listed = { ...pkg.devDependencies, ...pkg.dependencies };
+  } catch {
+    /* no package.json: every package is missing */
+  }
+  const deps = [...new Set([...t.dependencies, 'react', 'react-dom'])].filter((d) => !listed[d]);
+  if (deps.length) lines.push(`Missing packages: npm i ${deps.join(' ')}`);
   const sample = t.files.find((f) => /(^|\/)sample\.ts$/.test(f.target));
   lines.push(
     `Use: render <${main} … /> from ${rel(join(dir, basename(t.files[0]?.target ?? '')))} with your data (its props are typed there${sample ? `; ${basename(sample.target)} has example data in their shape` : ''}).`,

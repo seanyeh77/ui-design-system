@@ -3,7 +3,7 @@ import * as UI from '../../index';
 
 export default { title: 'Status/Badge', component: UI.Badge };
 
-const ALL: UI.BadgePreset[] = ['draft', 'doing', 'review', 'done', 'fail', 'closed', 'online', 'offline'];
+const ALL: UI.BadgePreset[] = ['draft', 'doing', 'review', 'done', 'fail', 'closed', 'paused', 'online', 'offline'];
 
 export const Default = {
   render: () => (

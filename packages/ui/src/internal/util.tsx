@@ -141,8 +141,11 @@ export function nodeText(node: React.ReactNode): string {
   return '';
 }
 
-/** A number and the unit after it never break apart: the space between them becomes a no-break space (U+00A0), so
- *  「100 MB」「29 °C」「3 筆」 do not wrap as 「100 / MB」 on a phone. Leaves every other space alone. */
+/** A number and its unit never break apart: the space between them becomes a no-break space (U+00A0), so
+ *  「100 MB」「29 °C」「3 筆」 do not wrap as 「100 / MB」 on a phone, nor a currency before the number (「NT$ 1,280」).
+ *  Leaves every other space alone. */
 export function keepUnits(text: string): string {
-  return text.replace(/(\d) (?=°|%|‰|[A-Za-zµΩ]{1,4}(?![A-Za-z])|[\u3400-\u9fff])/g, '$1\u00a0');
+  return text
+    .replace(/(\d) (?=°|%|‰|[A-Za-zµΩ]{1,4}(?![A-Za-z])|[\u3400-\u9fff])/g, '$1\u00a0')
+    .replace(/((?:^|[^\w$])(?:[A-Z]{2}\$|[$€£¥₩])) (?=[-−]?\d)/g, '$1\u00a0');
 }

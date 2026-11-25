@@ -14,7 +14,7 @@
 - 只有要處理的狀態醒目：`warning`、`danger` 的文字上色加粗，其他文字是 `ink-muted` 一般粗細，顏色只在圓圈上。
 - 狀態不只靠顏色：一定有文字，圓圈的形狀也不同（`fail` 是 ×，不是和 `done` 一樣的實心圓）。
 - 字級跟著旁邊的文字（表格裡和其他格子一樣大，頁首和頁首的文字一樣大），不必另外設定。
-- 常見狀態：已啟用 `<Badge tone="success">已啟用</Badge>`；已停用、已取消用 `status="closed"` 加文字（「已停用」「已取消」）；連線用 `online`、`offline`。
+- 常見狀態：已啟用 `<Badge tone="success">已啟用</Badge>`；已停用、已取消用 `status="closed"` 加文字（「已停用」「已取消」）；暫停、停權這類之後能恢復的用 `paused`（「已停權」加文字）；連線用 `online`、`offline`。
 
 ## 預設狀態
 
@@ -26,6 +26,7 @@
 | `done`    | 完成   | `success` | 全滿           |
 | `fail`    | 失敗   | `danger`  | 空心加 ×       |
 | `closed`  | 已關閉 | `neutral` | 空心加橫線     |
+| `paused`  | 已暫停 | `warning` | 空心加兩條直線 |
 | `online`  | 在線   | `success` | 全滿           |
 | `offline` | 離線   | `neutral` | 空心加斜線     |
 

@@ -34,3 +34,25 @@ test('a label longer than its container wraps inside it', () => {
   );
   expect(screen.getByRole('checkbox').getBoundingClientRect().width).toBeLessThanOrEqual(200);
 });
+
+test('a label that wraps: the box sits on its first line; one line stays centred in the 40 px row', async () => {
+  const { container } = render(
+    <div style={{ width: 220 }}>
+      <Checkbox label="同意服務條款與隱私權政策，並同意接收產品更新與活動通知的電子郵件" />
+      <Checkbox label="記住我" />
+    </div>,
+  );
+  const [long, short] = [...container.querySelectorAll<HTMLElement>('.ui-check')];
+  const first = (el: HTMLElement) => {
+    const text = el.querySelector('.ui-check-box + span') as HTMLElement;
+    const r = document.createRange();
+    r.selectNodeContents(text);
+    return r.getClientRects()[0];
+  };
+  const box = (el: HTMLElement) => (el.querySelector('.ui-check-box') as HTMLElement).getBoundingClientRect();
+  expect(long.getBoundingClientRect().height).toBeGreaterThan(50);
+  const line = first(long);
+  expect(Math.abs(box(long).top + 11 - (line.top + line.height / 2))).toBeLessThanOrEqual(2);
+  const sr = short.getBoundingClientRect();
+  expect(Math.abs(box(short).top + 11 - (sr.top + sr.height / 2))).toBeLessThanOrEqual(1);
+});

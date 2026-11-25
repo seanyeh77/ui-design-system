@@ -83,3 +83,21 @@ test('Alert: the 40 px action sits at the right end of the text row; under the t
   expect(c.left).toBe(narrow.left);
   expect(getComputedStyle(container.querySelector('.ui-alert') as Element, '::before').content).toBe('none');
 });
+
+test('Alert: the ✕ is centred on the action button, and its box ends where an action ends without ✕', () => {
+  const { container } = render(
+    <div style={{ width: 720 }}>
+      <Alert tone="info" title="有新版本" actionLabel="重新整理" onAction={() => {}} onDismiss={() => {}}>
+        重新整理後套用。
+      </Alert>
+      <Alert tone="warning" title="憑證即將到期" actionLabel="更新憑證" onAction={() => {}}>
+        7 天後到期。
+      </Alert>
+    </div>,
+  );
+  const [a, b] = [...container.querySelectorAll<HTMLElement>('.ui-alert')];
+  const act = (a.querySelector('.ui-alert-action') as HTMLElement).getBoundingClientRect();
+  const close = (a.querySelector('.ui-alert-close') as HTMLElement).getBoundingClientRect();
+  expect(Math.abs(act.top + act.height / 2 - (close.top + close.height / 2))).toBeLessThanOrEqual(1);
+  expect(Math.abs(close.right - (b.querySelector('.ui-alert-action') as HTMLElement).getBoundingClientRect().right)).toBeLessThanOrEqual(1);
+});

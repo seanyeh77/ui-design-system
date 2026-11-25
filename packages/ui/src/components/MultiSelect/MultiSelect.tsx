@@ -141,7 +141,8 @@ export function MultiSelect({
           </Combobox.Chips>
           {error ? <FieldErrorIcon inline /> : null}
           {value.length > 1 && !disabled ? (
-            <Combobox.Clear className="ui-ms-clear" aria-label={tr('清除{name}', { name: label })}>
+            // In the Tab order (Base UI leaves it out): the one control that clears every value from the keyboard.
+            <Combobox.Clear className="ui-ms-clear" tabIndex={0} aria-label={tr('清除{name}', { name: label })}>
               <Icon name="x" size={16} />
             </Combobox.Clear>
           ) : null}

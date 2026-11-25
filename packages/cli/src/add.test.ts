@@ -50,3 +50,12 @@ test('writeTemplate writes the files and keeps existing ones unless forced', () 
   assert.match(report, /<Demo … \/> from blocks\/Demo\.tsx/);
   assert.match(report, /sample\.ts has example data/);
 });
+
+test('addReport lists only the packages the project is missing', () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'ui-add-'));
+  const none = { written: [], skipped: [] };
+  writeFileSync(join(cwd, 'package.json'), JSON.stringify({ dependencies: { react: '19.2.0' }, devDependencies: { 'react-dom': '19.2.0' } }));
+  assert.match(addReport(t, cwd, none, cwd).join('\n'), /Missing packages: npm i @seanyeh77\/ui$/m);
+  writeFileSync(join(cwd, 'package.json'), JSON.stringify({ dependencies: { react: '19.2.0', 'react-dom': '19.2.0', '@seanyeh77/ui': '0.46.0' } }));
+  assert.doesNotMatch(addReport(t, cwd, none, cwd).join('\n'), /Missing packages/);
+});

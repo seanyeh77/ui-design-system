@@ -63,7 +63,8 @@
   grid-row: 1;
   width: 40px;
   height: 40px;
-  margin: -8px -8px -8px var(--space-3);
+  /* Its box ends at the padding edge, where an action button ends in an alert without ✕. */
+  margin: -8px 0 -8px var(--space-3);
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -72,6 +73,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+/* Beside an action: centred on the same line as the button, not at the top. */
+@container (min-width: 480px) {
+  .ui-alert:has(> .ui-alert-action) > .ui-alert-close {
+    align-self: center;
+    margin-block: 0;
+  }
 }
 .ui-alert-close:hover {
   background: var(--surface-sub);

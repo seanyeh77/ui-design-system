@@ -78,3 +78,14 @@ test('CodeText: a reference that points somewhere is a location; other spans kee
   const codes = Array.from(container.querySelectorAll('.ui-code'));
   expect(codes.map((c) => c.classList.contains('is-location'))).toEqual([false, true, false]);
 });
+
+test('codeText keeps a number with its unit and a currency with its number: no-break spaces', () => {
+  const { container } = render(<CodeText text={'上限 100 MB，費用 NT$ 1,280，或 US$ 40；`$ 5` 不動，CPU 3 個'} />);
+  const text = container.textContent ?? '';
+  expect(text).toContain('100 MB');
+  expect(text).toContain('NT$ 1,280');
+  expect(text).toContain('US$ 40');
+  expect(text).toContain('3 個');
+  // Code spans are left as written.
+  expect(container.querySelector('code')?.textContent).toBe('$ 5');
+});

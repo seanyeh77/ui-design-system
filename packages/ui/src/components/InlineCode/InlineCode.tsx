@@ -92,7 +92,7 @@ export function CodeText({ text, refHref, onRef, isRef = isCodeRef, as: Tag = 's
   return (
     <Tag className={className}>
       {codeSpans(text).map(({ code, text: v }, i) => {
-        if (!code) return v;
+        if (!code) return keepUnits(v);
         const href = refHref && isRef(v) ? refHref(v) || undefined : undefined;
         const link = isRef(v) && (refHref ? !!href : !!onRef);
         if (!link) return <InlineCode key={i}>{v}</InlineCode>;

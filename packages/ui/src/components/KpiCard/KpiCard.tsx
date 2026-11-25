@@ -19,8 +19,8 @@ export interface KpiCardProps {
   compact?: boolean;
   /** Written after the number: 元, 人, ms, %. */
   unit?: string;
-  /** Digits after the decimal point, for the figure and its change (delta). Default 0 for the figure; the change then
-   *  keeps 1 (%) or 2 (pt). */
+  /** Digits after the decimal point, for the figure and its change (delta). Default 0 for the figure, 1 with unit="%"
+   *  (a percentage has 1 decimal); the change then keeps 1 (%) or 2 (pt). */
   decimals?: number;
   /** Change versus the comparison period. */
   delta?: number;
@@ -66,7 +66,7 @@ export function KpiCard(props: KpiCardProps) {
     label,
     value,
     unit,
-    decimals = 0,
+    decimals = unit === '%' ? 1 : 0,
     delta,
     deltaUnit,
     direction = 'up',

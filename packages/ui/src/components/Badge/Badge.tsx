@@ -8,11 +8,11 @@ export type BadgeTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
 
 /** The five work states: draft, doing, review, done and fail. */
 export type BadgeStatus = 'draft' | 'doing' | 'review' | 'done' | 'fail';
-/** Every preset: the work states, closed for a state that ended without a result (已取消, 已停用), and online and
- *  offline for monitoring. */
-export type BadgePreset = BadgeStatus | 'closed' | 'online' | 'offline';
+/** Every preset: the work states, closed for a state that ended without a result (已取消, 已停用), paused for one on
+ *  hold that can resume (已暫停, 已停權), and online and offline for monitoring. */
+export type BadgePreset = BadgeStatus | 'closed' | 'paused' | 'online' | 'offline';
 
-type Mark = 'ring' | 'half' | 'quarter' | 'full' | 'bang' | 'cross' | 'dash' | 'slash';
+type Mark = 'ring' | 'half' | 'quarter' | 'full' | 'bang' | 'cross' | 'dash' | 'slash' | 'pause';
 
 const STATUS: Record<BadgePreset, { label: string; tone: BadgeTone; mark: Mark }> = {
   draft: { label: '草稿', tone: 'neutral', mark: 'ring' },
@@ -21,6 +21,7 @@ const STATUS: Record<BadgePreset, { label: string; tone: BadgeTone; mark: Mark }
   done: { label: '完成', tone: 'success', mark: 'full' },
   fail: { label: '失敗', tone: 'danger', mark: 'cross' },
   closed: { label: '已關閉', tone: 'neutral', mark: 'dash' },
+  paused: { label: '已暫停', tone: 'warning', mark: 'pause' },
   online: { label: '在線', tone: 'success', mark: 'full' },
   offline: { label: '離線', tone: 'neutral', mark: 'slash' },
 };
@@ -39,6 +40,7 @@ const STROKE: Partial<Record<Mark, string>> = {
   cross: 'M9 9l6 6M15 9l-6 6',
   dash: 'M8.5 12h7',
   slash: 'M6.5 17.5l11-11',
+  pause: 'M10 8.5v7M14 8.5v7',
 };
 
 interface BadgeBase {
@@ -55,7 +57,7 @@ export type BadgeProps = BadgeBase &
     | {
         /** A preset: its name, tone and mark. */
         status: BadgePreset;
-        /** Default: the preset's name (草稿, 進行中, 審核中, 完成, 失敗, 已關閉, 在線, 離線). */
+        /** Default: the preset's name (草稿, 進行中, 審核中, 完成, 失敗, 已關閉, 已暫停, 在線, 離線). */
         children?: React.ReactNode;
       }
     | {

@@ -289,6 +289,7 @@ export const I18N: I18nState = {
       完成: 'Done',
       失敗: 'Failed',
       已關閉: 'Closed',
+      已暫停: 'Paused',
       在線: 'Online',
       '（在新分頁開啟）': ' (opens in a new tab)',
       '{lang} 程式碼': '{lang} code',

@@ -79,7 +79,11 @@ test('清除 removes every value and is announced; a chip × removes one', async
   expect(change).toHaveBeenLastCalledWith(['b', 'c']);
   const live = () => [...document.querySelectorAll('[aria-live]')].map((e) => e.textContent).join(' ');
   await vi.waitFor(() => expect(live()).toContain('已移除 前端'));
-  await user.click(screen.getByRole('button', { name: '清除標籤' }));
+  // Reachable with Tab, and Enter clears.
+  const clear = screen.getByRole('button', { name: '清除標籤' });
+  expect(clear.tabIndex).toBe(0);
+  clear.focus();
+  await user.keyboard('{Enter}');
   expect(change).toHaveBeenLastCalledWith([]);
   await vi.waitFor(() => expect(live()).toContain('已清除標籤'));
 });
