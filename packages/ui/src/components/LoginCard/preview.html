@@ -18,9 +18,10 @@
       function D() {
         var e = React.useState(null),
           ok = React.useState(false);
+        // The login page fills the window itself: the margin cancels the preview page's 24 px padding, so nothing scrolls.
         return h(
           'div',
-          { style: { height: 520 } },
+          { style: { margin: -24 } },
           h(U.LoginCard, {
             brand: h(React.Fragment, null, h('span', { style: { width: 24, height: 24, borderRadius: 6, background: 'var(--accent)' } }), '專案名稱'),
             forgotHref: '#',
