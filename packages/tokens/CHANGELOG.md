@@ -1,5 +1,15 @@
 # @seanyeh77/tokens
 
+## 0.46.0
+
+### Minor Changes
+
+- 08bc9ad: 新增 `fonts-latin.css`（Inter、Geist Mono）和 `fonts-tc.css`（Noto Sans TC）：主 CSS 只放前者，中文字型的 CSS 另外非同步載入，不再擋住第一次畫面（做法見 AGENTS.md）。`fonts.css` 不變。
+
+### Patch Changes
+
+- 4b9fdd2: AppShell：頁面本身不再捲動。內容捲動區（`.ui-shell-main`）是絕對定位內容的定位框，圖表的隱藏資料表、KpiCard 念出的數值、外部連結的隱藏說明不再把文件撐高（390 px 時文件從 844 px 長到 1734 px，捲下去一片空白）；`.ui-visually-hidden` 加上 `clip-path: inset(50%)`。0.45.1 恢復導覽的平板邊界含 1024 px：600 到 1024 px 用導覽抽屜，大於 1024 px 才有側邊欄（0.45.0 誤改成 1023 px）。
+
 ## 0.45.0
 
 ### Minor Changes
