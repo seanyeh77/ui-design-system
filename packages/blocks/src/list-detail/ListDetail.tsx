@@ -57,6 +57,14 @@ const STATUS_OPTIONS: { value: Item['status']; label: string }[] = [
 // The summary: 「全部」, then the state that needs attention, then the rest.
 const statusLabel = (s: Item['status']) => STATUS_OPTIONS.find((o) => o.value === s)?.label ?? s;
 const SUMMARY = (['fail', 'review', 'doing', 'done', 'draft'] as const).map((v) => ({ value: v, label: statusLabel(v) }));
+// Outside the component: one array for every render, so the table does not sort and filter again on each one.
+const COLUMNS: DataTableColumn<Item>[] = [
+  { key: 'name', label: '名稱' },
+  { key: 'owner', label: '負責人' },
+  { key: 'status', label: '狀態', render: (r) => <Badge status={r.status} />, searchText: (r) => statusLabel(r.status), mobile: 'status' },
+  { key: 'note', label: '備註', long: true },
+  { key: 'updated', label: '更新', format: 'relative' },
+];
 
 export function ListDetail({ items, owners, onSave }: ListDetailProps) {
   const [editing, setEditing] = React.useState<Item | null>(null);
@@ -75,20 +83,13 @@ export function ListDetail({ items, owners, onSave }: ListDetailProps) {
   };
   const create = () => open({ id: '', name: '', owner: owners[0] ?? '', status: 'draft', note: '', updated: new Date() });
   const set = <K extends keyof Item>(k: K, v: Item[K]) => setDraft((d) => (d ? { ...d, [k]: v } : d));
-  const columns: DataTableColumn<Item>[] = [
-    { key: 'name', label: '名稱' },
-    { key: 'owner', label: '負責人' },
-    { key: 'status', label: '狀態', render: (r) => <Badge status={r.status} />, searchText: (r) => statusLabel(r.status), mobile: 'status' },
-    { key: 'note', label: '備註', long: true },
-    { key: 'updated', label: '更新', format: 'relative' },
-  ];
   return (
     <AppShell nav={NAV} value="items" onNavigate={() => {}} brand="專案中心" title="項目">
       <Page>
         <Card padding={false}>
           <DataTable
             label="項目"
-            columns={columns}
+            columns={COLUMNS}
             rows={items}
             summary={{ key: 'status', items: SUMMARY }}
             action={

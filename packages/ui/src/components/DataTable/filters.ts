@@ -93,6 +93,17 @@ export function searchHit<R extends Row>(row: R, cols: DataTableColumn<R>[], fil
 
 const param = (prefix: string | undefined, key: string) => (prefix ? prefix + '.' : '') + key;
 
+/** Puts the query into the address without a history entry; nothing where there is no window.history (a server, a
+ *  sandbox without it) or the browser refuses (a sandboxed frame). */
+function replaceSearch(s: string): void {
+  if (typeof window === 'undefined' || !window.history?.replaceState) return;
+  try {
+    window.history.replaceState(window.history.state, '', window.location.pathname + (s ? '?' + s : '') + window.location.hash);
+  } catch {
+    /* the address cannot change here: search and filters still work, only the URL does not keep them */
+  }
+}
+
 /** Filter values from the URL (?status=a,b&size_min=10). */
 export function readUrl<R extends Row>(prefix: string | undefined, filters: ResolvedFilter<R>[]): { q: string; values: Record<string, FilterValue> } {
   const values: Record<string, FilterValue> = {};
@@ -123,7 +134,7 @@ export function writeUrl<R extends Row>(prefix: string | undefined, filters: Res
     } else set(f.key, v && !isRange(v) && v.length ? v.join(',') : undefined);
   }
   const s = sp.toString();
-  history.replaceState(history.state, '', location.pathname + (s ? '?' + s : '') + location.hash);
+  replaceSearch(s);
 }
 
 /** One level of a multi-column sort; the first one decides, the next only between rows the first finds equal. */
@@ -149,5 +160,5 @@ export function writeSort(prefix: string | undefined, levels: SortLevel[], initi
   if (text(levels) === text(initial)) sp.delete(param(prefix, 'sort'));
   else sp.set(param(prefix, 'sort'), text(levels));
   const s = sp.toString();
-  history.replaceState(history.state, '', location.pathname + (s ? '?' + s : '') + location.hash);
+  replaceSearch(s);
 }

@@ -53,7 +53,7 @@
 ## 狀態與回饋
 
 - 狀態（進度、結果、連線）用 `Badge`，圓點加文字，只有要處理的狀態醒目：已啟用 `tone="success"`、已停用和已取消 `status="closed"`、在線 `online`、離線 `offline`。「這是什麼」的分類用 `Tag`，一律灰色。
-- 載入：立即顯示和內容同大小的 `Skeleton`（表格、KPI、圖表各一塊），不用轉圈。載入失敗：在那個區塊的位置放 `Alert tone="danger"`，寫原因，動作「重試」。
+- 載入：立即顯示和內容同大小的 `Skeleton`（KPI、圖表各一塊；表格給 DataTable `loading`，工具列和表頭留著），不用轉圈。載入失敗：在那個區塊的位置放 `Alert tone="danger"`，寫原因，動作「重試」。
 - 空清單：還沒有任何資料時，Card 裡放 `EmptyState`（下一步怎麼開始，「新增」放在它的 `action`）取代 DataTable；搜尋或篩選後沒有結果時，DataTable 自己顯示一句 `emptyText`，工具列留著。
 - 操作完成：`toast('已儲存')`（AppShell 已放好 Toaster；沒有 AppShell 時在 app 最外層放一個 `<Toaster />`）。一般訊息 3 s 後消失；能復原時附「復原」，停留 10 s，滑鼠或焦點在訊息上時暫停，按 Ctrl Z（Mac ⌘Z）也能復原。要一直顯示的提示用 Alert。
 

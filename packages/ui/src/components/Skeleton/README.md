@@ -2,10 +2,10 @@
 
 ## 用法
 
-資料載入中時顯示的骨架，用 `line` 色的條（在 `surface` 上約 1.33:1，淺色和深色都看得見）。不知道要多久的整頁工作用 LoadingBar。
+資料載入中時顯示的骨架，用 `line` 色的條（在 `surface` 上約 1.33:1，淺色和深色都看得見）。表格不用它，給 DataTable `loading`；不知道要多久的整頁工作用 LoadingBar。
 
 ```tsx
-{loading ? <Skeleton height={48} /> : <DataTable … />}
+{chart ? <LineChart … /> : <Skeleton height={240} />}
 ```
 
 - 開始載入就立即顯示（延遲 0 ms）。

@@ -169,6 +169,27 @@ export const Defaults = {
   ),
 };
 
+// Loading: the toolbar and header stay, skeleton rows of the columns' shape hold the rows' place. 「載入完成」 shows
+// the rows; a table without summary tabs says how many there are (「6 筆」).
+const JOB_COLUMNS: UI.DataTableColumn<Job>[] = [
+  { key: 'title', label: '標題', secondary: (r) => r.note },
+  { key: 'status', label: '狀態', mobile: 'status', render: (r) => <UI.Badge status={r.status}>{JSL[r.status]}</UI.Badge>, searchText: (r) => JSL[r.status] ?? '' },
+  { key: 'secs', label: '長度', format: 'duration' },
+  { key: 'created', label: '建立時間', format: 'relative' },
+];
+function LoadingTable() {
+  const [rows, setRows] = React.useState<Job[] | null>(null);
+  return (
+    <div style={{ padding: 20, display: 'grid', gap: 12, justifyItems: 'start' }}>
+      <UI.Button onClick={() => setRows(rows ? null : JOBS)}>{rows ? '重新載入' : '載入完成'}</UI.Button>
+      <div style={{ justifySelf: 'stretch' }}>
+        <UI.DataTable<Job> caption="處理紀錄" urlSync={false} rows={rows ?? []} loading={!rows} loadingRows={4} unit="個" columns={JOB_COLUMNS} />
+      </div>
+    </div>
+  );
+}
+export const Loading = { render: () => <LoadingTable /> };
+
 // A results list on one page: the summary counts carry their unit, and the count above the table is the only count
 // (no 「第 1–6 筆，共 6 筆」 below it).
 const NOTES = [

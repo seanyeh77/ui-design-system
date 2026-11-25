@@ -56,12 +56,18 @@ test('rows hidden by a search are unchecked', async () => {
   expect(bulk).toHaveBeenLastCalledWith(['b'], expect.any(Function));
 });
 
-test('count: only once a search or filter keeps fewer rows; one page has no range below', async () => {
+test('count without summary tabs: 「6 筆」 on one page, 「1 / 6 筆」 after a search, the range with pages; in the table unit', async () => {
   const user = userEvent.setup();
   const rows = Array.from({ length: 6 }, (_, i) => ({ id: String(i), name: 'row ' + i }));
   const { container, rerender } = render(<DataTable columns={cols} rows={rows} urlSync={false} />);
-  // Nothing filtered: the rows say how many there are, no 「6 / 6 筆」.
-  expect(container.querySelector('.ui-dt-result')).toBeNull();
+  // Nothing filtered, one page, no summary tabs: 「6 筆」 in the toolbar, no range below.
+  const seenText = () =>
+    [...container.querySelectorAll('.ui-dt-result .ui-seen')]
+      .map((e) => getComputedStyle(e, '::before').content)
+      .join('')
+      .replace(/"|\s*\/\s*""/g, '');
+  expect(seenText()).toBe('6 筆');
+  expect(container.querySelector('.ui-dt-result')?.textContent).toBe('6 筆');
   expect(container.querySelector('.ui-dt-foot')).toBeNull();
   await user.type(screen.getByRole('searchbox'), 'row 1');
   // Shown 「1 / 6 筆」, drawn by CSS; the page's text and the screen reader have only 「6 筆中的 1 筆」.
@@ -71,6 +77,59 @@ test('count: only once a search or filter keeps fewer rows; one page has no rang
   await user.clear(screen.getByRole('searchbox'));
   rerender(<DataTable columns={cols} rows={rows} urlSync={false} pageSize={4} />);
   expect(container.querySelector('.ui-dt-range')?.textContent).toBe('第 1–4 筆，共 6 筆');
+  // With pages the range says it: no toolbar count, the count is still in the page for screen readers.
+  expect(container.querySelector('.ui-dt-result')).toBeNull();
+  expect(container.querySelector(':scope .ui-dt > .ui-visually-hidden')?.textContent).toBe('6 筆');
+  rerender(<DataTable columns={cols} rows={rows} urlSync={false} pageSize={4} unit="個" />);
+  expect(container.querySelector('.ui-dt-range')?.textContent).toBe('第 1–4 個，共 6 個');
+  rerender(<DataTable columns={cols} rows={rows} urlSync={false} pageSize={4} summary={{ key: 'name', items: [], unit: '件' }} />);
+  expect(container.querySelector('.ui-dt-range')?.textContent).toBe('第 1–4 件，共 6 件');
+});
+
+test('loading: toolbar and header stay, skeleton rows in the columns shape, no empty text and no counts', () => {
+  const { container, rerender } = render(
+    <DataTable
+      columns={[...cols, { key: 'n', label: '數量', numeric: true, unit: '個' }]}
+      rows={[]}
+      urlSync={false}
+      loading
+      loadingRows={3}
+      summary={{ key: 'name', items: [{ value: 'a', label: 'A' }] }}
+    />,
+  );
+  expect(screen.getByRole('searchbox')).toBeTruthy();
+  expect(container.querySelector('.ui-dt-head')).toBeTruthy();
+  const skel = container.querySelectorAll('.ui-dt-skelrow');
+  expect(skel.length).toBe(3);
+  expect(skel[0].querySelectorAll('.ui-skel').length).toBe(2);
+  expect(skel[0].getAttribute('aria-hidden')).toBe('true');
+  expect(screen.getByRole('table').getAttribute('aria-busy')).toBe('true');
+  expect(container.querySelector('.ui-dt-empty')).toBeNull();
+  expect(container.querySelector('.ui-tab-count')).toBeNull();
+  rerender(<DataTable columns={cols} rows={[{ id: 'a', name: 'alpha' }]} urlSync={false} summary={{ key: 'name', items: [{ value: 'a', label: 'A' }] }} />);
+  expect(container.querySelector('.ui-dt-skelrow')).toBeNull();
+  expect(screen.getByRole('table').getAttribute('aria-busy')).toBeNull();
+});
+
+test('columns and filters written inline: a render with the same columns does not sort and filter again', () => {
+  let reads = 0;
+  const rows = [{ id: 'a', name: 'b' }, { id: 'b', name: 'a' }];
+  const Table = ({ tick }: { tick: number }) => (
+    <DataTable
+      caption={'專案 ' + (tick >= 0 ? '' : tick)}
+      columns={[{ key: 'name', label: '名稱', sortValue: (r: { name: string }) => (reads++, r.name) }]}
+      filters={[{ key: 'name', label: '名稱' }]}
+      rows={rows}
+      urlSync={false}
+      defaultSort={[{ key: 'name' }]}
+    />
+  );
+  const { rerender } = render(<Table tick={0} />);
+  const after = reads;
+  expect(after).toBeGreaterThan(0);
+  rerender(<Table tick={1} />);
+  rerender(<Table tick={2} />);
+  expect(reads).toBe(after);
 });
 
 test('summary counts carry a unit', () => {
