@@ -1272,3 +1272,29 @@ AI 定的細節（待確認）：
 - 連結維持強調色加底線；滑過 `surface-sub` 底色（`radius-sm` 圓角），焦點是一般的 2 px 外框。
 - 項目符號或編號留在列外，和其他項目對齊；文字起點和其他項目相同，底色往左多 6 px，不蓋到符號或編號。相鄰的兩個整列連結之間 2 px。
 - C1 的範圍：`ui check` 的觸控目標檢查跳過「只因為 `tabindex` 才能聚焦、本身會捲動（`overflow` 是 `auto` 或 `scroll`）、而且不是控制項（沒有連結、按鈕、輸入框的標籤，也沒有 button、tab、slider、separator 等 role）」的元素。目前符合的有 CodeView 與 Markdown 的程式碼區塊（`pre.ui-cv-body`）和 Markdown 的表格框（`.ui-md-table-wrap`），頁面自己可以 Tab 到的捲動區也一樣。它們能聚焦是為了用鍵盤捲動，點一下不會做任何事，手指本來就能直接捲動。
+
+## 2026-11-25 全面審查修正：版面、元件與範本
+
+使用者把細節交給 agent：「都照你的意見，因為我外來新專案每個前端都會使用 design system，不要讓前端只支持特定場景為原則去判斷，另外希望是 agent 能夠使用者個 design 使用越少的 token 或是更專注於設計網頁與 UX 這樣最好」、「全部都交給 subagent，最後驗證也是」。
+
+### AI 定的細節（待確認）
+
+- Link：一律有底線（1 px，滑過 2 px，離文字 3 px），不是只在滑過時出現：句子裡的連結不能只靠顏色分辨。路由器連結用 `render`（和 Base UI 的寫法相同），沒有另外做 `as`。class 用 `ui-textlink`，因為 `ui-link` 已經是 LoginCard「忘記密碼」的樣式。沒有 class 的 `<a>` 在 base 用零 specificity 的 `:where(a:any-link)` 套連結色，任何元件自己的連結樣式都蓋得過。
+- PageHeader：標題 20 px（和頂部列標題同大），狀態 Badge 放在標題下一行、和資訊同一個字級（同一列文字同大），不放在標題旁。標題只出現一次的做法：詳細頁的標題給 PageHeader、AppShell 不給 `title`；兩個都給時開發模式提醒（AppShell 用 context 告訴裡面的 PageHeader 和 SettingsLayout）。`actions` 最多 3 個，手機上收進「⋯」，`primary` 一直是按鈕。
+- Grid 的不等寬欄寫成 `columns={[2, 1]}`（沒有另外加 Page 的 `aside`）：960 px 以下一欄，各欄靠上對齊、不拉成一樣高。
+- Card 標題列：放不下時按鈕換到下一列靠右（和 DataTable 工具列在標題列時一樣），不收進「⋯」；標題至少保留 8 個字。
+- Badge：每個地方都是圓圈加文字，沒有 Chip 和外框（最安靜的選項）。tone 的圓圈形狀：`neutral` 空心、`info` 半滿、`success` 全滿、`warning` 空心加 !、`danger` 空心加 ×；預設 `closed` 空心加橫線、`offline` 空心加斜線、`online` 全滿。`info` 用 `accent-text`（和 `doing`、Alert 的 info 相同），沒有用 `info-text`。新的預設放在另一個型別 `BadgePreset`，`BadgeStatus` 維持 5 種，專案裡 `Record<BadgeStatus, …>` 的寫法不會壞。
+- Tag：`icon` 加 `tone`；有圖示沒給 `tone` 時用旁邊文字的顏色（沿用 `demo` 的決定）。「示範資料」的位置改成頂部列標題旁（AppShell 的 `tags`，和 ConsoleLayout 的 `tags` 同名），不放品牌旁。
+- 頂部列的帳號：用 `<Menu icon="user" label="帳號">`（無框圖示按鈕打開帳號選單），沒有新增 Avatar 元件，元件數量少一個。
+- NotificationBell 的名稱改成「通知中心」。
+- SideNav 底部按鈕：圖示從 20 px 改成 22 px（和項目圖示相同），按鈕往左 3 px，圖示中心和項目圖示在同一條線上。
+- ProjectSwitcher：狀態圓圈用 Badge（在線、`warning` 的空心加 !、離線）；狀態文字 `ink-muted`，「已過期」用 `warning-text` 加粗。放不下時狀態文字整段換到被裁掉的第二行（整段消失），之後名稱才截斷。頂部列標題的最小寬度是它的完整寬度或 45 %（較小的那個），專案切換器先縮；不支援 `calc-size()` 的瀏覽器維持原本兩個一起縮。
+- Alert：拿掉色條，只留圖示和狀態色。動作按鈕移到內文下方（原本規則是右側）：放在右側時有沒有「✕」會讓按鈕左右錯開，放在內文下方每個 Alert 的按鈕都從同一個位置開始。「✕」改成 40 px。
+- EventTimeline：只有跨好幾天時才分日期（全部在同一天時和以前一樣只有時間）；日期 13 px 灰色粗體；`actor` 接在說明後面、同字級灰色。沒定義的 `kind` 顯示灰色圓點。
+- SettingsLayout：分類寫進網址 hash，用 `replaceState`（不多一筆瀏覽紀錄），預設開，`urlSync={false}` 關；由外部控制（`value`）時不寫。內容最寬 760 px。卡片之間 32 px 放在元件裡（不是只改範本）。SettingsSection 內距從 18 px 改成 16 px（和 Card 相同）。
+- 設定的開關列做成 `SettingsRow`（不是給 Switch 加 `description`）：選單之類的其他控制項也能放；Switch 新增 `aria-describedby` 讓說明念得到。
+- DangerZone：和 SettingsSection 一樣的卡片陰影，拿掉紅框，只有標題是紅色（最安靜的選項）。
+- 設定範本放進 AppShell：示範標題只在頂部列出現一次；DangerZone 移到最後一個分類「帳號」。
+- CodeView 的註解不用斜體：字型沒有斜體字面，全部是瀏覽器硬斜，中文註解很難讀。沒有 `file` 或 `title` 的 CodeView 是 `group`，名稱是「Python 程式碼」這類語言名稱。
+- 強制色彩模式：選取與焦點用 `Highlight`，狀態圓點用 `CanvasText`，卡片因為陰影消失補 1 px `CanvasText` 邊框，分頁與分段的指示改成 2 px `Highlight` 外框。
+- Workbench 檔案總管底部（「設定」）的內距改成上下 8 px、左右 12 px。範例裡的大綱、問題面板改用 `TreeList kind="plain" density="compact" bare`。
