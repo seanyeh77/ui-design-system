@@ -575,6 +575,10 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
       const ghost = o.node.cloneNode(true) as HTMLElement;
       ghost.removeAttribute('data-rid');
       ghost.setAttribute('aria-hidden', 'true');
+      // A picture of the leaving row only: nothing in it takes focus or repeats an id of the live table.
+      ghost.inert = true;
+      for (const el of ghost.querySelectorAll<HTMLElement>('a[href], button, input, select, textarea, [tabindex]')) el.tabIndex = -1;
+      for (const el of [ghost, ...ghost.querySelectorAll<HTMLElement>('[id]')]) el.removeAttribute('id');
       ghost.classList.add('ui-dt-ghost');
       ghost.style.top = o.top + 'px';
       ghost.style.backgroundColor = o.bg;
