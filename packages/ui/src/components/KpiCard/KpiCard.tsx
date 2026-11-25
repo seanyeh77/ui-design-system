@@ -46,7 +46,8 @@ export interface KpiCardProps {
 /** Chinese in a figure (the 萬 and 億 of an abbreviated number) in the text font and drawn like the unit (smaller,
  *  muted); Geist Mono stays on the digits. */
 function sansCjk(text: string): React.ReactNode[] {
-  return text.split(/([\u2e80-\u9fff\uff00-\uffef]+)/).map((t, i) =>
+  // The space before 萬 is the unit's margin (CSS), not a space as wide as a Geist Mono digit.
+  return text.split(/\s*([\u2e80-\u9fff\uff00-\uffef]+)/).map((t, i) =>
     i % 2 ? (
       <span key={i} className="ui-kpi-cjk">
         {t}

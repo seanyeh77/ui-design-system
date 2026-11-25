@@ -896,6 +896,11 @@
     margin-top: var(--space-1);
     padding-left: calc(40% + var(--space-3));
   }
+  /* The value has 60 % of the card: a long date (「2026/11/13（五） 05:00」) wraps there instead of running out. */
+  .ui-dt-body .ui-dt-cell .ui-dt-time,
+  .ui-dt-body .ui-dt-cell.is-num {
+    white-space: normal;
+  }
   .ui-dt-body .ui-dt-cell[data-label]::before {
     content: attr(data-label);
     position: absolute;

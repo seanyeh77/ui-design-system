@@ -45,7 +45,7 @@
           // size="compact" for a top bar: the verdict shows only when it is not success.
           h(
             'div',
-            { style: { display: 'flex', flexWrap: 'wrap', gap: 12, padding: '0 20px 20px' } },
+            { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, padding: '0 20px 20px' } },
             h(U.KpiCard, {
               size: 'compact',
               label: '預測誤差',

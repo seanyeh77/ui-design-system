@@ -67,6 +67,7 @@
 }
 /* 萬 and 億 of an abbreviated figure: drawn like the unit (the text font, half size, muted), not as big as the digits. */
 .ui-kpi-cjk {
+  margin-left: 4px;
   font-family: var(--font-sans);
   font-size: 0.5em;
   font-weight: 600;
