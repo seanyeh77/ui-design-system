@@ -139,6 +139,9 @@ const fontPart = (keep: (face: string) => boolean, what: string) =>
     .join('\n\n')}\n`;
 const isTc = (face: string) => /font-family:\s*'Noto Sans TC'/.test(face);
 if (!faces.length || !faces.some(isTc)) throw new Error('fonts.css: no @font-face rules for Noto Sans TC found');
-writeFileSync(new URL('fonts-latin.css', out), fontPart((f) => !isTc(f), 'Inter and Geist Mono, weights 400 to 700.'));
+writeFileSync(
+  new URL('fonts-latin.css', out),
+  fontPart((f) => !isTc(f), 'Inter and Geist Mono, weights 400 to 700.'),
+);
 writeFileSync(new URL('fonts-tc.css', out), fontPart(isTc, 'Noto Sans TC, weights 400 to 700: load it after the page (see AGENTS.md).'));
 console.log(`tokens: ${Object.keys(light).length} tokens → dist/tokens.css, tailwind.css, index.js, index.d.ts, fonts-latin.css, fonts-tc.css`);
