@@ -168,3 +168,18 @@
   border-radius: 2px;
   background: currentColor;
 }
+/* Disabled fields built from a box (DatePicker, MultiSelect, the password field): the same gray as a disabled input. */
+.is-disabled :is(.ui-datefield, .ui-ms) {
+  background: var(--surface-sub);
+  border-color: transparent;
+  color: var(--ink-muted);
+  cursor: not-allowed;
+}
+.is-disabled :is(.ui-datefield-input, .ui-ms-input, .ui-datefield-btn) {
+  color: var(--ink-muted);
+  cursor: not-allowed;
+}
+/* The text beside a Switch in its <label> is option text: text-control (15 px), like Checkbox and RadioGroup labels. */
+label:has(> .ui-switch) {
+  font-size: var(--text-control);
+}

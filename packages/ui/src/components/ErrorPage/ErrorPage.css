@@ -9,7 +9,9 @@
   text-align: center;
 }
 .ui-errorpage-code {
-  font-family: var(--font-mono);
+  /* A display number, not code: the text font with figures of one width (no slashed zero). */
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-size: 96px; /* token-exempt: ErrorPage status code, one use */
   line-height: 1;
   font-weight: 700;

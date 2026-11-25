@@ -7,20 +7,17 @@ function D() {
   const [c, setC] = React.useState(404);
   return (
     <div style={{ height: 420, display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', gap: 6, padding: 12 }}>
-        {[404, 500, 403].map((x) => {
-          return (
-            <UI.Button
-              key={x}
-              variant={x === c ? 'primary' : 'secondary'}
-              onClick={() => {
-                setC(x);
-              }}
-            >
-              {String(x)}
-            </UI.Button>
-          );
-        })}
+      <div style={{ padding: 12 }}>
+        <UI.SegmentedControl
+          label="狀態碼"
+          value={String(c)}
+          onChange={(v) => setC(Number(v))}
+          options={[
+            { value: '404', label: '404' },
+            { value: '500', label: '500' },
+            { value: '403', label: '403' },
+          ]}
+        />
       </div>
       <div style={{ flex: '1 1 auto' }}>
         <UI.ErrorPage code={c} onBack={() => {}} onHome={() => {}} />

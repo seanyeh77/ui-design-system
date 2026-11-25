@@ -21,7 +21,7 @@
           'div',
           { style: { padding: '20px 0' } },
           h(U.Calendar, {
-            focus: v[0],
+            month: v[0],
             onPick: v[1],
             dayState: function (d) {
               return { selected: d.toDateString() === v[0].toDateString() };

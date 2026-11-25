@@ -29,10 +29,11 @@ export interface TermProps {
   onRef?: OnRef;
   isRef?: (span: string) => boolean;
   /** `icon` (default): the word with a small question mark, opened by a press. `inline`: a dashed underline inside a
-   *  sentence; the card opens after resting on the word for 500 ms, at once on keyboard focus, and as a sheet on phones. */
+   *  sentence; the card opens on Enter or a press, after resting the pointer on the word for 500 ms, and as a sheet on
+   *  phones. */
   variant?: 'icon' | 'inline';
-  /** inline only: keyboard focus opens the card at once. Default true; false where arrow keys move between words and
-   *  Enter opens (CodeView). */
+  /** inline only: keyboard focus opens the card at once. Default false: Enter or a press opens it, so tabbing past a
+   *  word does not read its whole card. */
   openOnFocus?: boolean;
   /** -1 inside a widget that moves focus with its own keys (CodeView). */
   tabIndex?: number;
@@ -55,7 +56,7 @@ export function Term({
   onRef,
   isRef,
   variant = 'icon',
-  openOnFocus = true,
+  openOnFocus = false,
   tabIndex,
   className,
 }: TermProps) {
@@ -82,7 +83,7 @@ export function Term({
     setOpen(next);
   };
   const heading = title || (typeof children === 'string' ? children : '');
-  // Inline: keyboard focus opens the card at once; it closes when focus leaves both the word and the card.
+  // Inline with openOnFocus: keyboard focus opens the card at once; it closes when focus leaves both the word and the card.
   const onFocus = (e: React.FocusEvent<HTMLButtonElement>) => {
     if (openOnFocus && !narrow && e.currentTarget.matches(':focus-visible')) toggle(true);
   };

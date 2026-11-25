@@ -16,6 +16,8 @@
 />
 ```
 
+- `label` 或 `aria-label` 一定要有一個（型別檢查）；`label` 顯示在選項上方並當作群組名稱。
+- 受控用 `value` 加 `onChange(value, event)`；非受控用 `defaultValue`。給 `name` 時選中的值隨表單送出。
 - 選中時外圈變 `accent`，中間出現 10 px 圓點（彈出動畫）。
 - 整列可點，高度 40 px。
 

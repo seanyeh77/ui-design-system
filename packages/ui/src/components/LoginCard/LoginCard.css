@@ -6,13 +6,15 @@
 .ui-link:hover {
   text-decoration: underline;
 }
+/* The page is the plain page ground (bg) and the card sits on it as a raised surface, in light and dark alike. */
 .ui-loginpage {
-  min-height: 100%;
+  min-height: 100dvh;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--space-6);
-  background: var(--surface-sub);
+  background: var(--bg);
 }
 .ui-logincard {
   width: 360px;
@@ -20,6 +22,7 @@
   box-sizing: border-box;
   padding: 28px;
   border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
   background: var(--surface);
   box-shadow: var(--shadow-card);
   display: flex;
@@ -31,6 +34,15 @@
   align-items: center;
   gap: 10px;
   font-weight: 700;
+}
+.ui-login-logo {
+  display: inline-flex;
+  flex: none;
+  height: 32px;
+}
+.ui-login-logo > :is(svg, img) {
+  height: 32px;
+  width: auto;
 }
 .ui-login-title {
   margin: 0;

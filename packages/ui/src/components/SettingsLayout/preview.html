@@ -43,8 +43,8 @@
                   h(U.TextField, {
                     label: '名稱',
                     value: n[0],
-                    onChange: function (e) {
-                      n[1](e.target.value);
+                    onChange: function (v) {
+                      n[1](v);
                     },
                     onBlur: saved,
                   }),

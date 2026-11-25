@@ -3,7 +3,7 @@ import { Combobox } from '@base-ui/react/combobox';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
-import { CheckMark, FieldErrorIcon, FieldLabel, FieldMessage } from '../../internal/Field';
+import { CheckMark, FieldErrorIcon, FieldLabel, FieldMessage, type FieldProps } from '../../internal/Field';
 import { includeIcons } from '../../icons/store';
 import phX from '../../icons/ph/x';
 
@@ -14,10 +14,12 @@ export interface MultiSelectOption {
   label: string;
 }
 
-export interface MultiSelectProps {
-  label?: string;
+export interface MultiSelectProps extends FieldProps {
+  /** The options, each { value, label }. */
   options: MultiSelectOption[];
+  /** The chosen values, in the order they were picked. */
   value: string[];
+  /** Receives every chosen value after a change. */
   onChange: (value: string[]) => void;
   /** Allow adding values that are not in options (Enter, or the 「新增」 row). */
   creatable?: boolean;
@@ -27,16 +29,29 @@ export interface MultiSelectProps {
   placeholder?: string;
   /** Default 「找不到符合的選項」. */
   emptyText?: string;
-  /** The cause and the fix (「至少選一個標籤」). Red border, the warning icon and this line under the field, announced when
-   *  it appears. `backticks` are code. */
-  error?: string;
   className?: string;
 }
 
 const CREATE = '\u0000create:';
 
 /** Pick several options: chips inside the field, type to filter, Backspace removes the last chip. */
-export function MultiSelect({ label, options, value, onChange, creatable, maxChips = 2, placeholder, emptyText, error, className }: MultiSelectProps) {
+export function MultiSelect({
+  label,
+  hideLabel,
+  hint,
+  error,
+  required,
+  disabled,
+  name,
+  options,
+  value,
+  onChange,
+  creatable,
+  maxChips = 2,
+  placeholder,
+  emptyText,
+  className,
+}: MultiSelectProps) {
   const id = React.useId();
   const [query, setQuery] = React.useState('');
   const labels = React.useMemo(() => new Map(options.map((o) => [o.value, o.label])), [options]);
@@ -47,10 +62,15 @@ export function MultiSelect({ label, options, value, onChange, creatable, maxChi
   const shown = value.slice(0, maxChips);
   const more = value.length - shown.length;
   return (
-    <div className={cx('ui-field', error && 'has-error', className)}>
-      {label ? <FieldLabel htmlFor={id}>{label}</FieldLabel> : null}
+    <div className={cx('ui-field', error && 'has-error', disabled && 'is-disabled', className)}>
+      <FieldLabel htmlFor={id} required={required} hidden={hideLabel}>
+        {label}
+      </FieldLabel>
       <Combobox.Root
         multiple
+        name={name}
+        disabled={disabled}
+        required={required}
         autoHighlight
         items={items}
         value={value}
@@ -73,15 +93,18 @@ export function MultiSelect({ label, options, value, onChange, creatable, maxChi
               </Combobox.Chip>
             ))}
             {more > 0 ? (
-              <span className="ui-chip-more" title={value.slice(maxChips).map(labelOf).join('、')}>
-                {'+' + more}
+              // Seen as 「+3」; read as 「另外 3 個：…」 with the names the chips leave out.
+              <span className="ui-chip-more" title={value.slice(maxChips).map(labelOf).join(tr('、'))}>
+                <span aria-hidden="true">{'+' + more}</span>
+                <span className="ui-visually-hidden">{tr('另外 {n} 個：{list}', { n: more, list: value.slice(maxChips).map(labelOf).join(tr('、')) })}</span>
               </span>
             ) : null}
             <Combobox.Input
               id={id}
               className="ui-ms-input"
               aria-invalid={error ? true : undefined}
-              aria-describedby={error ? id + '-err' : undefined}
+              aria-required={required || undefined}
+              aria-describedby={error || hint ? id + '-err' : undefined}
               placeholder={value.length ? '' : placeholder || tr('搜尋')}
               onKeyDown={(e) => {
                 // Hidden chips (+n) still count: Backspace removes the last value, not the last visible chip.
@@ -118,7 +141,7 @@ export function MultiSelect({ label, options, value, onChange, creatable, maxChi
           </Combobox.Positioner>
         </Combobox.Portal>
       </Combobox.Root>
-      <FieldMessage id={id + '-err'} error={error} />
+      <FieldMessage id={id + '-err'} error={error} hint={hint} />
     </div>
   );
 }

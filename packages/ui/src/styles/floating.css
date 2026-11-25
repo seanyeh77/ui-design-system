@@ -9,3 +9,13 @@
   width: var(--anchor-width);
   box-sizing: border-box;
 }
+
+/* Every one-line row of an overlay list (Menu, Select, MultiSelect, Select's search list, DataTable's filter and sort
+   panels): 40 px (control-height) and text-control, so all lists read and click alike. CommandPalette's results keep
+   48 px, as they carry a second line. */
+:is(.ui-menu-item, .ui-select-opt, .ui-dt-opt) {
+  box-sizing: border-box;
+  height: auto;
+  min-height: var(--control-height);
+  font-size: var(--text-control);
+}

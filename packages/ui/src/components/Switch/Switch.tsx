@@ -3,17 +3,25 @@ import { dropTransition } from '../../motion';
 import { cx } from '../../internal/util';
 
 export interface SwitchProps {
+  /** Controlled: on or off. */
   checked?: boolean;
-  onChange?: (checked: boolean) => void;
-  /** What it turns on; becomes aria-label. Put the visible text next to it in the row. */
+  /** Uncontrolled: whether it starts on; the switch then keeps its own state. */
+  defaultChecked?: boolean;
+  /** Receives the new state, then the click event. */
+  onChange?: (checked: boolean, event: React.MouseEvent<HTMLButtonElement>) => void;
+  /** What it turns on; becomes aria-label. Put the visible text next to it in the row (15 px, text-control). */
   label: string;
+  /** Grayed out and skipped by Tab. */
   disabled?: boolean;
+  /** Form field name: an on switch sends 'on' with a native form. */
+  name?: string;
   className?: string;
 }
 
 /** An on/off setting that applies at once. The thumb stretches like a droplet while it moves. */
-export function Switch({ checked, onChange, label, disabled, className }: SwitchProps) {
-  const on = !!checked;
+export function Switch({ checked, defaultChecked, onChange, label, disabled, name, className }: SwitchProps) {
+  const [own, setOwn] = React.useState(!!defaultChecked);
+  const on = checked !== undefined ? !!checked : own;
   const [pressing, setPressing] = React.useState(false);
   const W = 48;
   const H = 28;
@@ -30,7 +38,10 @@ export function Switch({ checked, onChange, label, disabled, className }: Switch
       aria-label={label}
       disabled={disabled}
       className={cx('ui-switch', on && 'is-on', className)}
-      onClick={() => onChange?.(!on)}
+      onClick={(e) => {
+        if (checked === undefined) setOwn(!on);
+        onChange?.(!on, e);
+      }}
       onPointerDown={() => setPressing(true)}
       onPointerUp={() => setPressing(false)}
       onPointerLeave={() => setPressing(false)}
@@ -61,6 +72,7 @@ export function Switch({ checked, onChange, label, disabled, className }: Switch
           <path d={on ? 'M5 12.5l4.5 4.5L19 7' : 'M7 7l10 10M17 7L7 17'} />
         </svg>
       </span>
+      {name && on ? <input type="hidden" name={name} value="on" /> : null}
     </button>
   );
 }

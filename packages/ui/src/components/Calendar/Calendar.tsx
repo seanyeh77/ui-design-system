@@ -3,6 +3,7 @@ import { dayAdd, format, sameDay } from '../../format';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { browserKey, cx } from '../../internal/util';
+import { devWarn } from '../../internal/dev';
 import { includeIcons } from '../../icons/store';
 import phCaretLeft from '../../icons/ph/caret-left';
 import phCaretRight from '../../icons/ph/caret-right';
@@ -18,20 +19,40 @@ export interface DayState {
 }
 
 export interface CalendarProps {
-  /** The month shown first. Default: this month. */
+  /** The month to show (any day in it). When it changes, the calendar moves there; the arrows still move freely and
+   *  report with onMonthChange. */
+  month?: Date | null;
+  /** The month shown first, when month is not given. Default: this month. */
+  defaultMonth?: Date | null;
+  /** Called with the 1st of the month shown after the arrows, PageUp or PageDown change it. */
+  onMonthChange?: (month: Date) => void;
+  /** @deprecated use month (follows changes) or defaultMonth. */
   focus?: Date | null;
+  /** Called with the day pressed. */
   onPick?: (d: Date) => void;
+  /** Called with the day under the pointer or the keyboard (DateRangePicker's preview). */
   onHover?: (d: Date | null) => void;
   /** How each day looks: selected, inside a range, disabled. */
   dayState?: (d: Date) => DayState | undefined;
 }
 
 /** A month grid: selected days are rounded squares, today has a dot under the number. */
-export function Calendar({ focus, onPick, onHover, dayState }: CalendarProps) {
-  const [month, setMonth] = React.useState(() => {
-    const b = focus || new Date();
-    return new Date(b.getFullYear(), b.getMonth(), 1);
-  });
+export function Calendar({ month: monthProp, defaultMonth, onMonthChange, focus: focusProp, onPick, onHover, dayState }: CalendarProps) {
+  devWarn(focusProp !== undefined, 'Calendar', 'focus is deprecated: pass month={…} (the calendar follows it) or defaultMonth={…}.');
+  const focus = monthProp !== undefined ? monthProp : focusProp !== undefined ? focusProp : defaultMonth;
+  const first = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1);
+  const [month, setOwnMonth] = React.useState(() => first(focus || new Date()));
+  // A new month prop (another value picked outside, a reset): move there, during render so there is no flash.
+  const followKey = monthProp ? monthProp.getFullYear() * 12 + monthProp.getMonth() : null;
+  const [followed, setFollowed] = React.useState(followKey);
+  if (followKey !== followed) {
+    setFollowed(followKey);
+    if (monthProp) setOwnMonth(first(monthProp));
+  }
+  const setMonth = (d: Date) => {
+    setOwnMonth(d);
+    onMonthChange?.(d);
+  };
   const today = new Date();
   const y = month.getFullYear();
   const m = month.getMonth();

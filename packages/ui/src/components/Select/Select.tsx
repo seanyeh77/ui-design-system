@@ -4,7 +4,8 @@ import { Combobox } from '@base-ui/react/combobox';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
-import { FieldErrorIcon, FieldLabel, FieldMessage } from '../../internal/Field';
+import { FieldErrorIcon, FieldLabel, FieldMessage, type FieldProps } from '../../internal/Field';
+import { devWarn } from '../../internal/dev';
 import { includeIcons } from '../../icons/store';
 import phCaretDown from '../../icons/ph/caret-down';
 import phCheck from '../../icons/ph/check';
@@ -18,12 +19,14 @@ export interface SelectOption<V extends string = string> {
   disabled?: boolean;
 }
 
-export interface SelectProps<V extends string = string> {
-  /** Shown above the trigger. Without it, pass aria-label. */
-  label?: string;
+export interface SelectProps<V extends string = string> extends FieldProps {
+  /** @deprecated pass label (with hideLabel to hide it). */
   'aria-label'?: string;
+  /** The chosen value, or null for none. */
   value?: V | null;
+  /** Receives the chosen value. */
   onChange?: (value: V) => void;
+  /** The options, each { value, label }. */
   options: SelectOption<V>[];
   /** A search box at the top of the list. Default: on when there are more than 8 options. */
   searchable?: boolean;
@@ -31,14 +34,6 @@ export interface SelectProps<V extends string = string> {
   placeholder?: string;
   /** Default 「搜尋」. */
   searchPlaceholder?: string;
-  /** Red asterisk after the label. */
-  required?: boolean;
-  disabled?: boolean;
-  /** The cause and the fix (「請選擇部門」). Red border, the warning icon and this line under the field, announced when it
-   *  appears. `backticks` are code. */
-  error?: string;
-  /** Form field name; the value is submitted with the form. */
-  name?: string;
   className?: string;
 }
 
@@ -46,6 +41,8 @@ export interface SelectProps<V extends string = string> {
 export function Select<V extends string = string>(props: SelectProps<V>) {
   const {
     label,
+    hideLabel,
+    hint,
     value,
     onChange,
     options,
@@ -60,8 +57,9 @@ export function Select<V extends string = string>(props: SelectProps<V>) {
   } = props;
   const labelId = React.useId();
   const current = options.find((o) => o.value === value) ?? null;
+  devWarn(!label, 'Select', 'label is required: pass label="…" (and hideLabel to hide it from sight) instead of aria-label.');
   const head = label ? (
-    <FieldLabel id={labelId} required={required}>
+    <FieldLabel id={labelId} required={required} hidden={hideLabel}>
       {label}
     </FieldLabel>
   ) : null;
@@ -73,7 +71,7 @@ export function Select<V extends string = string>(props: SelectProps<V>) {
     </>
   );
   const errId = labelId + '-err';
-  const message = <FieldMessage id={errId} error={error} />;
+  const message = <FieldMessage id={errId} error={error} hint={hint} />;
   const optionBody = (o: SelectOption<V>, on: boolean) => (
     <>
       <span>{o.label}</span>
@@ -84,7 +82,7 @@ export function Select<V extends string = string>(props: SelectProps<V>) {
     'aria-labelledby': label ? labelId : undefined,
     'aria-label': label ? undefined : props['aria-label'],
     'aria-invalid': error ? true : undefined,
-    'aria-describedby': error ? errId : undefined,
+    'aria-describedby': error || hint ? errId : undefined,
   };
   const triggerClass = cx('ui-select-trigger', error && 'is-invalid');
 

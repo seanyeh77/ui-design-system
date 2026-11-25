@@ -40,3 +40,30 @@
     transition: background-color var(--dur-hover) ease !important;
   }
 }
+/* Forced colors (Windows high contrast): the knob is drawn with a background, which is dropped there; give the track
+   and the knob system colors so on and off stay visible. */
+@media (forced-colors: active) {
+  .ui-switch {
+    forced-color-adjust: none;
+    border-color: CanvasText;
+    background: Canvas;
+  }
+  .ui-switch-thumb {
+    background: CanvasText;
+    color: Canvas;
+  }
+  .ui-switch.is-on {
+    border-color: Highlight;
+    background: Highlight;
+  }
+  .ui-switch.is-on .ui-switch-thumb {
+    background: HighlightText;
+    color: Highlight;
+  }
+  .ui-switch:disabled {
+    border-color: GrayText;
+  }
+  .ui-switch:disabled .ui-switch-thumb {
+    background: GrayText;
+  }
+}

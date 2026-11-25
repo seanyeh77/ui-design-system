@@ -69,16 +69,26 @@ test('Grid: from 960 px to 1279 px, columns 3 stays 3, 4 becomes 2 and 6 becomes
   expect([cols(three), cols(four), cols(six), cols(two)]).toEqual([2, 2, 2, 2]);
 });
 
-test('FormGrid: one column under 960 px, two from 960 px', async () => {
+test('FormGrid: two columns when the grid is 640 px wide or more, whatever the window; one in a 400 px drawer', async () => {
   const { container } = render(
-    <FormGrid>
-      <div>a</div>
-      <div>b</div>
-    </FormGrid>,
+    <>
+      <div style={{ width: 400 }}>
+        <FormGrid>
+          <div>a</div>
+          <div>b</div>
+        </FormGrid>
+      </div>
+      <div style={{ width: 700 }}>
+        <FormGrid>
+          <div>a</div>
+          <div>b</div>
+        </FormGrid>
+      </div>
+    </>,
   );
-  const fg = container.querySelector('.ui-formgrid');
-  await page.viewport(960, 800);
-  expect(cols(fg)).toBe(2);
-  await page.viewport(959, 800);
-  expect(cols(fg)).toBe(1);
+  const [narrow, wide] = Array.from(container.querySelectorAll('.ui-formgrid-in'));
+  await page.viewport(1280, 800);
+  expect([cols(narrow), cols(wide)]).toEqual([1, 2]);
+  await page.viewport(800, 800);
+  expect([cols(narrow), cols(wide)]).toEqual([1, 2]);
 });

@@ -37,7 +37,8 @@ test.each(cases)('%s with an error: red border, warning icon in the field, the m
   const ir = icon.getBoundingClientRect();
   const fr = frame.getBoundingClientRect();
   expect(ir.left >= fr.left && ir.right <= fr.right && ir.top >= fr.top && ir.bottom <= fr.bottom).toBe(true);
-  const alert = container.querySelector('[role="alert"].ui-field-error') as HTMLElement;
+  // LoginCard moves focus to the invalid field instead, so its message is not an alert (one message at a time).
+  const alert = container.querySelector(_ === 'LoginCard password' ? '.ui-field-error' : '[role="alert"].ui-field-error') as HTMLElement;
   expect(alert, 'message').not.toBeNull();
   const invalid = container.querySelector('[aria-invalid="true"]') as HTMLElement;
   expect(invalid, 'aria-invalid').not.toBeNull();

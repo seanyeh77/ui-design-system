@@ -3,12 +3,30 @@
   padding: 0 var(--space-3);
   font: inherit;
   font-family: var(--font-mono);
-  font-size: var(--text-compact);
+  font-size: var(--text-control);
   text-align: left;
   cursor: pointer;
 }
-.ui-rangefield .ui-icon {
+/* The text first, the calendar icon at the right end: the same side as DatePicker's button and Select's chevron. */
+.ui-rangefield-value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ui-rangefield-value.is-placeholder {
+  font-family: var(--font-sans);
   color: var(--ink-muted);
+}
+.ui-rangefield .ui-rangefield-icon {
+  flex: none;
+  color: var(--ink-muted);
+}
+.ui-rangefield:disabled {
+  background: var(--surface-sub);
+  color: var(--ink-muted);
+  cursor: not-allowed;
 }
 .ui-rangepop {
   display: flex;
@@ -37,6 +55,9 @@
 }
 .ui-quick-btn:hover {
   background: var(--surface-sub);
+}
+.ui-quick-btn.is-muted {
+  color: var(--ink-muted);
 }
 .ui-quick-btn.is-on {
   background: var(--accent-soft);
