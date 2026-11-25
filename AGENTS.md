@@ -10,7 +10,6 @@ SeanYeh's design system: typed React 19 components, design tokens, page template
 | `@seanyeh77/tokens` | `tokens.css`, the fonts, a Tailwind v4 theme (`tailwind.css`), typed token names with `cssVar()` |
 | `@seanyeh77/eslint-plugin-ui` | Lint rules for the core rules |
 | `@seanyeh77/ui-cli` | `ui check`, `ui shots`, `ui docs`, `ui list`, `ui add`. Run it as `npx @seanyeh77/ui-cli …`: plain `npx ui` is an unrelated package. |
-| Page templates | `dashboard`, `list-detail`, `settings`, `login`: `ui add`, or the shadcn registry `…/r/<name>.json` |
 
 ## Building a page
 
@@ -18,17 +17,17 @@ Use it for any web page or tool UI unless the user asks for a different look. Sp
 
 Read this, and nothing more:
 
-1. `docs/guidelines.md`, the core rules every page needs (about 9 KB). Read it once, whole: the rules agents most often get wrong (list pages, buttons, status, numbers, empty and loading states) are there.
+1. `docs/guidelines.md`, the core rules every page needs (about 9 KB). Read it once, whole.
 2. The 用法 block of each component you use: `npx @seanyeh77/ui-cli docs DataTable`. Add `--full` only for a detail the block does not cover. `ui list` lists every component by group; `ui docs icons` prints the icon names. The same files are in `node_modules/@seanyeh77/ui/docs/` and on the docs site under `/md/`.
 3. A topic file only when the page has that topic: `layout`, `forms`, `data`, `monitoring`, `code`, `theme`, `motion` (`ui docs layout`).
 
 Then:
 
-- Start from a page template when one fits (`dashboard`, `list-detail`, `settings`, `login`): `npx @seanyeh77/ui-cli add dashboard [dir]` writes it from the CLI package, with no network (default `src/components/blocks/dashboard/`). The same templates are a shadcn registry: `npx shadcn@latest add https://seanyeh77.github.io/ui-design-system/r/dashboard.json` (needs a `components.json`, `npx shadcn@latest init`).
+- Start from a page template when one fits (`dashboard`, `list-detail`, `settings`, `login`): `npx @seanyeh77/ui-cli add dashboard [dir]` writes it with no network (default `src/components/blocks/dashboard/`). The same templates are a shadcn registry: `npx shadcn@latest add https://seanyeh77.github.io/ui-design-system/r/dashboard.json` (needs a `components.json`).
 - Your own CSS uses tokens only: `var(--surface)` in CSS, `cssVar('ink-muted')` from `@seanyeh77/tokens` in style props, `bg-surface text-ink-muted` with the Tailwind theme.
-- TypeScript enforces most rules (icon names, `confirm` on danger actions, DataTable column keys): fix type errors instead of casting them away. In development the components warn in the console with the cause and the fix.
+- TypeScript enforces most rules: fix type errors instead of casting them away. In development the components warn in the console with the cause and the fix.
 - Items marked 看情況 ("situational") are not fixed rules: choose per context and say which way you chose.
-- Before you finish: `npx @seanyeh77/ui-cli check <file or URL>`. It opens the page at 390 px and 1280 px, light and dark, opens its tabs, SettingsLayout categories and toolbar menus, and fails on what the rules forbid (console errors, overflow, small or crowded targets, a card in a card, native controls, wrapped labels, cut-off text, page CSS that overrides components, axe-core WCAG 2.2 AA); each problem says what to fix. `--open <selector>` also checks a dialog or drawer; `--no-axe` and `--no-interact` skip those parts. Add `--shots shots/` and check the screenshots against the last section of `guidelines.md`.
+- Before you finish: `npx @seanyeh77/ui-cli check <file or URL>`. It opens the page at 390 px and 1280 px, light and dark, opens its tabs and menus, and fails on what the rules forbid and on axe-core WCAG 2.2 AA; each problem says what to fix. `--open <selector>` also checks a dialog or drawer. Add `--shots shots/` and check the screenshots against the last section of `guidelines.md`.
 
 ## Projects with a build step (Vite, Next.js and similar)
 
@@ -53,9 +52,9 @@ import ui from '@seanyeh77/eslint-plugin-ui';
 export default [ui.configs.recommended];
 ```
 
-- `fonts.css` is about 500 KB of CSS (Noto Sans TC lists the characters of each of its 432 files), and Vite inlines font files under 4 KB into it. To keep it out of the CSS that blocks the first render, import `@seanyeh77/ui/fonts-latin.css` (Inter, Geist Mono; about 18 KB) instead and load the Chinese faces after the page: `import('@seanyeh77/ui/fonts-tc.css')` (the bundler makes it a separate CSS file; the fonts use `font-display: swap` either way). Keep font files as files with `build: { assetsInlineLimit: (f) => (f.endsWith('.woff2') ? false : undefined) }` in `vite.config`.
+- `fonts.css` is about 500 KB of CSS (Noto Sans TC lists the characters of its 432 files). To keep it out of the CSS that blocks the first render, import `@seanyeh77/ui/fonts-latin.css` (Inter, Geist Mono; about 18 KB) instead and load the Chinese faces after the page with `import('@seanyeh77/ui/fonts-tc.css')` (a separate CSS file). Vite inlines font files under 4 KB; keep them as files with `build: { assetsInlineLimit: (f) => (f.endsWith('.woff2') ? false : undefined) }` in `vite.config`.
 - ES modules only: TypeScript needs `moduleResolution` `bundler`, `node16` or `nodenext` (Vite and Next.js templates use `bundler`). React 19 is required. The module starts with `'use client'`; server code that only formats dates, numbers or text imports `@seanyeh77/ui/format`.
-- The system's CSS is in the cascade layer `ui`: your unlayered CSS always wins, with no `!important`. So delete the template's starter CSS (Vite's `index.css`, `App.css`) and put any reset in `@layer base { … }`. With Tailwind v4, start the main CSS with `@layer theme, base, ui, components, utilities;` (details in `theme.md`).
+- The system's CSS is in the cascade layer `ui`: your unlayered CSS always wins. So delete the template's starter CSS (Vite's `index.css`, `App.css`) and put any reset in `@layer base { … }`. With Tailwind v4, start the main CSS with `@layer theme, base, ui, components, utilities;` (details in `theme.md`).
 - The ESLint plugin depends only on ESLint and works with TypeScript 7. Templates that ship oxlint instead need `eslint` and an `eslint.config.js`, as above.
 - pnpm may refuse a version published less than a day ago: `pnpm add @seanyeh77/ui@<version> --config.minimum-release-age=0`.
 
