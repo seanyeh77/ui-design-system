@@ -22,16 +22,19 @@ initTheme();
 
 ```html
 <meta charset="utf-8">
-<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/fonts.css">
-<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/tokens.css">
-<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/styles.css">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.45.0/fonts.css">
+<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.45.0/tokens.css">
+<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.45.0/styles.css">
 <div id="root"></div>
-<script src="https://seanyeh77.github.io/ui-design-system/dist/bundle.js"></script>
+<script src="https://seanyeh77.github.io/ui-design-system/dist/0.45.0/bundle.js"></script>
 <script>
   UI.initTheme();
   ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(UI.Button, { variant: 'primary' }, '儲存'));
 </script>
 ```
+
+網址固定一個版本（上例的 `0.45.0`）：`/dist/<版本>/` 不會再變，`/dist/` 不帶版本則永遠是最新版，做好的頁面可能因此改變。
 
 - 主題：`setTheme('light' | 'dark' | 'auto')`，強調色：`setAccent('#2457d6')`。
 - 介面文字：`setLocale('en')` 切成英文，`addMessages(locale, dict)` 加其他語系。

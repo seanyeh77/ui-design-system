@@ -109,7 +109,7 @@ import './ui.css';
 
 - 搭配方式：無襯線為主，等寬字只用在標籤與數字。
 - 無襯線：Inter，中文用思源黑體（Noto Sans TC），對應 `sans`。等寬：Geist Mono，對應 `mono`。
-- 字型檔內附在 `dist/fonts.css`（Inter、Geist Mono、Noto Sans TC，字重 400 到 700），不從 Google Fonts 載入，離線或內網也能用；瀏覽器只下載頁面用到的字。
+- 字型檔內附在 `@seanyeh77/tokens`（`fonts.css`，Inter、Geist Mono、Noto Sans TC，字重 400 到 700；`@seanyeh77/ui/fonts.css` 載入同一份），不從 Google Fonts 載入，離線或內網也能用；瀏覽器只下載頁面用到的字。
 
 ## 圖示
 

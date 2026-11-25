@@ -47,11 +47,11 @@ Then:
 
 ```bash
 npm i react react-dom @seanyeh77/ui @seanyeh77/tokens
-npm i -D @seanyeh77/eslint-plugin-ui @seanyeh77/ui-cli
+npm i -D eslint @seanyeh77/eslint-plugin-ui @seanyeh77/ui-cli
 npx playwright install chromium   # the browser ui check uses; or set CHROMIUM_PATH
 ```
 
-Until the packages are on npm, build them in a clone (`pnpm install && pnpm build`), pack them (`pnpm --filter @seanyeh77/ui pack`, same for the others) and install the `.tgz` files. `@seanyeh77/ui` carries `tokens.css` and the fonts too, so `@seanyeh77/tokens` is needed only for `cssVar()` and the Tailwind theme.
+The fonts ship once, in `@seanyeh77/tokens`, a dependency of `@seanyeh77/ui`: `@seanyeh77/ui/fonts.css` loads them from there. List `@seanyeh77/tokens` yourself, as above, to import `cssVar()` and the Tailwind theme (pnpm lets a project import only what it lists). The packages are ES modules only: TypeScript needs `moduleResolution` `bundler`, `node16` or `nodenext` (Vite and Next.js templates already use `bundler`).
 
 ```ts
 import '@seanyeh77/ui/fonts.css'; // self-hosted fonts: works offline
@@ -71,9 +71,9 @@ export default [ui.configs.recommended];
 - The system's CSS is in the cascade layer `ui` (`ui.tokens`, `ui.components`): your own unlayered CSS always overrides it, no specificity fight and no `!important`. With Tailwind v4, start the main CSS file with `@layer theme, base, ui, components, utilities;` (before `@import 'tailwindcss'`) so utility classes override components. Details and the per-component CSS (`@seanyeh77/ui/css/`) in `theme.md`.
 - Because unlayered CSS always wins, page-wide resets win too: delete the starter CSS of the project template (Vite's `index.css` and `App.css`), and put any reset or normalize CSS (`* { margin: 0 }`, `button { background: none }`, a CMS theme) in `@layer base { … }` or another layer declared before `ui`. `ui check` reports unlayered element or `*` rules that override a component.
 - React 19 is required. The module starts with `'use client'`, so it works in Next.js server components pages as client components. Server code that only formats dates, numbers or text imports from `@seanyeh77/ui/format` (no `'use client'`).
-- The ESLint config reads `.tsx` with the typescript-eslint parser, which needs the `typescript` 5 or 6 API. With TypeScript 7 only, also install `typescript@npm:@typescript/typescript6` as a dev dependency.
+- The ESLint plugin brings its own TSX parser and depends on nothing but ESLint, so it installs next to any TypeScript version, TypeScript 7 included. Templates that come with oxlint instead of ESLint (today's Vite templates) need `eslint` installed, as above, and an `eslint.config.js`.
 - Components need a browser: run component tests in a browser (Vitest browser mode) or jsdom. Every component renders and handles clicks and keys in jsdom with no setup and no polyfills; what needs layout is not computed there (measured column widths, overflow fades, positions of tooltips and popups, sizes that follow the container), so test those in Vitest browser mode.
-- pnpm may refuse a version published less than a day ago (`minimumReleaseAge`, in minutes: 1440 by default in pnpm 11, and set by many pnpm 10 projects). To install a just-released `@seanyeh77/ui`, allow that version in `pnpm-workspace.yaml`, e.g. `minimumReleaseAgeExclude: ['@seanyeh77/ui@0.43.0', '@seanyeh77/tokens@0.43.0']`, and remove the line after a day.
+- pnpm may refuse a version published less than a day ago (`minimumReleaseAge`, in minutes: 1440 by default in pnpm 11, and set by many pnpm 10 projects). To install a just-released `@seanyeh77/ui` once, run `pnpm add @seanyeh77/ui@<剛發布的版本> --config.minimum-release-age=0`; or allow it in `pnpm-workspace.yaml` with `minimumReleaseAgeExclude: ['@seanyeh77/ui@<剛發布的版本>', '@seanyeh77/tokens@<剛發布的版本>']` and remove the line after a day.
 
 ### Pages without a build step
 
@@ -81,11 +81,12 @@ export default [ui.configs.recommended];
 
 ```html
 <meta charset="utf-8">
-<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/fonts.css">
-<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/tokens.css">
-<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/styles.css">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.45.0/fonts.css">
+<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.45.0/tokens.css">
+<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.45.0/styles.css">
 <div id="root"></div>
-<script src="https://seanyeh77.github.io/ui-design-system/dist/bundle.js"></script>
+<script src="https://seanyeh77.github.io/ui-design-system/dist/0.45.0/bundle.js"></script>
 <script>
   const h = React.createElement;
   UI.initTheme();
@@ -93,7 +94,7 @@ export default [ui.configs.recommended];
 </script>
 ```
 
-For a single-file page that must work offline or in a sandbox that blocks this host, inline the same files. `bundle.js` keeps the development warnings on.
+Pin a version, as above: `/dist/<version>/` never changes, while `/dist/` without a version always serves the latest release and can break a finished page. The same files are on jsDelivr: `https://cdn.jsdelivr.net/npm/@seanyeh77/ui@0.45.0/dist/bundle.js` and `…/dist/styles.css`, `https://cdn.jsdelivr.net/npm/@seanyeh77/tokens@0.45.0/dist/tokens.css` and `…/tokens@0.45.0/fonts.css`. For a single-file page that must work offline or in a sandbox that blocks this host, inline the same files. `bundle.js` keeps the development warnings on.
 
 Scope: web UI and the tokens of SeanYeh's Slidev decks (the `teaching` preset, `data-theme="teaching"`: teal `#027874` accent, 0 px radius, no shadows, 1.5 px borders, light only; see `theme.md`). Slide layout, Notion documents and teaching diagrams follow SeanYeh's separate `teaching-materials-style` skill.
 

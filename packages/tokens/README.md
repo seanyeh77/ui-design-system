@@ -8,7 +8,7 @@ SeanYeh 設計系統的設計 token：淺色、深色和 `teaching` 預設的 CS
 npm i @seanyeh77/tokens
 ```
 
-用 `@seanyeh77/ui` 時不必另外裝：它已經帶 `tokens.css` 和字體。只有要用 `cssVar()` 或 Tailwind 主題時才需要這個套件。
+`@seanyeh77/ui` 依賴這個套件，安裝時會一起裝好；字體只放在這裡，`@seanyeh77/ui/fonts.css` 從這裡載入。要在自己的程式碼用 `cssVar()` 或 Tailwind 主題時，把它也列進專案的 dependencies（pnpm 只讓專案 import 自己列出的套件）。
 
 ```ts
 import { cssVar } from '@seanyeh77/tokens';

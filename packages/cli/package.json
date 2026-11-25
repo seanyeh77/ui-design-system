@@ -24,7 +24,7 @@
   "dependencies": {
     "@seanyeh77/ui": "workspace:^",
     "pixelmatch": "^8.0.0",
-    "playwright": "^1.65.0",
+    "playwright": "1.65.0",
     "pngjs": "^7.0.0"
   },
   "engines": {
