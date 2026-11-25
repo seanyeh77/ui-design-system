@@ -154,8 +154,9 @@ export function useAxisWidth(ref: React.RefObject<HTMLElement | null>, labels: s
     const read = () => {
       let m = 0;
       for (const el of root.querySelectorAll<Element>('.ui-chart-tick')) m = Math.max(m, el.getBoundingClientRect().width);
-      const next = m > 0 ? Math.ceil(m) : guess;
-      setW((v) => (Math.abs(v - next) > 1 ? next : v));
+      // Always the last reading, never kept from an earlier one: the width depends only on the labels as drawn, not
+      // on whether the fonts were ready at the first reading (the plot's width does not change the labels').
+      setW(m > 0 ? Math.ceil(m) : guess);
     };
     read();
     const probe = root.querySelector('.ui-chart-tick');
