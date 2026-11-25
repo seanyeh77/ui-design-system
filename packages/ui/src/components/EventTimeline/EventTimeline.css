@@ -30,7 +30,10 @@
 }
 .ui-events-kind {
   display: inline-flex;
-  align-self: center;
+  align-items: center;
+  /* As tall as the first line of the text, the icon centred on it: aligned with the time, also when the text wraps. */
+  align-self: start;
+  height: 1lh;
   color: var(--ink-muted);
 }
 .ui-events li.is-tone-info .ui-events-kind {
@@ -55,9 +58,11 @@
 .ui-events-date:first-child {
   padding-top: 0;
 }
-/* Who did it: after the sentence, muted, the same size. */
+/* Who did it: after the sentence, muted, the same size, 8 px after it. */
+.ui-events-gap {
+  word-spacing: calc(var(--space-2) - 0.25em);
+}
 .ui-events-actor {
-  margin-left: var(--space-2);
   color: var(--ink-muted);
 }
 .ui-events-empty {
