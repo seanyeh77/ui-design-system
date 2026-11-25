@@ -18,12 +18,12 @@ test('compact: 22 px, no sparkline; the verdict replaces the target line only wh
   expect(getComputedStyle(container.querySelector('.ui-kpi-value') as HTMLElement).fontSize).toBe('22px');
   expect(container.querySelector('.ui-kpi-spark')).toBeNull();
   const line = () => container.querySelector('.ui-kpi-target') as HTMLElement;
-  expect(line().textContent).toBe('預測準確，目標 ≤ 0.5 °C');
+  expect(line().textContent).toBe('預測準確，目標 ≤ 0.5\u00a0°C');
   expect(line().classList.contains('ui-kpi-verdict')).toBe(false);
   rerender(
     <KpiCard size="compact" label="預測誤差" value={0.9} decimals={1} unit="°C" verdict={{ tone: 'warning', text: '偏差變大' }} target="目標 ≤ 0.5 °C" />,
   );
-  expect(line().textContent).toBe('偏差變大（目標 ≤ 0.5 °C）');
+  expect(line().textContent).toBe('偏差變大（目標 ≤ 0.5\u00a0°C）');
   expect(line().classList.contains('is-warning')).toBe(true);
 });
 
@@ -38,7 +38,7 @@ test('screen readers get the final figure as text and whether the change is good
   const { container, rerender } = render(<KpiCard label="營收" value={12840000} unit="元" delta={8.2} />);
   const value = container.querySelector('.ui-kpi-value') as HTMLElement;
   expect(value.getAttribute('aria-label')).toBeNull();
-  expect((value.querySelector('.ui-visually-hidden') as HTMLElement).textContent).toBe('1,284 萬 元');
+  expect((value.querySelector('.ui-visually-hidden') as HTMLElement).textContent).toBe('1,284\u00a0萬 元');
   expect(value.querySelector('.ui-kpi-num')?.getAttribute('aria-hidden')).toBe('true');
   expect(container.querySelector('.ui-kpi-change')?.textContent).toBe('▲ 8.2%，改善');
   const cjk = container.querySelector('.ui-kpi-sizer .ui-kpi-cjk') as HTMLElement;

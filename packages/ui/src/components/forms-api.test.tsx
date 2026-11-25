@@ -53,7 +53,7 @@ test('DateRangePicker: the name includes what is shown; 清除 sends [null, null
   // WCAG 2.5.3: the accessible name contains the visible text.
   expect(btn.textContent && (btn.getAttribute('aria-label') ?? '')).toBe('');
   expect(document.getElementById((btn.getAttribute('aria-labelledby') ?? '').split(' ')[1])?.textContent).toBe(shown);
-  expect(described(btn)).toEqual(['最多 90 天']);
+  expect(described(btn)).toEqual(['最多 90\u00a0天']);
   // The calendar icon is at the right end, after the text.
   expect(btn.lastElementChild?.classList.contains('ui-rangefield-icon')).toBe(true);
   await userEvent.setup().click(btn);

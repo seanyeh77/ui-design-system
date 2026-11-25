@@ -9,7 +9,7 @@ test('Toast: a polite status message; the caller times it, so it stays until rem
   try {
     render(<Toast>已刪除 3 筆</Toast>);
     const st = screen.getByRole('status');
-    expect(st.textContent).toBe('已刪除 3 筆');
+    expect(st.textContent).toBe('已刪除 3\u00a0筆');
     // No timer of its own: still there long after 3 s.
     vi.advanceTimersByTime(10_000);
     expect(screen.getByRole('status')).toBe(st);
