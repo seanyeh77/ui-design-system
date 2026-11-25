@@ -185,10 +185,8 @@ export function AppShell({
           brand={brand}
           collapsed={collapsed}
           pinned
-          onPin={togglePin}
-          onToggle={() => {
-            setStoredCollapsed(userCollapsed ? '0' : '1');
-          }}
+          onPinnedChange={togglePin}
+          onCollapsedChange={(c) => setStoredCollapsed(c ? '1' : '0')}
         />
       ) : (
         // Not pinned: the strip keeps its 72 px in the layout; the sidebar inside opens over the content and closes
@@ -222,7 +220,7 @@ export function AppShell({
             }}
             brand={brand}
             collapsed={collapsed}
-            onPin={togglePin}
+            onPinnedChange={togglePin}
           />
         </div>
       )}

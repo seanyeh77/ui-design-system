@@ -28,7 +28,7 @@
           { style: { display: 'flex', justifyContent: 'flex-end', padding: 20, minHeight: 420 } },
           h(U.NotificationBell, {
             items: s[0],
-            onOpen: function (it) {
+            onSelect: function (it) {
               s[1](
                 s[0].map(function (x) {
                   return x.id === it.id ? Object.assign({}, x, { read: true }) : x;

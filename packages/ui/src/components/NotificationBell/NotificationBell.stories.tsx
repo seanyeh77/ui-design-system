@@ -15,7 +15,7 @@ function D() {
     <div style={{ display: 'flex', justifyContent: 'flex-end', padding: 20, minHeight: 420 }}>
       <UI.NotificationBell
         items={s}
-        onOpen={(it) => {
+        onSelect={(it) => {
           setS(
             s.map((x) => {
               return x.id === it.id ? { ...x, read: true } : x;
