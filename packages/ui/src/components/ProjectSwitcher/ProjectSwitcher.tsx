@@ -3,6 +3,7 @@ import { Menu } from '@base-ui/react/menu';
 import { tr } from '../../i18n';
 import { CHECK, Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
+import { Badge } from '../Badge/Badge';
 import { includeIcons } from '../../icons/store';
 import phCaretDown from '../../icons/ph/caret-down';
 
@@ -35,17 +36,30 @@ export interface ProjectSwitcherProps {
   className?: string;
 }
 
-/** The outlined chip in the top bar: which project is shown and whether its data is live; opens a list to switch. */
+/** The outlined chip in the top bar: which project is shown and whether its data is live (a Badge mark); opens a list
+ *  to switch. */
 export function ProjectSwitcher({ project, status = 'live', statusLabel, options = [], value, onChange, footer, className }: ProjectSwitcherProps) {
   const st = PS_STATUS[status] ? status : 'live';
   const stText = statusLabel || tr(PS_STATUS[st]);
   const label = `${project} · ${stText}`;
-  // The project name and the status are two parts: when the chip is short of room the status gives way first (on a
-  // phone it is not written, the dot shows it), and the name is cut only after that. The whole text stays in the
-  // name for screen readers and in title.
+  // The project name and the status are two parts: when the chip is short of room the status words go first (on a
+  // phone they are not written, the Badge's mark shows the status), and only then is the name cut, with one 「…」. The
+  // whole text stays in the name for screen readers and in title.
+  const mark =
+    st === 'live' ? (
+      <Badge status="online" className="ui-projsw-badge" />
+    ) : st === 'offline' ? (
+      <Badge status="offline" className="ui-projsw-badge" />
+    ) : (
+      <Badge tone="warning" className="ui-projsw-badge">
+        {stText}
+      </Badge>
+    );
   const chip = (
     <>
-      <span className="ui-projsw-dot" aria-hidden="true" />
+      <span className="ui-projsw-mark" aria-hidden="true">
+        {mark}
+      </span>
       <span className="ui-projsw-text" aria-hidden="true">
         <span className="ui-projsw-name">{project}</span>
         <span className="ui-projsw-status">
