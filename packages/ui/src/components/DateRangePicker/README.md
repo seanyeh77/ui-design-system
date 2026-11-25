@@ -20,3 +20,4 @@ const [range, setRange] = useState<[Date | null, Date | null]>([null, null]);
 ## 細節
 
 - 樣式和 DatePicker 相同：圓角方塊、今天下方圓點、週日開始。
+- 打開時焦點在選中的結束日（顯示的月份），沒有值時在今天；方向鍵換日、PageUp／PageDown 換月。

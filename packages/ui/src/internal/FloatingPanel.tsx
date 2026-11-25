@@ -25,8 +25,9 @@ export interface FloatingPanelProps {
   delay?: number;
   /** Id of the panel, for aria-describedby on the trigger. */
   id?: string;
-  /** Move focus into the panel when it opens. Default true. */
-  focusOnOpen?: boolean;
+  /** Move focus into the panel when it opens: true (the first focusable element), false, or a CSS selector of the
+   *  element to focus inside the panel (the first focusable element when none matches). Default true. */
+  focusOnOpen?: boolean | string;
   children: React.ReactNode;
 }
 
@@ -49,6 +50,13 @@ export function FloatingPanel({
   ...aria
 }: FloatingPanelProps) {
   const within = boundary?.current ?? undefined;
+  const popup = React.useRef<HTMLDivElement>(null);
+  const initialFocus =
+    focusOnOpen === false
+      ? false
+      : typeof focusOnOpen === 'string'
+        ? () => popup.current?.querySelector<HTMLElement>(focusOnOpen) ?? true
+        : undefined;
   return (
     <Popover.Root open={open} onOpenChange={(next, details) => onOpenChange(next, baseReason(details?.reason))}>
       <Popover.Trigger render={trigger} openOnHover={openOnHover} delay={delay} closeDelay={150} />
@@ -64,7 +72,7 @@ export function FloatingPanel({
           // Inside a boundary: slid sideways until it fits, rather than swapping its alignment.
           collisionAvoidance={within ? { side: 'flip', align: 'shift' } : undefined}
         >
-          <Popover.Popup id={id} className={className} aria-label={aria['aria-label']} initialFocus={focusOnOpen ? undefined : false}>
+          <Popover.Popup ref={popup} id={id} className={className} aria-label={aria['aria-label']} initialFocus={initialFocus}>
             {children}
           </Popover.Popup>
         </Popover.Positioner>
