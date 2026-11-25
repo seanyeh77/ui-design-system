@@ -65,11 +65,11 @@ export default [ui.configs.recommended];
 ```html
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.47.1/fonts.css">
-<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.47.1/tokens.css">
-<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.47.1/styles.css">
+<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.47.2/fonts.css">
+<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.47.2/tokens.css">
+<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.47.2/styles.css">
 <div id="root"></div>
-<script src="https://seanyeh77.github.io/ui-design-system/dist/0.47.1/bundle.js"></script>
+<script src="https://seanyeh77.github.io/ui-design-system/dist/0.47.2/bundle.js"></script>
 <script>
   const h = React.createElement;
   UI.initTheme();
@@ -77,6 +77,6 @@ export default [ui.configs.recommended];
 </script>
 ```
 
-Pin a version as above: `/dist/<version>/` never changes; `/dist/` always serves the latest release. jsDelivr has the same files (`https://cdn.jsdelivr.net/npm/@seanyeh77/ui@0.47.1/dist/bundle.js`, `…/dist/styles.css`; the fonts at `https://cdn.jsdelivr.net/npm/@seanyeh77/tokens@0.47.1/fonts.css`). Without a bundler, `@seanyeh77/ui/dist/fonts.css` cannot resolve its import: load the tokens package's `fonts.css` or the pinned site URL.
+Pin a version as above: `/dist/<version>/` never changes; `/dist/` always serves the latest release. jsDelivr has the same files (`https://cdn.jsdelivr.net/npm/@seanyeh77/ui@0.47.2/dist/bundle.js`, `…/dist/styles.css`; the fonts at `https://cdn.jsdelivr.net/npm/@seanyeh77/tokens@0.47.2/fonts.css`). Without a bundler, `@seanyeh77/ui/dist/fonts.css` cannot resolve its import: load the tokens package's `fonts.css` or the pinned site URL.
 
 Scope: web UI, and the tokens of SeanYeh's Slidev decks (`initTheme({ preset: 'teaching' })`, see `theme.md`). Slide layout, Notion documents and teaching diagrams follow the separate `teaching-materials-style` skill.
