@@ -1,13 +1,16 @@
 /* Which built-in icons a page has. Each icon is its own module (ph/<name>.ts): a component that always shows an icon
-   (a caret, a close x) imports that module and calls includeIcons at load, so the icon is in the page's code and
-   renders at once, on the server too. Any other name loads its module the first time an Icon shows it; until then the
-   Icon is an empty box of the same size. A bundler then ships only the icons a page uses. */
+   (a caret, a close x) imports that module and calls includeIcons at load, so the icon renders at once in the browser.
+   Any other name loads its module the first time an Icon shows it; until then the Icon is an empty box of the same
+   size. A bundler then ships only the icons a page uses.
+   Server render and hydration use only the icons the page preloaded (preloadIcons): which modules called includeIcons
+   differs between a server that imports the whole package and a browser bundle that keeps only what the page uses, so
+   those icons appear right after hydration instead. */
 import { LOAD, PH_ALIAS, type IconName, type PhosphorName } from './names';
 import type { IconGlyph } from './glyph';
 
-/** Icons in the page's code from the start: the same on the server and in the browser. */
-const fixed = new Map<string, IconGlyph>();
-/** Every icon the browser has: the fixed ones and those loaded since. */
+/** Icons the page preloaded: the only ones in server renders and while hydrating, the same on both sides. */
+const pinned = new Map<string, IconGlyph>();
+/** Every icon the browser has: those included by modules and those loaded since. */
 const ready = new Map<string, IconGlyph>();
 /** Built-in markup to its name, so `d` given an icon's markup still finds its fill version. */
 const byMarkup = new Map<string, string>();
@@ -27,10 +30,7 @@ const emit = () => listeners.forEach((fn) => fn());
 /** Puts icons in the page's code: call at module load, never during a render. */
 export function includeIcons(...glyphs: IconGlyph[]): void {
   let added = false;
-  for (const g of glyphs) {
-    fixed.set(g.n, g);
-    added = add(g) || added;
-  }
+  for (const g of glyphs) added = add(g) || added;
   if (added) emit();
 }
 
@@ -75,10 +75,20 @@ export function loadIcon(key: PhosphorName): Promise<void> {
 
 /**
  * Loads icons before they are shown, e.g. the icons above the fold before the first render, so they appear in the first
- * paint instead of a frame later. Optional: every icon loads on its own the first time it is shown.
+ * paint instead of a frame later. Preloaded icons are also the only ones in server renders: with server rendering, await
+ * the same names on the server and in the browser before hydrating. Optional: every icon loads on its own the first time
+ * it is shown.
  */
 export function preloadIcons(names: Iterable<IconName>): Promise<void> {
-  return Promise.all([...names].filter(isIconName).map((n) => loadIcon(phosphorName(n)))).then(() => undefined);
+  return Promise.all(
+    [...names].filter(isIconName).map((n) => {
+      const key = phosphorName(n);
+      return loadIcon(key).then(() => {
+        const g = ready.get(key);
+        if (g) pinned.set(key, g);
+      });
+    }),
+  ).then(() => undefined);
 }
 
 export function subscribeIcons(fn: () => void): () => void {
@@ -88,5 +98,5 @@ export function subscribeIcons(fn: () => void): () => void {
 
 /** In the browser: every icon it has. */
 export const readyGlyph = (key: string | undefined) => (key ? ready.get(key) : undefined);
-/** On the server and while hydrating: only the icons in the page's code, so both render the same markup. */
-export const fixedGlyph = (key: string | undefined) => (key ? fixed.get(key) : undefined);
+/** On the server and while hydrating: only the preloaded icons, so both render the same markup. */
+export const pinnedGlyph = (key: string | undefined) => (key ? pinned.get(key) : undefined);

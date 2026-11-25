@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react';
 import { cx } from '../internal/util';
 import { devWarn } from '../internal/dev';
 import type { IconName, PhosphorName } from './names';
-import { fixedGlyph, isIconName, loadIcon, nameOfMarkup, phosphorName, readyGlyph, subscribeIcons } from './store';
+import { pinnedGlyph, isIconName, loadIcon, nameOfMarkup, phosphorName, readyGlyph, subscribeIcons } from './store';
 
 export type { IconName } from './names';
 
@@ -36,14 +36,15 @@ export interface IconProps {
 
 /**
  * Phosphor icon, 20 px, inherits the text color. Decorative: label the control that holds it. A name the page has not
- * shown before loads its module first and is an empty box of the same size until then (on the server too).
+ * shown before loads its module first and is an empty box of the same size until then. Server renders show only the
+ * icons given to `preloadIcons`.
  */
 export function Icon({ name, d, size = 20, strokeWidth = 2, filled, className }: IconProps) {
   const key = iconKey(name ?? d);
   const glyph = useSyncExternalStore(
     subscribeIcons,
     () => readyGlyph(key),
-    () => fixedGlyph(key),
+    () => pinnedGlyph(key),
   );
   if (name !== undefined && !isIconName(name))
     devWarn(true, 'Icon', `"${String(name)}" is not a built-in icon name; use a Phosphor name (see \`icons\`) or pass a custom icon as \`d\`.`);

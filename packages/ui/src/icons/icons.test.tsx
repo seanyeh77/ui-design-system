@@ -62,9 +62,11 @@ test('preloadIcons: icons shown after it resolves render at once', async () => {
   for (const svg of container.querySelectorAll('svg')) expect(svg.innerHTML).toMatch(/^<path/);
 });
 
-test('an icon a module includes renders at once, also on the server', () => {
+test('an icon a module includes renders at once in the browser; the server renders only preloaded icons', async () => {
   includeIcons(phHeart);
   expect(svgOf(render(<Icon name="heart" />).container).innerHTML).toBe(dom(phHeart.r));
+  expect(renderToString(<Icon name="heart" />)).not.toContain(phHeart.r);
+  await preloadIcons(['heart']);
   expect(renderToString(<Icon name="heart" />)).toContain(phHeart.r);
 });
 
@@ -74,7 +76,6 @@ test('server render: a name not in the page code is the empty box, without error
 });
 
 test('hydration of a server-rendered box: no mismatch, then the icon appears', async () => {
-  await preloadIcons(['globe']);
   const errors = vi.spyOn(console, 'error');
   const host = document.createElement('div');
   host.innerHTML = renderToString(<Icon name="globe" />);
@@ -120,7 +121,7 @@ test('ph/, names.ts and all.ts list the same icons', async () => {
   for (const [path, load] of Object.entries(modules)) expect((await load()).default.n).toBe(path.slice(5, -3));
 });
 
-// A component that always shows an icon includes it, so the icon is in the first paint and in server renders. The
+// A component that always shows an icon includes it, so the icon is in the browser's first paint. The
 // check looks for names in icon positions (name=, icon=, icon:, a *_ICONS constant) and asks for the module import.
 const sources = import.meta.glob<string>(['../components/**/*.tsx', '../internal/*.tsx', '!../**/*.test.tsx', '!../**/*.stories.tsx'], {
   query: '?raw',
