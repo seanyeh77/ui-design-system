@@ -16,6 +16,14 @@ test('a page on a server is named after its path and hash, with no colon', () =>
   assert.doesNotMatch(stemFor('http://localhost:5173/a:b'), /:/);
 });
 
+test('the query is part of the name, so variants of one page do not overwrite each other', () => {
+  assert.equal(stemFor('http://localhost:6006/iframe.html?id=button--primary&viewMode=story'), 'iframe-id-button-primary-viewMode-story');
+  assert.notEqual(stemFor('http://localhost:6006/iframe.html?id=a--one'), stemFor('http://localhost:6006/iframe.html?id=a--two'));
+  assert.equal(stemFor('file:///repo/site/preview/Tabs.html?state=open'), 'Tabs-state-open');
+  assert.equal(stemFor('http://localhost:5173/settings?tab=billing#danger'), 'settings-tab-billing-danger');
+  assert.doesNotMatch(stemFor('http://localhost:5173/?q=a/b:c'), /[/:]/);
+});
+
 test('two pages of one host get different names; the same name twice gets -2', () => {
   const jobs = jobsFor(['http://localhost:5173/', 'http://localhost:5173/settings', 'http://localhost:4000/settings'], (t) => t);
   assert.deepEqual(

@@ -27,6 +27,8 @@
     "./css/*": "./dist/css/*",
     "./tokens.css": "./dist/tokens.css",
     "./fonts.css": "./dist/fonts.css",
+    "./fonts-latin.css": "./dist/fonts-latin.css",
+    "./fonts-tc.css": "./dist/fonts-tc.css",
     "./bundle.js": "./dist/bundle.js",
     "./docs/*": "./docs/*",
     "./package.json": "./package.json"

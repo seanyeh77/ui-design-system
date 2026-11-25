@@ -9,8 +9,8 @@ SeanYeh's design system: typed React 19 components, design tokens, page template
 | `@seanyeh77/ui` | The components, `styles.css`, `bundle.js` for pages without a build step, and the docs under `docs/` (this file is `docs/agents.md`) |
 | `@seanyeh77/tokens` | `tokens.css`, the fonts, a Tailwind v4 theme (`tailwind.css`), typed token names with `cssVar()` |
 | `@seanyeh77/eslint-plugin-ui` | Lint rules for the core rules |
-| `@seanyeh77/ui-cli` | `ui check`, `ui shots`, `ui docs`, `ui list`. Run it as `npx @seanyeh77/ui-cli …`: plain `npx ui` is an unrelated package. |
-| Registry `…/r/<name>.json` | Page templates: `dashboard`, `list-detail`, `settings`, `login` |
+| `@seanyeh77/ui-cli` | `ui check`, `ui shots`, `ui docs`, `ui list`, `ui add`. Run it as `npx @seanyeh77/ui-cli …`: plain `npx ui` is an unrelated package. |
+| Page templates | `dashboard`, `list-detail`, `settings`, `login`: `ui add`, or the shadcn registry `…/r/<name>.json` |
 
 ## Building a page
 
@@ -24,7 +24,7 @@ Read this, and nothing more:
 
 Then:
 
-- Start from a page template when one fits: `npx shadcn@latest add https://seanyeh77.github.io/ui-design-system/r/dashboard.json` (also `list-detail`, `settings`, `login`). It needs a `components.json` (`npx shadcn@latest init`); without shadcn, write the JSON's `files[].content` yourself.
+- Start from a page template when one fits (`dashboard`, `list-detail`, `settings`, `login`): `npx @seanyeh77/ui-cli add dashboard [dir]` writes it from the CLI package, with no network (default `src/components/blocks/dashboard/`). The same templates are a shadcn registry: `npx shadcn@latest add https://seanyeh77.github.io/ui-design-system/r/dashboard.json` (needs a `components.json`, `npx shadcn@latest init`).
 - Your own CSS uses tokens only: `var(--surface)` in CSS, `cssVar('ink-muted')` from `@seanyeh77/tokens` in style props, `bg-surface text-ink-muted` with the Tailwind theme.
 - TypeScript enforces most rules (icon names, `confirm` on danger actions, DataTable column keys): fix type errors instead of casting them away. In development the components warn in the console with the cause and the fix.
 - Items marked 看情況 ("situational") are not fixed rules: choose per context and say which way you chose.
@@ -53,6 +53,7 @@ import ui from '@seanyeh77/eslint-plugin-ui';
 export default [ui.configs.recommended];
 ```
 
+- `fonts.css` is about 500 KB of CSS (Noto Sans TC lists the characters of each of its 432 files), and Vite inlines font files under 4 KB into it. To keep it out of the CSS that blocks the first render, import `@seanyeh77/ui/fonts-latin.css` (Inter, Geist Mono; about 18 KB) instead and load the Chinese faces after the page: `import('@seanyeh77/ui/fonts-tc.css')` (the bundler makes it a separate CSS file; the fonts use `font-display: swap` either way). Keep font files as files with `build: { assetsInlineLimit: (f) => (f.endsWith('.woff2') ? false : undefined) }` in `vite.config`.
 - ES modules only: TypeScript needs `moduleResolution` `bundler`, `node16` or `nodenext` (Vite and Next.js templates use `bundler`). React 19 is required. The module starts with `'use client'`; server code that only formats dates, numbers or text imports `@seanyeh77/ui/format`.
 - The system's CSS is in the cascade layer `ui`: your unlayered CSS always wins, with no `!important`. So delete the template's starter CSS (Vite's `index.css`, `App.css`) and put any reset in `@layer base { … }`. With Tailwind v4, start the main CSS with `@layer theme, base, ui, components, utilities;` (details in `theme.md`).
 - The ESLint plugin depends only on ESLint and works with TypeScript 7. Templates that ship oxlint instead need `eslint` and an `eslint.config.js`, as above.

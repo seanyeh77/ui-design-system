@@ -29,7 +29,7 @@
 ## 控制項
 
 - 不用原生 `<select>`、`<table>`、`<input>`、`<textarea>`、`<button>`、`<a>`、勾選框：用 Select、DataTable、TextField、TextArea、Button、Link、Checkbox。
-- 按鈕層級：`primary` 實心，每個區塊最多一個；`secondary` 外框；`quiet` 無框，給次要操作與工具列；`danger` 實心紅色，按下後先確認（給 `confirm`）。只有圖示的按鈕用 `IconButton`，一定有 `label`。
+- 按鈕的層級（`primary`、`secondary`、`quiet`、`danger`）和危險動作的確認寫在 Button 的用法（`ui docs Button`）。只有圖示的按鈕用 `IconButton`，一定有 `label`。
 - 按鈕與輸入框 40 px，寬度小於 600 px 時輸入框 48 px；觸控點擊範圍至少 48 × 48 px，句子裡的連結和名詞說明例外。
 - 鍵盤焦點一律是 2 px `focus` 外框；錯誤是紅框加圖示加原因；停用灰底灰字。
 - 浮層：要使用者決定用 Dialog，編輯一筆資料用 Drawer，按鈕旁的少量設定用 Popover，更多操作用 Menu，短提示用 Tooltip。開關一律是 `open`、`defaultOpen`、`onOpenChange`。
@@ -55,7 +55,7 @@
 - 狀態（進度、結果、連線）用 `Badge`，圓點加文字，只有要處理的狀態醒目：已啟用 `tone="success"`、已停用和已取消 `status="closed"`、在線 `online`、離線 `offline`。「這是什麼」的分類用 `Tag`，一律灰色。
 - 載入：立即顯示和內容同大小的 `Skeleton`（KPI、圖表各一塊；表格給 DataTable `loading`，工具列和表頭留著），不用轉圈。載入失敗：在那個區塊的位置放 `Alert tone="danger"`，寫原因，動作「重試」。
 - 空清單：還沒有任何資料時，Card 裡放 `EmptyState`（下一步怎麼開始，「新增」放在它的 `action`）取代 DataTable；搜尋或篩選後沒有結果時，DataTable 自己顯示一句 `emptyText`，工具列留著。
-- 操作完成：`toast('已儲存')`（AppShell 已放好 Toaster；沒有 AppShell 時在 app 最外層放一個 `<Toaster />`）。一般訊息 3 s 後消失；能復原時附「復原」，停留 10 s，滑鼠或焦點在訊息上時暫停，按 Ctrl Z（Mac ⌘Z）也能復原。要一直顯示的提示用 Alert。
+- 操作完成：`toast('已儲存')`；能復原時附「復原」。顯示時間、復原和放 Toaster 的位置寫在 Toast 的用法（`ui docs Toast`）。要一直顯示的提示用 Alert。
 
 ## 格式
 

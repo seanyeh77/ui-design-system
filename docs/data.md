@@ -21,7 +21,7 @@
 
 ## 表格與結果清單
 
-- 表格裡的數字不縮寫；時間長度用 `format: 'duration'`，日期用 `date`、`dateTime`、`relative`。
+- 表格裡的數字不縮寫；金額用 `format: 'money'`（傳數字，顯示「NT$ 1,280」，靠右等寬；其他幣別給 `currency: 'USD'`），時間長度用 `format: 'duration'`，日期用 `date`、`dateTime`、`relative`。
 - 結果清單（檢查結果、審核清單）：上方用 DataTable 的 `summary` 當摘要（全部加各狀態，附筆數），點了就篩選。要處理的狀態（失敗）緊接在「全部」後面。排序看情況，預設照資料的順序。
 - 摘要已經寫出各狀態的筆數，就不用 KPI 卡片重複；KPI 只放表格看不出來的數字（總時數、成功率、趨勢）。
 - 合計列、固定第一欄、常用檢視、同一欄位多選：看情況，依資料決定要不要開。
@@ -32,5 +32,6 @@
 
 - 圖表配色依序 `chart-1` 藍、`chart-2` 青、`chart-3` 橘、`chart-4` 暖灰；只有一組資料時用 `chart-1`；`chart-4` 給「其他」這類次要的一類。類別超過 3 時，圖例一定有文字。
 - 大數字的軸和數值用 `format="compact"`（「50 萬」）；KpiCard 自己縮寫。
+- KpiCard 的變化：越低越好的指標（錯誤率、延遲、成本）給 `direction="down"`，下降顯示成改善的顏色、念「改善」；比較的基準寫在 `compareLabel`（預設「較上週」，例如「較昨日」「較上月」），和 `delta` 算的期間一致。
 - 熱度色階 `heat-1`…`heat-7` 與差值的發散色階只用在資料的填色，上面的字用 `textOn(fill)`；狀態不只靠顏色，數值一定寫出來（見 DataColors）。
 - 預測、非實測的數值：填色上疊斜線（`ui-forecast`），旁邊加 `Tag icon="trend-up" tone="info"`「預測」。

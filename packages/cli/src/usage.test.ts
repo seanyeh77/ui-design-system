@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { summary, usageBlock } from './usage.ts';
+import { stripComments, summary, usageBlock } from './usage.ts';
 
 const md = `# Button
 
@@ -36,4 +36,9 @@ test('summary is the first sentence of 用法, or the first text line', () => {
   assert.equal(summary(md), '按鈕觸發一個動作。');
   assert.equal(summary('# 版面與導覽\n\n依使用情境選擇。其他的另外說明。\n'), '依使用情境選擇。');
   assert.equal(summary('# X\n\n## 用法\n\n顯示 `a。b` 的值。改用 Y。\n'), '顯示 `a。b` 的值。');
+});
+
+test('stripComments drops HTML comments, keeps those in fenced code', () => {
+  const src = '# useX\n\n## 用法\n\nA hook.<!-- note --> End.\n\n```html\n<!-- kept -->\n```\n\n<!--\nmulti\nline\n-->\n\n<!-- @dsCard group="Forms" -->\n';
+  assert.equal(stripComments(src), '# useX\n\n## 用法\n\nA hook. End.\n\n```html\n<!-- kept -->\n```\n');
 });

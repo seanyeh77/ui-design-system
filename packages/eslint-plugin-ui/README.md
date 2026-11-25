@@ -27,7 +27,7 @@ export default [ui.configs.recommended];
 | `no-nested-card` | error | Card 裡再放 Card |
 | `danger-confirm` | error | 沒有 `confirm` 的危險按鈕，`variant={x ? 'danger' : 'quiet'}` 也算 |
 | `one-primary-button` | warn | 同一區第二個主要按鈕，條件式的 `variant` 也算 |
-| `verb-labels` | warn | 「確定」「OK」這類不說明動作的按鈕文字 |
+| `verb-labels` | warn | 「確定」「OK」「是」這類只回答對話框、不說明動作的按鈕文字；「送出」「儲存」這類動詞可以 |
 | `no-raw-size` | warn | style 的 padding、margin、gap、fontSize、borderRadius、boxShadow、fontFamily 寫死數值（`padding: 12`、`'0.75rem'`），以及 Tailwind 任意值（`text-[13px]`、`p-[7px]`）；`0`、`auto` 和 `var(--…)` 不算 |
 
 專案自己用 router 的連結或其他原生元素時，用 `allow` 放行：

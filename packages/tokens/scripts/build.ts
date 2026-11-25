@@ -126,4 +126,22 @@ writeFileSync(new URL('tokens.css', out), css);
 writeFileSync(new URL('tailwind.css', out), tailwind);
 writeFileSync(new URL('index.js', out), js);
 writeFileSync(new URL('index.d.ts', out), dts);
-console.log(`tokens: ${Object.keys(light).length} tokens → dist/tokens.css, tailwind.css, index.js, index.d.ts`);
+
+// fonts.css split in two, for pages that load the large part later: fonts-latin.css (Inter and Geist Mono, about
+// 15 KB of CSS) and fonts-tc.css (Noto Sans TC: about 470 KB of CSS, as each of its 432 faces lists the characters of
+// its file). Same @font-face rules as fonts.css, which stays whole; the font URLs point one folder up.
+const fontsCss = readFileSync(new URL('fonts.css', root), 'utf8');
+const faces = fontsCss.match(/(?:\/\*[^*]*\*\/\s*)?@font-face\s*\{[^}]*\}/g) ?? [];
+const fontPart = (keep: (face: string) => boolean, what: string) =>
+  `/* Generated from fonts.css by scripts/build.ts. Do not edit by hand. ${what} Fontsource, SIL Open Font License 1.1. */\n\n${faces
+    .filter(keep)
+    .map((f) => f.replaceAll('url(./fonts/', 'url(../fonts/'))
+    .join('\n\n')}\n`;
+const isTc = (face: string) => /font-family:\s*'Noto Sans TC'/.test(face);
+if (!faces.length || !faces.some(isTc)) throw new Error('fonts.css: no @font-face rules for Noto Sans TC found');
+writeFileSync(
+  new URL('fonts-latin.css', out),
+  fontPart((f) => !isTc(f), 'Inter and Geist Mono, weights 400 to 700.'),
+);
+writeFileSync(new URL('fonts-tc.css', out), fontPart(isTc, 'Noto Sans TC, weights 400 to 700: load it after the page (see AGENTS.md).'));
+console.log(`tokens: ${Object.keys(light).length} tokens → dist/tokens.css, tailwind.css, index.js, index.d.ts, fonts-latin.css, fonts-tc.css`);

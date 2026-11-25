@@ -1466,6 +1466,59 @@ AI 定的細節（待確認）：
 - useFormErrors：`isValid(name)`；`onBlur(name)` 回傳欄位是否正確。`isValid` 讀這一次渲染的值（在渲染時更新），所以在渲染中呼叫也是最新的。
 - Toast：`(pointer: coarse) and (hover: none)` 時不顯示「Ctrl Z」，`aria-keyshortcuts` 留著。
 
+## 2026-11-25 驗證後修正：版面、無障礙與外觀
+
+使用者把細節交給 agent：「都照你的意見，因為我外來新專案每個前端都會使用 design system，不要讓前端只支持特定場景為原則去判斷，另外希望是 agent 能夠使用者個 design 使用越少的 token 或是更專注於設計網頁與 UX 這樣最好」、「全部都交給 subagent，最後驗證也是」。
+
+導覽的平板邊界恢復使用者確認的「1024 px 以下改成抽屜」（含 1024 px，`max-width: 1024px`），不是新的選擇。
+
+### AI 定的細節（待確認）
+
+- AppShell：內容捲動區（`.ui-shell-main`）設 `position: relative`，外框設 `overflow: clip`，絕對定位和隱藏的文字不再把文件撐高；`.ui-visually-hidden` 加 `clip-path: inset(50%)`。
+- 分隔線不拖曳的調整（WCAG 2.5.7）：SplitPane 和 Workbench 的邊界點一下依序是最小、預設、預設的 1.5 倍，再回到最小（1.5 倍沿用 DataTable 欄寬的第一級）；LayerGraph 的高度把手依序是最矮的框、畫出的高度、層間距最大。移動不到 4 px 算點一下，每次用 `announce` 念出新的大小，操作方式寫在 `aria-description`。
+- 數字和單位不換行：`format.fileSize`、`format.compact`（萬、億）、`format.money`（NT$ 後面）改成不換行空格（U+00A0）；元件收的字串（經過 `codeText` 的說明、提示、事件文字，FileUpload 的 `limitText`）自動把「數字 單位」之間的空格換成不換行空格，單位是 °、%、‰、1 到 4 個英文字母或一個中文字。`format.fraction` 沒有改（它的字串來自翻譯）。
+- ZoneMap：數值和單位之間的空格移進單位（Inter）裡，用不換行空格；按鈕名稱維持「23.1 °C」。
+- Workbench 的地標：`brand` 名稱是頁面的 `h1`（外觀不變）；主畫面和上方的列包在 `<main>`（`display: contents`，名稱是 `label`，預設「編輯器」）；各邊界移進它調整的區塊裡。外框拿掉帶名稱的 `role="group"`：axe 把有名稱的 group 本身當成地標外的內容。
+- ConsoleLayout 的地標：主視覺和底列包在 `<main>`（`display: contents`），手機上頂列以下整欄都在 `main`；側欄仍是 `aside`。
+- 高對比模式：AccentPicker 色票 `forced-color-adjust: none` 保留顏色，加 1 px CanvasText 外圈，選中的是 2 px Highlight 外圈；Calendar 選中日加 2 px Highlight 外框（內縮）。
+- DetailList 連結：選了在列上加 `href`（另一個網站加 `external`），沒有新增 LinkList（少一個元件）。值變成 Link，整列可以點、游標是手形、列高至少 48 px、內容垂直置中；鍵盤 Tab 到連結本身。
+- 頂部列的 Tag：AppShell／TopBar 的 `tags` 一律 12 px、`ink-muted`、半粗（有 `tone` 時用 tone 的顏色）。ConsoleLayout 頂列沒有改：使用者確認過「示範資料AI 最佳化中字體大小和顏色不要搞特別」，那裡和標題同字級、同顏色。
+- dashboard 範本：AppShell 加 `tags={<Tag icon="info">示範資料</Tag>}`，內容最上方加 `DateRangePicker`（`hideLabel`，預設最近 30 天）。
+- 詳細頁的頂部列：沒有 `title`、`tags`、`actions`、`onSearch` 時（大於 1024 px 和手機）不畫頂部列，內容從最上方開始、上方留 24 px（手機 16 px）；平板仍畫頂部列放選單按鈕。選這個比「只放需要的控制項」安靜。
+- PageHeader `meta`：可以給陣列，以「 · 」連起來；全形「）」「」」「』」「】」「〕」後面不加空格。字串的 `meta` 也套用同樣的規則，並拿掉「）」和時間之間的空格（「（三）13:00」，和 `format.dateTime` 一致）。
+- Grid 一欄多張卡片：在 Grid 裡用 `Page` 包住那一欄，Page 的間距自動變成 24 px（手機 16 px），沒有新增 Stack 元件或 `columns` 的陣列寫法。Grid 加 `align`（`'stretch'`、`'start'`）：等寬的 Grid 預設拉成一樣高，比例 Grid 預設靠上；比例 Grid 裡 `height="fill"` 的圖表要撐滿時給 `align="stretch"`。
+- EventTimeline：種類圖示高 `1lh`、靠上，對齊第一行；執行者前改用加寬到 8 px 的空格（不是左邊距），換行時從左邊開始。
+- EmptyState：手機上說明的寬度是 `fit-content`、靠左排，一行放得下時看起來仍置中，換行時靠左。
+- Tabs 與 SegmentedControl 的區分：Tabs 改成文字加 2 px `accent-text` 底線，下緣 1 px `line` 基準線，沒有灰底；整排 40 px，手機 48 px（觸控目標）；未選中 `ink-muted`、滑過 `ink`。SegmentedControl 維持灰底白塊。DataTable 的 `summary` 保留分段控制的樣子，因為使用者在「手機卡片與結果清單」選了「摘要分段控制」；SettingsLayout 改用 Tabs 後會跟著是底線樣式。
+- Alert：動作按鈕放在文字那一列的右端（按鈕和文字並排時 Alert 不會多一行），Alert 自己窄於 480 px 時放在內文下方、和文字對齊；有沒有「✕」時按鈕右端位置不同（取代「每個按鈕從同一個位置開始」）。
+- LoginCard：拿掉 1 px 外框，只用陰影，和其他卡片一致。
+- Graph：README、預覽和 story 在圖比外框寬時一開始把選取的方框捲到中間；Graph 只是樣式，沒有加元件行為。
+- LayerGraph 的捲動記憶：沒給 `storageKey` 時用方框 id 的 FNV-1a 雜湊（加上個數）當鍵，最多記 50 張圖，最舊的先忘。
+- 命名：NotificationBell 面板用 `open`、`defaultOpen`、`onOpenChange`，點通知改名 `onSelect(item)` 並在之後關閉面板（`onOpen` 保留為舊名）；SideNav 用 `onCollapsedChange(collapsed)`、`onPinnedChange(pinned)`（`onToggle`、`onPin` 保留）；Workbench 用 `storageKey`，沒給時版面只記在記憶體（`id` 保留）。
+- 新增圖示：`pause`、`play`、`prohibit`、`receipt`、`truck`、`package`、`credit-card`、`shopping-cart`、`storefront`，另外加了常用的 `map-pin`、`phone`。
+
+## 2026-11-25 驗證後修正：工具與文件
+
+0.45.0 發布後獨立驗證找到的 `ui check`、`ui shots`、ESLint 規則、文件網站與文件問題。使用者把設計選擇交給 agent：「都照你的意見，因為我外來新專案每個前端都會使用 design system，不要讓前端只支持特定場景為原則去判斷，另外希望是 agent 能夠使用者個 design 使用越少的 token 或是更專注於設計網頁與 UX 這樣最好」、「全部都交給 subagent，最後驗證也是」。
+
+### AI 定的細節（待確認）
+
+- `ui check` 每次量測前（頁面本身和每個打開的狀態）等頁面的動畫與轉場結束，最多 1.5 s；無限循環的動畫（轉圈、Skeleton）和暫停的動畫不等。
+- `ui check` 每個寬度與主題那一行的結果（ok 或「N problems」）算進頁面和所有打開的狀態；每個狀態的問題列在「after opening …」底下，一行一個。
+- 同一列欄位不同高：一個欄位（`.ui-field`）的控制項是它最外層的輸入框（欄位框、選單按鈕、輸入框）；同一列是最近一個並排子元素的祖先（grid，或橫向的 flex）。TextArea 本來就比較高，不算。差超過 1 px 算失敗，和工具列相同。
+- 置中的長文字：只在 390 px 檢查；兩行以上、寬至少 160 px、只含行內內容的區塊才算段落。按鈕、表格格子、圖表標籤、SVG 不算；EmptyState 和 ErrorPage 整個不算（它們的標題和短說明照設計置中，說明有寬度上限）。
+- AppShell 頁面的文件捲動：頁面有 `.ui-shell` 而 `document.scrollingElement.scrollHeight` 比視窗高超過 1 px 就失敗，四種寬度與主題都檢查。
+- forced-colors（強制色彩模式）下選中與未選中是否還分得出來：沒有做。比對 computed style 要猜每個元件用哪個屬性表示選中（底色、邊框、圖示、外框），誤報多，會讓 CI 在正確的預覽上失敗。
+- `ui check --shots` 也存每個打開的狀態：`<name>-<寬度>-light-<狀態>.png`，狀態名稱用和檔名相同的清理規則（`--open #open` 是 `open-open`，分頁「已停用」是 `tab-已停用`）。
+- `ui shots` 的整頁高度：等網路閒置（最多 5 s，輪詢的頁面不會閒置）和字型載入，量捲動區的 scrollHeight，連續兩次量到一樣才截圖。
+- 截圖檔名：路徑之後接查詢字串（`key-value`，多個用 `-` 接）再接 hash，經過同樣的清理（`iframe.html?id=button--primary` 是 `iframe-id-button-primary`）。沒有查詢字串的網址檔名不變，現有基準圖不用改名。
+- ESLint `verb-labels`：「送出」和「Submit」是動詞，不再擋；仍擋的是只回答對話框、不說明動作的字：確定、確認、好、好的、OK、是、否、Yes、No。「確認刪除」這種動詞加受詞照樣可以。訊息改成直接列出可用的字（儲存、刪除、送出、確認刪除）。
+- `ui add <dashboard|list-detail|settings|login> [dir]`：範本內容在 CLI 的 build 時從 `registry.json` 和 `packages/blocks` 產生（`dist/templates.json`），不連網路。預設資料夾：專案有 `src/` 時 `src/components/blocks/<name>`，否則 `components/blocks/<name>`（和 shadcn registry 的 target 相同）；檔案已存在時保留，`--force` 才覆寫；寫完印出要安裝的套件和要 render 的元件。
+- 文件網站的預覽：預覽 `<head>` 裡的 `<style>` 和 `<body>` 的屬性都保留（Cover 的版面、AppShell 和 Workbench 的 `padding: 0` 原本都被丟掉）；`<head>` 裡有 `<script>` 時 `pnpm site` 直接失敗。Cover 在窄於 960 px 時只顯示文字、標題 48 px，不在手機上橫向溢出。
+- 字型：`@seanyeh77/tokens` 另外產生 `fonts-latin.css`（Inter、Geist Mono，約 18 KB）和 `fonts-tc.css`（Noto Sans TC，約 490 KB），`@seanyeh77/ui` 也匯出這兩個；`fonts.css` 不變。AGENTS.md 建議在 bundler 專案裡只把 `fonts-latin.css` 放進主 CSS，用 `import('…/fonts-tc.css')` 讓中文字型的 CSS 變成另一個非同步載入的檔，並用 `assetsInlineLimit` 讓 woff2 維持檔案。Vite 8 實測：只匯入 `fonts.css` 時主 CSS 532 KB（其中 28 個字型檔被 base64 內嵌）；分開後主 CSS 18.75 KB，`fonts-tc` 412.5 KB 另外載入，沒有內嵌。
+- 重複的規則：按鈕層級留在 Button 的用法，Toast 的時間與復原留在 Toast 的用法；guidelines.md 那兩處改成指向 `ui docs Button`、`ui docs Toast` 的一句。
+- CodeView、Markdown 的 README 縮到 8 KB 以內：只有外觀數值（間距、顏色、毫秒）和互動細節的部分搬到 `docs/maintaining/<Name>.md`，props 和用法留在 README。
+
 ## 待確認清單（2026-11-25 整理）
 
 整份檔案裡標成「AI 定的細節（待確認）」、還沒確認的項目，一項一行；行號指向原文，原文沒有改。實驗室的代號後面括號寫出那個選項是什麼。
@@ -1588,6 +1641,60 @@ AI 定的細節（待確認）：
 - 第 1421 行（2026-11-25 全面審查修正：整合）：DataTable 沒有資料時，空狀態放在一個 `role="row"` 裡的 `role="cell"`，表格的 ARIA 結構完整（`table > rowgroup > row`）
 - 第 1422 行（2026-11-25 全面審查修正：整合）：LineChart 資料表的欄名「名稱（單位）」經過 `tr()`，英文介面是「name (unit)」
 - 第 1423 行（2026-11-25 全面審查修正：整合）：`ui check` 在頁面自己也跑 axe 時（Storybook 的無障礙 addon）等那次跑完再跑，最多等 10 s，不再回報「Axe is already running」
+- 第 1451 行（2026-11-25 驗證後修正：資料、表單與設定）：RelativeTime 伺服器渲染：伺服器和 hydration 那一次輸出完整日期時間（`format.dateTime`），讀到瀏覽器時鐘後換成相對時間，`<time>` 以新的 `key` 重…
+- 第 1452 行（2026-11-25 驗證後修正：資料、表單與設定）：`format.relative`：60 s 以內的未來時間（兩邊時鐘差一點）和 1 分鐘內一樣寫「現在」，超過 60 s 的未來時間仍寫完整日期時間
+- 第 1453 行（2026-11-25 驗證後修正：資料、表單與設定）：KpiCard `direction?: 'up' | 'down'`（哪個方向比較好，預設 `'up'`），好壞由 `delta` 的正負算出
+- 第 1454 行（2026-11-25 驗證後修正：資料、表單與設定）：DataTable 筆數：沒有 `summary` 的一頁表格在工具列寫「24 筆」（篩選後「6 / 24 筆」）
+- 第 1455 行（2026-11-25 驗證後修正：資料、表單與設定）：DataTable 新增 `unit`（每一列是什麼，預設 `summary.unit`，再沒有是「筆」）：摘要、工具列筆數、頁碼、「已選 n 筆」、合計列、朗讀都用它
+- 第 1456 行（2026-11-25 驗證後修正：資料、表單與設定）：DataTable 手機卡片：欄位名稱固定 6 rem（96 px，約 6 個字，太長用「…」）
+- 第 1457 行（2026-11-25 驗證後修正：資料、表單與設定）：DataTable 換頁、切換摘要時滑出的列複本：動畫期間表格本體 `overflow: clip`（`is-leaving`），結束就拿掉，平常不裁切（焦點外框不受影響）
+- 第 1458 行（2026-11-25 驗證後修正：資料、表單與設定）：DataTable 的欄位、篩選、常用檢視依內容（key、標籤、格式、選項）判斷是否重新排序篩選，不看陣列是不是同一個
+- 第 1459 行（2026-11-25 驗證後修正：資料、表單與設定）：DataTable `loading`、`loadingRows`（預設每頁筆數，最多 10 列）：工具列和表頭留著，列換成 Skeleton，條的寬度依欄位：主要欄 72 %、56 %、64 %、4…
+- 第 1460 行（2026-11-25 驗證後修正：資料、表單與設定）：MultiSelect：選單沒開時 Esc 交給外層（Drawer、Dialog 關閉）
+- 第 1461 行（2026-11-25 驗證後修正：資料、表單與設定）：Select：值或提示文字占滿剩下的寬度，錯誤圖示和箭頭一起在右端
+- 第 1462 行（2026-11-25 驗證後修正：資料、表單與設定）：DatePicker、DateRangePicker 打開時焦點在選中的日期（範圍是結束日，也就是顯示的月份），沒有值時在今天
+- 第 1463 行（2026-11-25 驗證後修正：資料、表單與設定）：Checkbox、Radio：`display: flex` 加 `width: max-content`（最寬到容器，文字在裡面換行），點擊範圍和焦點外框只包住框和文字
+- 第 1464 行（2026-11-25 驗證後修正：資料、表單與設定）：SettingsLayout 網址：hash 寫成 `#settings-<id>`，仍讀沒有前綴的 `#<id>`
+- 第 1465 行（2026-11-25 驗證後修正：資料、表單與設定）：SettingsSection `actions`：標題列右端，和 Card 的標題列同一個排法（放不下時換到標題下方靠右
+- 第 1466 行（2026-11-25 驗證後修正：資料、表單與設定）：useFormErrors：`isValid(name)`
+- 第 1467 行（2026-11-25 驗證後修正：資料、表單與設定）：Toast：`(pointer: coarse) and (hover: none)` 時不顯示「Ctrl Z」，`aria-keyshortcuts` 留著
+- 第 1477 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：AppShell：內容捲動區（`.ui-shell-main`）設 `position: relative`，外框設 `overflow: clip`，絕對定位和隱藏的文字不再把文件撐高
+- 第 1478 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：分隔線不拖曳的調整（WCAG 2.5.7）：SplitPane 和 Workbench 的邊界點一下依序是最小、預設、預設的 1.5 倍，再回到最小（1.5 倍沿用 DataTable 欄寬的第一級）
+- 第 1479 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：數字和單位不換行：`format.fileSize`、`format.compact`（萬、億）、`format.money`（NT$ 後面）改成不換行空格（U+00A0）
+- 第 1480 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：ZoneMap：數值和單位之間的空格移進單位（Inter）裡，用不換行空格
+- 第 1481 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：Workbench 的地標：`brand` 名稱是頁面的 `h1`（外觀不變）
+- 第 1482 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：ConsoleLayout 的地標：主視覺和底列包在 `<main>`（`display: contents`），手機上頂列以下整欄都在 `main`
+- 第 1483 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：高對比模式：AccentPicker 色票 `forced-color-adjust: none` 保留顏色，加 1 px CanvasText 外圈，選中的是 2 px Highlight 外圈
+- 第 1484 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：DetailList 連結：選了在列上加 `href`（另一個網站加 `external`），沒有新增 LinkList（少一個元件）
+- 第 1485 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：頂部列的 Tag：AppShell／TopBar 的 `tags` 一律 12 px、`ink-muted`、半粗（有 `tone` 時用 tone 的顏色）
+- 第 1486 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：dashboard 範本：AppShell 加 `tags={<Tag icon="info">示範資料</Tag>}`，內容最上方加 `DateRangePicker`（`hideLabel`，預設…
+- 第 1487 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：詳細頁的頂部列：沒有 `title`、`tags`、`actions`、`onSearch` 時（大於 1024 px 和手機）不畫頂部列，內容從最上方開始、上方留 24 px（手機 16 px）
+- 第 1488 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：PageHeader `meta`：可以給陣列，以「 · 」連起來
+- 第 1489 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：Grid 一欄多張卡片：在 Grid 裡用 `Page` 包住那一欄，Page 的間距自動變成 24 px（手機 16 px），沒有新增 Stack 元件或 `columns` 的陣列寫法
+- 第 1490 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：EventTimeline：種類圖示高 `1lh`、靠上，對齊第一行
+- 第 1491 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：EmptyState：手機上說明的寬度是 `fit-content`、靠左排，一行放得下時看起來仍置中，換行時靠左
+- 第 1492 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：Tabs 與 SegmentedControl 的區分：Tabs 改成文字加 2 px `accent-text` 底線，下緣 1 px `line` 基準線，沒有灰底
+- 第 1493 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：Alert：動作按鈕放在文字那一列的右端（按鈕和文字並排時 Alert 不會多一行），Alert 自己窄於 480 px 時放在內文下方、和文字對齊
+- 第 1494 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：LoginCard：拿掉 1 px 外框，只用陰影，和其他卡片一致
+- 第 1495 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：Graph：README、預覽和 story 在圖比外框寬時一開始把選取的方框捲到中間
+- 第 1496 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：LayerGraph 的捲動記憶：沒給 `storageKey` 時用方框 id 的 FNV-1a 雜湊（加上個數）當鍵，最多記 50 張圖，最舊的先忘
+- 第 1497 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：命名：NotificationBell 面板用 `open`、`defaultOpen`、`onOpenChange`，點通知改名 `onSelect(item)` 並在之後關閉面板（`onOpen`…
+- 第 1498 行（2026-11-25 驗證後修正：版面、無障礙與外觀）：新增圖示：`pause`、`play`、`prohibit`、`receipt`、`truck`、`package`、`credit-card`、`shopping-cart`、`storefront…
+- 第 1506 行（2026-11-25 驗證後修正：工具與文件）：`ui check` 每次量測前（頁面本身和每個打開的狀態）等頁面的動畫與轉場結束，最多 1.5 s
+- 第 1507 行（2026-11-25 驗證後修正：工具與文件）：`ui check` 每個寬度與主題那一行的結果（ok 或「N problems」）算進頁面和所有打開的狀態
+- 第 1508 行（2026-11-25 驗證後修正：工具與文件）：同一列欄位不同高：一個欄位（`.ui-field`）的控制項是它最外層的輸入框（欄位框、選單按鈕、輸入框）
+- 第 1509 行（2026-11-25 驗證後修正：工具與文件）：置中的長文字：只在 390 px 檢查
+- 第 1510 行（2026-11-25 驗證後修正：工具與文件）：AppShell 頁面的文件捲動：頁面有 `.ui-shell` 而 `document.scrollingElement.scrollHeight` 比視窗高超過 1 px 就失敗，四種寬度與主題都…
+- 第 1511 行（2026-11-25 驗證後修正：工具與文件）：forced-colors（強制色彩模式）下選中與未選中是否還分得出來：沒有做
+- 第 1512 行（2026-11-25 驗證後修正：工具與文件）：`ui check --shots` 也存每個打開的狀態：`<name>-<寬度>-light-<狀態>.png`，狀態名稱用和檔名相同的清理規則（`--open #open` 是 `open-ope…
+- 第 1513 行（2026-11-25 驗證後修正：工具與文件）：`ui shots` 的整頁高度：等網路閒置（最多 5 s，輪詢的頁面不會閒置）和字型載入，量捲動區的 scrollHeight，連續兩次量到一樣才截圖
+- 第 1514 行（2026-11-25 驗證後修正：工具與文件）：截圖檔名：路徑之後接查詢字串（`key-value`，多個用 `-` 接）再接 hash，經過同樣的清理（`iframe.html?id=button--primary` 是 `iframe-id-b…
+- 第 1515 行（2026-11-25 驗證後修正：工具與文件）：ESLint `verb-labels`：「送出」和「Submit」是動詞，不再擋
+- 第 1516 行（2026-11-25 驗證後修正：工具與文件）：`ui add <dashboard|list-detail|settings|login> [dir]`：範本內容在 CLI 的 build 時從 `registry.json` 和 `packag…
+- 第 1517 行（2026-11-25 驗證後修正：工具與文件）：文件網站的預覽：預覽 `<head>` 裡的 `<style>` 和 `<body>` 的屬性都保留（Cover 的版面、AppShell 和 Workbench 的 `padding: 0` 原本都…
+- 第 1518 行（2026-11-25 驗證後修正：工具與文件）：字型：`@seanyeh77/tokens` 另外產生 `fonts-latin.css`（Inter、Geist Mono，約 18 KB）和 `fonts-tc.css`（Noto Sans TC…
+- 第 1519 行（2026-11-25 驗證後修正：工具與文件）：重複的規則：按鈕層級留在 Button 的用法，Toast 的時間與復原留在 Toast 的用法
+- 第 1520 行（2026-11-25 驗證後修正：工具與文件）：CodeView、Markdown 的 README 縮到 8 KB 以內：只有外觀數值（間距、顏色、毫秒）和互動細節的部分搬到 `docs/maintaining/<Name>.md`，props …
 
 ### 更早的版本
 
@@ -1922,34 +2029,3 @@ AI 定的細節（待確認）：
 - 第 1272 行（Markdown 內容與 ui check）：連結維持強調色加底線；滑過 `surface-sub` 底色（`radius-sm` 圓角），焦點是一般的 2 px 外框
 - 第 1273 行（Markdown 內容與 ui check）：項目符號或編號留在列外，和其他項目對齊
 - 第 1274 行（Markdown 內容與 ui check）：C1（程式碼區塊不算觸控目標） 的範圍：`ui check` 的觸控目標檢查跳過「只因為 `tabindex` 才能聚焦、本身會捲動（`overflow` 是 `auto` 或 `scroll`）、而且不是控制項（沒有連結、按鈕、輸入框的標籤，也沒有 button…
-
-## 2026-11-25 驗證後修正：版面、無障礙與外觀
-
-使用者把細節交給 agent：「都照你的意見，因為我外來新專案每個前端都會使用 design system，不要讓前端只支持特定場景為原則去判斷，另外希望是 agent 能夠使用者個 design 使用越少的 token 或是更專注於設計網頁與 UX 這樣最好」、「全部都交給 subagent，最後驗證也是」。
-
-導覽的平板邊界恢復使用者確認的「1024 px 以下改成抽屜」（含 1024 px，`max-width: 1024px`），不是新的選擇。
-
-### AI 定的細節（待確認）
-
-- AppShell：內容捲動區（`.ui-shell-main`）設 `position: relative`，外框設 `overflow: clip`，絕對定位和隱藏的文字不再把文件撐高；`.ui-visually-hidden` 加 `clip-path: inset(50%)`。
-- 分隔線不拖曳的調整（WCAG 2.5.7）：SplitPane 和 Workbench 的邊界點一下依序是最小、預設、預設的 1.5 倍，再回到最小（1.5 倍沿用 DataTable 欄寬的第一級）；LayerGraph 的高度把手依序是最矮的框、畫出的高度、層間距最大。移動不到 4 px 算點一下，每次用 `announce` 念出新的大小，操作方式寫在 `aria-description`。
-- 數字和單位不換行：`format.fileSize`、`format.compact`（萬、億）、`format.money`（NT$ 後面）改成不換行空格（U+00A0）；元件收的字串（經過 `codeText` 的說明、提示、事件文字，FileUpload 的 `limitText`）自動把「數字 單位」之間的空格換成不換行空格，單位是 °、%、‰、1 到 4 個英文字母或一個中文字。`format.fraction` 沒有改（它的字串來自翻譯）。
-- ZoneMap：數值和單位之間的空格移進單位（Inter）裡，用不換行空格；按鈕名稱維持「23.1 °C」。
-- Workbench 的地標：`brand` 名稱是頁面的 `h1`（外觀不變）；主畫面和上方的列包在 `<main>`（`display: contents`，名稱是 `label`，預設「編輯器」）；各邊界移進它調整的區塊裡。外框拿掉帶名稱的 `role="group"`：axe 把有名稱的 group 本身當成地標外的內容。
-- ConsoleLayout 的地標：主視覺和底列包在 `<main>`（`display: contents`），手機上頂列以下整欄都在 `main`；側欄仍是 `aside`。
-- 高對比模式：AccentPicker 色票 `forced-color-adjust: none` 保留顏色，加 1 px CanvasText 外圈，選中的是 2 px Highlight 外圈；Calendar 選中日加 2 px Highlight 外框（內縮）。
-- DetailList 連結：選了在列上加 `href`（另一個網站加 `external`），沒有新增 LinkList（少一個元件）。值變成 Link，整列可以點、游標是手形、列高至少 48 px、內容垂直置中；鍵盤 Tab 到連結本身。
-- 頂部列的 Tag：AppShell／TopBar 的 `tags` 一律 12 px、`ink-muted`、半粗（有 `tone` 時用 tone 的顏色）。ConsoleLayout 頂列沒有改：使用者確認過「示範資料AI 最佳化中字體大小和顏色不要搞特別」，那裡和標題同字級、同顏色。
-- dashboard 範本：AppShell 加 `tags={<Tag icon="info">示範資料</Tag>}`，內容最上方加 `DateRangePicker`（`hideLabel`，預設最近 30 天）。
-- 詳細頁的頂部列：沒有 `title`、`tags`、`actions`、`onSearch` 時（大於 1024 px 和手機）不畫頂部列，內容從最上方開始、上方留 24 px（手機 16 px）；平板仍畫頂部列放選單按鈕。選這個比「只放需要的控制項」安靜。
-- PageHeader `meta`：可以給陣列，以「 · 」連起來；全形「）」「」」「』」「】」「〕」後面不加空格。字串的 `meta` 也套用同樣的規則，並拿掉「）」和時間之間的空格（「（三）13:00」，和 `format.dateTime` 一致）。
-- Grid 一欄多張卡片：在 Grid 裡用 `Page` 包住那一欄，Page 的間距自動變成 24 px（手機 16 px），沒有新增 Stack 元件或 `columns` 的陣列寫法。Grid 加 `align`（`'stretch'`、`'start'`）：等寬的 Grid 預設拉成一樣高，比例 Grid 預設靠上；比例 Grid 裡 `height="fill"` 的圖表要撐滿時給 `align="stretch"`。
-- EventTimeline：種類圖示高 `1lh`、靠上，對齊第一行；執行者前改用加寬到 8 px 的空格（不是左邊距），換行時從左邊開始。
-- EmptyState：手機上說明的寬度是 `fit-content`、靠左排，一行放得下時看起來仍置中，換行時靠左。
-- Tabs 與 SegmentedControl 的區分：Tabs 改成文字加 2 px `accent-text` 底線，下緣 1 px `line` 基準線，沒有灰底；整排 40 px，手機 48 px（觸控目標）；未選中 `ink-muted`、滑過 `ink`。SegmentedControl 維持灰底白塊。DataTable 的 `summary` 保留分段控制的樣子，因為使用者在「手機卡片與結果清單」選了「摘要分段控制」；SettingsLayout 改用 Tabs 後會跟著是底線樣式。
-- Alert：動作按鈕放在文字那一列的右端（按鈕和文字並排時 Alert 不會多一行），Alert 自己窄於 480 px 時放在內文下方、和文字對齊；有沒有「✕」時按鈕右端位置不同（取代「每個按鈕從同一個位置開始」）。
-- LoginCard：拿掉 1 px 外框，只用陰影，和其他卡片一致。
-- Graph：README、預覽和 story 在圖比外框寬時一開始把選取的方框捲到中間；Graph 只是樣式，沒有加元件行為。
-- LayerGraph 的捲動記憶：沒給 `storageKey` 時用方框 id 的 FNV-1a 雜湊（加上個數）當鍵，最多記 50 張圖，最舊的先忘。
-- 命名：NotificationBell 面板用 `open`、`defaultOpen`、`onOpenChange`，點通知改名 `onSelect(item)` 並在之後關閉面板（`onOpen` 保留為舊名）；SideNav 用 `onCollapsedChange(collapsed)`、`onPinnedChange(pinned)`（`onToggle`、`onPin` 保留）；Workbench 用 `storageKey`，沒給時版面只記在記憶體（`id` 保留）。
-- 新增圖示：`pause`、`play`、`prohibit`、`receipt`、`truck`、`package`、`credit-card`、`shopping-cart`、`storefront`，另外加了常用的 `map-pin`、`phone`。

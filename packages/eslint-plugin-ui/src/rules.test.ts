@@ -78,8 +78,39 @@ tester.run('one-primary-button', rules['one-primary-button'], {
   ],
 });
 tester.run('verb-labels', rules['verb-labels'], {
-  valid: ['<Button>儲存</Button>'],
-  invalid: [{ code: '<Button>確定</Button>', errors: 1 }],
+  valid: [
+    '<Button>儲存</Button>',
+    ...[
+      '送出',
+      '新增',
+      '建立',
+      '刪除',
+      '移除',
+      '編輯',
+      '更新',
+      '匯出',
+      '匯入',
+      '下載',
+      '上傳',
+      '複製',
+      '重試',
+      '還原',
+      '套用',
+      '清除',
+      '登入',
+      '登出',
+      '搜尋',
+      '篩選',
+      '排序',
+      '前往',
+      '開啟',
+      '關閉',
+      '取消',
+      '確認刪除',
+      'Submit',
+    ].map((v) => `<Button>${v}</Button>`),
+  ],
+  invalid: ['確定', '確認', '好', 'OK', '是', '否', 'Yes', 'No'].map((v) => ({ code: `<Button>${v}</Button>`, errors: 1 })),
 });
 tester.run('danger-confirm', rules['danger-confirm'], {
   valid: [

@@ -21,6 +21,8 @@
     "./tokens.css": "./dist/tokens.css",
     "./tailwind.css": "./dist/tailwind.css",
     "./fonts.css": "./fonts.css",
+    "./fonts-latin.css": "./dist/fonts-latin.css",
+    "./fonts-tc.css": "./dist/fonts-tc.css",
     "./tokens.json": "./tokens.json",
     "./package.json": "./package.json"
   },

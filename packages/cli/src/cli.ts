@@ -3,7 +3,8 @@
      ui check <file or URL>...   the automatic part of "Before you finish": layout, touch targets, text, axe-core
      ui shots <file or URL>...   deterministic screenshots: write baselines (--out) or compare with them (--compare)
      ui docs [Name] [--full]     a component's 用法 block (--full: the whole README), a guide, or the list of docs
-     ui list                     every guide and component with its one-line description */
+     ui list                     every guide and component with its one-line description
+     ui add <template> [dir]     writes a page template (dashboard, list-detail, settings, login) into the project */
 import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
@@ -11,8 +12,9 @@ import { pathToFileURL } from 'node:url';
 import { parseArgs, type ParseArgsConfig } from 'node:util';
 import type { Locator, Page } from 'playwright';
 import { measure, type Findings } from './measure';
-import { GROUPS, GUIDES, summary, usageBlock } from './usage';
+import { GROUPS, GUIDES, stripComments, summary, usageBlock } from './usage';
 import { DEFAULT_TOLERANCE, type Tolerance } from './compare';
+import { addReport, defaultDir, loadTemplates, writeTemplate } from './add';
 import {
   applyTheme,
   changedShots,
@@ -23,6 +25,9 @@ import {
   orphanBaselines,
   shootPage,
   shotLaunchOptions,
+  shotName,
+  cleanName,
+  waitForAnimations,
   summaryMarkdown,
   writeShots,
   FIXED_TIME,
@@ -35,17 +40,23 @@ const HELP_CHECK = `ui check <file or URL>... [--shots DIR] [--strict] [--wait M
   crowd another target at 1280 px (WCAG 2.5.8), touch areas that spill past their control, a card inside a card, raw
   Markdown, native controls the design system replaces, wrapped buttons, tabs, table headers or interface headings
   (headings in Markdown content may wrap), interface text cut off with no tooltip or title, text outside its card,
-  controls of different heights in one toolbar row, a status badge with a shadow in a table or card, page CSS outside
-  a cascade layer on element selectors (a reset, normalize or starter CSS: button, *, h1) that overrides a component,
-  and the axe-core rules of WCAG 2.0, 2.1 and 2.2 A and AA.
+  controls of different heights in one toolbar row or one form row (a FormGrid row, fields side by side), paragraphs
+  of two or more lines centered at 390 px (EmptyState and ErrorPage excepted), a document that scrolls around
+  AppShell, a status badge with a shadow in a table or card, page CSS outside a cascade layer on element selectors (a
+  reset, normalize or starter CSS: button, *, h1) that overrides a component, and the axe-core rules of WCAG 2.0, 2.1
+  and 2.2 A and AA.
+  Each measurement waits until the page's animations and transitions end (up to 1.5 s), so a fade is not measured
+  half way.
   A page without <meta name="viewport"> gets one report at 390 px (缺 viewport meta) and no touch-target check there.
   It also opens what the page hides behind clicks, in light at both widths: each tab of a [role=tablist], each
   SettingsLayout category, and each menu or popover of an [aria-haspopup] button in a toolbar or top bar (up to 12
-  states a page), and checks every state for the problems the page did not already have.
+  states a page), and checks every state for the problems the page did not already have. The line of each width and
+  theme counts the problems of the page and of its opened states; each state's problems follow under its name.
   --open SELECTOR  clicks the first match and checks the state it opens (a dialog, a drawer); repeat for more.
   --no-interact    skips the automatic tabs, categories and toolbar menus (--open still runs).
   --no-axe         skips the axe-core pass.
-  --shots DIR      saves a full-page screenshot of each width and theme in DIR.
+  --shots DIR      saves a full-page screenshot of each width and theme in DIR (<name>-<width>-<theme>.png, <name> as
+                   in ui shots), and one of each opened state (<name>-<width>-light-<state>.png).
   --strict         also fails on inline text links under 48 px.
   --wait MS        waits this long after load before measuring (default 800).
   Exits 2 when a page cannot be checked at all: it does not load, or the check itself crashes.`;
@@ -53,8 +64,10 @@ const HELP_CHECK = `ui check <file or URL>... [--shots DIR] [--strict] [--wait M
 const HELP_SHOTS = `ui shots <file or URL>... (--out DIR [--prune] | --compare DIR --diff DIR) [--settle MS] [--threshold N] [--max-diff PERCENT]
   Deterministic screenshots at 390 px and 1280 px, light and dark (DIR/<name>-<width>-<theme>.png): fixed clock
   (${FIXED_TIME}, fake timers), reduced motion, animations stopped, caret hidden, fonts loaded, scale 1, full page,
-  including what scrolls inside the page's own scroll container (AppShell's main area). <name> is a file's name, or a
-  URL's path and hash (http://host/settings#billing → settings-billing).
+  including what scrolls inside the page's own scroll container (AppShell's main area), measured once the network is
+  idle and the fonts are loaded, and again until the height stays the same. <name> is a file's name or a URL's path,
+  then its query and hash (http://host/settings#billing → settings-billing, iframe.html?id=button--primary →
+  iframe-id-button-primary).
   --out DIR        writes the shots (baselines); a file with the same pixels is left as it is. New files are
                    optimised losslessly with oxipng when it is on PATH. --prune also deletes the PNGs in DIR
                    that no page of this run produced (a removed or renamed page).
@@ -73,7 +86,13 @@ const HELP_DOCS = `ui docs [Name] [--full]
   layout, forms, data, monitoring, code, theme, motion. ui docs icons prints every built-in icon name on one line;
   ui docs agents prints the package's AGENTS.md. Without a name, prints the reading order and lists every doc.`;
 
+const HELP_ADD = `ui add <template> [dir] [--force]
+  Writes a page template into the project, from the copy inside this package (no network): dashboard, list-detail,
+  settings, login. dir defaults to src/components/blocks/<template> (components/blocks/<template> without a src
+  folder). Existing files are kept unless --force. The same templates as the shadcn registry on the docs site.`;
+
 const HELP = `${HELP_CHECK}
+${HELP_ADD}
 ${HELP_DOCS}
 ${HELP_SHOTS}
 ui list          lists every guide (in reading order) and every component by group, with its one-line description`;
@@ -123,7 +142,8 @@ function docs(name: string | undefined, full: boolean) {
     console.error(`No docs for "${name}". Run "ui docs" for the list.`);
     process.exit(1);
   }
-  const md = readFileSync(join(dir, hit), 'utf8');
+  // HTML comments are metadata for the docs site (the @dsCard line), not for the reader.
+  const md = stripComments(readFileSync(join(dir, hit), 'utf8'));
   const usage = full ? null : usageBlock(md);
   if (!usage) return console.log(md);
   // The note only when the README has more than its 用法 block.
@@ -327,6 +347,16 @@ function problemsOf(res: Findings, phone: boolean, strict: boolean): string[] {
         res.mixed.join('; ') +
         '. Use the system controls (Button, IconButton, SearchField, Select: 40 px) without your own height or padding.',
     );
+  if (res.formMixed.length)
+    problems.push(
+      'fields of different heights in one form row: ' +
+        res.formMixed.join('; ') +
+        '. Use the system fields (TextField, Select, MultiSelect, DatePicker: 40 px) without your own height or padding.',
+    );
+  if (res.docScroll)
+    problems.push(
+      `the document scrolls around AppShell (${res.docScroll}): AppShell scrolls its own main area. Remove page margin or padding around the frame and keep content inside it.`,
+    );
   if (res.raised.length)
     problems.push(
       'status badge with a shadow in a table or card: ' +
@@ -343,6 +373,8 @@ function problemsOf(res: Findings, phone: boolean, strict: boolean): string[] {
     if (res.overflow.length) problems.push('horizontal overflow: ' + res.overflow.join('; '));
     if (res.escaped.length) problems.push('touch area larger than its control (covers other controls): ' + res.escaped.join('; '));
     if (res.small.length) problems.push(`touch targets under 48 px: ${list(res.small)}`);
+    if (res.centered.length)
+      problems.push('long text centered on a phone: ' + res.centered.join('; ') + '. Align paragraphs of two or more lines to the start (text-align: start).');
     if (res.inline.length && strict) problems.push('inline targets under 48 px: ' + list(res.inline));
   }
   if (!phone && res.small24.length) problems.push(`targets under 24 px next to another target (WCAG 2.5.8): ${list(res.small24, 8)}`);
@@ -443,6 +475,9 @@ async function check(targets: string[], opts: CheckOptions) {
           await run(() => page.evaluate(applyTheme, theme));
           await page.waitForTimeout(opts.wait);
           await page.waitForLoadState('load');
+          // Measure the page at rest: rows fading out, a drawer sliding in or a fade on a tab switch are mid-way
+          // otherwise, and their boxes are reported as problems they do not have once the animation ends.
+          await run(() => waitForAnimations(page));
           const res = await run(() => page.evaluate(measure));
           if (page.url() !== url && width === 390 && theme === 'light') out.push(`  (redirected to ${page.url()})`);
           const problems: string[] = [];
@@ -456,19 +491,17 @@ async function check(targets: string[], opts: CheckOptions) {
             ? await run(() => axeRun(page, theme === 'dark')).catch((e: unknown) => [`axe-core could not run: ${String(e).split('\n')[0]}`])
             : [];
           if (axe.length) problems.push('accessibility (axe-core): ' + axe.join(' | '));
-          out.push(`  ${width} px ${theme}: ${problems.length ? '' : 'ok'}`);
-          for (const p of problems) out.push('    - ' + p);
-          if (phone && theme === 'light' && res.viewportMeta && res.inline.length && !opts.strict)
-            out.push(`    (inline text targets and links whose row is the target, exempt: ${res.inline.length})`);
-          bad ||= problems.length > 0;
-          if (opts.shots) {
+          const shoot = async (suffix: string) => {
+            if (!opts.shots) return;
             // The full page, with what scrolls inside the page's own scroll container (AppShell's main area).
             await growToScrollContainer(page, viewport, () => page.waitForTimeout(150));
-            await page.screenshot({ path: join(opts.shots, `${stem}-${width}-${theme}.png`), fullPage: true });
+            await page.screenshot({ path: join(opts.shots, `${shotName(stem, width, theme).slice(0, -4)}${suffix}.png`), fullPage: true });
             await page.setViewportSize(viewport);
-          }
+          };
+          await shoot('');
           // The states behind clicks, in light only (the layout is the same in dark): --open selectors, then the
           // toolbar menus, tabs and categories. Each reports only what the page did not already have.
+          const states: { label: string; problems: string[] }[] = [];
           if (theme === 'light' && (opts.open.length || opts.interact)) {
             // What the page already had, item by item: a target by its name (not its neighbor), an axe rule by its id.
             const itemKey = (item: string) => item.split(', next to ')[0].replace(/ \d+ x \d+ px$/, '');
@@ -482,19 +515,21 @@ async function check(targets: string[], opts: CheckOptions) {
                 if (Array.isArray(was) && Array.isArray(is)) {
                   const seen = new Set(was.map(itemKey));
                   (out[k] as string[]) = is.filter((x) => !seen.has(itemKey(x)));
-                }
+                } else if (typeof was === 'string' && was) (out[k] as string) = '';
               }
               return out;
             };
-            // trigger: a menu or dialog opener, closed again afterwards (Escape, else a second click).
-            const checkState = async (label: string, target: Locator, trigger: boolean) => {
+            // trigger: a menu or dialog opener, closed again afterwards (Escape, else a second click). Returns the
+            // problems of the opened state; null when the target could not be clicked.
+            const checkState = async (label: string, target: Locator, trigger: boolean): Promise<string[] | null> => {
               const before = errors.length;
               try {
                 await target.click({ timeout: 3000 });
-              } catch (e) {
-                return `could not click ${label}: ${String(e).split('\n')[0]}`;
+              } catch {
+                return null;
               }
-              await page.waitForTimeout(350);
+              await page.waitForTimeout(150);
+              await run(() => waitForAnimations(page));
               const after = await run(() => page.evaluate(measure));
               const found = problemsOf(newOnly(after), phone, opts.strict);
               if (errors.length > before) found.unshift('console errors: ' + errors.slice(before, before + 5).join(' | '));
@@ -505,6 +540,8 @@ async function check(targets: string[], opts: CheckOptions) {
                 const more = (await run(() => axeRun(page, false, skip)).catch(() => [] as string[])).filter((v) => !knownAxe.has(axeKey(v)));
                 if (more.length) found.push('accessibility (axe-core): ' + more.join(' | '));
               }
+              // A shot of the opened state, named after it: Button-390-light-the-menu-of-更多.png.
+              await shoot(`-${cleanName(label)}`);
               if (trigger) {
                 await page.keyboard.press('Escape');
                 await page.waitForTimeout(150);
@@ -512,30 +549,41 @@ async function check(targets: string[], opts: CheckOptions) {
                   await target.click({ timeout: 3000 }).catch(() => undefined);
                   await page.waitForTimeout(150);
                 }
+                await run(() => waitForAnimations(page));
               }
-              return found.length ? `after opening ${label}: ${found.join(' / ')}` : '';
+              return found;
             };
-            const stateProblems: string[] = [];
             for (const sel of opts.open) {
               const target = page.locator(sel).first();
+              const label = `--open ${sel}`;
               if (!(await target.count())) {
-                stateProblems.push(`--open ${sel}: nothing on the page matches`);
+                states.push({ label, problems: ['nothing on the page matches'] });
                 continue;
               }
-              const r = await checkState(`--open ${sel}`, target, true);
-              if (r) stateProblems.push(r);
+              const found = await checkState(label, target, true);
+              if (!found) states.push({ label, problems: ['could not click it'] });
+              else if (found.length) states.push({ label, problems: found });
             }
             if (opts.interact) {
-              const states = await run(() => page.evaluate(findStates, { popups: TOOLBAR_POPUPS, max: MAX_STATES }));
-              for (const st of states) {
-                const r = await checkState(st.label, page.locator(`[data-ui-check-state="${st.id}"]`), st.kind === 'popup');
+              const auto = await run(() => page.evaluate(findStates, { popups: TOOLBAR_POPUPS, max: MAX_STATES }));
+              for (const st of auto) {
+                const found = await checkState(st.label, page.locator(`[data-ui-check-state="${st.id}"]`), st.kind === 'popup');
                 // A click that fails (an element moved away by an earlier state) is not the page's problem.
-                if (r && !r.startsWith('could not click')) stateProblems.push(r);
+                if (found?.length) states.push({ label: st.label, problems: found });
               }
             }
-            for (const p of stateProblems) out.push(`    - ${p}`);
-            bad ||= stateProblems.length > 0;
           }
+          // The header covers the page and every opened state of this width and theme.
+          const count = problems.length + states.reduce((n, st) => n + st.problems.length, 0);
+          out.push(`  ${width} px ${theme}: ${count ? `${count} problem${count === 1 ? '' : 's'}` : 'ok'}`);
+          for (const p of problems) out.push('    - ' + p);
+          for (const st of states) {
+            out.push(`    after opening ${st.label}:`);
+            for (const p of st.problems) out.push('      - ' + p);
+          }
+          if (phone && theme === 'light' && res.viewportMeta && res.inline.length && !opts.strict)
+            out.push(`    (inline text targets and links whose row is the target, exempt: ${res.inline.length})`);
+          bad ||= count > 0;
         } finally {
           await ctx.close();
         }
@@ -665,7 +713,19 @@ if (cmd === 'check') {
   const { values, positionals } = parse(rest, { full: { type: 'boolean', default: false } }, HELP_DOCS);
   docs(positionals[0], !!values.full);
 } else if (cmd === 'list') list();
-else if (cmd === '--help' || cmd === '-h' || cmd === 'help' || !cmd) console.log(HELP);
+else if (cmd === 'add') {
+  const { values, positionals } = parse(rest, { force: { type: 'boolean', default: false } }, HELP_ADD);
+  const templates = loadTemplates();
+  const t = templates.find((x) => x.name === positionals[0]);
+  if (!t) {
+    console.error(
+      `${positionals[0] ? `No template "${positionals[0]}". ` : ''}Templates:\n${templates.map((x) => `  ${x.name.padEnd(12)} ${x.description}`).join('\n')}\n\n${HELP_ADD}`,
+    );
+    process.exit(2);
+  }
+  const dir = resolve(positionals[1] ?? defaultDir(t.name, process.cwd()));
+  console.log(addReport(t, dir, writeTemplate(t, dir, !!values.force), process.cwd()).join('\n'));
+} else if (cmd === '--help' || cmd === '-h' || cmd === 'help' || !cmd) console.log(HELP);
 else {
   console.error(`Unknown command "${cmd}".\n\n${HELP}`);
   process.exit(2);
