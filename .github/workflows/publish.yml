@@ -2,33 +2,77 @@ name: Release
 
 # Changesets opens a "Version packages" pull request; merging it publishes to npm with trusted publishing (OIDC):
 # each package lists this repo and publish.yml as its Trusted Publisher on npmjs.com, so no npm token is stored.
+# Keep the file name: the Trusted Publisher setting names it.
+#
+# Runs only after CI succeeded on a push to main, on the commit CI tested.
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
 
 permissions:
-  contents: write
-  pull-requests: write
-  id-token: write
+  contents: read
+
+# Releases never run side by side and are never cancelled half way through a publish.
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    # github.sha is the tip of main when CI finished. When main has moved past the commit CI tested, this run stops:
+    # the newer commit's CI starts its own release.
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_sha == github.sha
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+      # Starts CI on the "Version packages" pull request (below).
+      actions: write
+      # npm trusted publishing.
+      id-token: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      # Node 24 ships npm 11; changeset publish runs pnpm publish, which hands the OIDC exchange to npm >= 11.5.1.
-      # No registry-url: it writes an .npmrc that expects NODE_AUTH_TOKEN, which would mask OIDC.
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: 24
-          cache: pnpm
-      - run: npm install -g npm@latest
+          ref: ${{ github.event.workflow_run.head_sha }}
+      # Node 22, the version CI tests with (see .github/actions/setup). No registry-url: it writes an .npmrc that
+      # expects NODE_AUTH_TOKEN, which would mask OIDC.
+      - uses: ./.github/actions/setup
+      # changeset publish runs pnpm publish, which hands the OIDC exchange to npm >= 11.5.1; Node 22 ships npm 10.
+      # Pinned, not latest: raise it on purpose (any 11.x from 11.5.1 on works).
+      - run: npm install -g npm@11.21.3
       - name: Check that npm can publish with OIDC
         run: node -e "const [a,b,c]=process.argv[1].split('.').map(Number); if (a*1e6+b*1e3+c < 11005001) { console.error('npm '+process.argv[1]+' cannot use trusted publishing; it needs 11.5.1 or newer.'); process.exit(1) }" "$(npm -v)"
-      - run: pnpm install --frozen-lockfile
-      - uses: changesets/action@v1
+      - id: changesets
+        uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
         with:
-          publish: pnpm release
+          publish-script: pnpm release
+      # The "Version packages" pull request is pushed with the workflow token, and GitHub starts no normal CI run for
+      # it: its pull_request run waits for an approval nobody gives and ends as "failure" with 0 jobs when the pull
+      # request is merged. A workflow_dispatch from the workflow token is allowed, so start CI on the branch here; its
+      # checks attach to the pull request's commit. Then delete the waiting pull_request run so the pull request shows
+      # only the real result. With a GitHub App token passed to changesets/action (github-token), the pull request
+      # would start CI by itself and this step could go.
+      - name: Start CI on the Version packages pull request
+        if: steps.changesets.outputs.pr-number != ''
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: changeset-release/main
+        run: |
+          gh workflow run ci.yml --ref "$BRANCH"
+          echo "CI started on $BRANCH for pull request #${{ steps.changesets.outputs.pr-number }}." >> "$GITHUB_STEP_SUMMARY"
+          sha=$(gh api "repos/$GITHUB_REPOSITORY/branches/$BRANCH" --jq .commit.sha)
+          # The waiting run can appear a few seconds after the push.
+          for attempt in 1 2 3 4 5 6; do
+            ids=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs?event=pull_request&head_sha=$sha" \
+              --jq '.workflow_runs[] | select(.conclusion == "action_required" or .status == "action_required" or .status == "waiting") | .id')
+            if [ -n "$ids" ]; then
+              for id in $ids; do gh api -X DELETE "repos/$GITHUB_REPOSITORY/actions/runs/$id" || true; done
+              break
+            fi
+            sleep 5
+          done
