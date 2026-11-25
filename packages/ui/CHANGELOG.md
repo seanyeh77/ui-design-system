@@ -1,5 +1,27 @@
 # @seanyeh77/ui
 
+## 0.47.0
+
+### Minor Changes
+
+- 481235c: 小修正：KpiCard `unit="%"` 沒給 `decimals` 時顯示 1 位小數；Checkbox 和 RadioGroup 的文字換行時方框對齊第一行；MultiSelect 的「清除」可以用 Tab 移到；`CodeText` 和元件說明裡的貨幣和數字之間（「NT$ 1,280」）也用不換行空格；Alert 的 ✕ 和動作按鈕同一條中線、右緣對齊沒有 ✕ 時的按鈕；Badge 新增 `paused`（已暫停，`warning`）。
+- bac70a8: TextField 新增 `prefix`（框的開頭，例如「NT$」）、`suffix`（框的結尾，例如「元」）和 `unit`（緊接在輸入的字後面，例如「GB」），都是灰字並跟著說明念出；原生的 `prefix` 屬性從型別移除，寫錯時編譯不過。
+- acd850a: 新增 `themeScript`：server render 的頁面放在 `<head>` 的 inline script，第一次繪製前就套上記住的主題和強調色，不再先閃一下淺色或預設強調色。
+
+### Patch Changes
+
+- 122d806: DataTable `loading`：欄寬照載入後的規則量，標題不再被截斷，載入條依格式取常見寬度（例如 `dateTime` 184 px），資料到了版面不跳動；載入中不顯示舊的「第 1–10 筆，共 24 筆」和頁碼。`mono` 欄（ID、hash）不再當主要欄。
+- bd4212e: EmptyState：手機上說明超過 2 行時整塊（標題、說明、步驟、按鈕）一起靠左，2 行以內全部置中，不再只有說明靠左。
+- 41d01e7: Graph 的說明：比外框寬時只捲動 `svg`，圖例放在捲動容器外，不跟著捲走。DataTable 手機卡片的日期和時間在放得下時各自不換行，放不下時（320 px 加大文字間距）才在裡面換行，不再超出卡片。
+- f0bb1d2: Icon：server render 和 hydrate 只用 `preloadIcons` 載入過的圖示。server 匯入整個套件、瀏覽器只打包用到的模組時，兩邊的 markup 一樣，不再 hydrate 失敗（React #418）；元件固定的圖示在 hydrate 後立即補上。有 server render 的頁面要讓首屏圖示出現在 server 的 HTML 裡，就在 server 和瀏覽器 await 同一組 `preloadIcons`。
+- 2ca3d57: LoadingBar：減少動態效果時改成靜止的強調色斜紋，和軌道至少 3:1（半透明的整條不到 3:1）。
+- 56a842b: MobileTabBar：選中的膠囊上下置中在圖示上，不再壓到下方的文字。
+- f890a81: AGENTS.md（套件裡的 `docs/agents.md`）釘住的版本在每次發布時自動更新成新版本。
+- 6e8a185: 同一列一種字級：EventTimeline 的時間和說明同大小，做的人不再被拆開換行（「系／統」）；DataTable 列裡的程式碼和路徑連結用列的字級（Geist Mono）；手機卡片的欄位名稱對齊值的基線。
+- fafe0c5: Tabs：強制色彩模式下選中的底線用 `Highlight`、基準線用 `CanvasText` 框線，不再消失（SettingsLayout 手機版的分頁列也是）；基準線一律跨滿容器寬度。SettingsLayout 手機版分頁列和內容的間距改為 `space-4`；切換分類時瀏覽器拒絕改網址（sandbox 的 iframe）也不會出錯。LayerGraph 的「圖／清單」改用 SegmentedControl（同一份內容的兩種顯示方式）。Tabs 的說明：帶筆數的篩選摘要一律用 DataTable 的 `summary`。
+- 6914fef: `ui check`：手寫的 `<button>`、`<a href>`、文字 `<input>` 和 `<textarea>` 也算原生控制項（元件的 `ui-*` class 和 Markdown 內容除外）；同一列控制項高度的檢查把 `.ui-field-box` 當成一個控制項；開著的對話框、抽屜和選單的截圖只拍視窗大小。Breadcrumb 的連結加上 `ui-crumb-link` class。
+- @seanyeh77/tokens@0.47.0
+
 ## 0.46.0
 
 ### Minor Changes
