@@ -178,6 +178,13 @@ export const I18N: I18nState = {
       表格: 'Table',
       '{n} px': '{n} px',
       '主要區域 {a} px，面板 {b} px': 'Main area {a} px, panel {b} px',
+      '面板 {n} px': 'Panel {n} px',
+      '拖曳或按 ← → 調整；按一下切換預設寬度，按兩下或 Enter 還原':
+        'Drag or press ← → to resize; click to step through preset widths; double-click or Enter to reset',
+      '拖曳或按方向鍵調整；按一下切換預設大小，按兩下還原': 'Drag or press the arrow keys to resize; click to step through preset sizes; double-click to reset',
+      '{label} {n} px': '{label} {n} px',
+      '拖曳或按 ↑ ↓ 調整；按一下切換預設高度，按 Enter 還原': 'Drag or press ↑ ↓ to resize; click to step through preset heights; Enter to reset',
+      '架構圖高度 {n} px': 'Diagram height {n} px',
       外部: 'External',
       詳細: 'Details',
       '展開 {name}': 'Expand {name}',

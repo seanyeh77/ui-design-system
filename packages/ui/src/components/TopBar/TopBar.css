@@ -41,14 +41,18 @@
     max-width: 45%;
   }
 }
-/* tags: right after the title, the title's size (a Tag with an icon takes the size of the text beside it). */
+/* tags: right after the title, small and muted (12 px, ink-muted, semibold) so they never read as part of the title;
+   a Tag with an icon takes this size, a tone keeps its own color. */
 .ui-topbar-tags {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: var(--space-2);
   margin-left: calc(var(--space-2) - var(--space-4));
-  font-size: var(--text-h4);
+  color: var(--ink-muted);
+  font-size: var(--text-mini);
+  font-weight: 600;
+  line-height: 1.4;
   white-space: nowrap;
 }
 .ui-search {
@@ -82,7 +86,6 @@
   }
   .ui-topbar-tags {
     margin-left: 0;
-    font-size: inherit;
   }
   .ui-topbar .ui-search {
     display: none;

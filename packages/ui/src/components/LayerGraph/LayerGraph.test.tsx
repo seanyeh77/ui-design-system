@@ -4,6 +4,7 @@ import { page } from 'vitest/browser';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { LayerGraph, addMessages, format, setLocale, type LayerGraphEdge } from '../../index';
+import { idsKey } from './LayerGraph';
 
 const user = userEvent.setup();
 const nodes = [
@@ -1209,6 +1210,32 @@ test('LayerGraph resizable (HC): down spreads the layers, up past the drawn heig
   expect(Math.abs(Number(bar.getAttribute('aria-valuenow')) - (h0 - 80))).toBeLessThanOrEqual(1);
 });
 
+test('LayerGraph resizable: a click on the bar without dragging steps through shortest, drawn and tallest (WCAG 2.5.7)', async () => {
+  await page.viewport(1280, 900);
+  render(
+    <div style={{ width: 880 }}>
+      <LayerGraph nodes={tall} edges={tallEdges} resizable />
+    </div>,
+  );
+  const bar = screen.getByRole('separator', { name: '調整架構圖高度' });
+  expect(bar.getAttribute('aria-description')).toContain('按一下');
+  const h0 = Number(bar.getAttribute('aria-valuenow'));
+  const max = Number(bar.getAttribute('aria-valuemax'));
+  const click = () => {
+    const y = bar.getBoundingClientRect().top + 4;
+    bar.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerId: 1, clientY: y }));
+    bar.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 1, clientY: y }));
+  };
+  click();
+  // Taller than drawn: the gaps grow to the most they can; the value stays the frame's height.
+  await waitFor(() => expect(Number(bar.getAttribute('aria-valuemax'))).toBe(max));
+  await waitFor(() => expect(document.querySelector('[data-ui-announcer]')?.textContent).toMatch(/^架構圖高度 \d+ px$/));
+  click();
+  await waitFor(() => expect(Number(bar.getAttribute('aria-valuenow'))).toBeLessThan(h0));
+  click();
+  await waitFor(() => expect(Number(bar.getAttribute('aria-valuenow'))).toBe(h0));
+});
+
 test('LayerGraph resizable: storageKey remembers the height; without resizable there is no handle', () => {
   localStorage.setItem('ui-lg-height:arch', '-40');
   const { container, unmount } = render(
@@ -1255,4 +1282,13 @@ test('LayerGraph: nothing is stored without storageKey; old prop names still wor
   expect(screen.getByRole('button', { name: /src\/cli/ }).textContent).toContain('18 個函式');
   expect(screen.getByRole('button', { name: /src\/cli/ }).getAttribute('aria-pressed')).toBe('true');
   localStorage.clear();
+});
+
+test('LayerGraph scroll memory: a short key per diagram, not every box id joined', () => {
+  const ids = Array.from({ length: 400 }, (_, i) => 'src/module/very/long/path/number_' + i);
+  const k = idsKey(ids);
+  expect(k.length).toBeLessThan(16);
+  expect(idsKey([...ids])).toBe(k);
+  expect(idsKey(ids.slice(1))).not.toBe(k);
+  expect(idsKey(['ab', 'c'])).not.toBe(idsKey(['a', 'bc']));
 });

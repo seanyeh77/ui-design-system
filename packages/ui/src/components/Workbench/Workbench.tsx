@@ -7,6 +7,8 @@ import { Icon, type CustomIcon } from '../../icons/Icon';
 import { cx, IS_MAC, resizeObserver } from '../../internal/util';
 import { readStored, useStored } from '../../internal/stored';
 import { devWarn } from '../../internal/dev';
+import { announce } from '../../announce';
+import { DRAG_MIN, nextPreset } from '../../internal/clickSteps';
 import { tr } from '../../i18n';
 import { dropTransition } from '../../motion';
 import { includeIcons } from '../../icons/store';
@@ -30,7 +32,7 @@ export interface WorkbenchView {
   attention?: boolean;
 }
 
-/** Where each view sits and what is open; kept in localStorage under 「ui-workbench:」 + id. */
+/** Where each view sits and what is open; kept in localStorage under 「ui-workbench:」 + storageKey. */
 export interface WorkbenchLayout {
   side: string[];
   panel: string[];
@@ -40,9 +42,12 @@ export interface WorkbenchLayout {
 }
 
 export interface WorkbenchProps {
-  /** Names the stored layout: one per page, such as 'app'. */
-  id: string;
-  /** Product at the top left. The name is hidden on phones; the mark stays. */
+  /** Remembers the layout in localStorage under 「ui-workbench:」 + this name, one per page such as 'app'. Without it
+   *  the layout lasts until the page reloads. */
+  storageKey?: string;
+  /** @deprecated Use `storageKey` (same stored data). */
+  id?: string;
+  /** Product at the top left, the page's h1. The name is hidden on phones (still read as the heading); the mark stays. */
   brand?: { mark?: React.ReactNode; name: string; href?: string };
   /** Where the main view is: on a 36 px bar above the main view, in line with the tab rows of the side bar and the
    *  panel. When it does not fit, the levels before the last one shrink first. */
@@ -72,7 +77,7 @@ export interface WorkbenchProps {
   };
   /** The main view: a diagram, a document or code. */
   children?: React.ReactNode;
-  /** Accessible name of the whole layout. Default 「編輯器」. */
+  /** Accessible name of the main landmark (the main view and the bar above it). Default 「編輯器」. */
   label?: string;
   /** Extra class on the root element. */
   className?: string;
@@ -169,13 +174,16 @@ function restore(raw: string, def: WorkbenchLayout): WorkbenchLayout {
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Math.round(v)));
 const inField = (t: EventTarget | null) => t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
 
-/** A draggable border between two regions: role="separator", arrows 16 px, Shift 64 px, Home/End, double-click resets. */
+/** A draggable border between two regions: role="separator", arrows 16 px, Shift 64 px, Home/End, double-click resets.
+ *  A click without dragging (WCAG 2.5.7) steps through the narrowest size, the default and 1.5 times the default. */
 function Splitter(p: {
   label: string;
   vertical: boolean;
   value: number;
   min: number;
   max: number;
+  /** The size a double-click goes back to; the middle click step. */
+  def: number;
   /** +1: dragging right or down grows the region; -1: left or up grows it. */
   grow: 1 | -1;
   onChange: (v: number) => void;
@@ -183,9 +191,14 @@ function Splitter(p: {
   onDrag: (on: boolean) => void;
   style: React.CSSProperties;
 }) {
-  const start = React.useRef<{ at: number; v: number } | null>(null);
+  const start = React.useRef<{ at: number; v: number; moved: boolean } | null>(null);
   const [on, setOn] = React.useState(false);
   const pos = (e: React.PointerEvent) => (p.vertical ? e.clientX : e.clientY);
+  const end = () => {
+    start.current = null;
+    setOn(false);
+    p.onDrag(false);
+  };
   return (
     <div
       className={cx('ui-wb-split', p.vertical ? 'is-v' : 'is-h', on && 'is-on')}
@@ -195,28 +208,31 @@ function Splitter(p: {
       aria-valuenow={p.value}
       aria-valuemin={p.min}
       aria-valuemax={p.max}
+      aria-description={tr('拖曳或按方向鍵調整；按一下切換預設大小，按兩下還原')}
       tabIndex={0}
       style={p.style}
       onPointerDown={(e) => {
+        if (e.button !== 0) return;
         e.currentTarget.setPointerCapture?.(e.pointerId);
-        start.current = { at: pos(e), v: p.value };
+        start.current = { at: pos(e), v: p.value, moved: false };
         setOn(true);
         p.onDrag(true);
       }}
       onPointerMove={(e) => {
         const s = start.current;
-        if (s) p.onChange(clamp(s.v + (pos(e) - s.at) * p.grow, p.min, p.max));
+        if (!s || (!s.moved && Math.abs(pos(e) - s.at) < DRAG_MIN)) return;
+        s.moved = true;
+        p.onChange(clamp(s.v + (pos(e) - s.at) * p.grow, p.min, p.max));
       }}
       onPointerUp={() => {
-        start.current = null;
-        setOn(false);
-        p.onDrag(false);
+        const clicked = start.current && !start.current.moved;
+        end();
+        if (!clicked) return;
+        const v = clamp(nextPreset(p.value, [p.min, p.def, p.def * 1.5]), p.min, p.max);
+        p.onChange(v);
+        announce(tr('{label} {n} px', { label: p.label, n: v }));
       }}
-      onPointerCancel={() => {
-        start.current = null;
-        setOn(false);
-        p.onDrag(false);
-      }}
+      onPointerCancel={end}
       onDoubleClick={p.onReset}
       onKeyDown={(e) => {
         const step = e.shiftKey ? STEP * 4 : STEP;
@@ -552,14 +568,21 @@ function Pane({ view, onSwipe }: { view?: WorkbenchView; onSwipe?: (dir: 1 | -1)
 export function Workbench({ ref, ...p }: WorkbenchProps) {
   const views = React.useMemo(() => p.views ?? [], [p.views]);
   const byId = React.useMemo(() => Object.fromEntries(views.map((v) => [v.id, v])), [views]);
-  const key = 'ui-workbench:' + p.id;
+  devWarn(p.id !== undefined && p.storageKey === undefined, 'Workbench', '`id` is deprecated. Pass storageKey instead: the same name keeps the stored layout.');
+  const name = p.storageKey ?? p.id;
+  // No name: the layout is kept in memory only, until the page reloads.
+  const key = name ? 'ui-workbench:' + name : undefined;
   const def = React.useMemo(() => defaults(views, p.defaultLayout), [views, p.defaultLayout]);
   // The default layout on the server and the first browser render, then the stored one (also when another tab changes it).
   const parseLayout = React.useCallback((raw: string) => restore(raw, def), [def]);
-  const [lay, saveLay] = useStored<WorkbenchLayout>(key, parseLayout, def);
-  // An update reads the layout from storage, so two updates in one event build on each other.
+  const [stored, saveLay] = useStored<WorkbenchLayout>(key, parseLayout, def);
+  // Without storageKey: the layout lives in this component's state until the page reloads.
+  const [mem, setMem] = React.useState<WorkbenchLayout | null>(null);
+  const lay = key ? stored : (mem ?? def);
+  // An update reads the layout from storage (or the state), so two updates in one event build on each other.
   const setLay = React.useCallback(
     (u: WorkbenchLayout | ((l: WorkbenchLayout) => WorkbenchLayout)) => {
+      if (!key) return setMem((m) => (typeof u === 'function' ? u(m ?? def) : u));
       const raw = readStored(key);
       const cur = raw ? restore(raw, def) : def;
       saveLay(typeof u === 'function' ? u(cur) : u);
@@ -621,7 +644,8 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
   const sideW = phone ? w : Math.min(clamp(lay.size.side, LIM.side[0], LIM.side[1]), w - 48);
   const panelH = clamp(lay.size.panel, LIM.panel[0], panelMax);
   const sheetMax = Math.round(bodyH * 0.75);
-  const sheetSize = clamp(sheetH ?? bodyH * 0.45, 120, Math.max(120, sheetMax));
+  const sheetDefault = clamp(bodyH * 0.45, 120, Math.max(120, sheetMax));
+  const sheetSize = clamp(sheetH ?? sheetDefault, 120, Math.max(120, sheetMax));
 
   const exOpen = exOverlay ? ov.explorer : lay.open.explorer;
   const sideHas = lay.side.length > 0;
@@ -876,18 +900,23 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
 
   return (
     <Ctx.Provider value={api}>
-      <div ref={root} className={cx('ui-wb', phone && 'is-phone', sizing && 'is-sizing', p.className)} role="group" aria-label={p.label ?? tr('編輯器')}>
+      <div ref={root} className={cx('ui-wb', phone && 'is-phone', sizing && 'is-sizing', p.className)}>
         <header className="ui-wb-top">
           <div className="ui-wb-top-l">
             {toggleBtn('explorer', exOpen, false)}
+            {/* The product name is the page's one h1; it looks the same as before. */}
             {brand ? (
-              brand.href ? (
-                <a className="ui-wb-brand" href={brand.href} aria-label={phone ? brand.name : undefined}>
-                  {brandInner}
-                </a>
-              ) : (
-                <span className="ui-wb-brand">{brandInner}</span>
-              )
+              <h1 className="ui-wb-title">
+                {brand.href ? (
+                  <a className="ui-wb-brand" href={brand.href} aria-label={phone ? brand.name : undefined}>
+                    {brandInner}
+                  </a>
+                ) : (
+                  <span className="ui-wb-brand" aria-label={phone ? brand.name : undefined}>
+                    {brandInner}
+                  </span>
+                )}
+              </h1>
             ) : null}
           </div>
           <div className="ui-wb-top-r">
@@ -902,14 +931,18 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
           </div>
         </header>
         <div className="ui-wb-body">
-          {hasBar ? (
-            <div className="ui-wb-mainbar" style={{ left: mainL, right: mainR }}>
-              {p.crumbs?.length ? <Breadcrumb className="ui-wb-crumbs" items={p.crumbs} /> : <span className="ui-wb-mainbar-fill" />}
-              {p.mainBar ? <div className="ui-wb-mainbar-btns">{p.mainBar}</div> : null}
+          {/* The main landmark holds the bar above the main view and the view itself; it draws no box of its own
+              (display: contents), so both stay laid out against the body. */}
+          <main className="ui-wb-mainwrap" aria-label={p.label ?? tr('編輯器')}>
+            {hasBar ? (
+              <div className="ui-wb-mainbar" style={{ left: mainL, right: mainR }}>
+                {p.crumbs?.length ? <Breadcrumb className="ui-wb-crumbs" items={p.crumbs} /> : <span className="ui-wb-mainbar-fill" />}
+                {p.mainBar ? <div className="ui-wb-mainbar-btns">{p.mainBar}</div> : null}
+              </div>
+            ) : null}
+            <div className="ui-wb-main" style={{ left: mainL, right: mainR, bottom: mainB, top: hasBar ? BAR : 0 }}>
+              {p.children}
             </div>
-          ) : null}
-          <main className="ui-wb-main" style={{ left: mainL, right: mainR, bottom: mainB, top: hasBar ? BAR : 0 }}>
-            {p.children}
           </main>
 
           {p.explorer || p.explorerHead || p.explorerFoot || filter ? (
@@ -937,21 +970,23 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
                 {p.explorerHead ? <div className="ui-wb-exhead">{p.explorerHead}</div> : null}
                 <div className="ui-wb-exbody">{p.explorer}</div>
                 {p.explorerFoot ? <div className="ui-wb-exfoot">{p.explorerFoot}</div> : null}
+                {/* Inside the region it resizes, so it sits in that landmark and slides with it. */}
+                {exDocked ? (
+                  <Splitter
+                    label={tr('{region}寬度', { region: regionName.explorer })}
+                    vertical
+                    grow={1}
+                    value={exW}
+                    min={LIM.explorer[0]}
+                    max={LIM.explorer[1]}
+                    def={def.size.explorer}
+                    onChange={(v) => update((l) => ({ ...l, size: { ...l.size, explorer: v } }))}
+                    onReset={() => update((l) => ({ ...l, size: { ...l.size, explorer: def.size.explorer } }))}
+                    onDrag={setSizing}
+                    style={{ left: exW }}
+                  />
+                ) : null}
               </aside>
-              {exDocked ? (
-                <Splitter
-                  label={tr('{region}寬度', { region: regionName.explorer })}
-                  vertical
-                  grow={1}
-                  value={exW}
-                  min={LIM.explorer[0]}
-                  max={LIM.explorer[1]}
-                  onChange={(v) => update((l) => ({ ...l, size: { ...l.size, explorer: v } }))}
-                  onReset={() => update((l) => ({ ...l, size: { ...l.size, explorer: def.size.explorer } }))}
-                  onDrag={setSizing}
-                  style={{ left: exW }}
-                />
-              ) : null}
             </>
           ) : null}
 
@@ -965,21 +1000,22 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
                 {...regionDrop('panel')}
               >
                 {regionBox('panel')}
+                {panelOpen ? (
+                  <Splitter
+                    label={tr('{region}高度', { region: regionName.panel })}
+                    vertical={false}
+                    grow={-1}
+                    value={panelH}
+                    min={LIM.panel[0]}
+                    max={panelMax}
+                    def={def.size.panel}
+                    onChange={(v) => update((l) => ({ ...l, size: { ...l.size, panel: v } }))}
+                    onReset={() => update((l) => ({ ...l, size: { ...l.size, panel: def.size.panel } }))}
+                    onDrag={setSizing}
+                    style={{ left: 0, right: 0, top: -1 }}
+                  />
+                ) : null}
               </section>
-              {panelOpen ? (
-                <Splitter
-                  label={tr('{region}高度', { region: regionName.panel })}
-                  vertical={false}
-                  grow={-1}
-                  value={panelH}
-                  min={LIM.panel[0]}
-                  max={panelMax}
-                  onChange={(v) => update((l) => ({ ...l, size: { ...l.size, panel: v } }))}
-                  onReset={() => update((l) => ({ ...l, size: { ...l.size, panel: def.size.panel } }))}
-                  onDrag={setSizing}
-                  style={{ left: mainL, right: mainR, bottom: panelH }}
-                />
-              ) : null}
             </>
           ) : null}
 
@@ -1007,21 +1043,22 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
                 {...regionDrop('side')}
               >
                 {regionBox('side')}
+                {sideDocked ? (
+                  <Splitter
+                    label={tr('{region}寬度', { region: regionName.side })}
+                    vertical
+                    grow={-1}
+                    value={sideW}
+                    min={LIM.side[0]}
+                    max={LIM.side[1]}
+                    def={def.size.side}
+                    onChange={(v) => update((l) => ({ ...l, size: { ...l.size, side: v } }))}
+                    onReset={() => update((l) => ({ ...l, size: { ...l.size, side: def.size.side } }))}
+                    onDrag={setSizing}
+                    style={{ left: -1 }}
+                  />
+                ) : null}
               </aside>
-              {sideDocked ? (
-                <Splitter
-                  label={tr('{region}寬度', { region: regionName.side })}
-                  vertical
-                  grow={-1}
-                  value={sideW}
-                  min={LIM.side[0]}
-                  max={LIM.side[1]}
-                  onChange={(v) => update((l) => ({ ...l, size: { ...l.size, side: v } }))}
-                  onReset={() => update((l) => ({ ...l, size: { ...l.size, side: def.size.side } }))}
-                  onDrag={setSizing}
-                  style={{ right: sideW }}
-                />
-              ) : null}
             </>
           ) : null}
 
@@ -1058,6 +1095,7 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
                 value={sheetSize}
                 min={120}
                 max={Math.max(120, sheetMax)}
+                def={sheetDefault}
                 onChange={setSheetH}
                 onReset={() => setSheetH(null)}
                 onDrag={setSizing}

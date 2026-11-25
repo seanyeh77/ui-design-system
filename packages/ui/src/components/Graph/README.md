@@ -16,6 +16,7 @@ h('div', { className: 'ui-graph' },
 - 線直角轉彎；推測的關係加 `is-inferred`（虛線），專案宣告的關係加 `is-declared`（長短交替的虛線）。
 - 顏色只用 token：`graph-edge`、`graph-node`、`accent`、`accent-soft`。
 - 圖放在卡片（`surface`）上；直接放在頁面底色上時，外層加 `style: { '--ui-graph-bg': 'var(--bg)' }`。
+- 圖比外框寬時（手機）外層 `overflowX: 'auto'`，一開始把選取的方框捲到中間（`scrollLeft = 方框中心 - 外框寬 / 2`），不要讓它被邊緣切掉。
 
 ## 細節
 

@@ -4,11 +4,13 @@ import {
   Badge,
   Card,
   DataTable,
+  DateRangePicker,
   Grid,
   KpiCard,
   LineChart,
   NotificationBell,
   Page,
+  Tag,
   type DataTableColumn,
   type KpiCardProps,
   type NavSection,
@@ -16,7 +18,8 @@ import {
 } from '@seanyeh77/ui';
 
 /* Dashboard: KPI cards, one trend chart and the table of records, inside the app frame.
-   Replace the sample data with yours; keep the order (figures, trend, records). KPIs show only
+   Replace the sample data with yours and drop the 「示範資料」 tag once the figures are real; keep the order (period,
+   figures, trend, records). KPIs show only
    figures the table cannot: its summary already counts the projects per status. Give every KPI a sparkline (spark)
    or none, so the cards line up. */
 
@@ -59,11 +62,29 @@ const COLUMNS: DataTableColumn<ProjectRow>[] = [
   { key: 'updated', label: '更新', format: 'relative' },
 ];
 
+// The last 30 days, today included.
+function last30(): [Date, Date] {
+  const end = new Date();
+  end.setHours(0, 0, 0, 0);
+  return [new Date(end.getFullYear(), end.getMonth(), end.getDate() - 29), end];
+}
+
 export function Dashboard({ kpis, trend, rows, notifications }: DashboardProps) {
   const [page, setPage] = React.useState('overview');
+  // The period every figure below covers: at the top of the content, before the first row of cards.
+  const [range, setRange] = React.useState<[Date | null, Date | null]>(last30);
   return (
-    <AppShell nav={NAV} value={page} onNavigate={setPage} brand="專案中心" title="總覽" actions={<NotificationBell items={notifications} />}>
+    <AppShell
+      nav={NAV}
+      value={page}
+      onNavigate={setPage}
+      brand="專案中心"
+      title="總覽"
+      tags={<Tag icon="info">示範資料</Tag>}
+      actions={<NotificationBell items={notifications} />}
+    >
       <Page>
+        <DateRangePicker label="期間" hideLabel value={range} onChange={setRange} />
         <Grid columns={4}>
           {kpis.map((k) => (
             <KpiCard key={k.label} {...k} />

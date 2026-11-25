@@ -76,7 +76,13 @@ export function EventTimeline({ events, label, empty, kinds, className }: EventT
         </span>
         <span className="ui-events-text">
           {codeText(e.text)}
-          {e.actor ? <span className="ui-events-actor">{e.actor}</span> : null}
+          {/* A space (widened to 8 px), not a margin: when the name wraps, it starts flush at the left. */}
+          {e.actor ? (
+            <>
+              <span className="ui-events-gap"> </span>
+              <span className="ui-events-actor">{e.actor}</span>
+            </>
+          ) : null}
         </span>
       </li>
     );

@@ -34,7 +34,8 @@ export interface AlertProps {
   className?: string;
 }
 
-/** A message inside the page: a card with the tone's icon, a title, a sentence and an optional action under it. */
+/** A message inside the page: a card with the tone's icon, a title, a sentence and an optional action at the right end
+ *  of the text (under it when the alert is narrower than 480 px). */
 export function Alert({ tone = 'info', title, children, actionLabel, onAction, onDismiss, className }: AlertProps) {
   const t = ALERT_ICONS[tone] ? tone : 'info';
   const canClose = (t === 'info' || t === 'success') && onDismiss;
@@ -44,13 +45,13 @@ export function Alert({ tone = 'info', title, children, actionLabel, onAction, o
       <div className="ui-alert-content">
         {title ? <div className="ui-alert-title">{title}</div> : null}
         {children ? <div className="ui-alert-body">{codeText(children)}</div> : null}
-        {/* Under the text, not at the right end: with or without ✕ every action starts at the same place. */}
-        {actionLabel ? (
-          <button type="button" className="ui-btn ui-btn-secondary ui-alert-action" onClick={onAction}>
-            {actionLabel}
-          </button>
-        ) : null}
       </div>
+      {/* At the right end of the text, so the alert is no taller than its text; under it on a narrow alert. */}
+      {actionLabel ? (
+        <button type="button" className="ui-btn ui-btn-secondary ui-alert-action" onClick={onAction}>
+          {actionLabel}
+        </button>
+      ) : null}
       {canClose ? (
         <button type="button" className="ui-alert-close" aria-label={tr('關閉提示')} onClick={onDismiss}>
           <Icon name="x" size={16} />

@@ -16,6 +16,7 @@ Dashboard 類頁面的左側導覽，可以收合。AppShell 已經內建（側�
 - 品牌傳 `{ mark, name, href }`；只有文字時用第一個字放在強調色方塊裡當 logo。
 - 選中：左側 3 px 強調色指示條，用水滴方式移動到新項目。
 - 有子項目的父項目：收合時點了直接進第一個子頁面，頁面內再切換其他子頁面（例如用 Tabs）。
+- 收合和釘選照受控慣例：`collapsed` 加 `onCollapsedChange(collapsed)`（給了才有收合按鈕），`pinned` 加 `onPinnedChange(pinned)`（給了才有圖釘按鈕）。舊的 `onToggle`、`onPin` 仍可用，開發時 console 提醒改名。
 
 ## 細節
 
@@ -25,7 +26,7 @@ Dashboard 類頁面的左側導覽，可以收合。AppShell 已經內建（側�
 - 選中：左側 3 px 強調色指示條，用水滴方式移動到新項目；文字變粗、圖示變 `accent-text`。
 - 子選單：點父項目展開，子項目縮排；收起時選中的子項目會標在父項目上。收合時，有子項目的父項目點了直接進第一個子頁面，頁面內再切換其他子頁面（例如用 Tabs）。
 - 收合按鈕在左下角，只有圖示、沒有文字。收合後只剩圖示，滑過顯示名稱提示。
-- 圖釘按鈕（`onPin`、`pinned`）：也在左下角、收合按鈕左邊，240 px 時兩個並排，72 px 時上下排。沒有釘選時是線條圖示「釘選側邊欄」，釘選時是實心強調色「取消釘選」（`aria-pressed`）。AppShell 用它切換自動展開與釘選；單獨使用 SideNav 時通常不需要。
+- 圖釘按鈕（`pinned`、`onPinnedChange`）：也在左下角、收合按鈕左邊，240 px 時兩個並排，72 px 時上下排。沒有釘選時是線條圖示「釘選側邊欄」，釘選時是實心強調色「取消釘選」（`aria-pressed`）。AppShell 用它切換自動展開與釘選；單獨使用 SideNav 時通常不需要。
 - 圖釘和收合按鈕滑過或 focus 時，右側出現 Tooltip 寫出動作名稱；Focus 時有 2 px `focus` 外框。
 - `label` 是導覽的 `aria-label`，預設「主要導覽」。
 

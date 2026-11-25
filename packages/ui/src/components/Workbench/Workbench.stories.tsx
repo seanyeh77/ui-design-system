@@ -84,7 +84,7 @@ function Demo() {
   return (
     <div style={{ height: '100vh' }}>
       <UI.Workbench
-        id="story"
+        storageKey="story"
         brand={{ mark: <span style={{ display: 'block', width: 20, height: 20, borderRadius: 5, background: 'var(--accent)' }} />, name: 'app', href: '#' }}
         crumbs={[{ label: 'harness' }, { label: 'controller.py' }, { label: 'VirtualRouter._sync_as' }]}
         actions={<Actions />}

@@ -185,7 +185,7 @@ test('touch: on a phone the bottom panel grip has a 48 px tall touch area above 
   const { container } = render(
     <div style={{ width: 390, height: 720 }}>
       <UI.Workbench
-        id="touch-sheet"
+        storageKey="touch-sheet"
         brand={{ name: 'codemap', href: '#' }}
         views={[
           { id: 'outline', title: '大綱', render: () => <p>大綱內容</p> },

@@ -20,6 +20,16 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
+/* A row with href: the whole row opens the link, at least 48 px tall (a touch target), centered on the value. */
+.ui-dl-item.has-link {
+  min-height: var(--touch-target);
+  box-sizing: border-box;
+  align-items: center;
+  cursor: pointer;
+}
+.ui-dl-item.has-link:hover .ui-textlink {
+  text-decoration-thickness: 2px;
+}
 @container (max-width: 599px) {
   .ui-dl-item {
     grid-template-columns: minmax(0, 1fr);

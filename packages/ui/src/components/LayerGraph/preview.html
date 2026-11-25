@@ -136,7 +136,8 @@
         return h(
           'div',
           { style: Object.assign({}, card, { maxWidth: 358 }) },
-          h(U.LayerGraph, { labels: { size: '{n} 個函式', declaredText: '由專案的 rules.json 宣告。' },
+          h(U.LayerGraph, {
+            labels: { size: '{n} 個函式', declaredText: '由專案的 rules.json 宣告。' },
             nodes: nodes8,
             edges: edges8,
             selectedEdge: e[0],
@@ -156,14 +157,19 @@
       ];
       function External() {
         var s = React.useState(null);
-        return h('div', { style: card }, h(U.LayerGraph, { labels: { size: '{n} 個函式', external: 'repo 外' }, nodes: nodes9, edges: edges9, value: s[0], onChange: s[1] }));
+        return h(
+          'div',
+          { style: card },
+          h(U.LayerGraph, { labels: { size: '{n} 個函式', external: 'repo 外' }, nodes: nodes9, edges: edges9, value: s[0], onChange: s[1] }),
+        );
       }
       function HoverLabels() {
         var s = React.useState(null);
         return h(
           'div',
           { style: card },
-          h(U.LayerGraph, { labels: { size: '{n} 個函式' },
+          h(U.LayerGraph, {
+            labels: { size: '{n} 個函式' },
             nodes: nodes9,
             edges: edges9,
             selectedEdge: s[0],
@@ -203,7 +209,8 @@
         return h(
           'div',
           { style: card },
-          h(U.LayerGraph, { labels: { size: '{n} 個函式', external: 'repo 外' },
+          h(U.LayerGraph, {
+            labels: { size: '{n} 個函式', external: 'repo 外' },
             nodes: mapNodes,
             edges: mapEdges,
             value: s[0],

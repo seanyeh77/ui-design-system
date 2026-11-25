@@ -9,6 +9,8 @@ import { cx, monoNums, resizeObserver } from '../../internal/util';
 import { ScrollHint, useScrollHint } from '../../internal/scrollHint';
 import { codeSpans } from '../../internal/codeSpans';
 import { devWarn } from '../../internal/dev';
+import { announce } from '../../announce';
+import { DRAG_MIN, nextPreset } from '../../internal/clickSteps';
 import { useStored } from '../../internal/stored';
 import { Icon } from '../../icons/Icon';
 import { includeIcons } from '../../icons/store';
@@ -223,8 +225,24 @@ function resolveProps(q: LayerGraphProps): LayerGraphProps {
   };
 }
 
-// Sideways scroll of each diagram, kept while the page lives.
+// Sideways scroll of each diagram, kept while the page lives: by storageKey, or by a short hash of the box ids. At most
+// MEMORY diagrams, the oldest forgotten first, so a page that draws many diagrams does not keep growing it.
 const scrollMemory = new Map<string, number>();
+const MEMORY = 50;
+function remember(key: string, x: number) {
+  scrollMemory.delete(key);
+  scrollMemory.set(key, x);
+  if (scrollMemory.size > MEMORY) scrollMemory.delete(scrollMemory.keys().next().value as string);
+}
+/** A short key for a list of ids (FNV-1a, 32 bit, plus the count): the same diagram gets the same key. */
+export function idsKey(ids: string[]): string {
+  let h = 0x811c9dc5;
+  for (const id of ids) {
+    for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 0x01000193);
+    h = Math.imul(h ^ 0x7c, 0x01000193);
+  }
+  return ids.length + ':' + (h >>> 0).toString(36);
+}
 
 // Label width before layout: text in the sans font, `code` and numbers in the mono font, as labelParts draws them.
 let measure: CanvasRenderingContext2D | null | undefined;
@@ -287,21 +305,27 @@ const TAG_KEEP = 8;
 const MIN_FRAME = 160;
 const MAX_EXTRA = 200;
 
-/** HC: the bar under the diagram: drag it, ↑↓ 16 px, Enter or a double-click back to the drawn height. */
+/** HC: the bar under the diagram: drag it, ↑↓ 16 px, Enter or a double-click back to the drawn height. A click without
+ *  dragging (WCAG 2.5.7) steps through the shortest frame, the drawn height and the widest gaps. */
 function HeightHandle(p: {
   value: number;
   min: number;
   max: number;
   start: () => number;
+  /** The change from the drawn height (px) that each click step goes to, smallest first. */
+  presets: number[];
+  /** Sets the change from the drawn height (px) of a click step. */
+  onStep: (d: number) => void;
   onDrag: (d: number) => void;
   onKey: (step: number) => void;
   onReset: () => void;
 }) {
   const [dragging, setDragging] = React.useState(false);
-  const from = React.useRef<{ y: number; d: number } | null>(null);
+  const from = React.useRef<{ y: number; d: number; moved: boolean } | null>(null);
   return (
     <div
       className={cx('ui-lg-resize', dragging && 'is-dragging')}
+      aria-description={tr('拖曳或按 ↑ ↓ 調整；按一下切換預設高度，按 Enter 還原')}
       role="separator"
       aria-orientation="horizontal"
       aria-label={tr('調整架構圖高度')}
@@ -314,16 +338,20 @@ function HeightHandle(p: {
         if (e.button !== 0) return;
         e.preventDefault();
         e.currentTarget.setPointerCapture?.(e.pointerId);
-        from.current = { y: e.clientY, d: p.start() };
+        from.current = { y: e.clientY, d: p.start(), moved: false };
         setDragging(true);
       }}
       onPointerMove={(e) => {
-        if (!from.current) return;
-        p.onDrag(from.current.d + e.clientY - from.current.y);
+        const f = from.current;
+        if (!f || (!f.moved && Math.abs(e.clientY - f.y) < DRAG_MIN)) return;
+        f.moved = true;
+        p.onDrag(f.d + e.clientY - f.y);
       }}
       onPointerUp={() => {
+        const f = from.current;
         from.current = null;
         setDragging(false);
+        if (f && !f.moved) p.onStep(nextPreset(f.d, p.presets));
       }}
       onPointerCancel={() => {
         from.current = null;
@@ -623,7 +651,7 @@ export function LayerGraph(props: LayerGraphProps) {
   const { ref: scrollRef, more: scrollMore, overflows, scrolled, onScroll } = useScrollHint();
   const uid = React.useId().replace(/:/g, '');
   const [view, setView] = React.useState<'graph' | 'list'>('graph');
-  const memKey = p.scrollKey ?? all.map((n) => n.id).join('|');
+  const memKey = p.scrollKey ?? idsKey(all.map((n) => n.id));
   // Back to the same diagram: where it was scrolled to (FB).
   React.useLayoutEffect(() => {
     const el = scrollRef.current;
@@ -632,7 +660,7 @@ export function LayerGraph(props: LayerGraphProps) {
   }, [memKey, view, scrollRef]);
   const onScrollKeep = () => {
     const el = scrollRef.current;
-    if (el) scrollMemory.set(memKey, el.scrollLeft);
+    if (el) remember(memKey, el.scrollLeft);
     onScroll();
   };
   const selEdge = (pickEdge && edges.find((e) => edgeId(e) === p.selectedEdge)) || null;
@@ -1780,6 +1808,12 @@ export function LayerGraph(props: LayerGraphProps) {
           onKey={(step) => setDh(dragTo(dh + step))}
           onReset={() => setDh(0)}
           start={() => dh}
+          presets={[dragTo(-Infinity), 0, dragTo(Infinity)]}
+          onStep={(d) => {
+            const next = dragTo(d);
+            setDh(next);
+            announce(tr('架構圖高度 {n} px', { n: Math.round(naturalH + next) }));
+          }}
         />
       ) : null}
       {showList ? null : <ScrollHint show={overflows} done={scrolled} />}

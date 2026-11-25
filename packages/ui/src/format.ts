@@ -107,9 +107,9 @@ function compact(v: number, like?: number): string {
     const [unit, div, maxDec] = Math.round(a / 1e3) >= 1e5 ? (['億', 1e8, 2] as const) : (['萬', 1e4, 1] as const);
     const finalStr = new Intl.NumberFormat(I18N.locale, { maximumFractionDigits: maxDec }).format(a / div);
     const sign = v < 0 ? '-' : '';
-    if (like === undefined) return `${sign}${finalStr} ${unit}`;
+    if (like === undefined) return `${sign}${finalStr}\u00a0${unit}`;
     const digits = (finalStr.split('.')[1] || '').length;
-    return `${sign}${new Intl.NumberFormat(I18N.locale, { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(Math.abs(v) / div)} ${unit}`;
+    return `${sign}${new Intl.NumberFormat(I18N.locale, { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(Math.abs(v) / div)}\u00a0${unit}`;
   }
   const nf = new Intl.NumberFormat(I18N.locale, { notation: 'compact', maximumFractionDigits: 1 });
   if (like === undefined) return nf.format(v);
@@ -140,12 +140,12 @@ function compact(v: number, like?: number): string {
   return (v < 0 && ref >= 0 ? '-' : '') + body;
 }
 
-/** zh-TW with TWD: NT$ 1,280, negatives -NT$ 1,280. Other locales and currencies: Intl's own symbol and order. */
+/** zh-TW with TWD: NT$ 1,280 (a no-break space after NT$), negatives -NT$ 1,280. Other locales and currencies: Intl's own symbol and order. */
 function money(v: number, o: { currency?: string; compact?: boolean; like?: number } = {}): string {
   const cur = o.currency || I18N.currency;
   const body = o.compact ? compact(Math.abs(v), o.like !== undefined ? Math.abs(o.like) : undefined) : number(Math.abs(v), 'money');
-  if (isZhTW() && cur === 'TWD') return `${v < 0 ? '-' : ''}NT$ ${body}`;
-  if (o.compact) return `${v < 0 ? '-' : ''}${body} ${cur}`;
+  if (isZhTW() && cur === 'TWD') return `${v < 0 ? '-' : ''}NT$\u00a0${body}`;
+  if (o.compact) return `${v < 0 ? '-' : ''}${body}\u00a0${cur}`;
   return new Intl.NumberFormat(I18N.locale, {
     style: 'currency',
     currency: cur,
@@ -156,14 +156,14 @@ function money(v: number, o: { currency?: string; compact?: boolean; like?: numb
   }).format(v);
 }
 
-/** Bytes to 「186 KB」「54.9 MB」「1.2 GB」. */
+/** Bytes to 「186 KB」「54.9 MB」「1.2 GB」, with a no-break space (U+00A0) so the unit never wraps away. */
 export function fileSize(b: number | null | undefined): string {
   if (b == null || Number.isNaN(b)) return '';
   // An empty file is 0 KB; anything else at least 1 KB.
   // Compare after rounding: 1,048,500 bytes rounds to 1,024 KB, so it is written 「1.0 MB」.
-  if (Math.round(b / 1024) < 1024) return number(b === 0 ? 0 : Math.max(1, Math.round(b / 1024))) + ' KB';
-  if (Math.round((b / 1048576) * 10) < 10240) return number(b / 1048576, 1) + ' MB';
-  return number(b / 1073741824, 1) + ' GB';
+  if (Math.round(b / 1024) < 1024) return number(b === 0 ? 0 : Math.max(1, Math.round(b / 1024))) + '\u00a0KB';
+  if (Math.round((b / 1048576) * 10) < 10240) return number(b / 1048576, 1) + '\u00a0MB';
+  return number(b / 1073741824, 1) + '\u00a0GB';
 }
 
 /** Seconds as a clock-style length: under 1 h 「46:42」「1:30」 (minutes not zero-padded), 1 h or more 「1:54:49」.

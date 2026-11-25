@@ -78,6 +78,6 @@ test("the heat scale spans the zones' own values by default; the shown figure re
   const fills = [...container.querySelectorAll('.ui-zone')].map((z) => z.getAttribute('data-fill'));
   expect(fills).toEqual(['heat-1', 'heat-7']);
   const b = screen.getByRole('button', { name: /低/ });
-  expect((b.querySelector('.ui-zone-value') as HTMLElement).textContent).toBe('40.0 %');
+  expect((b.querySelector('.ui-zone-value') as HTMLElement).textContent).toBe('40.0\u00a0%');
   expect(b.getAttribute('aria-label')).toContain('40.0 %');
 });

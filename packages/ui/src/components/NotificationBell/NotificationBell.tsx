@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { useOpenState, type OpenStateProps } from '../../internal/open';
+import { devWarn } from '../../internal/dev';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
@@ -21,10 +23,12 @@ export interface NotificationItem {
   read?: boolean;
 }
 
-export interface NotificationBellProps {
+export interface NotificationBellProps extends OpenStateProps {
   /** The notifications, newest first; unread ones count on the bell. */
   items: NotificationItem[];
-  /** Called with the notification the person opens. */
+  /** Called with the notification the person picks (usually: mark it read and go to it); the panel then closes. */
+  onSelect?: (item: NotificationItem) => void;
+  /** @deprecated Use `onSelect` (same argument); `open` and `onOpenChange` are the panel's state. */
   onOpen?: (item: NotificationItem) => void;
   /** Called by 「全部標為已讀」; without it the button is not shown. */
   onReadAll?: () => void;
@@ -33,8 +37,17 @@ export interface NotificationBellProps {
 }
 
 /** The bell in the top bar: a red count (99+ above 99) and a 360 px panel of notifications grouped by time. */
-export function NotificationBell({ items, onOpen, onReadAll, emptyText }: NotificationBellProps) {
-  const [open, setOpen] = React.useState(false);
+export function NotificationBell({ items, onSelect, onOpen, onReadAll, emptyText, open: openProp, defaultOpen, onOpenChange }: NotificationBellProps) {
+  devWarn(
+    onOpen && !onSelect,
+    'NotificationBell',
+    '`onOpen` is deprecated: it is called with the picked notification. Rename it to onSelect; open and onOpenChange are the panel state.',
+  );
+  const [open, setOpen] = useOpenState({ open: openProp, defaultOpen, onOpenChange });
+  const pick = (it: NotificationItem) => {
+    (onSelect ?? onOpen)?.(it);
+    setOpen(false, 'select');
+  };
   const unread = items.filter((it) => !it.read).length;
   const groups: { title: string; items: NotificationItem[] }[] = [];
   for (const it of items) {
@@ -80,7 +93,7 @@ export function NotificationBell({ items, onOpen, onReadAll, emptyText }: Notifi
             <React.Fragment key={gi}>
               {g.title ? <div className="ui-noti-group">{g.title}</div> : null}
               {g.items.map((it) => (
-                <button key={it.id} type="button" className={cx('ui-noti-item', !it.read && 'is-unread')} onClick={() => onOpen?.(it)}>
+                <button key={it.id} type="button" className={cx('ui-noti-item', !it.read && 'is-unread')} onClick={() => pick(it)}>
                   {/* A span's aria-label is not read: the state is hidden text instead, read first, 「未讀，標題」. */}
                   {!it.read ? (
                     <>

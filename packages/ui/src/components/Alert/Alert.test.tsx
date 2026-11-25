@@ -55,15 +55,31 @@ test('Alert: info and success can be closed with onDismiss; warning and danger c
   expect(screen.queryByRole('button')).toBeNull();
 });
 
-test('Alert: the action is 40 px and starts at the same place with or without ✕; no coloured stripe', () => {
+test('Alert: the 40 px action sits at the right end of the text row; under the text when the alert is narrow; no stripe', () => {
   const { container } = render(
     <div style={{ width: 600 }}>
       <Alert tone="info" title="新版本" actionLabel="更新" onAction={() => {}} onDismiss={() => {}} />
-      <Alert tone="warning" title="憑證快到期" actionLabel="更新" onAction={() => {}} />
+      <Alert tone="warning" title="憑證快到期" actionLabel="更新" onAction={() => {}}>
+        請在 30 天內更新。
+      </Alert>
+      <div style={{ width: 360 }}>
+        <Alert tone="danger" title="同步失敗" actionLabel="重試" onAction={() => {}}>
+          網路中斷。
+        </Alert>
+      </div>
     </div>,
   );
-  const [a, b] = Array.from(container.querySelectorAll('.ui-alert-action')).map((el) => el.getBoundingClientRect());
+  const alerts = Array.from(container.querySelectorAll<HTMLElement>('.ui-alert'));
+  const [a, b, c] = Array.from(container.querySelectorAll('.ui-alert-action')).map((el) => el.getBoundingClientRect());
   expect(a.height).toBe(40);
-  expect(a.left).toBe(b.left);
+  // Wide: beside the text, at the right end, the alert no taller than the button and its padding.
+  const body = (alerts[1].querySelector('.ui-alert-content') as HTMLElement).getBoundingClientRect();
+  expect(b.left).toBeGreaterThanOrEqual(body.right);
+  expect(Math.round(alerts[1].getBoundingClientRect().right - b.right)).toBe(16);
+  expect(alerts[0].getBoundingClientRect().height).toBeLessThanOrEqual(64);
+  // Narrow: under the text, lined up with it.
+  const narrow = (alerts[2].querySelector('.ui-alert-content') as HTMLElement).getBoundingClientRect();
+  expect(c.top).toBeGreaterThanOrEqual(narrow.bottom);
+  expect(c.left).toBe(narrow.left);
   expect(getComputedStyle(container.querySelector('.ui-alert') as Element, '::before').content).toBe('none');
 });

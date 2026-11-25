@@ -47,3 +47,11 @@ test('PageHeader: a title next to an AppShell title warns; without a title there
   const { container } = render(<PageHeader status={<Badge status="done" />} />);
   expect(container.querySelector('h1')).toBeNull();
 });
+
+test('meta: a list joins with 「 · 」, without a space after a full-width 「）」; text gets the same spacing', () => {
+  const { unmount } = render(<PageHeader title="訂單" meta={['建立於 2026/11/04（三）', '負責窗口 王小明', '台北']} />);
+  expect(document.querySelector('.ui-pagehead-facts')?.textContent).toBe('建立於 2026/11/04（三）· 負責窗口 王小明 · 台北');
+  unmount();
+  render(<PageHeader title="訂單" meta="更新於 2026/11/04（三） 13:00 · 負責窗口（三） · 王小明" />);
+  expect(document.querySelector('.ui-pagehead-facts')?.textContent).toBe('更新於 2026/11/04（三）13:00 · 負責窗口（三）· 王小明');
+});

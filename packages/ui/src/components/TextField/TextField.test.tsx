@@ -6,7 +6,7 @@ test('TextField: the error node exists only while there is an error; a new error
   const { container, rerender } = render(<TextField label="名稱" hint="最多 40 個字" />);
   const input = screen.getByLabelText('名稱');
   expect(screen.queryByRole('alert')).toBeNull();
-  expect(document.getElementById(input.getAttribute('aria-describedby') ?? '')?.textContent).toBe('最多 40 個字');
+  expect(document.getElementById(input.getAttribute('aria-describedby') ?? '')?.textContent).toBe('最多 40\u00a0個字');
   rerender(<TextField label="名稱" hint="最多 40 個字" error="名稱不能空白，請輸入名稱。" />);
   const first = screen.getByRole('alert');
   expect(first.textContent).toBe('名稱不能空白，請輸入名稱。');

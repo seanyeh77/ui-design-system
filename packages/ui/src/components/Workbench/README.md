@@ -8,7 +8,7 @@
 import { Workbench, useWorkbench, TreeList, IconButton, SearchField } from '@seanyeh77/ui';
 
 <Workbench
-  id="app"
+  storageKey="app"
   brand={{ mark: <Logo />, name: 'app', href: '#overview' }}
   crumbs={[{ label: 'harness' }, { label: 'controller.py' }]}
   mainBar={<IconButton variant="quiet" icon="arrow-square-out" label="用 VS Code 開啟" onClick={openInEditor} />}
@@ -23,10 +23,11 @@ import { Workbench, useWorkbench, TreeList, IconButton, SearchField } from '@sea
   defaultLayout={{ side: ['outline'], panel: ['problems'] }}
 >
   <CodeView code={code} file={file} header="float" copy />
-</Workbench>
+</Workbench>;
 ```
 
-- 外層要給高度（例如 `height: 100vh`）；Workbench 填滿它。
+- 外層要給高度（例如 `height: 100vh`）；Workbench 填滿它。給 `storageKey` 才會記住版面。
+- `brand` 的名稱是整頁的 `h1`，主畫面和它上方的列在 `main` 裡（名稱是 `label`，預設「編輯器」）：頁面不再另放 `h1` 或 `main`。
 - `mainBar`（36 px 的列）只放 `IconButton variant="quiet"` 或 `SegmentedControl iconOnly`；不放 40 px 的一般按鈕、輸入框、Select 或 Tabs。
 - 主畫面裡的 CodeView 用 `header="float"`：檔名已經在麵包屑上。
 - 檔案總管的樹用 `TreeList kind="plain" density="compact" bare`；選了東西之後呼叫 `useWorkbench().explorerPicked()`。
@@ -50,7 +51,7 @@ import { Workbench, useWorkbench, TreeList, IconButton, SearchField } from '@sea
 
 ## 記住版面
 
-- 每個分頁在哪一邊、各邊開著哪個分頁、各區塊開或關、大小，存在 `localStorage` 的 `ui-workbench:` 加 `id`。新增的 view 照 `defaultLayout` 放；拿掉的 view 自動忽略。
+- 給 `storageKey` 時，每個分頁在哪一邊、各邊開著哪個分頁、各區塊開或關、大小，存在 `localStorage` 的 `ui-workbench:` 加 `storageKey`；沒給時只記到重新整理為止。舊的 `id` 仍可用（存的資料相同），開發時 console 提醒改名。新增的 view 照 `defaultLayout` 放；拿掉的 view 自動忽略。
 - 「還原預設版面」：在 Workbench 裡面用 `useWorkbench().resetLayout()`，按鈕放在哪由頁面決定（例如 `actions` 或說明選單）。
 
 ```tsx
@@ -100,7 +101,9 @@ React.useEffect(() => {
   return () => window.removeEventListener('popstate', open);
 }, []);
 
-<Workbench ref={wb} id="app" views={views}>…</Workbench>
+<Workbench ref={wb} storageKey="app" views={views}>
+  …
+</Workbench>;
 ```
 
 ## 讀取目前的版面
@@ -114,7 +117,7 @@ React.useEffect(() => {
 ```tsx
 <Workbench
   ref={wb}
-  id="app"
+  storageKey="app"
   views={views}
   onLayoutChange={(l) => {
     const url = new URL(location.href);

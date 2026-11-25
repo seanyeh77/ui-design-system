@@ -12,7 +12,13 @@ export const Default = {
           <UI.KpiCard label="錯誤率" value={0.8} format="percent" unit="%" delta={0.2} deltaUnit="pt" direction="down" />
           <UI.KpiCard label="費用" value={1280} format="money" />
         </UI.Grid>
-        <UI.Card title="說明">區塊之間 32 px，卡片之間 24 px。</UI.Card>
+        <UI.Grid columns={[2, 1]}>
+          <UI.Page>
+            <UI.Card title="主要內容">區塊之間 32 px，卡片之間 24 px。</UI.Card>
+            <UI.Card title="同一欄的第二張">一欄裡的卡片包在 Page 裡，間距也是 24 px。</UI.Card>
+          </UI.Page>
+          <UI.Card title="側欄">2 比 1，寬度小於 960 px 時排在主要內容下方。</UI.Card>
+        </UI.Grid>
       </UI.Page>
     </div>
   ),

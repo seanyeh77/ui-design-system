@@ -14,7 +14,7 @@ includeIcons(phListBullets, phMagnifyingGlass);
 export interface TopBarProps {
   /** The page title, shown once: either here or as the page's own heading. */
   title?: string;
-  /** Right after the title, e.g. a Tag 「示範資料」 with the info icon: the size of the title. */
+  /** Right after the title, e.g. a Tag 「示範資料」 with the info icon: drawn small and muted (12 px, ink-muted). */
   tags?: React.ReactNode;
   /** @deprecated A breadcrumb goes at the top of the content: put `<Breadcrumb items={…} />` first in the page. */
   breadcrumb?: BreadcrumbItem[];
@@ -24,7 +24,7 @@ export interface TopBarProps {
   searchLabel?: string;
   /** Right side: NotificationBell, ProjectSwitcher, the account menu. */
   children?: React.ReactNode;
-  /** A menu button at the left that opens the navigation (AppShell from 600 to 1023 px). */
+  /** A menu button at the left that opens the navigation (AppShell from 600 to 1024 px). */
   onMenu?: () => void;
   /** Extra class on the root element. */
   className?: string;

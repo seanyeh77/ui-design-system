@@ -87,12 +87,17 @@ export interface SideNavProps {
   onChange?: (id: string) => void;
   /** 72 px with icons only, labels as tooltips. */
   collapsed?: boolean;
-  /** Adds the collapse button at the bottom left. */
-  onToggle?: () => void;
-  /** Adds the pin button at the bottom left (AppShell): pinned, the sidebar stays; not pinned, it hides to icons. */
-  onPin?: () => void;
+  /** Adds the collapse button at the bottom left; called with the state it asks for. */
+  onCollapsedChange?: (collapsed: boolean) => void;
   /** Whether the sidebar is pinned: the pin button is filled and says 「取消釘選」. */
   pinned?: boolean;
+  /** Adds the pin button at the bottom left (AppShell): pinned, the sidebar stays; not pinned, it hides to icons.
+   *  Called with the state it asks for. */
+  onPinnedChange?: (pinned: boolean) => void;
+  /** @deprecated Use `onCollapsedChange`. */
+  onToggle?: () => void;
+  /** @deprecated Use `onPinnedChange`. */
+  onPin?: () => void;
   /** The product at the top. Prefer { mark, name, href }: collapsed (72 px) it shows only the mark, still a link
    *  named by `name`; open, the mark with the name fading in beside it. Text alone gets its first character in an
    *  accent square as the mark. Any other element is hidden while collapsed. */
@@ -104,7 +109,24 @@ export interface SideNavProps {
 }
 
 /** The 240 px dashboard sidebar (72 px collapsed). The selection bar moves like a droplet. */
-export function SideNav({ sections, value, onChange, collapsed = false, onToggle, onPin, pinned = false, brand, label, className }: SideNavProps) {
+export function SideNav({
+  sections,
+  value,
+  onChange,
+  collapsed = false,
+  onCollapsedChange,
+  pinned = false,
+  onPinnedChange,
+  onToggle,
+  onPin,
+  brand,
+  label,
+  className,
+}: SideNavProps) {
+  devWarn(onToggle && !onCollapsedChange, 'SideNav', '`onToggle` is deprecated. Pass onCollapsedChange={(collapsed) => …}: it gets the state to set.');
+  devWarn(onPin && !onPinnedChange, 'SideNav', '`onPin` is deprecated. Pass onPinnedChange={(pinned) => …}: it gets the state to set.');
+  const toggle = onCollapsedChange ? () => onCollapsedChange(!collapsed) : onToggle;
+  const pin = onPinnedChange ? () => onPinnedChange(!pinned) : onPin;
   const refs = React.useRef<Record<string, HTMLButtonElement | null>>({});
   const wrap = React.useRef<HTMLDivElement>(null);
   const [bar, setBar] = React.useState({ top: 0, bottom: 0, show: false, down: true });
@@ -197,24 +219,24 @@ export function SideNav({ sections, value, onChange, collapsed = false, onToggle
           ))}
         </div>
       </nav>
-      {onToggle || onPin ? (
+      {toggle || pin ? (
         <div className="ui-nav-foot">
-          {onPin ? (
+          {pin ? (
             <Tooltip label={pinned ? tr('取消釘選') : tr('釘選側邊欄')} side="right" describe={false}>
               <button
                 type="button"
                 className={cx('ui-nav-collapse', 'ui-nav-pin', pinned && 'is-on')}
                 aria-pressed={pinned}
                 aria-label={pinned ? tr('取消釘選') : tr('釘選側邊欄')}
-                onClick={onPin}
+                onClick={pin}
               >
                 <Icon name="push-pin" size={22} filled={pinned} />
               </button>
             </Tooltip>
           ) : null}
-          {onToggle ? (
+          {toggle ? (
             <Tooltip label={toggleLabel} side="right" describe={false}>
-              <button type="button" className="ui-nav-collapse" aria-label={toggleLabel} onClick={onToggle}>
+              <button type="button" className="ui-nav-collapse" aria-label={toggleLabel} onClick={toggle}>
                 <Icon name="sidebar-simple" size={22} />
               </button>
             </Tooltip>

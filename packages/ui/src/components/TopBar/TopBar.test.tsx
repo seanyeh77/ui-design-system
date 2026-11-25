@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { page } from 'vitest/browser';
-import { render } from '@testing-library/react';
-import { ProjectSwitcher, TopBar } from '../../index';
+import { render, screen } from '@testing-library/react';
+import { ProjectSwitcher, Tag, TopBar } from '../../index';
 
 test('TopBar on a phone: the project name gives way before the page title', async () => {
   await page.viewport(390, 844);
@@ -79,4 +79,29 @@ test('TopBar on a desktop: short of room the project switcher shrinks before the
   const title = container.querySelector<HTMLElement>('.ui-topbar-title');
   if (!title) throw new Error('no title');
   expect(title.scrollWidth).toBeLessThanOrEqual(title.clientWidth);
+});
+
+test('tags beside the title are small and muted, not part of the title; a tone keeps its color', () => {
+  render(
+    <TopBar
+      title="營運總覽"
+      onSearch={false}
+      tags={
+        <>
+          <Tag icon="info">示範資料</Tag>
+          <Tag icon="trend-up" tone="info">
+            預測
+          </Tag>
+        </>
+      }
+    />,
+  );
+  const demo = screen.getByText('示範資料').closest('.ui-tag') as HTMLElement;
+  const title = screen.getByText('營運總覽');
+  const cs = getComputedStyle(demo);
+  expect(cs.fontSize).toBe('12px');
+  expect(cs.color).not.toBe(getComputedStyle(title).color);
+  expect(parseFloat(getComputedStyle(title).fontSize)).toBeGreaterThan(12);
+  const forecast = screen.getByText('預測').closest('.ui-tag') as HTMLElement;
+  expect(getComputedStyle(forecast).color).not.toBe(cs.color);
 });

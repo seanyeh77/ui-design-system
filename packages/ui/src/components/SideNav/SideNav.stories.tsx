@@ -20,9 +20,7 @@ function Demo() {
         value={val}
         onChange={setVal}
         collapsed={col}
-        onToggle={() => {
-          setCol(!col);
-        }}
+        onCollapsedChange={setCol}
         brand={{
           mark: <span style={{ display: 'block', width: 24, height: 24, borderRadius: 6, background: 'var(--accent)' }} />,
           name: '專案中心',

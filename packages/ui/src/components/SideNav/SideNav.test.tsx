@@ -1,6 +1,6 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { userEvent } from 'vitest/browser';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { SearchField, SideNav } from '../../index';
 
 const SECTIONS = [
@@ -15,7 +15,7 @@ const SECTIONS = [
 test('Focus: every control reached by Tab in a SideNav and a SearchField shows a focus ring', async () => {
   const { container } = render(
     <>
-      <SideNav sections={SECTIONS} value="home" onToggle={() => {}} onPin={() => {}} />
+      <SideNav sections={SECTIONS} value="home" onCollapsedChange={() => {}} onPinnedChange={() => {}} />
       <SearchField value="api" onChange={() => {}} />
       <button type="button" className="ui-link-btn">
         重看導覽
@@ -40,7 +40,7 @@ test('Focus: every control reached by Tab in a SideNav and a SearchField shows a
 });
 
 test('SideNav: the pin and collapse buttons name themselves with a Tooltip on the right, not a native title', async () => {
-  const { container } = render(<SideNav sections={SECTIONS} value="home" onToggle={() => {}} onPin={() => {}} />);
+  const { container } = render(<SideNav sections={SECTIONS} value="home" onCollapsedChange={() => {}} onPinnedChange={() => {}} />);
   const pin = container.querySelector('.ui-nav-pin') as HTMLElement;
   expect(container.querySelector('.ui-nav-collapse[title]')).toBeNull();
   pin.focus();
@@ -53,7 +53,7 @@ test('SideNav: the pin and collapse icons sit on the same vertical line as the i
   for (const collapsed of [false, true]) {
     const { container, unmount } = render(
       <div style={{ height: 600, display: 'flex' }}>
-        <SideNav sections={SECTIONS} value="home" collapsed={collapsed} onToggle={() => {}} onPin={() => {}} />
+        <SideNav sections={SECTIONS} value="home" collapsed={collapsed} onCollapsedChange={() => {}} onPinnedChange={() => {}} />
       </div>,
     );
     const centre = (el: Element) => {
@@ -69,4 +69,27 @@ test('SideNav: the pin and collapse icons sit on the same vertical line as the i
     }
     unmount();
   }
+});
+
+test('SideNav: onCollapsedChange and onPinnedChange get the state to set; the old onToggle and onPin still work and warn', async () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  const onCollapsedChange = vi.fn();
+  const onPinnedChange = vi.fn();
+  const { unmount } = render(
+    <SideNav sections={SECTIONS} value="home" collapsed pinned onCollapsedChange={onCollapsedChange} onPinnedChange={onPinnedChange} />,
+  );
+  screen.getByRole('button', { name: '展開側邊欄' }).click();
+  expect(onCollapsedChange).toHaveBeenCalledWith(false);
+  screen.getByRole('button', { name: '取消釘選' }).click();
+  expect(onPinnedChange).toHaveBeenCalledWith(false);
+  unmount();
+  const onToggle = vi.fn();
+  const onPin = vi.fn();
+  render(<SideNav sections={SECTIONS} value="home" onToggle={onToggle} onPin={onPin} />);
+  screen.getByRole('button', { name: '收合側邊欄' }).click();
+  screen.getByRole('button', { name: '釘選側邊欄' }).click();
+  expect(onToggle).toHaveBeenCalledTimes(1);
+  expect(onPin).toHaveBeenCalledTimes(1);
+  expect(warn.mock.calls.some((c) => String(c[0]).includes('`onToggle` is deprecated'))).toBe(true);
+  warn.mockRestore();
 });

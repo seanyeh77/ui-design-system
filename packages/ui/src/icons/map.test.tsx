@@ -13,8 +13,8 @@ const dom = (markup: string) => {
 };
 
 test('with `icons` imported, every name renders at once; the markup of a built-in icon still finds its fill version', () => {
-  // 102 icons, 40 Lucide aliases and 12 old names; the alias 'list' is also an icon name.
-  expect(Object.keys(icons)).toHaveLength(153);
+  // 113 icons, 40 Lucide aliases and 12 old names; the alias 'list' is also an icon name.
+  expect(Object.keys(icons)).toHaveLength(164);
   expect(icons.search).toBe(icons['magnifying-glass']);
   const { container } = render(
     <>

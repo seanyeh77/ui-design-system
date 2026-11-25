@@ -2,6 +2,8 @@ import * as React from 'react';
 import { tr } from '../../i18n';
 import { browserKey, cx, resizeObserver } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
+import { announce } from '../../announce';
+import { DRAG_MIN, nextPreset } from '../../internal/clickSteps';
 
 export interface SplitPaneProps {
   /** The main area, on the left. */
@@ -49,8 +51,8 @@ const write = (key: string | undefined, v: number) => {
   }
 };
 
-/** A main area and a side panel with a divider between them that can be dragged, moved with the arrow keys and reset
- *  with a double-click. Under 960 px (its own width) the two stack, side panel below, without the divider. */
+/** A main area and a side panel with a divider between them that can be dragged, moved with the arrow keys, stepped
+ *  through preset widths with a click (narrowest, default, 1.5 times the default) and reset with a double-click or Enter. Under 960 px (its own width) the two stack, side panel below, without the divider. */
 export function SplitPane({ a, b, defaultB = 420, minA = 360, minB = 280, storageKey, label, onResize, className }: SplitPaneProps) {
   devWarn(defaultB < minB, 'SplitPane', `defaultB (${defaultB} px) is under minB (${minB} px): the panel starts at ${minB} px. Raise defaultB or lower minB.`);
   const root = React.useRef<HTMLDivElement>(null);
@@ -59,8 +61,9 @@ export function SplitPane({ a, b, defaultB = 420, minA = 360, minB = 280, storag
   // measured itself, so the server's render and the first one in the browser match.
   const [side, setSide] = React.useState(() => (typeof window === 'undefined' ? null : read(storageKey)) ?? defaultB);
   const [drag, setDrag] = React.useState(false);
-  // Read by the move and up handlers: a move can come before the render that follows the press.
-  const dragging = React.useRef(false);
+  // Read by the move and up handlers: a move can come before the render that follows the press. `moved` turns a press
+  // into a drag once the pointer has gone DRAG_MIN px; released before that it was a click.
+  const dragging = React.useRef<{ x: number; moved: boolean } | null>(null);
   const id = React.useId();
   React.useLayoutEffect(() => {
     const el = root.current;
@@ -114,18 +117,29 @@ export function SplitPane({ a, b, defaultB = 420, minA = 360, minB = 280, storag
       // No such pointer (a synthetic event): moves still come while over the divider.
     }
     e.currentTarget.focus({ preventScroll: true });
-    dragging.current = true;
+    dragging.current = { x: e.clientX, moved: false };
     setDrag(true);
   };
   const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragging.current || !root.current) return;
+    const d = dragging.current;
+    if (!d || !root.current) return;
+    if (!d.moved && Math.abs(e.clientX - d.x) < DRAG_MIN) return;
+    d.moved = true;
     const r = root.current.getBoundingClientRect();
     set(r.right - e.clientX - HANDLE / 2, false);
   };
-  const onUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragging.current) return;
-    dragging.current = false;
+  // A click without dragging (WCAG 2.5.7): the next preset width of the panel, announced.
+  const presets = [minB, defaultB, defaultB * 1.5];
+  const onUp = (e: React.PointerEvent<HTMLDivElement>, cancel = false) => {
+    const d = dragging.current;
+    if (!d) return;
+    dragging.current = null;
     setDrag(false);
+    if (!d.moved && !cancel) {
+      const next = Math.round(Math.min(maxB, Math.max(minB, nextPreset(shown, presets))));
+      set(next);
+      announce(tr('面板 {n} px', { n: next }));
+    }
     try {
       if (e.currentTarget.hasPointerCapture?.(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
     } catch {
@@ -151,12 +165,13 @@ export function SplitPane({ a, b, defaultB = 420, minA = 360, minB = 280, storag
           aria-valuemin={minA}
           aria-valuemax={Math.max(minA, width - HANDLE - minB)}
           aria-valuetext={tr('主要區域 {a} px，面板 {b} px', { a: valueA, b: shown })}
+          aria-description={tr('拖曳或按 ← → 調整；按一下切換預設寬度，按兩下或 Enter 還原')}
           className="ui-split-handle"
           onKeyDown={onKey}
           onPointerDown={onDown}
           onPointerMove={onMove}
           onPointerUp={onUp}
-          onPointerCancel={onUp}
+          onPointerCancel={(e) => onUp(e, true)}
           onDoubleClick={() => set(defaultB)}
         >
           {/* GB: a small handle in the middle of the line, so the divider reads as something to drag. */}

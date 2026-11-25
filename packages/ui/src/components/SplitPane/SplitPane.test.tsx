@@ -71,6 +71,28 @@ test('SplitPane: dragging keeps both minimums; a double-click goes back to the d
   await waitFor(() => expect(panel(container)).toBe(420));
 });
 
+test('SplitPane: a click without dragging steps through the preset widths and announces each (WCAG 2.5.7)', async () => {
+  await page.viewport(1280, 800);
+  const { container } = render(<Split />);
+  const sep = await screen.findByRole('separator');
+  expect(sep.getAttribute('aria-description')).toContain('按一下');
+  const click = (x: number) => {
+    sep.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerId: 1, clientX: x }));
+    // A 2 px jitter is still a click.
+    sep.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerId: 1, clientX: x + 2 }));
+    sep.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 1, clientX: x + 2 }));
+  };
+  const x = sep.getBoundingClientRect().left + 8;
+  await waitFor(() => expect(panel(container)).toBe(420));
+  click(x);
+  await waitFor(() => expect(panel(container)).toBe(630));
+  await waitFor(() => expect(document.querySelector('[data-ui-announcer]')?.textContent).toBe('面板 630 px'));
+  click(x);
+  await waitFor(() => expect(panel(container)).toBe(280));
+  click(x);
+  await waitFor(() => expect(panel(container)).toBe(420));
+});
+
 test('SplitPane: the width comes back from storageKey, and works when storage throws', async () => {
   await page.viewport(1280, 800);
   window.localStorage.setItem('ui-split:test', '520');

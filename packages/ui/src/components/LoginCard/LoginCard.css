@@ -14,7 +14,7 @@
   box-sizing: border-box;
   padding: 28px;
   border-radius: var(--radius-lg);
-  border: 1px solid var(--line);
+  /* Shadow only, like every other card; in the dark theme the surface already stands off the page. */
   background: var(--surface);
   box-shadow: var(--shadow-card);
   display: flex;

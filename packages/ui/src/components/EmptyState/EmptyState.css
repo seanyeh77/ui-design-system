@@ -17,6 +17,14 @@
   font-size: var(--text-compact);
   color: var(--ink-muted);
 }
+/* Phones: a description that wraps reads from the left (long text is left-aligned on phones); one that fits on a line
+   stays centred, its box only as wide as the text. */
+@media (max-width: 599px) {
+  .ui-empty-desc {
+    width: fit-content;
+    text-align: start;
+  }
+}
 .ui-steps {
   list-style: none;
   margin: var(--space-2) 0;

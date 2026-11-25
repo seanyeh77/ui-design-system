@@ -1,6 +1,8 @@
 .ui-shell {
   display: flex;
   height: 100dvh;
+  /* Nothing in the frame reaches past the viewport, so the document itself never scrolls. */
+  overflow: clip;
   background: var(--bg);
   color: var(--ink);
 }
@@ -57,6 +59,9 @@
   outline: none;
 }
 .ui-shell-main {
+  /* The scroll container is the containing block of absolutely positioned descendants (visually hidden text, a
+     chart's data table): positioned against the body instead, they grew the document past the viewport on phones. */
+  position: relative;
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
@@ -65,6 +70,13 @@
 }
 .ui-shell.is-phone .ui-shell-main {
   padding: calc(var(--header-height) + var(--space-4)) var(--space-4) var(--space-6);
+}
+/* No top bar (a detail page whose PageHeader has the title, and nothing else for the bar): content starts at the top. */
+.ui-shell.is-bare .ui-shell-main {
+  padding-top: var(--space-6);
+}
+.ui-shell.is-bare.is-phone .ui-shell-main {
+  padding-top: var(--space-4);
 }
 @media (prefers-reduced-motion: reduce) {
   .ui-shell-top {

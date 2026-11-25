@@ -5,12 +5,12 @@
 頂部列的通知鈴鐺與通知中心，放在 AppShell 或 TopBar 的右側。
 
 ```tsx
-<AppShell actions={<NotificationBell items={notifications} onOpen={open} onReadAll={readAll} />} …>
+<AppShell actions={<NotificationBell items={notifications} onSelect={go} onReadAll={readAll} />} …>
 ```
 
 - 鈴鐺上有紅色數字角標（`danger`），超過 99 顯示 99+；沒有未讀時不顯示。
 - 通知依時間分組（`group`，例如「今天」、「更早」），由新到舊。
-- 點一則通知交給 `onOpen` 處理（通常是標成已讀並前往）。
+- 點一則通知交給 `onSelect(item)` 處理（通常是標成已讀並前往），面板隨即關閉。面板的開關照慣例是 `open`、`defaultOpen`、`onOpenChange`；舊的 `onOpen` 仍可用（等於 `onSelect`），開發時 console 提醒改名。
 
 ## 細節
 

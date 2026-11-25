@@ -5,14 +5,7 @@
 主要區域和側邊面板並排，中間的分隔線可以拖拉，調整面板寬度。用在需要看長內容的面板，例如程式碼、詳細資料。
 
 ```tsx
-<SplitPane
-  a={<Card title="架構">…</Card>}
-  b={<CodeView file="src/server/shm.c" code={code} />}
-  defaultB={420}
-  minA={360}
-  minB={280}
-  storageKey="code-panel"
-/>
+<SplitPane a={<Card title="架構">…</Card>} b={<CodeView file="src/server/shm.c" code={code} />} defaultB={420} minA={360} minB={280} storageKey="code-panel" />
 ```
 
 - `a` 是主要區域（左），`b` 是側邊面板（右）；`defaultB`（px，預設 420）是面板一開始的寬度。
@@ -29,7 +22,8 @@
 ## 操作
 
 - 滑鼠或觸控：按住分隔線左右拖拉。拖拉時游標是左右箭頭，頁面上的文字不會被選到。
-- 雙擊分隔線：回到 `defaultB`。
+- 不拖曳也能調整（單一指標，WCAG 2.5.7）：點一下分隔線，面板依序變成最窄（`minB`）、預設（`defaultB`）、預設的 1.5 倍，再回到最窄；每次念出新的寬度。移動不到 4 px 算點一下。
+- 雙擊分隔線：回到 `defaultB`。操作方式寫在分隔線的 `aria-description`。
 - 鍵盤：Tab 移到分隔線，← → 每次 16 px（← 讓面板變寬），Home 讓面板最寬（主要區域剩最小寬度），End 讓面板最窄，Enter 回到 `defaultB`。按住 Alt、⌘ 或 Ctrl 時不處理。
 - 每次改變後呼叫 `onResize(寬度)`。
 

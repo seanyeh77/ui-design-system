@@ -28,6 +28,18 @@
   grid-template-columns: var(--grid-ratio);
   align-items: start;
 }
+.ui-grid.is-ratio.is-stretch,
+.ui-grid.is-stretch {
+  align-items: stretch;
+}
+.ui-grid.is-start {
+  align-items: start;
+}
+/* A Page as one cell: several cards stacked in one column, 24 px apart like the columns (16 px on phones). */
+.ui-grid > .ui-page {
+  gap: var(--space-6);
+  min-width: 0;
+}
 @media (max-width: 1279px) {
   .ui-grid.is-4 {
     --cols: 2;
@@ -47,6 +59,9 @@
 @media (max-width: 599px) {
   .ui-grid {
     --cols: 1 !important;
+    gap: var(--space-4);
+  }
+  .ui-grid > .ui-page {
     gap: var(--space-4);
   }
 }

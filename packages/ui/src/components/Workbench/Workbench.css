@@ -44,6 +44,11 @@
   position: relative;
   display: inline-flex;
 }
+.ui-wb-title {
+  display: flex;
+  margin: 0;
+  font: inherit;
+}
 .ui-wb-brand {
   flex: none;
   display: inline-flex;
@@ -98,6 +103,10 @@
   position: relative;
   flex: 1 1 auto;
   min-height: 0;
+}
+/* The main landmark: no box of its own, the bar and the view inside are laid out against the body. */
+.ui-wb-mainwrap {
+  display: contents;
 }
 .ui-wb-main {
   position: absolute;
@@ -295,13 +304,9 @@
   margin-left: -4px;
   cursor: col-resize;
 }
-.ui-wb-split.is-v[style*='right'] {
-  margin-left: 0;
-  margin-right: -4px;
-}
 .ui-wb-split.is-h {
   height: 8px;
-  margin-bottom: -4px;
+  margin-top: -4px;
   cursor: row-resize;
 }
 .ui-wb-split-line {
