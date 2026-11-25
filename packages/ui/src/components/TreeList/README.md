@@ -34,25 +34,27 @@ h(UI.TreeList, {
 ## 選項
 
 - `sort`：`'newest'`（預設）、`'oldest'`、`'name'`，或 `false` 照資料原本的順序。資料夾一律排在檔案前面。看情況選。
-- `expand`：`'multi'`（預設，點資料夾展開或收合，標題列有「全部展開」）或 `'single'`（一次只開一個，同層的其他資料夾自動收合）。需要一次看到全部時用 `'multi'`，資料夾又多又雜時用 `'single'`。
+- `expand`：`'multi'`（預設，點資料夾展開或收合，標題列右邊有「全部展開／全部收合」圖示按鈕，和 Section 的一樣，名稱和提示寫目前會做哪一個）或 `'single'`（一次只開一個，同層的其他資料夾自動收合）。需要一次看到全部時用 `'multi'`，資料夾又多又雜時用 `'single'`。
 - `meta`：名稱下方的次要文字（例如「2 個 caller」），一般字體、數字用 Geist Mono；沒有 `meta` 時顯示 `path`，整行 Geist Mono。
 - `title` 加 `subtitle`：標題和下方一行次要文字（例如「17 個檔案」）。
 - `height`：固定高度（例如 `'100%'` 填滿外層、或 `520`），標題列不動，清單在裡面捲動。放在固定高度的版面（例如側邊面板）時一定要給，不然下面的項目看不到。
 - TreeList 本身就是一張卡片，不要再包進另一張卡片。真的要放進現有的卡片或面板時給 `bare`：沒有底色、陰影和圓角。
 - `defaultOpen`：一開始展開的資料夾 `id`。
 - `open` 加 `onToggle(node, isOpen, openIds)`：由外部控制展開，例如寫進網址。給了 `open` 時，請在 `onToggle` 裡更新它。
-- `selectable`：顯示勾選框（滑過才出現，勾了一個之後全部顯示；觸控裝置一直顯示）。勾資料夾等於全選裡面的檔案，只勾一部分時資料夾顯示橫線。勾選後標題列換成「已選 n 個檔案 共 x MB」、「清除選取」和「下載」。`selected` 加 `onSelectChange` 可以由外部控制（只會有檔案的 `id`）。`bulkActions(files, clear)` 可以再加按鈕。
+- `selectable`：顯示勾選框（滑過才出現，勾了一個之後全部顯示；觸控裝置一直顯示）。勾資料夾等於全選裡面的檔案，只勾一部分時資料夾顯示橫線。勾選後標題列換成「已選 n 個檔案 共 x MB」、「清除選取」和「下載」。`values` 加 `onValuesChange` 可以由外部控制（只會有檔案的 `id`）。`bulkActions(files, clear)` 可以再加按鈕。
 - `onDownload(files)`：每個檔案右邊的下載按鈕和批次下載都會呼叫它。下載按鈕一直顯示在每個檔案的最右邊。
 - `onOpen(file)`：點檔案列或按 Enter；沒給時改成下載。打開或下載後，請把那個檔案的 `unseen` 改成 `false`。
-- `title`、`actions`：標題列的文字和右邊的按鈕。沒有標題時用 `label` 給螢幕閱讀器。
+- `title`、`actions`：標題列的文字（17 px）和右邊的按鈕。沒有標題時用 `label` 給螢幕閱讀器。
 - `emptyText`：沒有任何項目時的文字，預設「這裡還沒有檔案」。
 
 ## 外觀
 
 - 每層縮排 28 px，左側細線（`line`）。資料夾用 Phosphor 的 folder／folder-open，前面有會轉 90° 的箭頭。
 - 檔案圖示：文件形狀，底部色塊寫副檔名。PDF 紅、影片紫、音訊桃紅、簡報橘、文件藍、試算表綠、圖片青、程式碼深灰、壓縮檔和其他灰。
-- 清單寬 640 px 以上：日期和大小在右側排成欄（一般字體加等寬數字 tabular-nums，「13 小時前」這類有中文的不用 Geist Mono）。比較窄：放在名稱下方，寫成「13 小時前 · 137.6 MB」，檔名最多兩行。依照清單本身的寬度切換，不是看整個螢幕；日期照格式規則（一週內用相對時間）。
+- 清單寬 640 px 以上：日期和大小在右側排成欄（和 DataTable 一樣，數字用 Geist Mono 等寬數字，「小時前」「MB」這些字用一般字體）。比較窄：放在名稱下方，寫成「13 小時前 · 137.6 MB」，檔名最多兩行。依照清單本身的寬度切換，不是看整個螢幕；日期照格式規則（一週內用相對時間）。
 - 新檔案（`unseen`）：日期變 `accent-text` 粗體；資料夾旁寫「2 個新」。
+- 字級：標題 17 px（`text-title`，和 Card 標題一樣）；列裡只有內文和一級次要文字（13 px：檔案數、「2 個新」、日期和大小）。
+- 每個檔案的下載按鈕是安靜樣式（`quiet`，沒有外框）。
 - 滑過列 `surface-sub`，勾選中的列 `accent-soft`。
 - 展開時子項目往下長出 260 ms；減少動態效果時改成淡入。
 
@@ -76,18 +78,17 @@ h(UI.TreeList, {
     },
   ],
   defaultOpen: ['root'],
-  selectedId: sel,
-  onSelect: function (n) {
-    setSel(n.id);
-  },
+  value: sel,
+  onChange: setSel,
 });
 ```
 
 - 沒有檔案圖示和大小。每一列：名稱、分類標籤（`tags`，用 `UI.Tag` 顯示），名稱下方是位置：`meta` 直接顯示，或 `path` 用 `UI.format.path()` 保留頭尾、中間省略。
 - 照資料原本的順序；有子項目的不會被排到前面。`sort` 仍然可以指定。
-- 點一列呼叫 `onSelect`，選中的列是 `accent-soft` 底；有子項目的列同時展開或收合（點名稱或左邊的箭頭都可以）。Enter 一樣：選取，有子項目時同時展開或收合；→ ← 只展開或收合。再點一次（或按 Enter）已選取的列只呼叫 `onSelect`，不展開、不收合，也不重跑展開動畫；要收合請點左邊的箭頭或按 ←。
+- 點一列呼叫 `onChange(id, node)`（`value` 是選中的 id），選中的列是 `accent-soft` 底；有子項目的列同時展開或收合（點名稱或左邊的箭頭都可以）。Enter 一樣：選取，有子項目時同時展開或收合；→ ← 只展開或收合。再點一次（或按 Enter）已選取的列只呼叫 `onChange`，不展開、不收合，也不重跑展開動畫；要收合請點左邊的箭頭或按 ←。
 - `muted: true` 的項目名稱用次要文字色（例如外部函式）。`icon` 可以放 Phosphor 圖示名稱。
 - 預設不顯示「全部展開」；需要時加 `toggleAll: true`。沒有勾選和下載。
+- 從舊版升級：`selectedId`、`onSelect(node)` 改名 `value`、`onChange(id, node)`；`selected`、`onSelectChange` 改名 `values`、`onValuesChange`。舊名稱下一版前仍可用，開發時 console 會提示。
 
 ## 手機上的縮排
 
@@ -101,7 +102,7 @@ h(UI.TreeList, {
 
 ## 無障礙
 
-- 每一項的名稱是「名稱，標籤，meta，完整路徑」，例如「hook_of，推測（規則），×4，src/server/hooks/ops.c:58」：展開按鈕不算進名稱，畫面上縮寫的路徑（「…」）也不會被念出來。`ariaLabel` 可以整句換掉。
+- 每一項的名稱是「名稱，標籤，畫面上的 meta，完整路徑」，例如「hook_of，推測（規則），×4，src/server/hooks/ops.c:58」：名稱包含畫面上看得到的文字（WCAG 2.5.3，語音控制說出看到的字就找得到）；畫面上的路徑是縮寫時，後面再加完整路徑。展開按鈕不算進名稱。`ariaLabel` 可以整句換掉。
 - 子項目放在 `role="group"` 裡，由上層項目的 `aria-owns` 指向。
 - 展開時 live region 念「已展開，3 個子項目」，收合時念「已收合」。
 - 第 5 層以後名稱前的「L5」標記滑過時顯示「第 5 層」（`title`）；螢幕閱讀器從 `aria-level` 念層數，標記本身不念。
@@ -112,7 +113,7 @@ h(UI.TreeList, {
 給檔案總管或側欄裡的大綱用：`kind="plain"` 加 `density="compact"`，每列 28 px、13 px 字、圖示 16 px，`meta` 放在名稱右邊同一行。觸控螢幕上每列仍是 48 px。通常再加 `bare`，放進沒有卡片的面板。
 
 ```tsx
-<TreeList kind="plain" density="compact" bare label="檔案" items={tree} selectedId={sel} onSelect={pick} />
+<TreeList kind="plain" density="compact" bare label="檔案" items={tree} value={sel} onChange={setSel} />
 ```
 
 ## 標記（mark）

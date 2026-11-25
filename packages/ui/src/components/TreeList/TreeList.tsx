@@ -12,20 +12,25 @@ import { announce } from '../../announce';
 import { devWarn } from '../../internal/dev';
 import { CheckMark } from '../../internal/Field';
 import { includeIcons } from '../../icons/store';
+import phArrowsInLineVertical from '../../icons/ph/arrows-in-line-vertical';
+import phArrowsOutLineVertical from '../../icons/ph/arrows-out-line-vertical';
 import phCaretRight from '../../icons/ph/caret-right';
 import phDownloadSimple from '../../icons/ph/download-simple';
 import phFolder from '../../icons/ph/folder';
 import phFolderOpen from '../../icons/ph/folder-open';
 
-includeIcons(phCaretRight, phDownloadSimple, phFolder, phFolderOpen);
+includeIcons(phArrowsInLineVertical, phArrowsOutLineVertical, phCaretRight, phDownloadSimple, phFolder, phFolderOpen);
 
 export interface TreeNode {
+  /** Unique id: value, values, open and defaultOpen use it. */
   id: string;
+  /** Shown on the row. */
   name: string;
   /** A folder (files kind) or an expandable item (plain kind). */
   children?: TreeNode[];
   /** Overrides the extension taken from the name. */
   ext?: string;
+  /** Last change (files kind): shown relative, 「2 小時前」; a folder shows its newest. */
   date?: Date | number | string;
   /** Bytes. */
   size?: number;
@@ -53,22 +58,31 @@ export interface TreeNode {
 
 /** The dot after a tree item: `label` says what it means, 「有值得注意的地方」. */
 export interface TreeMark {
+  /** What the dot means, read after the item's name. */
   label: string;
+  /** The dot's colour. Default 'warning'. */
   tone?: 'warning' | 'danger' | 'accent';
 }
 
 export interface TreeListProps {
+  /** The top level of the tree. */
   items: TreeNode[];
   /** 'files' (default): folders and files with date and size. 'plain': any other tree, such as a call tree. */
   kind?: 'files' | 'plain';
-  /** kind="plain": the selected row. Clicking it again (or Enter on it) still calls onSelect, but does not open or close
-   *  it; its caret does. */
+  /** kind="plain": the selected row's id (controlled). Clicking it again (or Enter on it) still calls onChange, but does
+   *  not open or close it; its caret does. */
+  value?: string;
+  /** kind="plain": a row was picked (click or Enter): its id, and the node. */
+  onChange?: (id: string, node: TreeNode) => void;
+  /** @deprecated use value. */
   selectedId?: string;
+  /** @deprecated use onChange (it gets the id first, the node second). */
   onSelect?: (node: TreeNode) => void;
   /** kind="plain": IconButtons at the row's right end. */
   rowActions?: (node: TreeNode) => React.ReactNode;
-  /** kind="plain": show 「全部展開」. */
+  /** kind="plain": show the 「全部展開／全部收合」 icon button. */
   toggleAll?: boolean;
+  /** Heading of the card, 17 px like a Card title; also the tree's accessible name when it is a string. */
   title?: React.ReactNode;
   /** Accessible name when there is no title. */
   label?: string;
@@ -81,6 +95,7 @@ export interface TreeListProps {
   density?: 'comfortable' | 'compact';
   /** 'single' keeps one folder open per level; choose it when folders are many and messy. Default 'multi'. */
   expand?: 'multi' | 'single';
+  /** Ids open at first (uncontrolled). */
   defaultOpen?: string[];
   /** Second line under the title, e.g. 「17 個檔案」. */
   subtitle?: React.ReactNode;
@@ -90,6 +105,7 @@ export interface TreeListProps {
   bare?: boolean;
   /** Controlled open ids; update them in onToggle. */
   open?: string[];
+  /** A node opened or closed: the node, its new state and every open id. */
   onToggle?: (node: TreeNode, isOpen: boolean, openIds: string[]) => void;
   /** Controlled mode: 「全部展開／全部收合」 reports every open id here. */
   onToggleAll?: (isOpen: boolean, openIds: string[]) => void;
@@ -97,12 +113,21 @@ export interface TreeListProps {
   loadChildren?: (node: TreeNode) => TreeNode[] | Promise<TreeNode[]>;
   /** Files kind: checkboxes on hover; a folder's checkbox selects every file inside. */
   selectable?: boolean;
+  /** The checked files' ids (controlled). */
+  values?: string[];
+  /** The checked files changed: every checked file id. */
+  onValuesChange?: (ids: string[]) => void;
+  /** @deprecated use values. */
   selected?: string[];
+  /** @deprecated use onValuesChange. */
   onSelectChange?: (ids: string[]) => void;
+  /** Buttons for the bar that replaces the header while files are checked. */
   bulkActions?: (files: TreeNode[], clear: () => void) => React.ReactNode;
   /** Adds 「下載」 to each file and to the bulk bar. */
   onDownload?: (files: TreeNode[]) => void;
+  /** A file clicked or Enter on it. Default: onDownload with that file. */
   onOpen?: (file: TreeNode) => void;
+  /** Shown when there are no items. Default 「這裡還沒有檔案」 (files) or 「沒有項目」 (plain). */
   emptyText?: string;
   className?: string;
 }
@@ -141,7 +166,26 @@ function Guides({ guides }: { guides: number[] }) {
 }
 
 /** Folders and files (or any tree) that expand in place, with guide lines, keyboard navigation and lazy children. It is a card on its own. */
-export function TreeList(p: TreeListProps) {
+export function TreeList(props: TreeListProps) {
+  devWarn(
+    props.selectedId !== undefined || props.onSelect !== undefined,
+    'TreeList',
+    'selectedId and onSelect are renamed value and onChange (id, node); pass those instead.',
+  );
+  devWarn(
+    props.selected !== undefined || props.onSelectChange !== undefined,
+    'TreeList',
+    'selected and onSelectChange are renamed values and onValuesChange; pass those instead.',
+  );
+  // The new names folded into the ones read below; the old ones keep working until the next release.
+  const onPick = props.onChange ?? (props.onSelect ? (_id: string, n: TreeNode) => props.onSelect?.(n) : undefined);
+  const p = {
+    ...props,
+    selectedId: props.value ?? props.selectedId,
+    onSelect: onPick ? (n: TreeNode) => onPick(n.id, n) : undefined,
+    selected: props.values ?? props.selected,
+    onSelectChange: props.onValuesChange ?? props.onSelectChange,
+  };
   const { items } = p;
   const single = p.expand === 'single';
   const plain = p.kind === 'plain';
@@ -149,7 +193,7 @@ export function TreeList(p: TreeListProps) {
   devWarn(p.density === 'compact' && !plain, 'TreeList', 'density="compact" works with kind="plain" only: the files kind needs room for date and size.');
   const sort: TreeSort = p.sort === undefined ? (plain ? false : 'newest') : p.sort;
   const selectable = !!p.selectable && !plain;
-  devWarn(plain && p.selectable, 'TreeList', 'selectable works with kind="files" only; for plain trees use selectedId and onSelect.');
+  devWarn(plain && p.selectable, 'TreeList', 'selectable works with kind="files" only; for plain trees use value and onChange.');
   const [ownOpen, setOwnOpen] = React.useState<Record<string, boolean>>(() => Object.fromEntries((p.defaultOpen ?? []).map((k) => [k, true])));
   const open: Record<string, boolean> = p.open ? Object.fromEntries(p.open.map((k) => [k, true])) : ownOpen;
   const [loaded, setLoaded] = React.useState<Record<string, Load>>({});
@@ -161,9 +205,10 @@ export function TreeList(p: TreeListProps) {
     const c = kids(n);
     return c ? c.length > 0 : !!n.hasChildren;
   };
-  const load = (n: TreeNode) => {
+  // force: load again whatever the state says (重試 after an error).
+  const load = (n: TreeNode, force = false) => {
     const loader = p.loadChildren;
-    if (!loader || kids(n) || loaded[n.id]?.status === 'loading') return;
+    if (!loader || (!force && (kids(n) || loaded[n.id]?.status === 'loading'))) return;
     setLoaded((m) => ({ ...m, [n.id]: { status: 'loading' } }));
     Promise.resolve()
       .then(() => loader(n))
@@ -363,8 +408,11 @@ export function TreeList(p: TreeListProps) {
       <div
         key={n.id}
         {...itemProps(r, idx)}
-        // Only the item's own words: name, tags, meta, then the full path (the shortened one would read 「…」 aloud).
-        aria-label={n.ariaLabel ?? [n.name, ...(n.tags ?? []).map(nodeText), n.meta, n.path, n.mark?.label].filter(Boolean).join(tr('，'))}
+        // The item's own words: name, tags and the meta as shown (the name contains what is seen, WCAG 2.5.3), then the
+        // full path when the shown one is shortened, and the mark.
+        aria-label={
+          n.ariaLabel ?? [n.name, ...(n.tags ?? []).map(nodeText), meta, n.path && n.path !== meta ? n.path : '', n.mark?.label].filter(Boolean).join(tr('，'))
+        }
         aria-selected={p.onSelect ? on : undefined}
         className={cx('ui-tree-row', 'is-plain', on && 'is-current', n.muted && 'is-muted', r.fresh && 'ui-tree-in')}
         // A click anywhere on the row selects it and, when it has children, opens or closes it too. Clicking the
@@ -439,14 +487,7 @@ export function TreeList(p: TreeListProps) {
             {r.error ? tr('：') + r.error : ''}
             {tr('。').trim()}
           </div>
-          <button
-            type="button"
-            className="ui-link-btn"
-            onClick={() => {
-              setLoaded(({ [r.n.id]: _, ...m }) => m);
-              setTimeout(() => load(r.n), 0);
-            }}
-          >
+          <button type="button" className="ui-link-btn" onClick={() => load(r.n, true)}>
             {tr('重試')}
           </button>
         </>
@@ -521,27 +562,28 @@ export function TreeList(p: TreeListProps) {
         <div className="ui-tree-main">
           <div className="ui-tree-name">
             <span className="ui-tree-label">{n.name}</span>
-            {nNew ? <span className="ui-tree-newcount">{tr('{n} 個新', { n: nNew })}</span> : null}
-            {isF && fl.length ? <span className="ui-tree-count ui-tree-mc">{tr('{n} 個檔案', { n: fl.length })}</span> : null}
+            {nNew ? <span className="ui-tree-newcount">{digits(tr('{n} 個新', { n: nNew }))}</span> : null}
+            {isF && fl.length ? <span className="ui-tree-count ui-tree-mc">{digits(tr('{n} 個檔案', { n: fl.length }))}</span> : null}
           </div>
           {bits.length ? (
             <div className="ui-tree-meta ui-tree-mb">
               {bits.map((t, i) => (
                 <span key={i} className={cx(!isF && t === dateTxt && isNew && 'is-new')}>
-                  {(i ? '· ' : '') + t}
+                  {digits((i ? '· ' : '') + t)}
                 </span>
               ))}
             </div>
           ) : null}
         </div>
-        <span className={cx('ui-tree-col', 'ui-tree-date', 'ui-tree-mc', isNew && 'is-new')}>{dateTxt}</span>
-        <span className="ui-tree-col ui-tree-size ui-tree-mc">{sizeTxt}</span>
+        <span className={cx('ui-tree-col', 'ui-tree-date', 'ui-tree-mc', isNew && 'is-new')}>{digits(dateTxt)}</span>
+        <span className="ui-tree-col ui-tree-size ui-tree-mc">{digits(sizeTxt)}</span>
         {p.onDownload ? (
           isF ? (
             <span className="ui-tree-actsp" aria-hidden="true" />
           ) : (
             <span className="ui-tree-act">
               <IconButton
+                variant="quiet"
                 label={tr('下載 {name}', { name: n.name })}
                 icon="download-simple"
                 tabIndex={-1}
@@ -573,7 +615,7 @@ export function TreeList(p: TreeListProps) {
       <div className="ui-tree-head ui-tree-bulk">
         <span className="ui-tree-bulk-count">
           {tr('已選 {n} 個檔案', { n: selFiles.length })}
-          {total ? <span className="ui-tree-bulk-size">{tr('共 {size}', { size: fileSize(total) })}</span> : null}
+          {total ? <span className="ui-tree-bulk-size">{digits(tr('共 {size}', { size: fileSize(total) }))}</span> : null}
         </span>
         <span className="ui-tree-head-actions">
           <Button onClick={() => setSel([])}>{tr('清除選取')}</Button>
@@ -604,16 +646,18 @@ export function TreeList(p: TreeListProps) {
         )}
         <span className="ui-tree-head-actions">
           {showToggleAll ? (
-            <Button
+            // Icon only, like Section's: the name and tooltip say which way it goes.
+            <IconButton
+              className="ui-tree-toggleall"
+              icon={anyClosed ? 'arrows-out-line-vertical' : 'arrows-in-line-vertical'}
+              label={anyClosed ? tr('全部展開') : tr('全部收合')}
               onClick={() => {
                 const o = Object.fromEntries(folders.map((f) => [f.id, anyClosed]));
                 setFresh(anyClosed && !reduced() ? Object.fromEntries(folders.filter((f) => !open[f.id]).map((f) => [f.id, true])) : {});
                 if (p.open) p.onToggleAll?.(anyClosed, anyClosed ? [...new Set([...p.open, ...folders.map((f) => f.id)])] : []);
                 else setOwnOpen(o);
               }}
-            >
-              {anyClosed ? tr('全部展開') : tr('全部收合')}
-            </Button>
+            />
           ) : null}
           {p.actions ?? null}
         </span>
