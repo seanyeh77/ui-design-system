@@ -172,7 +172,7 @@ const storedCases = [
     Story: () => (
       <UI.DataTable
         label="清單"
-        widthKey="hydration"
+        storageKey="hydration"
         columns={[
           { key: 'name', label: '名稱' },
           { key: 'owner', label: '負責人' },

@@ -384,13 +384,13 @@ test('stickyFirst with a checkbox and a caret: those columns stay too, on the ro
   for (const e of [exp, sel, first]) expect(getComputedStyle(e).backgroundColor).toBe(getComputedStyle(row).backgroundColor);
 });
 
-test('widthKey remembers the shown columns; 「還原預設」 brings back the defaults and the widths', async () => {
+test('storageKey remembers the shown columns; 「還原預設」 brings back the defaults and the widths', async () => {
   await page.viewport(1280, 900);
   localStorage.removeItem('ui-dt-cols:jobs');
   localStorage.setItem('ui-dt-width:jobs', JSON.stringify({ title: 500 }));
   const user = userEvent.setup();
   const heads = () => [...document.querySelectorAll('.ui-dt-head [role="columnheader"]')].map((h) => h.textContent?.trim()).filter(Boolean);
-  const a = render(jobs({ widthKey: 'jobs' }));
+  const a = render(jobs({ storageKey: 'jobs' }));
   await waitFor(() => expect(Math.round(headCell('標題').getBoundingClientRect().width)).toBe(500));
   await openColumns(user);
   await user.click(await screen.findByRole('menuitemcheckbox', { name: '來源' }));
@@ -398,7 +398,7 @@ test('widthKey remembers the shown columns; 「還原預設」 brings back the d
   expect(JSON.parse(localStorage.getItem('ui-dt-cols:jobs') || '{}')).toEqual({ source: true });
   await user.keyboard('{Escape}{Escape}');
   a.unmount();
-  render(jobs({ widthKey: 'jobs' }));
+  render(jobs({ storageKey: 'jobs' }));
   expect(heads()).not.toContain('來源');
   await openColumns(user);
   await user.click(await screen.findByRole('menuitem', { name: '還原預設' }));
@@ -406,6 +406,18 @@ test('widthKey remembers the shown columns; 「還原預設」 brings back the d
   expect(localStorage.getItem('ui-dt-cols:jobs')).toBeNull();
   expect(localStorage.getItem('ui-dt-width:jobs')).toBeNull();
   await user.keyboard('{Escape}{Escape}');
+});
+
+test('the deprecated widthKey still reads the same stored columns and warns to rename it storageKey', async () => {
+  await page.viewport(1280, 900);
+  localStorage.setItem('ui-dt-cols:old', JSON.stringify({ source: true }));
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  render(jobs({ widthKey: 'old' }));
+  const heads = [...document.querySelectorAll('.ui-dt-head [role="columnheader"]')].map((h) => h.textContent?.trim());
+  expect(heads).not.toContain('來源');
+  expect(warn.mock.calls.some((c) => String(c[0]).includes('`widthKey` is deprecated') && String(c[0]).includes('`storageKey`'))).toBe(true);
+  warn.mockRestore();
+  localStorage.removeItem('ui-dt-cols:old');
 });
 
 test('Shift + click on a row checkbox selects every row from the last one clicked and says how many', async () => {

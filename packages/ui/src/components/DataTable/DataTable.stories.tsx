@@ -132,6 +132,7 @@ export const Defaults = {
         caption="處理紀錄"
         rows={JOBS}
         urlKey="jobs"
+        storageKey="story-jobs"
         selectable
         search={{ placeholder: '搜尋標題、來源' }}
         summary={{

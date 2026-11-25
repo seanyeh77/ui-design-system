@@ -98,8 +98,10 @@ export interface DataTableProps<R extends Row = Record<string, unknown>> {
   /** 「欄位」 in the 「⋯」 menu, to hide columns. Default true. */
   columnMenu?: boolean;
   /** Remembers the column widths readers drag (the borders in the header) and the columns they hide or show, in
-   *  localStorage under this name (ui-dt-width:<widthKey>, ui-dt-cols:<widthKey>). Without it they go back to the
+   *  localStorage under this name (ui-dt-width:<storageKey>, ui-dt-cols:<storageKey>). Without it they go back to the
    *  defaults when the page reloads. resetKey does not clear them: they are the reader's own; 「欄位」 → 「還原預設」 does. */
+  storageKey?: string;
+  /** @deprecated Renamed `storageKey`, like every other component that remembers a choice; the stored values carry over. */
   widthKey?: string;
   /** 「放大表格」 in the 「⋯」 menu: the whole table, with its search, filters, sort and pages, in a dialog up to
    *  1200 px wide. A click on a link inside closes the dialog. Not on phones. Default true. */
@@ -121,7 +123,7 @@ const MOVE = { dur: 320, stagger: 25, ease: 'cubic-bezier(.2,.8,.2,1)' };
 const ARROWS: Record<'asc' | 'desc' | 'none', CustomIcon> = { asc: 'M12 19V5M6 11l6-6 6 6', desc: 'M12 5v14M6 13l6 6 6-6', none: 'M8 9l4-4 4 4M8 15l4 4 4-4' };
 
 const get = (row: Row, key: string): unknown => (row as Record<string, unknown>)[key];
-// Stored column choices and widths (widthKey): an object, else the default.
+// Stored column choices and widths (storageKey): an object, else the default.
 const NO_TOGGLED: Record<string, boolean> = {};
 const parseObject = (raw: string) => {
   const v: unknown = JSON.parse(raw);
@@ -296,8 +298,9 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const [q, setQ] = React.useState(() => fromUrl().q);
   const [values, setValues] = React.useState<Record<string, FilterValue>>(() => fromUrl().values);
   const [view, setView] = React.useState(p.views?.[0]?.id ?? null);
-  // Columns people turned on or off in the 「欄位」 menu; the others follow their own `hidden`. Remembered under widthKey.
-  const colsKey = p.widthKey ? 'ui-dt-cols:' + p.widthKey : null;
+  // Columns people turned on or off in the 「欄位」 menu; the others follow their own `hidden`. Remembered under storageKey.
+  const storageKey = p.storageKey ?? p.widthKey;
+  const colsKey = storageKey ? 'ui-dt-cols:' + storageKey : null;
   // None on the server and the first browser render, then the stored choice (useStored); an empty choice is removed.
   const [toggled, setToggled] = useStored<Record<string, boolean>>(colsKey ?? undefined, parseToggled, NO_TOGGLED, (t) =>
     Object.keys(t).length ? JSON.stringify(t) : null,
@@ -318,8 +321,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   // onerow: the summary tabs, the search field and the buttons fit on one row.
   const { fit, clipped, want, roomy, actsW, onerow: onerowState } = measured;
   const wantRef = React.useRef(want);
-  // A2: widths readers dragged (px per column key); null = width and grow decide. Remembered under widthKey.
-  const [widths, setWidths] = useStored<Record<string, number> | null>(p.widthKey ? 'ui-dt-width:' + p.widthKey : undefined, parseWidths, null);
+  // A2: widths readers dragged (px per column key); null = width and grow decide. Remembered under storageKey.
+  const [widths, setWidths] = useStored<Record<string, number> | null>(storageKey ? 'ui-dt-width:' + storageKey : undefined, parseWidths, null);
   // In the 「放大表格」 dialog: open, and the widths dragged there (not kept; the page's widths stay).
   const [zoomed, setZoomed] = React.useState(false);
   const [zoomWidths, setZoomWidths] = React.useState<Record<string, number> | null>(null);
@@ -351,7 +354,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     setSel({});
     setSumVal('all');
     setSort(initialSort);
-    // Remembered columns (widthKey) are the reader's own, like the widths: a new data set keeps them.
+    // Remembered columns (storageKey) are the reader's own, like the widths: a new data set keeps them.
     if (!colsKey) setToggled({});
     setOpened({});
     setMeasured((m) => ({ ...m, fit: {}, want: {}, clipped: null }));
@@ -366,6 +369,11 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     if (urlSync && filters.length) writeUrl(urlKey, filters, values, q);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- written when the conditions change, not when the filter list is rebuilt
   }, [valuesKey, q]);
+  devWarn(
+    p.widthKey !== undefined,
+    'DataTable',
+    '`widthKey` is deprecated: rename it to `storageKey`, as in every other component that remembers a choice. The stored widths and columns carry over.',
+  );
   devWarn(
     () => cols.some((c) => c.format === 'percent' && !c.unit),
     'DataTable',

@@ -412,7 +412,7 @@ test('summary on a phone: equal tabs while they fit; longer ones keep their text
   await page.viewport(1280, 800);
 });
 
-// DataTable lines up with Markdown tables: dragged column widths (remembered under widthKey), 「放大表格」 and
+// DataTable lines up with Markdown tables: dragged column widths (remembered under storageKey), 「放大表格」 and
 // 「複製成 Markdown」.
 type Fn = { id: string; fn: string; rel: string; loc: string };
 const fnRows: Fn[] = [
@@ -426,11 +426,11 @@ const fnCols = [
   { key: 'loc' as const, label: '位置', fullText: (r: Fn) => 'harness/' + r.loc, render: (r: Fn) => <InlineCode onClick={() => {}}>{r.loc}</InlineCode> },
 ];
 
-test('DataTable widths: a heading border drags with ← →; Enter back to width and grow; widthKey remembers', async () => {
+test('DataTable widths: a heading border drags with ← →; Enter back to width and grow; storageKey remembers', async () => {
   await page.viewport(1280, 900);
   localStorage.removeItem('ui-dt-width:impact');
   const user = userEvent.setup();
-  const { unmount } = render(<DataTable columns={fnCols} rows={fnRows} label="受影響的函式" widthKey="impact" urlSync={false} />);
+  const { unmount } = render(<DataTable columns={fnCols} rows={fnRows} label="受影響的函式" storageKey="impact" urlSync={false} />);
   const head = () => screen.getByRole('columnheader', { name: /關係/ });
   const w0 = head().getBoundingClientRect().width;
   const bar = screen.getByRole('separator', { name: '調整「關係」欄寬' });
@@ -439,7 +439,7 @@ test('DataTable widths: a heading border drags with ← →; Enter back to width
   expect(Math.abs(head().getBoundingClientRect().width - (w0 + 32))).toBeLessThanOrEqual(1);
   expect(JSON.parse(localStorage.getItem('ui-dt-width:impact') || '{}').rel).toBe(Math.ceil(w0) + 32);
   unmount();
-  render(<DataTable columns={fnCols} rows={fnRows} label="受影響的函式" widthKey="impact" urlSync={false} />);
+  render(<DataTable columns={fnCols} rows={fnRows} label="受影響的函式" storageKey="impact" urlSync={false} />);
   expect(Math.abs(head().getBoundingClientRect().width - (w0 + 32))).toBeLessThanOrEqual(1);
   // Never narrower than the heading and its sort arrow, nor 48 px.
   screen.getByRole('separator', { name: '調整「關係」欄寬' }).focus();
