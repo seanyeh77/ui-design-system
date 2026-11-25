@@ -1898,3 +1898,34 @@ AI 定的細節（待確認）：
 - 第 1272 行（Markdown 內容與 ui check）：連結維持強調色加底線；滑過 `surface-sub` 底色（`radius-sm` 圓角），焦點是一般的 2 px 外框
 - 第 1273 行（Markdown 內容與 ui check）：項目符號或編號留在列外，和其他項目對齊
 - 第 1274 行（Markdown 內容與 ui check）：C1（程式碼區塊不算觸控目標） 的範圍：`ui check` 的觸控目標檢查跳過「只因為 `tabindex` 才能聚焦、本身會捲動（`overflow` 是 `auto` 或 `scroll`）、而且不是控制項（沒有連結、按鈕、輸入框的標籤，也沒有 button…
+
+## 2026-11-25 驗證後修正：版面、無障礙與外觀
+
+使用者把細節交給 agent：「都照你的意見，因為我外來新專案每個前端都會使用 design system，不要讓前端只支持特定場景為原則去判斷，另外希望是 agent 能夠使用者個 design 使用越少的 token 或是更專注於設計網頁與 UX 這樣最好」、「全部都交給 subagent，最後驗證也是」。
+
+導覽的平板邊界恢復使用者確認的「1024 px 以下改成抽屜」（含 1024 px，`max-width: 1024px`），不是新的選擇。
+
+### AI 定的細節（待確認）
+
+- AppShell：內容捲動區（`.ui-shell-main`）設 `position: relative`，外框設 `overflow: clip`，絕對定位和隱藏的文字不再把文件撐高；`.ui-visually-hidden` 加 `clip-path: inset(50%)`。
+- 分隔線不拖曳的調整（WCAG 2.5.7）：SplitPane 和 Workbench 的邊界點一下依序是最小、預設、預設的 1.5 倍，再回到最小（1.5 倍沿用 DataTable 欄寬的第一級）；LayerGraph 的高度把手依序是最矮的框、畫出的高度、層間距最大。移動不到 4 px 算點一下，每次用 `announce` 念出新的大小，操作方式寫在 `aria-description`。
+- 數字和單位不換行：`format.fileSize`、`format.compact`（萬、億）、`format.money`（NT$ 後面）改成不換行空格（U+00A0）；元件收的字串（經過 `codeText` 的說明、提示、事件文字，FileUpload 的 `limitText`）自動把「數字 單位」之間的空格換成不換行空格，單位是 °、%、‰、1 到 4 個英文字母或一個中文字。`format.fraction` 沒有改（它的字串來自翻譯）。
+- ZoneMap：數值和單位之間的空格移進單位（Inter）裡，用不換行空格；按鈕名稱維持「23.1 °C」。
+- Workbench 的地標：`brand` 名稱是頁面的 `h1`（外觀不變）；主畫面和上方的列包在 `<main>`（`display: contents`，名稱是 `label`，預設「編輯器」）；各邊界移進它調整的區塊裡。外框拿掉帶名稱的 `role="group"`：axe 把有名稱的 group 本身當成地標外的內容。
+- ConsoleLayout 的地標：主視覺和底列包在 `<main>`（`display: contents`），手機上頂列以下整欄都在 `main`；側欄仍是 `aside`。
+- 高對比模式：AccentPicker 色票 `forced-color-adjust: none` 保留顏色，加 1 px CanvasText 外圈，選中的是 2 px Highlight 外圈；Calendar 選中日加 2 px Highlight 外框（內縮）。
+- DetailList 連結：選了在列上加 `href`（另一個網站加 `external`），沒有新增 LinkList（少一個元件）。值變成 Link，整列可以點、游標是手形、列高至少 48 px、內容垂直置中；鍵盤 Tab 到連結本身。
+- 頂部列的 Tag：AppShell／TopBar 的 `tags` 一律 12 px、`ink-muted`、半粗（有 `tone` 時用 tone 的顏色）。ConsoleLayout 頂列沒有改：使用者確認過「示範資料AI 最佳化中字體大小和顏色不要搞特別」，那裡和標題同字級、同顏色。
+- dashboard 範本：AppShell 加 `tags={<Tag icon="info">示範資料</Tag>}`，內容最上方加 `DateRangePicker`（`hideLabel`，預設最近 30 天）。
+- 詳細頁的頂部列：沒有 `title`、`tags`、`actions`、`onSearch` 時（大於 1024 px 和手機）不畫頂部列，內容從最上方開始、上方留 24 px（手機 16 px）；平板仍畫頂部列放選單按鈕。選這個比「只放需要的控制項」安靜。
+- PageHeader `meta`：可以給陣列，以「 · 」連起來；全形「）」「」」「』」「】」「〕」後面不加空格。字串的 `meta` 也套用同樣的規則，並拿掉「）」和時間之間的空格（「（三）13:00」，和 `format.dateTime` 一致）。
+- Grid 一欄多張卡片：在 Grid 裡用 `Page` 包住那一欄，Page 的間距自動變成 24 px（手機 16 px），沒有新增 Stack 元件或 `columns` 的陣列寫法。Grid 加 `align`（`'stretch'`、`'start'`）：等寬的 Grid 預設拉成一樣高，比例 Grid 預設靠上；比例 Grid 裡 `height="fill"` 的圖表要撐滿時給 `align="stretch"`。
+- EventTimeline：種類圖示高 `1lh`、靠上，對齊第一行；執行者前改用加寬到 8 px 的空格（不是左邊距），換行時從左邊開始。
+- EmptyState：手機上說明的寬度是 `fit-content`、靠左排，一行放得下時看起來仍置中，換行時靠左。
+- Tabs 與 SegmentedControl 的區分：Tabs 改成文字加 2 px `accent-text` 底線，下緣 1 px `line` 基準線，沒有灰底；整排 40 px，手機 48 px（觸控目標）；未選中 `ink-muted`、滑過 `ink`。SegmentedControl 維持灰底白塊。DataTable 的 `summary` 保留分段控制的樣子，因為使用者在「手機卡片與結果清單」選了「摘要分段控制」；SettingsLayout 改用 Tabs 後會跟著是底線樣式。
+- Alert：動作按鈕放在文字那一列的右端（按鈕和文字並排時 Alert 不會多一行），Alert 自己窄於 480 px 時放在內文下方、和文字對齊；有沒有「✕」時按鈕右端位置不同（取代「每個按鈕從同一個位置開始」）。
+- LoginCard：拿掉 1 px 外框，只用陰影，和其他卡片一致。
+- Graph：README、預覽和 story 在圖比外框寬時一開始把選取的方框捲到中間；Graph 只是樣式，沒有加元件行為。
+- LayerGraph 的捲動記憶：沒給 `storageKey` 時用方框 id 的 FNV-1a 雜湊（加上個數）當鍵，最多記 50 張圖，最舊的先忘。
+- 命名：NotificationBell 面板用 `open`、`defaultOpen`、`onOpenChange`，點通知改名 `onSelect(item)` 並在之後關閉面板（`onOpen` 保留為舊名）；SideNav 用 `onCollapsedChange(collapsed)`、`onPinnedChange(pinned)`（`onToggle`、`onPin` 保留）；Workbench 用 `storageKey`，沒給時版面只記在記憶體（`id` 保留）。
+- 新增圖示：`pause`、`play`、`prohibit`、`receipt`、`truck`、`package`、`credit-card`、`shopping-cart`、`storefront`，另外加了常用的 `map-pin`、`phone`。
