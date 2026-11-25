@@ -424,7 +424,7 @@ export function LineChart({
       {status ? <StatusLegend classes={status.classes} label={status.label} /> : null}
       <ChartTable
         caption={label}
-        head={[tr('時間點'), ...series.map((s) => (unit ? `${s.name}（${unit}）` : s.name))]}
+        head={[tr('時間點'), ...series.map((s) => (unit ? tr('{name}（{unit}）', { name: s.name, unit }) : s.name))]}
         rows={labels.map((lb, j) => [lb, ...series.map((s) => (s.values[j] == null ? '—' : chartNumber(s.values[j] as number, fmt, decimals)))])}
       />
     </div>
