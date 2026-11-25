@@ -901,7 +901,7 @@
   .ui-dt-body .ui-dt-cell.is-num {
     white-space: normal;
   }
-  .ui-dt-body .ui-dt-cell[data-label]::before {
+  .ui-dt-body .ui-dt-cell[data-label]:not(.is-m-title, .is-m-status)::before {
     content: attr(data-label);
     position: absolute;
     top: 0;

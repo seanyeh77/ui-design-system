@@ -564,7 +564,8 @@ test('TreeList: tags are read in the name, ariaLabel replaces it, and a click on
       ]}
     />,
   );
-  const item = screen.getByRole('treeitem', { name: 'hook_of，推測（規則），×4，src/libibtrace/hooks/ops.c:58' });
+  // The name holds the shortened path as shown (WCAG 2.5.3), then the full one.
+  const item = screen.getByRole('treeitem', { name: 'hook_of，推測（規則），×4，src/…/hooks/ops.c:58，src/libibtrace/hooks/ops.c:58' });
   expect(item.getAttribute('aria-expanded')).toBe('false');
   await user.click(screen.getByText('hook_of'));
   expect(picked).toEqual(['hook']);
