@@ -1,7 +1,24 @@
+/* The y labels take the width they need (--axis-w, measured by BarChart), so 「1,500,000」 stays inside the card. */
 .ui-bars {
   position: relative;
-  height: 200px;
-  margin-left: 32px;
+  height: var(--bars-h, 200px);
+  margin-left: var(--axis-w, 32px);
+}
+/* height="fill": as tall as the parent leaves (a Card stretched by its Grid row, under its title), at least 160 px. */
+.ui-chart.is-fill {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.ui-card:has(> .ui-chart.is-fill) {
+  display: flex;
+  flex-direction: column;
+}
+.ui-chart.is-fill > .ui-bars {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 160px;
 }
 .ui-bars-grid {
   position: absolute;
@@ -16,6 +33,7 @@
   position: absolute;
   right: calc(100% + 6px);
   top: -9px;
+  white-space: nowrap;
 }
 .ui-bars-row {
   position: absolute;
@@ -51,7 +69,7 @@
   top: auto;
 }
 .ui-bars-labels {
-  margin-left: 32px;
+  margin-left: var(--axis-w, 32px);
   gap: 8px;
 }
 @media (prefers-reduced-motion: reduce) {

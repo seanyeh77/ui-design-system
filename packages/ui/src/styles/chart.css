@@ -35,6 +35,13 @@
 .ui-chart-axis {
   stroke: var(--line);
 }
+/* The unit of the y axis, above its labels: 「次」「°C」. */
+.ui-chart-axisunit {
+  margin-bottom: var(--space-2);
+  font-size: var(--text-mini);
+  line-height: 1;
+  color: var(--ink-muted);
+}
 .ui-chart-tick {
   font-family: var(--font-mono);
   font-size: var(--text-mini);
@@ -125,6 +132,20 @@
 .ui-bars-labels > span {
   flex: 1 1 0;
   text-align: center;
+}
+/* LineChart: each label under its point, moved inside at the chart's edges (the transform comes from LineChart). An
+   invisible character gives the row its line height. */
+.ui-chart-xlabels.is-placed {
+  position: relative;
+}
+.ui-chart-xlabels.is-placed::before {
+  content: '0';
+  visibility: hidden;
+}
+.ui-chart-xlabels.is-placed > span {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
 }
 
 @media (prefers-reduced-motion: reduce) {
