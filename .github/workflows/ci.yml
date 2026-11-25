@@ -27,8 +27,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # changeset status compares the pull request with main.
-          fetch-depth: ${{ github.event_name == 'pull_request' && '0' || '1' }}
+          # changeset status compares the pull request with main: full history on pull requests (0), one commit otherwise.
+          # Written this way round because 0 is falsy in expressions: `cond && 0 || 1` would always give 1.
+          fetch-depth: ${{ github.event_name != 'pull_request' && 1 || 0 }}
       - uses: ./.github/actions/setup
         with:
           chromium: 'true'
