@@ -276,6 +276,20 @@ interface Measured {
 }
 const UNMEASURED: Measured = { fit: {}, clipped: null, want: {}, roomy: false, actsW: null, onerow: false };
 
+/** A date with its time, 「2026/11/18（三）04:51」: the date and the time each stay whole, and a phone card that has no
+ *  room for both breaks the line between them only. Text without 「）」 (other locales, 「2 小時前」) as it is. */
+function dateParts(text: string, mark: string): React.ReactNode {
+  const i = text.indexOf('）');
+  if (i < 0 || i === text.length - 1) return markMatch(text, mark);
+  return (
+    <>
+      <span className="ui-dt-nowrap">{markMatch(text.slice(0, i + 1), mark)}</span>
+      <wbr />
+      <span className="ui-dt-nowrap">{markMatch(text.slice(i + 1), mark)}</span>
+    </>
+  );
+}
+
 /** The value from the render where sig last changed: a new array that says the same thing keeps the old one, so memos
  *  that depend on it do not run again. */
 function useSameWhile<T>(value: T, sig: string): T {
@@ -1023,11 +1037,11 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
       const t =
         c.format === 'relative' ? (
           <RelativeTime className="ui-dt-time" value={d}>
-            {(text) => markMatch(text, mark)}
+            {(text) => dateParts(text, mark)}
           </RelativeTime>
         ) : (
           <time className="ui-dt-time" dateTime={isoOf(d, c.format === 'date')}>
-            {markMatch(cellText(c, raw), mark)}
+            {dateParts(String(cellText(c, raw) ?? ''), mark)}
           </time>
         );
       v = abs ? (

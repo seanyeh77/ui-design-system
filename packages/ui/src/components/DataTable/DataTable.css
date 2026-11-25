@@ -410,6 +410,9 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+.ui-dt-nowrap {
+  white-space: nowrap;
+}
 /* Hugging columns are measured on one line (DataTable adds is-measuring for the read only). */
 .ui-dt.is-measuring .ui-dt-cell.is-hug {
   white-space: nowrap;
@@ -893,15 +896,16 @@
     overflow-wrap: break-word;
   }
   /* Each field on one line: its name (small, muted) in a fixed 6 rem column (6 characters), the value in the rest,
-     wrapping there. A longer name is cut with …; the value never moves under it. A date or time stays on one line. */
+     wrapping there. A longer name is cut with …; the value never moves under it. A date and its time each stay whole. */
   .ui-dt-body .ui-dt-cell[data-label]:not(.is-m-title, .is-m-status) {
     position: relative;
     min-height: 20px;
     margin-top: var(--space-1);
     padding-left: calc(6rem + var(--space-3));
   }
+  /* A date with its time wraps only between the two (each part is whole, see .ui-dt-nowrap). */
   .ui-dt-body .ui-dt-cell .ui-dt-time {
-    white-space: nowrap;
+    white-space: normal;
   }
   .ui-dt-body .ui-dt-cell.is-num {
     white-space: normal;
