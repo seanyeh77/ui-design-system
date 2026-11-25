@@ -212,8 +212,8 @@ export const OnePageSummary = {
   ),
 };
 
-// A table beside a 440 px detail panel: about 530 px left for five columns. It scrolls, with a fade on the right and a
-// 「左右滑動」 hint under it.
+// A table beside a 440 px detail panel. At 1280 px the five columns fit; narrower, the table scrolls, with a fade on
+// the right and a 「向右捲動」 hint under it, and no heading is cut while it fits.
 const CALLERS = [
   { id: 'c1', fn: 'app_init', file: 'src/server/init.c', n: 12, via: '直接呼叫', dist: 1 },
   { id: 'c2', fn: 'shm_open_ring', file: 'src/server/shm.c', n: 7, via: '函式指標', dist: 2 },
@@ -222,7 +222,7 @@ const CALLERS = [
 ];
 export const BesidePanel = {
   render: () => (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'flex-start', maxWidth: 1000 }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'flex-start' }}>
       <div style={{ flex: '1 1 300px', minWidth: 0 }}>
         <UI.DataTable
           caption="呼叫者"
