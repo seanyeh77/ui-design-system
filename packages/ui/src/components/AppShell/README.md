@@ -27,7 +27,7 @@ Dashboard 類頁面的外框：側邊欄、頂部列和內容區，平板的導�
 
 - `title` 是頁面標題（清單頁、Dashboard、設定頁）；詳細頁不給，名稱寫在 `PageHeader`。和 PageHeader 或 SettingsLayout 的 `title` 重複時開發模式會提醒。
 - 麵包屑是內容最上方的 `<Breadcrumb>`；`breadcrumb` prop 已停用。
-- `tags`：頂部列標題旁的標記，例如整頁都是示範值時的 `<Tag icon="info">示範資料</Tag>`。
+- `tags`：頂部列標題旁的標記，12 px `ink-muted` 小字，例如整頁都是示範值時的 `<Tag icon="info">示範資料</Tag>`。
 - 頂部列右邊放 `onSearch`（接 CommandPalette）和 `actions`（NotificationBell、ProjectSwitcher）。
 - 換頁後呼叫 `focusMain()`；變化用 `announce(text)` 念出（見下方「無障礙」）。
 

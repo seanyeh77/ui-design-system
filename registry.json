@@ -7,7 +7,7 @@
       "name": "dashboard",
       "type": "registry:block",
       "title": "Dashboard",
-      "description": "Dashboard page in the app frame: KPI cards, a trend chart and a table of records. Replace the sample data with yours.",
+      "description": "Dashboard page in the app frame: a period picker, KPI cards, a trend chart and a table of records, marked 示範資料. Replace the sample data with yours and drop the mark.",
       "dependencies": ["@seanyeh77/ui"],
       "files": [
         { "path": "packages/blocks/src/dashboard/Dashboard.tsx", "type": "registry:block", "target": "components/blocks/dashboard/Dashboard.tsx" },

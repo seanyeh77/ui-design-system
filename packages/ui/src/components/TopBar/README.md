@@ -13,7 +13,7 @@ Dashboard 類頁面的頂部列，高 64 px（`header-height`）。AppShell 已�
 
 - 左側頁面標題（`title`，20 px、字重 700）。
 - `breadcrumb` prop 已停用：麵包屑是內容最上方的 `<Breadcrumb>`。
-- `tags`：標題旁的標記，字級和標題相同，例如 `<Tag icon="info">示範資料</Tag>`。
+- `tags`：標題旁的標記，畫成 12 px `ink-muted` 小字（不像標題的一部分），例如 `<Tag icon="info">示範資料</Tag>`。
 - 帳號：用 `<Menu icon="user" label="帳號" items={…} />`（無框圖示按鈕，打開帳號選單），不要自己畫空白的圓形頭像。
 - `onSearch` 通常接到 CommandPalette；右側其他元素放 `children`。
 
