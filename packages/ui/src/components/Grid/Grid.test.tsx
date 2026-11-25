@@ -82,3 +82,18 @@ test('FormGrid: one column under 960 px, two from 960 px', async () => {
   await page.viewport(959, 800);
   expect(cols(fg)).toBe(1);
 });
+
+test('Grid: columns={[2, 1]} is a main column twice the aside from 960 px, one column below', async () => {
+  const { container } = render(
+    <Grid columns={[2, 1]}>
+      <div>main</div>
+      <div>aside</div>
+    </Grid>,
+  );
+  const grid = container.querySelector('.ui-grid') as HTMLElement;
+  await page.viewport(1280, 800);
+  const [a, b] = getComputedStyle(grid).gridTemplateColumns.split(' ').map(parseFloat);
+  expect(Math.abs(a - 2 * b)).toBeLessThan(1);
+  await page.viewport(800, 800);
+  expect(cols(grid)).toBe(1);
+});

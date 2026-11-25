@@ -74,3 +74,32 @@ test('padding: false: the summary tabs keep 16 px from the card edges as a margi
   expect(sum.getBoundingClientRect().left - card.left).toBe(16);
   expect(getComputedStyle(sum).paddingLeft).toBe('4px');
 });
+
+test('Card: actions that do not fit beside 8 characters of title move under it; the title is not cut to 「訂..」', () => {
+  const { container } = render(
+    <div style={{ width: 320 }}>
+      <Card
+        title="訂單明細與出貨紀錄"
+        actions={
+          <>
+            <button type="button" style={{ width: 96, height: 40 }}>
+              匯出
+            </button>
+            <button type="button" style={{ width: 96, height: 40 }}>
+              列印
+            </button>
+          </>
+        }
+      >
+        內容
+      </Card>
+    </div>,
+  );
+  const title = container.querySelector('.ui-card-title') as HTMLElement;
+  const actions = container.querySelector('.ui-card-actions') as HTMLElement;
+  expect(title.scrollWidth).toBeLessThanOrEqual(title.clientWidth);
+  expect(actions.getBoundingClientRect().top).toBeGreaterThanOrEqual(title.getBoundingClientRect().bottom);
+  expect(Math.round(actions.getBoundingClientRect().right)).toBe(
+    Math.round((container.querySelector('.ui-card') as HTMLElement).getBoundingClientRect().right - 16),
+  );
+});

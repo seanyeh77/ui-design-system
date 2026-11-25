@@ -1,48 +1,87 @@
 import * as React from 'react';
 import { tr } from '../../i18n';
 import { cx } from '../../internal/util';
+import { devWarn } from '../../internal/dev';
+import { ShellTitle } from '../../internal/shell';
+import { announce } from '../../announce';
 import { Toast } from '../Toast/Toast';
 import { codeText } from '../InlineCode/InlineCode';
 
 export interface SettingsCategory {
+  /** Also the URL hash of the category (#notifications): letters, digits and hyphens. */
   id: string;
+  /** The name in the category list, a noun: 「通知」. */
   label: string;
+  /** SettingsSections; a DangerZone goes last in the last category. */
   content: React.ReactNode;
 }
 
 export interface SettingsLayoutProps {
+  /** The page title. Inside AppShell leave it out and give AppShell title="設定": the title shows once. */
   title?: string;
+  /** The categories, in order. */
   categories: SettingsCategory[];
   /** Controlled category id. */
   value?: string;
+  /** Called with the category id when another category is chosen. */
   onChange?: (id: string) => void;
+  /** Uncontrolled: keep the open category in the URL hash (#notifications), so a reload or a shared link opens it.
+   *  Default true. */
+  urlSync?: boolean;
   /** Text of the 「已儲存」 toast; empty hides it. Changes save on their own, so there is no save button. */
   toast?: string;
   className?: string;
 }
 
 /** A settings page: categories on the left, their sections on the right. Changes save at once. */
-export function SettingsLayout({ title, categories, value, onChange, toast, className }: SettingsLayoutProps) {
-  const [own, setOwn] = React.useState(value ?? categories[0]?.id);
+export function SettingsLayout({ title, categories, value, onChange, urlSync = true, toast, className }: SettingsLayoutProps) {
+  const shell = React.useContext(ShellTitle);
+  devWarn(
+    title && shell.title,
+    'SettingsLayout',
+    'the page title shows twice: AppShell has `title` and SettingsLayout has `title`. Inside AppShell, give the title to AppShell only.',
+  );
+  const sync = urlSync && value === undefined;
+  const fromHash = () => {
+    if (!sync || typeof location === 'undefined') return undefined;
+    const id = decodeURIComponent(location.hash.slice(1));
+    return categories.some((c) => c.id === id) ? id : undefined;
+  };
+  const [own, setOwn] = React.useState<string | undefined>(() => fromHash() ?? value ?? categories[0]?.id);
   const active = value ?? own;
   const item = categories.find((c) => c.id === active) ?? categories[0];
+  // A link or the back button that changes the hash opens that category.
+  React.useEffect(() => {
+    if (!sync) return;
+    const onHash = () => {
+      const id = fromHash();
+      if (id) setOwn(id);
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- categories are read when the hash changes
+  }, [sync]);
+  const choose = (c: SettingsCategory) => {
+    if (c.id === item?.id) return;
+    setOwn(c.id);
+    if (sync) history.replaceState(history.state, '', location.pathname + location.search + '#' + encodeURIComponent(c.id));
+    announce(c.label);
+    onChange?.(c.id);
+  };
   return (
     <div className={cx('ui-settings', className)}>
       {title ? <h1 className="ui-settings-title">{title}</h1> : null}
       <div className="ui-settings-body">
         <nav className="ui-settings-nav" aria-label={tr('設定分類')}>
           {categories.map((c) => {
-            const on = c.id === active;
+            const on = c.id === item?.id;
             return (
               <button
                 key={c.id}
                 type="button"
                 className={cx('ui-settings-cat', on && 'is-on')}
                 aria-current={on ? 'page' : undefined}
-                onClick={() => {
-                  setOwn(c.id);
-                  onChange?.(c.id);
-                }}
+                onClick={() => choose(c)}
               >
                 {c.label}
               </button>
@@ -61,9 +100,11 @@ export function SettingsLayout({ title, categories, value, onChange, toast, clas
 }
 
 export interface SettingsSectionProps {
+  /** The section's heading, 17 px like a Card title. */
   title?: string;
   /** One sentence under the title; `backticks` are code. */
   description?: string;
+  /** Fields and SettingsRows. */
   children?: React.ReactNode;
   className?: string;
 }
@@ -76,5 +117,35 @@ export function SettingsSection({ title, description, children, className }: Set
       {description ? <p className="ui-settings-desc">{codeText(description)}</p> : null}
       {children}
     </section>
+  );
+}
+
+export interface SettingsRowProps {
+  /** What the setting does, a short noun phrase: 「部署失敗時寄 Email」. Also give it to the Switch's `label`. */
+  label: string;
+  /** One sentence under the label; `backticks` are code. */
+  description?: string;
+  /** The control at the right end: a Switch (or a Select). */
+  children: React.ReactElement<{ 'aria-describedby'?: string }>;
+  className?: string;
+}
+
+/** One setting on one row: the label and a sentence on the left, the control on the right. The whole row is a
+ *  `<label>`, so clicking the text toggles a Switch. */
+export function SettingsRow({ label, description, children, className }: SettingsRowProps) {
+  const id = React.useId();
+  const control = description && React.isValidElement(children) ? React.cloneElement(children, { 'aria-describedby': id }) : children;
+  return (
+    <label className={cx('ui-settings-row', className)}>
+      <span className="ui-settings-rowtext">
+        <span className="ui-settings-rowlabel">{label}</span>
+        {description ? (
+          <span id={id} className="ui-settings-rowdesc">
+            {codeText(description)}
+          </span>
+        ) : null}
+      </span>
+      {control}
+    </label>
   );
 }
