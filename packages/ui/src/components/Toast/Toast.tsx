@@ -72,8 +72,9 @@ const flushPending = () => {
  *  toast.close(id). */
 export function toast(message: React.ReactNode, options: ToastOptions = {}): string {
   const tone = options.tone ?? 'success';
+  const id = options.id ?? `ui-toast-${++toastSeq}`;
   const t: AddOptions = {
-    id: options.id ?? `ui-toast-${++toastSeq}`,
+    id,
     title: message,
     timeout: options.action ? TOAST_DURATION.action : TOAST_DURATION.plain,
     priority: tone === 'danger' ? 'high' : 'low',
@@ -81,7 +82,7 @@ export function toast(message: React.ReactNode, options: ToastOptions = {}): str
   };
   if (liveViews) return manager.add(t);
   pending = [...pending.filter((x) => x.id !== t.id), t];
-  return t.id!;
+  return id;
 }
 let toastSeq = 0;
 /** Closes one toast, or every toast without an id. */
