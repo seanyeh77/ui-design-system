@@ -72,10 +72,11 @@ export function Dashboard({ kpis, trend, rows, notifications }: DashboardProps) 
         <Card title="每週完成的任務">
           <LineChart label="每週完成的任務" labels={trend.labels} series={trend.series} unit="個" />
         </Card>
-        {/* TODO(integrator): once DataTable has toolbar={false}, decide whether this short table keeps only its summary row. */}
+        {/* A short table on an overview: the summary tabs only, no search, filter or sort row (headings still sort). */}
         <Card title="專案" padding={false}>
           <DataTable
             label="專案"
+            toolbar={false}
             columns={COLUMNS}
             rows={rows}
             summary={{

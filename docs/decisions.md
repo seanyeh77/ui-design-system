@@ -1402,3 +1402,22 @@ AI 定的細節（待確認）：
 - ProgressBar、Meter 強制色彩模式：軌道 1 px `CanvasText` 外框，填色與圓點 `Highlight`，Meter 的刻度 `CanvasText`；Skeleton 加 1 px `GrayText` 外框。
 - TreeList：「全部展開／全部收合」用和 Section 一樣的圖示按鈕（外框樣式）；「2 個新」從 12 px 改成 13 px，和檔案數同一級；`onChange` 和 ZoneMap 的 `onChange` 第二個參數是整個節點或分區。
 - ZoneMap：`min`、`max` 預設是分區數值的最小與最大值；只有一個值或全部相同時用那個值上下各 1。數值和單位之間改成真的空格（原本是 4 px 外距）。
+
+## 2026-11-25 全面審查修正：整合
+
+五個修正分支合併後的銜接。使用者把細節交給 agent（同上：「都照你的意見……」、「全部都交給 subagent，最後驗證也是」）。
+
+### AI 定的細節（待確認）
+
+- Toaster：AppShell 自動放一個 Toaster，AppShell 裡的頁面呼叫 `toast()` 不用另外設定；頁面自己放了 `<Toaster />` 時，AppShell 的那個不顯示，同一則訊息不會出現兩次；畫面上有兩個 AppShell 時只有第一個的顯示。沒有 AppShell 的頁面仍要自己放一個 `<Toaster />`。
+- 還沒有 Toaster 在聽的時候呼叫 `toast()`（第一次 render，或在 AppShell 的 Toaster 訂閱之前執行的 effect）：訊息先排隊，Toaster 出現後才顯示並開始計時，不會遺失；排隊中的訊息可以用 `toast.close(id)` 取消。
+- SettingsLayout 的 `toast` prop 改成 deprecated：開發時警告，仍可用，改經由 `toast()` 顯示（同一個 id，文字變了就重新計時，空字串關掉），並自己放一個只在頁面沒有 Toaster 時出現的 Toaster。原本固定在右下角、會蓋住手機分頁列的 `.ui-settings-toast` 拿掉。
+- 範本：列表與詳細頁儲存後顯示「已儲存」（新增時「已新增」），設定頁每次儲存顯示同一則「已儲存」；兩者都靠 AppShell 的 Toaster。Dashboard 的專案小表格用 `toolbar={false}`，只留摘要分頁，沒有搜尋、篩選、排序那一列（標題仍可點擊排序）。
+- LayerGraph：沒有 `storageKey` 時「線上文字」開關不讀也不寫 localStorage（原本會用所有節點 id 組成的 key 讀取）。
+- FileUpload：`status: 'error'` 改名為 `'danger'`，和其他元件的 tone 一致；舊值仍可用，開發時警告。CodeView 的 `peek` 是暫時標示某幾行，不是開關狀態，維持原樣；CodeView 內的按鍵說明面板已經是 `open`／`onOpenChange`。
+- LoginCard 的「忘記密碼」改用 Link（一律有底線），觸控螢幕上點擊範圍 48 px。
+- 觸控螢幕（`pointer: coarse`）：清單選項（`role="option"`：Select、MultiSelect、DataTable 篩選與排序面板、CommandPalette）至少 48 px 高；DataTable 篩選面板的數字範圍欄位 48 px。
+- MultiSelect 的輸入框另外用 `aria-labelledby` 指向欄位標籤：清單打開時頁面其他部分對輔助科技隱藏，`<label for>` 不再替它命名。
+- DataTable 沒有資料時，空狀態放在一個 `role="row"` 裡的 `role="cell"`，表格的 ARIA 結構完整（`table > rowgroup > row`）。
+- LineChart 資料表的欄名「名稱（單位）」經過 `tr()`，英文介面是「name (unit)」。
+- `ui check` 在頁面自己也跑 axe 時（Storybook 的無障礙 addon）等那次跑完再跑，最多等 10 s，不再回報「Axe is already running」。
