@@ -4,7 +4,8 @@
   padding: 0;
   list-style: none;
 }
-.ui-events > li {
+.ui-events > li,
+.ui-events-day > li {
   display: grid;
   grid-template-columns: auto 20px minmax(0, 1fr);
   gap: var(--space-3);
@@ -12,7 +13,13 @@
   padding: var(--space-2) 4px;
   border-bottom: 1px solid var(--line);
 }
-.ui-events > li:last-child {
+.ui-events-day {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ui-events > li:last-child,
+.ui-events-day > li:last-child {
   border-bottom: 0;
 }
 .ui-events-time {
@@ -26,11 +33,32 @@
   align-self: center;
   color: var(--ink-muted);
 }
-.ui-events > li.is-alert .ui-events-kind {
+.ui-events li.is-tone-info .ui-events-kind {
+  color: var(--accent-text);
+}
+.ui-events li.is-tone-success .ui-events-kind {
+  color: var(--success-text);
+}
+.ui-events li.is-tone-warning .ui-events-kind {
   color: var(--warning-text);
 }
-.ui-events > li.is-switch .ui-events-kind {
-  color: var(--accent-text);
+.ui-events li.is-tone-danger .ui-events-kind {
+  color: var(--danger-text);
+}
+/* Several days: a date above each day, small and muted like the times. */
+.ui-events-date {
+  padding: var(--space-3) 4px var(--space-1);
+  color: var(--ink-muted);
+  font-size: var(--text-small);
+  font-weight: 600;
+}
+.ui-events-date:first-child {
+  padding-top: 0;
+}
+/* Who did it: after the sentence, muted, the same size. */
+.ui-events-actor {
+  margin-left: var(--space-2);
+  color: var(--ink-muted);
 }
 .ui-events-empty {
   margin: 0;

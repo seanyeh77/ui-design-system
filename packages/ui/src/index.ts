@@ -88,7 +88,7 @@ export { Meter } from './components/Meter/Meter';
 export { ZoneMap } from './components/ZoneMap/ZoneMap';
 export type { ZoneMapProps, Zone } from './components/ZoneMap/ZoneMap';
 export { EventTimeline } from './components/EventTimeline/EventTimeline';
-export type { EventTimelineProps, TimelineEvent, EventKind } from './components/EventTimeline/EventTimeline';
+export type { EventTimelineProps, TimelineEvent, TimelineKind, EventKind } from './components/EventTimeline/EventTimeline';
 export { ConsoleLayout, consoleZoom } from './components/ConsoleLayout/ConsoleLayout';
 export type { ConsoleLayoutProps, ConsoleExtra } from './components/ConsoleLayout/ConsoleLayout';
 export { TimeControl } from './components/TimeControl/TimeControl';
