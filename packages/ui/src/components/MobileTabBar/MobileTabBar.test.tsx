@@ -48,3 +48,26 @@ test('by default a label under each icon names the tab; the selected one is bold
   expect(getComputedStyle(labels[1]).fontWeight).toBe('700');
   await page.viewport(1280, 800);
 });
+
+test('the selected pill is centred on the icon and clear of the label', async () => {
+  await page.viewport(390, 844);
+  const { container } = render(
+    <MobileTabBar
+      value="b"
+      items={[
+        { id: 'a', label: '總覽', icon: 'house' },
+        { id: 'b', label: '專案', icon: 'folder' },
+        { id: 'c', label: '設定', icon: 'gear' },
+      ]}
+    />,
+  );
+  const pill = (container.querySelector('.ui-tabbar-pill') as HTMLElement).getBoundingClientRect();
+  const tab = screen.getByRole('button', { name: '專案' });
+  const icon = (tab.querySelector('svg') as SVGElement).getBoundingClientRect();
+  const label = (tab.querySelector('.ui-tabbar-label') as HTMLElement).getBoundingClientRect();
+  expect(Math.abs(pill.top + pill.height / 2 - (icon.top + icon.height / 2))).toBeLessThanOrEqual(1);
+  expect(pill.top).toBeLessThan(icon.top);
+  expect(pill.bottom).toBeGreaterThan(icon.bottom);
+  expect(pill.bottom).toBeLessThanOrEqual(label.top);
+  await page.viewport(1280, 800);
+});

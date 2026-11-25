@@ -29,17 +29,19 @@
 .ui-tabbar-item.is-selected {
   color: var(--accent-text);
 }
-/* MA: an 11 px label under each icon; the pill sits behind the icon only. */
+/* MA: an 11 px label under each icon; the pill sits behind the icon only: centred on it (22 px icon, 28 px pill) and
+   clear of the label (6 px gap). The icon, gap and label (42 px) are centred in the bar, so the pill's centre is the
+   bar's middle less 21 px plus 11 px. */
 .ui-tabbar.has-labels {
   height: 64px;
 }
 .ui-tabbar.has-labels .ui-tabbar-item {
   flex-direction: column;
-  gap: 2px;
-  padding-top: 2px;
+  gap: 6px;
 }
 .ui-tabbar.has-labels .ui-tabbar-pill {
-  top: 8px;
+  top: calc(50% - 24px);
+  height: 28px;
 }
 .ui-tabbar-label {
   font-size: var(--text-mini);
