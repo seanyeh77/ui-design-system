@@ -729,7 +729,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   // Widths by default. The main column (the first text column) and long ones take the room left; the others hug their
   // content: numbers, units, dates, durations, status Badges and other short text. A width is a least width for any
   // column and never decides which column is the main one. A grow prop wins either way. Hugging columns are measured below (their heading and every cell on the page, widest wins).
-  const mainKey = (shownCols.find((c) => !isShort(c) && !c.long && c.grow !== 0) ?? shownCols[0])?.key;
+  // A mono column (an ID, a hash) is never the main one: without another text column, none takes the room left.
+  const mainKey = shownCols.find((c) => !isShort(c) && !c.long && !c.mono && c.grow !== 0)?.key;
   const grows = (c: DataTableColumn<R>) => (c.grow != null ? c.grow > 0 : c.long || c.key === mainKey);
   // A column is at least as wide as content that cannot wrap (a code chip, a link with a path): measured below.
   const minOf = (c: DataTableColumn<R>) => {
@@ -811,7 +812,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
         }
         root.classList.remove('is-measuring');
       }
-      // Everything read in this pass goes into one state update (one render), and none when nothing changed.
+            // Everything read in this pass goes into one state update (one render), and none when nothing changed.
       const next: Partial<Measured> = {};
       const head = root.querySelector<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-head');
       const scroll = root.querySelector<HTMLElement>(':scope > .ui-dt-scroller .ui-dt-scroll');
@@ -1361,8 +1362,14 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const skeletonRows = (grid: React.CSSProperties) => {
     const n = Math.max(1, p.loadingRows ?? Math.min(pageSize, 10));
     const MAIN = ['72%', '56%', '64%', '48%'];
+    // Bars as wide as typical content (px), so the hugging columns are measured as when loaded and nothing jumps.
+    const TYPICAL: Record<string, number> = { date: 128, dateTime: 184, datetime: 184, relative: 72, duration: 64, money: 96, percent: 56 };
     const widthOf = (c: DataTableColumn<R>, i: number) =>
-      c.key === mainKey ? MAIN[i % MAIN.length] : c.mobile === 'status' ? 64 : isDateCol(c) ? 112 : isNum(c) ? 56 : c.long ? '80%' : '60%';
+      c.key === mainKey
+        ? MAIN[i % MAIN.length]
+        : c.mobile === 'status'
+          ? 64
+          : (TYPICAL[c.format ?? ''] ?? (isNum(c) ? 56 : c.mono ? 112 : c.long ? '80%' : '60%'));
     return [
       <div key="busy" role="row" className="ui-visually-hidden">
         <div role="cell">{tr('載入中')}</div>
@@ -1549,7 +1556,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const footView = (
     <>
       {/* One page: the count above the table already says how many rows there are, so no range and no page numbers. */}
-      {pages > 1 ? (
+      {/* While loading the count is not known yet: no range from the rows of before. */}
+      {pages > 1 && !p.loading ? (
         <div className="ui-dt-foot">
           <span className="ui-dt-range">
             {monoNums(tr('第 {a}–{b} {unit}，共 {n} {unit}', { a: '\u0001', b: '\u0002', n: '\u0003', unit: unitOf(list.length) }), [

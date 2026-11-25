@@ -439,9 +439,18 @@
 .ui-dt-time wbr {
   display: none;
 }
-/* Hugging columns are measured on one line (DataTable adds is-measuring for the read only). */
+/* Hugging columns are measured on one line (DataTable adds is-measuring for the read only), headings at their full
+   width too, so a column is never narrower than its heading, also while it holds only loading bars. */
 .ui-dt.is-measuring .ui-dt-cell.is-hug {
   white-space: nowrap;
+}
+.ui-dt.is-measuring .ui-dt-cell.is-hug > .ui-dt-sort {
+  flex: none;
+  max-width: none;
+}
+/* Loading bars keep their width in the cell (a flex box would shrink them). */
+.ui-dt-skelrow .ui-skel {
+  flex: none;
 }
 
 .ui-dt-body .ui-dt-row:last-child {

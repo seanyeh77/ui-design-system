@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { Button, Card, DataTable, InlineCode } from '../../index';
+import { Button, Card, DataTable, InlineCode, type DataTableColumn } from '../../index';
 
 const cols = [{ key: 'name' as const, label: '名稱' }];
 type User = ReturnType<typeof userEvent.setup>;
@@ -1110,4 +1110,42 @@ test('phone cards at 320 px with WCAG 1.4.12 text spacing: a date and its time s
   unmount();
   style.remove();
   await page.viewport(1280, 900);
+});
+
+test('loading: columns as wide as when loaded, headings whole, a mono ID column is not the main one, no old count', async () => {
+  await page.viewport(1280, 900);
+  type R = { id: string; name: string; created: string; renew: string; amount: number };
+  const rows: R[] = Array.from({ length: 12 }, (_, i) => ({
+    id: 'INV-2026-00' + i,
+    name: '客戶 ' + i,
+    created: '2026-11-18T04:51:00+08:00',
+    renew: '2026-11-25T01:00:00+08:00',
+    amount: 1280 * i,
+  }));
+  const columns: DataTableColumn<R>[] = [
+    { key: 'id', label: '編號', mono: true },
+    { key: 'name', label: '客戶' },
+    { key: 'created', label: '建立時間', format: 'dateTime' },
+    { key: 'amount', label: '金額', format: 'money' },
+    { key: 'renew', label: '下次續約', format: 'relative' },
+  ];
+  const widths = (root: HTMLElement) =>
+    Object.fromEntries([...root.querySelectorAll<HTMLElement>('.ui-dt-head [data-col]')].map((h) => [h.dataset.col, h.getBoundingClientRect().width]));
+  const table = (loading: boolean) => (
+    <Card padding={false}>
+      <DataTable<R> label="合約" urlSync={false} rows={rows} pageSize={5} loading={loading} columns={columns} rowActions={() => <Button>續約</Button>} />
+    </Card>
+  );
+  const { container, rerender } = render(table(true));
+  await new Promise((r) => setTimeout(r, 100));
+  const before = widths(container);
+  for (const h of container.querySelectorAll<HTMLElement>('.ui-dt-head [data-col] .ui-dt-sort > span')) expect(h.scrollWidth).toBeLessThanOrEqual(h.clientWidth);
+  expect(container.querySelector('.ui-dt-range')).toBeNull();
+  // The name column takes the room left, not the ID.
+  expect(before.name).toBeGreaterThan(before.id * 2);
+  rerender(table(false));
+  await new Promise((r) => setTimeout(r, 100));
+  const after = widths(container);
+  for (const k of ['created', 'amount']) expect(Math.abs(after[k] - before[k])).toBeLessThanOrEqual(16);
+  expect(container.querySelector('.ui-dt-range')?.textContent).toContain('共 12 筆');
 });
