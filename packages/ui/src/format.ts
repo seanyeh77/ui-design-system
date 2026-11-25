@@ -47,14 +47,15 @@ function dayDiff(d: Date, now: Date): number {
 
 /** Under 1 hour: 「現在」 or 「5 分鐘前」. The same calendar day: 「2 小時前」. An earlier day: by calendar days, 「昨天」
  *  for any time yesterday (also 30 minutes before midnight seen after it, once an hour has passed), 「3 天前」 up to 6
- *  days. 7 calendar days or more, or in the future: the full date and time. Pass now to test. */
+ *  days. 7 calendar days or more, or more than 60 s in the future: the full date and time. Up to 60 s in the future (one
+ *  clock running a little ahead of the other) reads like the last minute. Pass now to test. */
 function relative(d: Date | null | undefined, now: Date = new Date()): string {
   if (!d) return '';
   const s = (now.getTime() - d.getTime()) / 1000;
   const days = dayDiff(d, now);
-  if (s < 0 || days >= 7) return dateTime(d);
   const rt = new Intl.RelativeTimeFormat(I18N.locale, { numeric: 'auto' });
-  if (s < 60) return rt.format(0, 'second');
+  if (s >= -60 && s < 60) return rt.format(0, 'second');
+  if (s < 0 || days >= 7) return dateTime(d);
   if (s < 3600) return rt.format(-Math.floor(s / 60), 'minute');
   if (days === 0) return rt.format(-Math.floor(s / 3600), 'hour');
   return rt.format(-days, 'day');

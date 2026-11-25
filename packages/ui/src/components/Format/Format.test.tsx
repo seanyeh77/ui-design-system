@@ -29,6 +29,10 @@ test('format.relative: within a week 「2 小時前」「昨天」「3 天前」
   expect(format.relative(ago(6 * 86400 + 3600), now)).toBe('6 天前');
   expect(format.relative(ago(7 * 86400), now)).toBe('2026/11/16（一）12:00');
   expect(format.relative(new Date(now.getTime() + 3600 * 1000), now)).toBe('2026/11/23（一）13:00');
+  // Up to 60 s ahead: the other clock runs a little fast, so it reads like the last minute.
+  expect(format.relative(new Date(now.getTime() + 30 * 1000), now)).toBe('現在');
+  expect(format.relative(new Date(now.getTime() + 60 * 1000), now)).toBe('現在');
+  expect(format.relative(new Date(now.getTime() + 61 * 1000), now)).toBe('2026/11/23（一）12:01');
 });
 
 test('format.relative: across midnight it counts calendar days, not 24-hour spans', () => {
