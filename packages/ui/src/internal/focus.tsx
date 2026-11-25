@@ -44,7 +44,39 @@ export function useReturnFocus(open: boolean): void {
   }, [open]);
 }
 
-const FOCUSABLE = 'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"]), input:not([disabled]), [role="tab"]';
+const FOCUSABLE =
+  'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [role="tab"]';
+
+/** The focusable controls inside box that a person can reach now: visible and enabled. */
+const reachable = (box: ParentNode) =>
+  Array.from(box.querySelectorAll<HTMLElement>(FOCUSABLE)).filter((e) => e.getClientRects().length > 0 && !e.matches(':disabled'));
+
+/** The group a control belongs to, for picking a neighbour: its toolbar, group, form, section, card or dialog. */
+const GROUP = '[role="toolbar"], [role="group"], [role="radiogroup"], form, section, fieldset, [role="dialog"], [role="alertdialog"], main';
+
+/** Moves focus from a control that is about to lose it (disabled or removed) to a sensible neighbour: the control
+ *  before it in its group, else the one after it, else the main content. Returns the element that got focus. */
+export function focusNeighbour(from: HTMLElement): HTMLElement | null {
+  const scope = from.parentElement?.closest<HTMLElement>(GROUP) ?? document.body;
+  // By document position: the control itself may no longer match (it is disabled now).
+  const all = reachable(scope).filter((e) => e !== from);
+  const before = all.filter((e) => e.compareDocumentPosition(from) & Node.DOCUMENT_POSITION_FOLLOWING).pop();
+  const after = all.find((e) => e.compareDocumentPosition(from) & Node.DOCUMENT_POSITION_PRECEDING);
+  const next = before ?? after ?? null;
+  if (next) next.focus();
+  else focusMain();
+  return next;
+}
+
+/** For one control that can turn disabled while it has focus (a button that is pressed and then disabled): the
+ *  browser would drop focus to the body, so it goes to the neighbour before it (focusNeighbour) instead. */
+export function useDisabledFocusRescue(ref: React.RefObject<HTMLElement | null>, disabled: boolean | undefined): void {
+  React.useLayoutEffect(() => {
+    const el = ref.current;
+    // The browser drops focus from a disabled control at its next rendering update, not at once: it is still here.
+    if (disabled && el && document.activeElement === el) focusNeighbour(el);
+  }, [disabled, ref]);
+}
 
 /** When the focused control inside the container is removed or replaced (a button that turns into another), focus
  *  moves to the control now at its place, else the one before it, else `fallback()`, instead of falling to the body. */
@@ -58,7 +90,7 @@ export function useFocusRescue(ref: React.RefObject<HTMLElement | null>, fallbac
     if (!box) return;
     let last: HTMLElement | null = null;
     let index = -1;
-    const list = () => Array.from(box.querySelectorAll<HTMLElement>(FOCUSABLE)).filter((e) => e.getClientRects().length > 0 && !e.matches(':disabled'));
+    const list = () => reachable(box);
     const onIn = (e: FocusEvent) => {
       if (!(e.target instanceof HTMLElement)) return;
       last = e.target;

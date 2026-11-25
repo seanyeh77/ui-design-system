@@ -66,8 +66,12 @@
   cursor: not-allowed;
 }
 .ui-btn.is-loading {
-  opacity: 0.85;
   cursor: progress;
+}
+/* A disabled primary keeps a faint accent ground, so it still reads as the section's main action, unlike a disabled
+   secondary or quiet button; ink-muted on accent-soft stays 4.5:1 for every accent (setAccent keeps it so). */
+.ui-btn-primary:disabled:not(.is-loading) {
+  background: var(--accent-soft);
 }
 @media (prefers-reduced-motion: reduce) {
   .ui-btn:active:not(:disabled) {

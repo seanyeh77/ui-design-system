@@ -4,6 +4,7 @@ import { Icon, IconOf, type IconSource } from '../../icons/Icon';
 import { cx } from '../../internal/util';
 import { tr } from '../../i18n';
 import { includeIcons } from '../../icons/store';
+import { useDisabledFocusRescue } from '../../internal/focus';
 import phX from '../../icons/ph/x';
 
 includeIcons(phX);
@@ -39,12 +40,24 @@ export interface IconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLBut
 }
 
 /** A square icon-only button with a tooltip. */
-export function IconButton({ label, icon, className, tooltip = true, filled, hint, variant, ...native }: IconButtonProps) {
+export function IconButton({ label, icon, className, tooltip = true, filled, hint, variant, ref, ...native }: IconButtonProps) {
   const id = React.useId();
+  const own = React.useRef<HTMLButtonElement | null>(null);
+  // Disabled while it has focus: focus goes to the control before it, not to the page.
+  useDisabledFocusRescue(own, native.disabled);
+  const setRef = React.useCallback(
+    (el: HTMLButtonElement | null) => {
+      own.current = el;
+      if (typeof ref === 'function') ref(el);
+      else if (ref) (ref as React.RefObject<HTMLButtonElement | null>).current = el;
+    },
+    [ref],
+  );
   const btn = (
     <button
       type="button"
       {...native}
+      ref={setRef}
       className={cx('ui-iconbtn', variant === 'quiet' && 'is-quiet', hint && 'has-hint', className)}
       aria-label={label}
       aria-describedby={hint ? id : native['aria-describedby']}
