@@ -12,6 +12,7 @@
 ```
 
 - 不傳 `onChange` 時直接呼叫 `setAccent()`，重新算出所有強調相關 token 並存在 localStorage；頁面載入時呼叫一次 `initTheme()` 套用。
+- 使用者沒選過時，勾選的是目前主題或 preset 的預設強調色（teaching 是青），而且不寫任何 inline 變數；要回到預設用 `resetAccent()`。
 - 不放在頂部列。
 - 選很淺或很深的顏色時，文字色 `accent-text` 自動加深或調亮；填色仍是選的顏色。
 

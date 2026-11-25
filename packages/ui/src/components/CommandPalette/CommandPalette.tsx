@@ -6,6 +6,7 @@ import { CodeText } from '../InlineCode/InlineCode';
 import { tr } from '../../i18n';
 import { Icon, IconOf, type IconSource } from '../../icons/Icon';
 import { cx } from '../../internal/util';
+import { devWarn } from '../../internal/dev';
 import { includeIcons } from '../../icons/store';
 import phCommand from '../../icons/ph/command';
 import phFile from '../../icons/ph/file';
@@ -21,8 +22,9 @@ export interface PaletteItem {
   label: string;
   /** Under the label; `backticks` are code. */
   detail?: string;
-  /** What it is: 頁面, 設定, 指令, 檔案, or your own kinds (with `kinds`). Picks the icon. */
-  kind?: string;
+  /** What it is: 'page', 'setting', 'command', 'file' (icon and name built in, the name read in the current language), or
+   *  your own kinds (with `kinds`), shown as written. Picks the icon. */
+  kind?: PaletteKind | (string & {});
   /** Overrides the kind's icon. */
   icon?: IconSource;
   /** The label is code: Geist Mono. */
@@ -31,7 +33,28 @@ export interface PaletteItem {
   keywords?: string[];
 }
 
-const KIND_ICONS: Record<string, IconSource> = { 頁面: 'file-text', 設定: 'gear', 指令: 'command', 檔案: 'file-code' };
+/** The built-in kinds: a stable id, its icon and its name (through tr()). */
+export type PaletteKind = 'page' | 'setting' | 'command' | 'file';
+const KINDS: Record<PaletteKind, [icon: IconSource, name: string]> = {
+  page: ['file-text', '頁面'],
+  setting: ['gear', '設定'],
+  command: ['command', '指令'],
+  file: ['file-code', '檔案'],
+};
+// The Chinese names used as kinds before the ids: they still work, with a warning.
+const OLD_KINDS: Record<string, PaletteKind> = { 頁面: 'page', 設定: 'setting', 指令: 'command', 檔案: 'file' };
+
+/** A kind's icon and the name shown and read for it: your kinds as written, the built-in ones translated. */
+function kindOf(kind: string, kinds: Record<string, IconSource> | undefined): { icon?: IconSource; name: string } {
+  if (kinds?.[kind]) return { icon: kinds[kind], name: kind };
+  const id = Object.hasOwn(KINDS, kind) ? (kind as PaletteKind) : OLD_KINDS[kind];
+  devWarn(
+    !!OLD_KINDS[kind],
+    'CommandPalette',
+    `kind '${kind}' is the old Chinese name of a built-in kind, which cannot be translated. Pass kind: '${OLD_KINDS[kind]}' instead.`,
+  );
+  return id ? { icon: KINDS[id][0], name: tr(KINDS[id][1]) } : { name: kind };
+}
 
 export interface CommandPaletteProps<T extends PaletteItem = PaletteItem> {
   open: boolean;
@@ -73,7 +96,7 @@ function score(it: PaletteItem, q: string): [rank: number, at: number] | null {
   const i = it.label.toLowerCase().indexOf(q);
   if (i === 0) return [0, 0];
   if (i > 0) return [1, i];
-  const more = [it.detail, it.kind, ...(it.keywords ?? [])].join(' ').toLowerCase();
+  const more = [it.detail, it.kind, it.kind && kindOf(it.kind, undefined).name, ...(it.keywords ?? [])].join(' ').toLowerCase();
   return more.includes(q) ? [2, -1] : null;
 }
 
@@ -241,13 +264,13 @@ export function CommandPalette<T extends PaletteItem = PaletteItem>(props: Comma
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => pick(it)}
                 >
-                  <span className="ui-pal-kind" title={it.kind}>
-                    <IconOf icon={it.icon ?? (it.kind ? (kinds?.[it.kind] ?? KIND_ICONS[it.kind]) : undefined) ?? 'file'} size={16} />
+                  <span className="ui-pal-kind" title={it.kind ? kindOf(it.kind, kinds).name : undefined}>
+                    <IconOf icon={it.icon ?? (it.kind ? kindOf(it.kind, kinds).icon : undefined) ?? 'file'} size={16} />
                   </span>
                   <span className="ui-pal-text">
                     <span className="ui-pal-line">
                       {/* Read as 「環境變數 APP_SHM」: the kind first, as it is said, then the name. */}
-                      {it.kind ? <span className="ui-visually-hidden">{it.kind + ' '}</span> : null}
+                      {it.kind ? <span className="ui-visually-hidden">{kindOf(it.kind, kinds).name + ' '}</span> : null}
                       {labelOf(it, at)}
                     </span>
                     {it.detail ? <CodeText className="ui-pal-detail" text={it.detail} /> : null}

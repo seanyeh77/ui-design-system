@@ -19,7 +19,10 @@ function D() {
     setS((o) => [...o, ...fs]);
     fs.forEach((f) => {
       if (f.status === 'error') return;
+      // Stops after 15 steps (7 % each) on its own too, so it does not outlive an unmounted story.
+      let steps = 0;
       const t = setInterval(() => {
+        if (++steps >= 15) clearInterval(t);
         setS((o) => {
           return o.map((x) => {
             if (x.id !== f.id) return x;

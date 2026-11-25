@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { expect, test } from 'vitest';
+import { expect, onTestFinished, test, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
@@ -153,9 +153,13 @@ test('DatePicker: a half-typed date is not an error until the field is left; a v
 
 test('Calendar: one day in the Tab order; arrows, Home, End and PageDown move it, across months', async () => {
   const user = userEvent.setup();
+  // A fixed today (2026/11/18), outside the days visited: no day's name adds （今天）.
+  vi.setSystemTime(new Date(2026, 10, 18, 12, 0));
+  onTestFinished(() => {
+    vi.useRealTimers();
+  });
   render(<Calendar focus={new Date(2026, 10, 30)} />);
-  // A day that is today also says （今天）; the test must pass on any date.
-  const day = () => (document.activeElement?.getAttribute('aria-label') ?? '').replace('（今天）', '');
+  const day = () => document.activeElement?.getAttribute('aria-label') ?? '';
   const stops = [...document.querySelectorAll('.ui-cal-day')].filter((b) => b.getAttribute('tabindex') === '0');
   expect(stops).toHaveLength(1);
   (stops[0] as HTMLElement).focus();

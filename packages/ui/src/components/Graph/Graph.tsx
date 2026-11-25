@@ -64,18 +64,20 @@ function Swatch({ type }: { type: GraphLegendItem['type'] }) {
 }
 
 /** The legend row under a diagram: what each line and box style means. */
-export function GraphLegend({ items = LEGEND_DEFAULT, className }: GraphLegendProps) {
+export function GraphLegend({ items, className }: GraphLegendProps) {
+  // Only the built-in labels are translated; your own are shown as written.
+  const shown = items ?? LEGEND_DEFAULT.map((it) => ({ ...it, label: tr(it.label) }));
   return (
     <div className={cx('ui-graph-legend', className)}>
-      {items.map((it, i) => (
+      {shown.map((it, i) => (
         <span key={i} className="ui-graph-legend-item">
           <Swatch type={it.type} />
           {it.text ? (
             <Term title={it.label} text={it.text}>
-              {tr(it.label)}
+              {it.label}
             </Term>
           ) : (
-            tr(it.label)
+            it.label
           )}
         </span>
       ))}

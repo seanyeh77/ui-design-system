@@ -63,7 +63,7 @@ export function Tabs<V extends string = string>({ items, value, onChange, label,
       ],
   );
   devWarn(
-    items.some((t) => t.count != null && !(t.unit || unit)),
+    () => items.some((t) => t.count != null && !(t.unit || unit)),
     'Tabs',
     "a count has no unit, so it reads as a bare number. Pass unit, e.g. unit: '筆', on Tabs or on the item.",
   );

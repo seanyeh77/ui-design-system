@@ -1,0 +1,35 @@
+<!-- @dsCard group="Data" height=160 -->
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <title>RelativeTime — preview</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      var U = window.UI,
+        h = React.createElement;
+      var MIN = 60000;
+      var now = Date.now();
+      // Ages under an hour only: the texts do not depend on the day or the hour the page is opened.
+      var rows = [
+        ['剛才', 20000],
+        ['分鐘', 5 * MIN],
+        ['半小時', 30 * MIN],
+      ];
+      ReactDOM.createRoot(document.getElementById('root')).render(
+        h(
+          'dl',
+          { style: { display: 'grid', gridTemplateColumns: 'max-content 1fr', gap: '8px 24px', margin: 0 } },
+          rows.map(function (r) {
+            return [
+              h('dt', { key: r[0] + 't', style: { color: 'var(--ink-muted)' } }, r[0]),
+              h('dd', { key: r[0] + 'd', style: { margin: 0 } }, h(U.RelativeTime, { value: now - r[1] })),
+            ];
+          }),
+        ),
+      );
+    </script>
+  </body>
+</html>

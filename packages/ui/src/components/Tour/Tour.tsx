@@ -5,7 +5,8 @@ import { CodeText } from '../InlineCode/InlineCode';
 import { Button } from '../Button/Button';
 import { tr } from '../../i18n';
 import { announce } from '../../announce';
-import { cx, seenOnly, store, resizeObserver } from '../../internal/util';
+import { cx, seenOnly, resizeObserver } from '../../internal/util';
+import { readStored, useStored } from '../../internal/stored';
 import { devWarn } from '../../internal/dev';
 import type { IconButtonHint } from '../IconButton/IconButton';
 
@@ -40,24 +41,23 @@ export interface TourProps {
 }
 
 const TOUR_KEY = 'ui-tour:';
+const seenOnce = (raw: string) => !!raw;
 
 /** Opens the tour once per browser: { open, start, close, seen, hint }. Pass close to Tour's onClose; start() shows
  *  it again. hint(text) gives IconButton's `hint` for the button that starts the tour: a page that uses it shows the dot
  *  and the bubble instead of opening the tour by itself. 「開始」 starts the tour; × and finishing it hide the hint for
  *  good (the same record as seen). */
 export function useTour(key: string) {
-  const [seen, setSeen] = React.useState(() => !!store(TOUR_KEY + key));
+  // Not seen on the server and the first browser render, then the stored record.
+  const [seen, setSeen] = useStored(TOUR_KEY + key, seenOnce, false, (v) => (v ? '1' : null));
   const [open, setOpen] = React.useState(false);
   // hint() is called while the page renders; the tour opens by itself after that render only when it was not.
   const hinted = React.useRef(false);
   React.useLayoutEffect(() => {
     // Known only after the page rendered: whether it uses hint().
-    if (!store(TOUR_KEY + key) && !hinted.current) setOpen(true);
+    if (!readStored(TOUR_KEY + key) && !hinted.current) setOpen(true);
   }, [key]);
-  const remember = () => {
-    store(TOUR_KEY + key, '1');
-    setSeen(true);
-  };
+  const remember = () => setSeen(true);
   return {
     open,
     start: () => setOpen(true),
@@ -247,7 +247,7 @@ export function Tour({ open, steps, onClose, skippable = true, step: controlled,
     devWarn(
       el && el.getBoundingClientRect().height > window.innerHeight * 0.7,
       'Tour',
-      `第 ${i + 1} 步的目標「${target}」比視窗的 70% 高，說明卡只能蓋住它的一部分。請把 data-tour 放在較小的元素上，例如要說明的那張卡片或那一列，而不是整頁。`,
+      `the target "${target}" of step ${i + 1} is taller than 70% of the window, so the card has to cover part of it. Put data-tour on a smaller element, such as the card or row the step explains, not the whole page.`,
     );
     if (el instanceof HTMLElement && narrowNow()) {
       const keep = el.style.scrollMarginTop;

@@ -327,7 +327,7 @@ export function LongText({ children }: { children: React.ReactNode }) {
             setOpen(!open);
           }}
         >
-          {open ? tr('收合') : tr('顯示全部')}
+          {open ? tr('清單::收合') : tr('顯示全部')}
         </button>
       ) : null}
     </span>

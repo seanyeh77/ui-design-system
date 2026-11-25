@@ -63,20 +63,22 @@ export const IS_MAC = /mac|iphone|ipad/i.test(nav?.userAgentData?.platform || na
 export const TOUCH_ONLY = '(pointer: coarse)';
 export const SHORTCUT = IS_MAC ? '⌘K' : 'Ctrl K';
 
-/** Matches a media query and follows changes. */
+/** Matches a media query and follows changes. false on the server and in the first browser render while hydrating,
+ *  so the markup matches; then the real match. */
 export function useMedia(query: string): boolean {
-  const get = () => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(query).matches;
-  const [match, setMatch] = React.useState(get);
-  React.useEffect(() => {
-    if (typeof window.matchMedia !== 'function') return;
-    const m = window.matchMedia(query);
-    const f = () => setMatch(m.matches);
-    f();
-    m.addEventListener('change', f);
-    return () => m.removeEventListener('change', f);
-  }, [query]);
-  return match;
+  const sub = React.useCallback(
+    (f: () => void) => {
+      if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return () => {};
+      const m = window.matchMedia(query);
+      m.addEventListener('change', f);
+      return () => m.removeEventListener('change', f);
+    },
+    [query],
+  );
+  const get = React.useCallback(() => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(query).matches, [query]);
+  return React.useSyncExternalStore(sub, get, serverFalse);
 }
+const serverFalse = () => false;
 
 /** A ResizeObserver, or null where there is none (jsdom, old browsers): the first measure then stays. */
 export function resizeObserver(cb: ResizeObserverCallback): ResizeObserver | null {

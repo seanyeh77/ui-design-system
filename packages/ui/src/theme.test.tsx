@@ -108,3 +108,42 @@ test('toHex reads #rgb, #rrggbb, alpha forms and rgb(); accentText keeps the acc
   // short forms give the same result as the long ones
   expect(accentText('#f0b400', false, '#fcfbfb', '#fff')).toBe(accentText('#f0b400', false, '#fcfbfb', '#ffffff'));
 });
+
+test('presets: initTheme({ preset }) keeps the preset through setTheme; inline accent variables only after a pick', async () => {
+  const { initTheme, resetAccent, storedAccent, themePreset } = await import('./theme');
+  const root = document.documentElement;
+  localStorage.removeItem('ui-accent');
+  try {
+    initTheme({ preset: 'teaching' });
+    expect(themePreset()).toBe('teaching');
+    expect(root.getAttribute('data-theme')).toBe('teaching');
+    // No pick: tokens.css decides, so the teaching accent shows and no inline variable overrides it.
+    expect(varOf('--accent')).toBe('');
+    expect(getComputedStyle(root).getPropertyValue('--accent').trim()).toBe('#027874');
+    expect(storedAccent()).toBe('#027874');
+    // The teaching preset is light only: a dark setting is remembered but the preset stays.
+    setTheme('dark');
+    expect(root.getAttribute('data-theme')).toBe('teaching');
+    expect(root.getAttribute('data-theme-setting')).toBe('dark');
+    expect(getComputedStyle(root).colorScheme).toBe('light');
+    // A pick writes the inline variables and survives a theme change; resetAccent goes back to tokens.css.
+    setAccent('#ba3873');
+    setTheme('light');
+    expect(varOf('--accent')).toBe('#ba3873');
+    resetAccent();
+    expect(varOf('--accent')).toBe('');
+    expect(localStorage.getItem('ui-accent')).toBeNull();
+  } finally {
+    initTheme({ preset: null });
+    localStorage.removeItem('ui-theme');
+  }
+  expect(root.hasAttribute('data-theme-preset')).toBe(false);
+  expect(root.getAttribute('data-theme')).toBe('light');
+});
+
+test('color-scheme follows the theme: native scrollbars and controls turn dark in dark', () => {
+  setTheme('dark');
+  expect(getComputedStyle(document.documentElement).colorScheme).toBe('dark');
+  setTheme('light');
+  expect(getComputedStyle(document.documentElement).colorScheme).toBe('light');
+});

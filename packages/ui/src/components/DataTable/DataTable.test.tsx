@@ -917,7 +917,7 @@ test('columns: a short text column is at least 128 px, a long column does not ta
           { key: 'name', label: '名稱' },
           { key: 'owner', label: '負責人' },
           { key: 'note', label: '備註', long: true },
-          { key: 'at', label: '更新', format: 'datetime' },
+          { key: 'at', label: '更新', format: 'dateTime' },
         ]}
         rowActions={(r) => (
           <button type="button" aria-label={`編輯 ${r.name}`} className="ui-iconbtn">

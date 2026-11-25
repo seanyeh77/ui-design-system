@@ -249,13 +249,13 @@ function BothWaysNarrow() {
   const [edge, setEdge] = React.useState<string | null>(null);
   return (
     <div style={{ ...card, maxWidth: 358 }}>
-      <UI.LayerGraph nodes={nodes8} edges={edges8} selectedEdge={edge} onSelectEdge={setEdge} sizeLabel="{n} 個函式" />
+      <UI.LayerGraph nodes={nodes8} edges={edges8} selectedEdge={edge} onSelectEdge={setEdge} sizeLabel="{n} 個函式" externalLabel="repo 外" />
     </div>
   );
 }
 export const BothDirectionsNarrow = { render: () => <BothWaysNarrow /> };
 
-// A box outside the repository (external): above every layer, dashed, 「repo 外」 under the name, no size bar. Its lines
+// A box outside the repository (external): above every layer, dashed, its label under the name (externalLabel, here 「repo 外」), no size bar. Its lines
 // work like any other; here three intercepted calls into the library, and the library's line back up to the program.
 const nodes9 = [
   { id: 'app', name: '被追蹤的程式', external: true },
@@ -276,7 +276,16 @@ function External() {
   const [edge, setEdge] = React.useState<string | null>(null);
   return (
     <div style={card}>
-      <UI.LayerGraph nodes={nodes9} edges={edges9} selected={sel} onSelect={setSel} selectedEdge={edge} onSelectEdge={setEdge} sizeLabel="{n} 個函式" />
+      <UI.LayerGraph
+        nodes={nodes9}
+        edges={edges9}
+        selected={sel}
+        onSelect={setSel}
+        selectedEdge={edge}
+        onSelectEdge={setEdge}
+        sizeLabel="{n} 個函式"
+        externalLabel="repo 外"
+      />
     </div>
   );
 }

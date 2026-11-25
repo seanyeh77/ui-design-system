@@ -1,11 +1,13 @@
 import * as React from 'react';
 import { format } from '../format';
-import { reduced } from './util';
+import { reduced, useMedia } from './util';
 import type { KpiCardProps } from '../components/KpiCard/KpiCard';
 
 /** 0 → 1 with an ease-out over ms, restarted when target changes; 1 at once with reduced motion. */
 export function useCountUp(target: unknown, ms: number): number {
-  const [t, setT] = React.useState(reduced() ? 1 : 0);
+  // Reduced motion from useMedia: false on the server and while hydrating, so the markup matches; then the final value.
+  const still = useMedia('(prefers-reduced-motion: reduce)');
+  const [t, setT] = React.useState(0);
   React.useEffect(() => {
     if (reduced()) return;
     let t0: number | null = null;
@@ -19,7 +21,7 @@ export function useCountUp(target: unknown, ms: number): number {
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
   }, [target, ms]);
-  return t;
+  return still ? 1 : t;
 }
 
 /** Decimals the axis labels need so that ticks a step apart read differently (0.5, 1, 1.5). */

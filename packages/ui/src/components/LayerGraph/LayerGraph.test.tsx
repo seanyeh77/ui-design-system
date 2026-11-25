@@ -521,7 +521,7 @@ test('LayerGraph: a shared item counts every item that uses it, other shared ite
   expect(into.reduce((a, li) => a + Number(/(\d+) 次/.exec(li.textContent ?? '')?.[1] ?? 0), 0)).toBe(15);
 });
 
-test('LayerGraph: an external box sits above every layer, dashed, 「repo 外」 and no size bar; selectable, lines and list as usual', async () => {
+test('LayerGraph: an external box sits above every layer, dashed, 「外部」 and no size bar; selectable, lines and list as usual', async () => {
   const onSelect = vi.fn();
   const { container } = render(
     <LayerGraph
@@ -538,7 +538,7 @@ test('LayerGraph: an external box sits above every layer, dashed, 「repo 外」
       onSelectEdge={() => {}}
     />,
   );
-  const box = screen.getByRole('button', { name: '被追蹤的程式 repo 外' });
+  const box = screen.getByRole('button', { name: '被追蹤的程式 外部' });
   expect(box.classList.contains('is-external')).toBe(true);
   expect(box.querySelector('.ui-lg-size')).toBeNull();
   expect(getComputedStyle(box).borderTopStyle).toBe('dashed');
@@ -552,7 +552,7 @@ test('LayerGraph: an external box sits above every layer, dashed, 「repo 外」
   // The list says it is outside the repository.
   await userEvent.setup().click(screen.getByRole('tab', { name: '清單' }));
   const li = [...container.querySelectorAll('.ui-lg-li')].find((l) => l.textContent?.startsWith('被追蹤的程式'));
-  expect(li?.textContent).toBe('被追蹤的程式，repo 外');
+  expect(li?.textContent).toBe('被追蹤的程式，外部');
 });
 
 test('LayerGraph list in English: ASCII separators, no full-width punctuation', async () => {
@@ -571,7 +571,7 @@ test('LayerGraph list in English: ASCII separators, no full-width punctuation', 
     await userEvent.setup().click(screen.getByRole('tab', { name: 'List' }));
     const text = [...container.querySelectorAll('.ui-lg-li')].map((li) => li.textContent);
     expect(text).toEqual([
-      'traced program, outside the repo',
+      'traced program, External',
       'src/libibtrace, 114 items',
       'traced program →to src/libibtrace: Interposes infiniband (18 functions) (Inferred)',
     ]);
@@ -735,7 +735,7 @@ test('LayerGraph list: each relation button is named with its description, not o
   expect(screen.getByRole('button', { name: 'src/ibmon 到 src/common：20 calls' })).toBeTruthy();
 });
 
-test('LayerGraph: countLabel and sizeLabel can be functions of the number; English says 「1 call」', async () => {
+test('LayerGraph: countLabel and sizeLabel can be functions of the number; English says 「1 use」', async () => {
   setLocale('en');
   try {
     const { container } = render(
@@ -753,7 +753,7 @@ test('LayerGraph: countLabel and sizeLabel can be functions of the number; Engli
     );
     const counts = [...container.querySelectorAll('.ui-lg-count')].map((e) => e.textContent);
     expect(counts).toEqual(['1 function', '1,033 functions']);
-    expect([...container.querySelectorAll('.ui-lg-label')].map((e) => e.textContent)).toContain('1 call');
+    expect([...container.querySelectorAll('.ui-lg-label')].map((e) => e.textContent)).toContain('1 use');
   } finally {
     setLocale('zh-TW');
   }
@@ -846,6 +846,7 @@ test('LayerGraph: labels keep a visible gap from each other; one that must cross
   );
   await new Promise((r) => setTimeout(r, 300));
   const boxes = [...container.querySelectorAll<HTMLElement>('.ui-lg-label')].map((l) => ({ t: l.textContent, r: l.getBoundingClientRect() }));
+  expect(boxes.length).toBeGreaterThan(1);
   for (let i = 0; i < boxes.length; i++)
     for (let j = i + 1; j < boxes.length; j++) {
       const a = boxes[i].r;
@@ -853,7 +854,9 @@ test('LayerGraph: labels keep a visible gap from each other; one that must cross
       const apart = Math.max(a.left, b.left) - Math.min(a.right, b.right) >= 2 || Math.max(a.top, b.top) - Math.min(a.bottom, b.bottom) >= 2;
       expect(apart, `${boxes[i].t} / ${boxes[j].t}`).toBe(true);
     }
-  for (const l of container.querySelectorAll<HTMLElement>('.ui-lg-label.is-over')) expect(getComputedStyle(l).backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
+  const over = container.querySelectorAll<HTMLElement>('.ui-lg-label.is-over');
+  expect(over.length).toBeGreaterThan(0);
+  for (const l of over) expect(getComputedStyle(l).backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
 });
 
 test('LayerGraph: a wrapped label never starts a line with a comma', async () => {

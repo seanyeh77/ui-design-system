@@ -2,7 +2,8 @@ import * as React from 'react';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { browserKey, cx } from '../../internal/util';
-import { ACCENT_SWATCHES, setAccent, storedAccent } from '../../theme';
+import { useStored } from '../../internal/stored';
+import { ACCENT_KEY, ACCENT_SWATCHES, DEFAULT_ACCENT, defaultAccent, parseAccent, setAccent } from '../../theme';
 import { includeIcons } from '../../icons/store';
 import phCheck from '../../icons/ph/check';
 
@@ -10,6 +11,8 @@ includeIcons(phCheck);
 
 const SWATCHES = ACCENT_SWATCHES;
 const HEX = /^#[0-9a-fA-F]{6}$/;
+const noSubscribe = () => () => {};
+const serverAccent = () => DEFAULT_ACCENT;
 
 export interface AccentPickerProps {
   /** Controlled #rrggbb. Without it, the picker reads and sets the stored accent itself. */
@@ -23,9 +26,12 @@ export interface AccentPickerProps {
 
 /** 8 swatches plus a hex field for any color. */
 export function AccentPicker({ value, onChange, label, className }: AccentPickerProps) {
-  const [own, setOwn] = React.useState(() => (value || storedAccent()).toLowerCase());
+  // The default accent on the server and the first browser render, then the stored pick (or the preset's accent).
+  const [stored] = useStored<string | null>(ACCENT_KEY, parseAccent, null);
+  const fallback = React.useSyncExternalStore(noSubscribe, defaultAccent, serverAccent);
+  const [own, setOwn] = React.useState<string | null>(null);
   const [hexIn, setHexIn] = React.useState('');
-  const cur = (value || own).toLowerCase();
+  const cur = (value || own || stored || fallback).toLowerCase();
   const pick = (c: string) => {
     setOwn(c);
     if (onChange) onChange(c);

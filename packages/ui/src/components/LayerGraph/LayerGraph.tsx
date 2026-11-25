@@ -9,6 +9,7 @@ import { cx, monoNums, resizeObserver } from '../../internal/util';
 import { ScrollHint, useScrollHint } from '../../internal/scrollHint';
 import { codeSpans } from '../../internal/codeSpans';
 import { devWarn } from '../../internal/dev';
+import { useStored } from '../../internal/stored';
 import { Icon } from '../../icons/Icon';
 import { includeIcons } from '../../icons/store';
 import phLock from '../../icons/ph/lock';
@@ -31,7 +32,7 @@ export interface LayerGraphNode {
    *  Selectable like the other boxes (same selected and onSelect): the boxes that use it show 「使用 N 次」. */
   shared?: boolean;
   /** Outside the repository (a traced program, a library): drawn above every layer with a dashed outline and
-   *  「repo 外」 (externalLabel) under the name. Not in any layer and no size bar; its lines, selection and list entry
+   *  「外部」 (externalLabel) under the name. Not in any layer and no size bar; its lines, selection and list entry
    *  work like any box's. */
   external?: boolean;
   /** A short tag beside the name (「可修改」「受保護」): on the same line, never cut; the name is cut first. In the list
@@ -84,7 +85,7 @@ export interface LayerGraphProps {
   /** Label of a selected edge's count: a string with {n}, or a function of the count (`(n) => n === 1 ? '1 call' : …`).
    *  Default 「{n} 次」 (English 「1 call」, 「2 calls」). */
   countLabel?: string | ((n: number) => string);
-  /** Under the name of an external box, and after it in the list. Default 「repo 外」. */
+  /** Under the name of an external box, and after it in the list. Default 「外部」 (External). */
   externalLabel?: string;
   /** Heading of the shared list. Default 「共用項目」. */
   sharedLabel?: string;
@@ -272,6 +273,15 @@ function labelWidth(text: string): number {
 // The line-label button keeps its choice in localStorage under this prefix and the diagram's key.
 const LABELS_KEY = 'ui-lg-labels:';
 const allIds = (nodes: LayerGraphNode[]) => nodes.map((n) => n.id).join('|');
+const parseOnOff = (raw: string) => {
+  if (raw !== '1' && raw !== '0') throw new Error('not a stored choice');
+  return raw === '1';
+};
+const parseHeight = (raw: string) => {
+  const v = Number(raw);
+  if (!Number.isFinite(v)) throw new Error('not a stored height');
+  return v;
+};
 const GROW = 24;
 const GROW_MAX = 144;
 
@@ -375,27 +385,8 @@ export function LayerGraph(p: LayerGraphProps) {
   const GAP = 56;
   // HC: the dragged height, in screen px from the drawn one: above 0 spreads the layers apart, below 0 makes a
   // shorter frame the diagram scrolls in.
-  const [dh, setDhState] = React.useState(() => {
-    if (!p.resizable || !p.heightKey) return 0;
-    try {
-      const v = Number(localStorage.getItem('ui-lg-height:' + p.heightKey));
-      return Number.isFinite(v) ? v : 0;
-    } catch {
-      return 0;
-    }
-  });
-  const setDh = React.useCallback(
-    (v: number) => {
-      setDhState(v);
-      if (!p.heightKey) return;
-      try {
-        localStorage.setItem('ui-lg-height:' + p.heightKey, String(Math.round(v)));
-      } catch {
-        // Storage blocked or full: it works the same, without remembering.
-      }
-    },
-    [p.heightKey],
-  );
+  // 0 on the server and the first browser render, then the stored height (heightKey).
+  const [dh, setDh] = useStored(p.resizable && p.heightKey ? 'ui-lg-height:' + p.heightKey : undefined, parseHeight, 0, (v) => String(Math.round(v)));
   // Space added between boxes, 24 px at a time (up to 5 times), while a label still has to cover a line.
   // Kept per diagram and per width: other boxes or lines, or a resized box, start again from no added space.
   const spreadKey = avail + '#' + p.nodes.map((n) => n.id).join('|') + '#' + p.edges.map((e) => e.from + '>' + e.to + ':' + (e.label ?? '')).join('|');
@@ -407,15 +398,11 @@ export function LayerGraph(p: LayerGraphProps) {
   const all = p.nodes;
   const sel = p.selected ?? null;
   devWarn(
-    all.some((n) => n.fns != null),
+    () => all.some((n) => n.fns != null),
     'LayerGraph',
     'fns is renamed size; pass size and, for the text under the bar, sizeLabel such as 「{n} 個函式」.',
   );
-  devWarn(
-    all.some((n) => n.external && n.shared),
-    'LayerGraph',
-    'a node is both external and shared; it is drawn as shared. Keep one of the two.',
-  );
+  devWarn(() => all.some((n) => n.external && n.shared), 'LayerGraph', 'a node is both external and shared; it is drawn as shared. Keep one of the two.');
   // External boxes have no size: they are not part of the code being measured.
   const sizeOf = (n: LayerGraphNode) => (n.external && !n.shared ? undefined : (n.size ?? n.fns));
   const sharedIds = new Set(all.filter((n) => n.shared).map((n) => n.id));
@@ -519,25 +506,10 @@ export function LayerGraph(p: LayerGraphProps) {
   for (const k in ins) ins[k].sort((a, b) => pos[a.from].x - pos[b.from].x);
   const edgeId = (e: LayerGraphEdge) => e.id ?? `${e.from}->${e.to}`;
   const pickEdge = p.onSelectEdge;
-  const [labelsOn, setLabelsOn] = React.useState<boolean>(() => {
-    try {
-      const v = window.localStorage.getItem(LABELS_KEY + (p.scrollKey ?? allIds(p.nodes)));
-      if (v === '1' || v === '0') return v === '1';
-    } catch {
-      // Storage blocked: start from edgeLabels.
-    }
-    return p.edgeLabels !== 'hover';
-  });
+  // edgeLabels on the server and the first browser render, then the reader's stored choice.
+  const [labelsOn, setLabelsOn] = useStored(LABELS_KEY + (p.scrollKey ?? allIds(p.nodes)), parseOnOff, p.edgeLabels !== 'hover', (v) => (v ? '1' : '0'));
   const peek = !labelsOn;
-  const switchLabels = () => {
-    const on = !labelsOn;
-    setLabelsOn(on);
-    try {
-      window.localStorage.setItem(LABELS_KEY + (p.scrollKey ?? allIds(p.nodes)), on ? '1' : '0');
-    } catch {
-      // Storage blocked or full: the labels still switch, the choice is just not remembered.
-    }
-  };
+  const switchLabels = () => setLabelsOn(!labelsOn);
   const [hover, setHover] = React.useState<string | null>(null);
   // Wider than its box: a fade on the right while more is to the right, and a 「左右滑動」 hint until the first scroll.
   const { ref: scrollRef, more: scrollMore, overflows, scrolled, onScroll } = useScrollHint();
@@ -1376,7 +1348,7 @@ export function LayerGraph(p: LayerGraphProps) {
   const firstX = Math.min(...main.filter((n) => pos[n.id]).map((n) => boxOf(n.id).x), W);
   const selBox = sel != null && pos[sel] ? boxOf(sel) : null;
   const sizeText = (n: number) => withNum(p.sizeLabel, n, () => byCount(n, '1 個項目', '{n} 個項目'));
-  const externalText = p.externalLabel ?? tr('repo 外');
+  const externalText = p.externalLabel ?? tr('外部');
   const useText = p.useLabel ?? tr('使用 {n} 次');
   // T: a short tag beside the name; the name is cut first (flex: none here, min-width: 0 on the name).
   const tagOf = (n: LayerGraphNode) =>
@@ -1711,12 +1683,12 @@ export function LayerGraph(p: LayerGraphProps) {
           items={
             p.legendItems || [
               // Only kinds of line the diagram has: a diagram of inferred lines alone gets no 「次數越多線越粗」.
-              ...(edges.some((e) => !lab(e) && pos[e.from] && pos[e.to]) ? [{ type: 'weight' as const, label: '次數越多線越粗' }] : []),
+              ...(edges.some((e) => !lab(e) && pos[e.from] && pos[e.to]) ? [{ type: 'weight' as const, label: tr('次數越多線越粗') }] : []),
               ...(edges.some((e) => e.inferred && !e.declared && pos[e.from] && pos[e.to])
-                ? [{ type: 'inferred' as const, label: p.inferredLabel || '推測的關係', text: p.inferredText }]
+                ? [{ type: 'inferred' as const, label: p.inferredLabel || tr('推測的關係'), text: p.inferredText }]
                 : []),
               ...(edges.some((e) => e.declared && pos[e.from] && pos[e.to])
-                ? [{ type: 'declared' as const, label: p.declaredLegend || '專案宣告的關係', text: p.declaredText }]
+                ? [{ type: 'declared' as const, label: p.declaredLegend || tr('專案宣告的關係'), text: p.declaredText }]
                 : []),
             ]
           }

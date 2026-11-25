@@ -353,7 +353,7 @@
     inset 4px 0 0 var(--accent),
     inset 0 0 0 2px var(--accent);
 }
-/* Outside the repository: a dashed outline on the page's surface, no bar on the left, 「repo 外」 under the name. */
+/* Outside the repository: a dashed outline on the page's surface, no bar on the left, its label (externalLabel) under the name. */
 .ui-lg-node.is-external {
   padding-left: 12px;
   background: var(--surface);

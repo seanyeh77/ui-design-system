@@ -21,9 +21,10 @@ interface ColumnBase<R extends Row> {
   /** Takes a share of the room left (like fr). Default: the first text column and long columns take it (1); numbers,
    *  units, dates, durations, status Badges and other short text hug their content (0). */
   grow?: number;
-  /** money: NT$ 1,280. date: 2026/11/04（三）. relative: 「2 小時前」 within a week, the full date on hover. percent:
-   *  1 decimal, no % sign: add unit: '%'. duration: seconds as 46:42 or 1:54:49, right-aligned, sorted by the number. */
-  format?: 'money' | 'date' | 'datetime' | 'relative' | 'percent' | 'duration';
+  /** money: NT$ 1,280. date: 2026/11/04（三）. dateTime: 2026/11/04（三）15:57 ('datetime' is the old spelling).
+   *  relative: 「2 小時前」 within a week, kept current, the full date on hover. percent: 1 decimal, no % sign: add
+   *  unit: '%'. duration: seconds as 46:42 or 1:54:49, right-aligned, sorted by the number. */
+  format?: 'money' | 'date' | 'dateTime' | 'datetime' | 'relative' | 'percent' | 'duration';
   currency?: string;
   decimals?: number;
   /** A second line under the cell's text: smaller, muted, one line cut with …. Search finds its text; phone cards show

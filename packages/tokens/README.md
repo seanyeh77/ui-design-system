@@ -22,6 +22,8 @@ const style = { color: cssVar('ink-muted') }; // 只有存在的 token 名稱能
 @import '@seanyeh77/tokens/tailwind.css';
 ```
 
+`tokens.css` 每個主題也設 `color-scheme`（淺色和 `teaching` 是 `light`、深色是 `dark`），原生捲軸和表單控制項跟著主題。`presets` 匯出每個 preset 的 `scheme` 與和淺色不同的值。
+
 ## 文件
 
 - 文件網站：<https://seanyeh77.github.io/ui-design-system/>（全部 token 見 `theme.md`）

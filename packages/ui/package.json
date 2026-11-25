@@ -36,9 +36,9 @@
     "docs"
   ],
   "scripts": {
-    "build": "tsdown && node scripts/postbuild.ts",
+    "build": "node scripts/theme-defaults.ts && tsdown && node scripts/postbuild.ts",
     "typecheck": "tsc -p .",
-    "test": "node scripts/check-css-tokens.ts && vitest run"
+    "test": "node scripts/check-css-tokens.ts && node scripts/theme-defaults.ts --check && vitest run"
   },
   "peerDependencies": {
     "react": ">=19",

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Icon } from '../../icons/Icon';
 import { tr } from '../../i18n';
 import { cx } from '../../internal/util';
+import { useStored } from '../../internal/stored';
 import { IconButton } from '../IconButton/IconButton';
 import { includeIcons } from '../../icons/store';
 import phArrowsInLineVertical from '../../icons/ph/arrows-in-line-vertical';
@@ -26,23 +27,12 @@ const MOVE_MS = 260;
 
 const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-function readStored(key: string | undefined): boolean | undefined {
-  if (!key) return undefined;
-  try {
-    const v = localStorage.getItem('ui-section:' + key);
-    return v === '1' ? true : v === '0' ? false : undefined;
-  } catch {
-    return undefined;
-  }
+// A stored open state: '1' or '0'; anything else gives the default.
+function parseOpen(raw: string): boolean {
+  if (raw === '1' || raw === '0') return raw === '1';
+  throw new Error('not a stored open state');
 }
-function writeStored(key: string | undefined, open: boolean) {
-  if (!key) return;
-  try {
-    localStorage.setItem('ui-section:' + key, open ? '1' : '0');
-  } catch {
-    // Storage blocked or full: works the same, it only does not remember.
-  }
-}
+const serializeOpen = (v: boolean) => (v ? '1' : '0');
 
 export interface SectionProps {
   /** The heading, 20 px bold (h4 size), above the 16 px content. */
@@ -77,16 +67,17 @@ export interface SectionProps {
 export function Section(p: SectionProps) {
   const group = React.useContext(Group);
   const uid = React.useId();
-  const [own, setOwn] = React.useState(() => readStored(p.storageKey) ?? p.defaultOpen ?? false);
+  // Closed or defaultOpen on the server and the first browser render, then the stored state (storageKey).
+  const [own, setOwn] = useStored(p.storageKey ? 'ui-section:' + p.storageKey : undefined, parseOpen, p.defaultOpen ?? false, serializeOpen);
   const open = p.open ?? own;
   const set = React.useCallback(
     (v: boolean) => {
-      if (p.open === undefined) setOwn(v);
-      writeStored(p.storageKey, v);
+      // Stored even when controlled, so an uncontrolled use with the same key starts from it.
+      setOwn(v);
       p.onOpenChange?.(v);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [p.open, p.storageKey, p.onOpenChange],
+    [setOwn, p.onOpenChange],
   );
   const setRef = React.useRef(set);
   const openRef = React.useRef(open);

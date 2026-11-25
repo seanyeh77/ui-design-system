@@ -46,7 +46,7 @@ function NavBrandRow({ brand, collapsed }: { brand: React.ReactNode | NavBrand; 
   devWarn(
     !spec && collapsed,
     'SideNav',
-    'brand 是一個元素，收合時讀不出哪部分是 logo，只能整塊藏起來。改傳 brand={{ mark, name, href }}：收合時顯示 mark，展開時加上名稱。',
+    'brand is an element, so the collapsed sidebar cannot tell which part is the logo and hides all of it. Pass brand={{ mark, name, href }}: collapsed shows mark, expanded adds the name.',
   );
   if (!spec) return <div className="ui-nav-brand">{collapsed ? null : (brand as React.ReactNode)}</div>;
   const inner = (

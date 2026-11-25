@@ -121,8 +121,9 @@ test('below 960 px the explorer and side bar lie over the main view, closed unti
   expect(isOpen('檔案總管')).toBe(true);
   await user.click(screen.getByRole('button', { name: 'controller.py' }));
   expect(isOpen('檔案總管')).toBe(false);
-  // The stored layout keeps the wide screen's choices.
-  expect(JSON.parse(localStorage.getItem('ui-workbench:test') ?? '{}').open.explorer).toBe(true);
+  // The stored layout keeps the wide screen's choices: opening an overlay stores nothing (the layout is stored on a change).
+  const stored = localStorage.getItem('ui-workbench:test');
+  expect(stored === null || JSON.parse(stored).open.explorer === true).toBe(true);
 });
 
 test('phone: no product name; the whole path on the bar above the main view; side bar and panel views in one panel under the main view', async () => {

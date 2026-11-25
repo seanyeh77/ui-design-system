@@ -2,7 +2,8 @@ import { expect, test } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { page } from 'vitest/browser';
 import * as React from 'react';
-import { ConsoleLayout, consoleZoom } from '../../index';
+import { ConsoleLayout } from '../../index';
+import { consoleZoom } from './ConsoleLayout';
 
 test('zoom is 1 up to 1440 × 900, grows with the screen, at most 1.5', () => {
   expect(consoleZoom(1366, 768)).toBe(1);

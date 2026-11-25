@@ -146,7 +146,7 @@
           }),
         );
       }
-      // a box outside the repository: above every layer, dashed, 「repo 外」, no size bar
+      // a box outside the repository: above every layer, dashed, its label (externalLabel, here 「repo 外」), no size bar
       var nodes9 = [
         { id: 'app', name: '被追蹤的程式', external: true },
         { id: 'worker', name: 'src/worker', code: true, layer: 0, size: 91 },
@@ -158,7 +158,7 @@
       ];
       function External() {
         var s = React.useState(null);
-        return h('div', { style: card }, h(U.LayerGraph, { nodes: nodes9, edges: edges9, selected: s[0], onSelect: s[1], sizeLabel: '{n} 個函式' }));
+        return h('div', { style: card }, h(U.LayerGraph, { nodes: nodes9, edges: edges9, selected: s[0], onSelect: s[1], sizeLabel: '{n} 個函式', externalLabel: 'repo 外' }));
       }
       function HoverLabels() {
         var s = React.useState(null);

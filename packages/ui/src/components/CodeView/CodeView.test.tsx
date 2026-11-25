@@ -177,9 +177,9 @@ test('links: whole names by col or by the first match; a name that does not matc
     // one Tab stop: names and paths are reached with the arrow keys
     for (const a of container.querySelectorAll<HTMLElement>('.ui-cv-name, .ui-cv-ref')) expect(a.tabIndex).toBe(-1);
     const said = warn.mock.calls.map((c) => String(c[0])).join('\n');
-    expect(said).toContain('第 55 行找不到完整的「runtime.deploy」');
-    expect(said).toContain('第 56 行第 3 欄不是「emit」');
-    expect(said).toContain('第 99 行不在程式碼裡');
+    expect(said).toContain('line 55 has no whole "runtime.deploy"');
+    expect(said).toContain('line 56 column 3 is not "emit"');
+    expect(said).toContain('line 99 is not in the code');
   } finally {
     warn.mockRestore();
   }

@@ -1,21 +1,38 @@
 import { ensureAnnouncer } from './announce';
-import { reduced, store } from './internal/util';
+import { DEFAULT_ACCENT, GROUNDS, PRESETS, type ThemePreset } from './generated/themeDefaults';
+import { installFocusMain } from './internal/focusMain';
+import { readStored, writeStored } from './internal/stored';
+import { reduced } from './internal/util';
 
 /* Theme and accent color. 'auto' follows prefers-color-scheme; colors cross-fade for 300 ms on a change.
-   The choice is kept in localStorage, so initTheme() on the next visit restores it. */
+   The choice is kept in localStorage, so initTheme() on the next visit restores it. A preset (data-theme-preset on
+   <html>, or initTheme({ preset })) replaces light and dark: the teaching preset is light only. The accent comes from
+   tokens.css until the person picks one (setAccent); only then are inline --accent variables written. */
 
 export type ThemeSetting = 'auto' | 'light' | 'dark';
+export type { ThemePreset };
+export { DEFAULT_ACCENT };
 
-const THEME_KEY = 'ui-theme';
+export const THEME_KEY = 'ui-theme';
 export const ACCENT_KEY = 'ui-accent';
-export const DEFAULT_ACCENT = '#2457d6';
+const PRESET_ATTR = 'data-theme-preset';
 
 const isSetting = (v: string | null): v is ThemeSetting => v === 'auto' || v === 'light' || v === 'dark';
+const hasDom = () => typeof window !== 'undefined' && typeof document !== 'undefined';
 
-/** The stored theme setting, 'auto' when there is none. */
+/** A stored theme setting as text to the setting, 'auto' for anything else. */
+export const parseTheme = (raw: string): ThemeSetting => (isSetting(raw) ? raw : 'auto');
+
+/** The stored theme setting, 'auto' when there is none (and on the server). */
 export function storedTheme(): ThemeSetting {
-  const v = store(THEME_KEY);
-  return isSetting(v) ? v : 'auto';
+  return hasDom() ? parseTheme(readStored(THEME_KEY) ?? '') : 'auto';
+}
+
+/** The preset on <html data-theme-preset>, or null (the light and dark themes). */
+export function themePreset(): ThemePreset | null {
+  if (typeof document === 'undefined') return null;
+  const v = document.documentElement.getAttribute(PRESET_ATTR);
+  return v && Object.hasOwn(PRESETS, v) ? (v as ThemePreset) : null;
 }
 
 function resolveTheme(t: ThemeSetting): 'light' | 'dark' {
@@ -25,19 +42,21 @@ function resolveTheme(t: ThemeSetting): 'light' | 'dark' {
 
 let fadeTimer: ReturnType<typeof setTimeout> | undefined;
 
-/** Switches the theme on <html data-theme> and remembers it. */
+/** Switches the theme on <html data-theme> and remembers it. Under a preset the setting is remembered but the
+ *  preset stays (the teaching preset is light only). */
 export function setTheme(t: ThemeSetting): void {
+  if (!hasDom()) return;
   const root = document.documentElement;
   if (!reduced()) {
     root.classList.add('ui-theme-fade');
     clearTimeout(fadeTimer);
     fadeTimer = setTimeout(() => root.classList.remove('ui-theme-fade'), 320);
   }
-  root.setAttribute('data-theme', resolveTheme(t));
+  root.setAttribute('data-theme', themePreset() ?? resolveTheme(t));
   root.setAttribute('data-theme-setting', t);
-  store(THEME_KEY, t);
+  writeStored(THEME_KEY, t);
   // The accent's text and soft colors depend on the theme.
-  setAccent(storedAccent(), true);
+  applyAccent();
 }
 
 /** Swatches whose color changed so they read as text on every ground: a stored old value moves to the new one. */
@@ -50,13 +69,32 @@ const RENAMED_SWATCHES: Record<string, string> = {
   '#0e827d': '#027874',
 };
 
-/** The stored accent, with an old swatch value moved to its current one (and stored again). */
+/** A stored accent as text to #rrggbb, an old swatch value moved to its current one; null for anything else. */
+export function parseAccent(raw: string): string | null {
+  const v = raw.trim().toLowerCase();
+  if (!/^#[0-9a-f]{6}$/.test(v)) return null;
+  return RENAMED_SWATCHES[v] ?? v;
+}
+
+/** The accent the person picked (stored), with an old swatch value moved to its current one (and stored again);
+ *  null when they picked none, so tokens.css decides. */
+export function pickedAccent(): string | null {
+  if (!hasDom()) return null;
+  const raw = readStored(ACCENT_KEY);
+  const v = raw ? parseAccent(raw) : null;
+  if (v && v !== raw) writeStored(ACCENT_KEY, v);
+  return v;
+}
+
+/** The accent in use: the picked one, else the preset's accent, else the default (DEFAULT_ACCENT). */
 export function storedAccent(): string {
-  const v = store(ACCENT_KEY);
-  if (!v) return DEFAULT_ACCENT;
-  const now = RENAMED_SWATCHES[v.toLowerCase()];
-  if (now) store(ACCENT_KEY, now);
-  return now ?? v;
+  return pickedAccent() ?? defaultAccent();
+}
+
+/** The accent tokens.css gives when nothing is picked: the preset's, else DEFAULT_ACCENT. */
+export function defaultAccent(): string {
+  const p = themePreset();
+  return p ? PRESETS[p].accent : DEFAULT_ACCENT;
 }
 
 const hexRgb = (x: string): number[] => [1, 3, 5].map((i) => parseInt(x.slice(i, i + 2), 16));
@@ -124,7 +162,7 @@ export function accentText(hex: string, dark: boolean, bg: string, surface: stri
   return text;
 }
 
-const INK = '#171512';
+const INK = GROUNDS.ink.light;
 
 /** The text on an accent fill (on-accent): white or the near-black ink (#171512), whichever contrasts more. */
 export function onFill(fill: string): '#ffffff' | '#171512' {
@@ -160,19 +198,23 @@ export const ACCENT_SWATCHES: readonly (readonly [name: string, hex: string])[] 
   ['青', '#027874'],
 ];
 
-/** Derives every accent token from one color (自訂強調色的換算 in docs/theme.md).
+const ACCENT_VARS = ['--accent', '--accent-hover', '--accent-press', '--accent-soft', '--accent-text', '--on-accent', '--focus', '--focus-ring'];
+
+/** Derives every accent token from one color (自訂強調色的換算 in docs/theme.md) and writes them on <html>.
  *  Returns false for anything but #rrggbb. quiet: apply without storing. */
 export function setAccent(hex: string, quiet = false): boolean {
   if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return false;
+  if (!hasDom()) return true;
   hex = hex.toLowerCase();
   const root = document.documentElement;
   const dark = root.getAttribute('data-theme') === 'dark';
+  const mode = dark ? 'dark' : 'light';
   const cs = getComputedStyle(root);
   // Read the theme's colors as #rrggbb (bundlers may have shortened #ffffff to #fff); the theme's defaults when unset.
-  const surface = toHex(cs.getPropertyValue('--surface')) ?? (dark ? '#393530' : '#ffffff');
-  const bg = toHex(cs.getPropertyValue('--bg')) ?? (dark ? '#2f2a25' : '#fcfbfb');
-  const sub = toHex(cs.getPropertyValue('--surface-sub')) ?? (dark ? '#443f3b' : '#f6f5f4');
-  const chrome = toHex(cs.getPropertyValue('--surface-chrome')) ?? (dark ? '#3d3834' : '#ffffff');
+  const surface = toHex(cs.getPropertyValue('--surface')) ?? GROUNDS.surface[mode];
+  const bg = toHex(cs.getPropertyValue('--bg')) ?? GROUNDS.bg[mode];
+  const sub = toHex(cs.getPropertyValue('--surface-sub')) ?? GROUNDS['surface-sub'][mode];
+  const chrome = toHex(cs.getPropertyValue('--surface-chrome')) ?? GROUNDS['surface-chrome'][mode];
   const soft = dark ? mixHex(surface, hex, 0.22) : mixHex('#ffffff', hex, 0.12);
   // Text in the accent also sits on zebra rows, code blocks, the top bar and its own soft fill (a selected row).
   const text = accentText(hex, dark, bg, surface, sub, chrome, soft);
@@ -193,16 +235,37 @@ export function setAccent(hex: string, quiet = false): boolean {
     '--focus-ring': text,
   };
   for (const [k, v] of Object.entries(vars)) root.style.setProperty(k, v);
-  if (!quiet) store(ACCENT_KEY, hex);
+  if (!quiet) writeStored(ACCENT_KEY, hex);
   return true;
+}
+
+/** Forgets the picked accent and removes the inline accent variables, so tokens.css (the theme or preset) decides. */
+export function resetAccent(): void {
+  if (!hasDom()) return;
+  for (const k of ACCENT_VARS) document.documentElement.style.removeProperty(k);
+  writeStored(ACCENT_KEY, null);
+}
+
+/** Applies the picked accent for the current theme, or removes the inline variables when none is picked. */
+function applyAccent(): void {
+  const picked = pickedAccent();
+  if (picked) setAccent(picked, true);
+  else for (const k of ACCENT_VARS) document.documentElement.style.removeProperty(k);
 }
 
 let following = false;
 
-/** Applies the stored theme and accent; call once when the page starts. */
-export function initTheme(): void {
+/** Applies the stored theme and accent; call once when the page starts. preset: a preset of tokens.json (such as
+ *  'teaching') that replaces light and dark, kept on <html data-theme-preset>; null removes it; without the option a
+ *  data-theme-preset already on <html> is kept. Pages do not set data-theme themselves. */
+export function initTheme(options: { preset?: ThemePreset | null } = {}): void {
+  if (!hasDom()) return;
+  const root = document.documentElement;
+  if (options.preset === null) root.removeAttribute(PRESET_ATTR);
+  else if (options.preset) root.setAttribute(PRESET_ATTR, options.preset);
   setTheme(storedTheme());
   ensureAnnouncer();
+  installFocusMain();
   if (following || typeof window.matchMedia !== 'function') return;
   following = true;
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {

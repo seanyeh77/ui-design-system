@@ -15,6 +15,8 @@ interface Preset {
   id: string;
   name: string;
   usage?: string;
+  /** The color scheme of native controls and scrollbars under this preset. Default light. */
+  scheme?: 'light' | 'dark';
   values: Record<string, string>;
 }
 interface TokenFile {
@@ -53,17 +55,18 @@ for (const [key, value] of Object.entries(file.type.families)) {
   groups.font.push('font-' + key);
 }
 
-const block = (selector: string, values: Record<string, string>, base?: Record<string, string>) =>
-  `${selector} {\n${Object.entries(values)
+// color-scheme: native scrollbars, form controls and the canvas follow the theme.
+const block = (selector: string, values: Record<string, string>, base?: Record<string, string>, scheme?: 'light' | 'dark') =>
+  `${selector} {\n${scheme ? `  color-scheme: ${scheme};\n` : ''}${Object.entries(values)
     .filter(([k, v]) => !base || base[k] !== v)
     .map(([k, v]) => `  --${k}: ${v};`)
     .join('\n')}\n}\n`;
 
-let blocks = block(':root', light) + block('[data-theme="dark"]', dark, light);
+let blocks = block(':root', light, undefined, 'light') + block('[data-theme="dark"]', dark, light, 'dark');
 for (const preset of file.presets ?? []) {
   const unknown = Object.keys(preset.values).filter((k) => !(k in light));
   if (unknown.length) throw new Error(`preset ${preset.id}: unknown tokens ${unknown.join(', ')}`);
-  blocks += block(`[data-theme="${preset.id}"]`, preset.values, light);
+  blocks += block(`[data-theme="${preset.id}"]`, preset.values, light, preset.scheme ?? 'light');
 }
 // In the system's layer (ui.tokens, below the component styles): a page's own unlayered :root { --accent: … } always
 // wins, whatever the order of the files. The first statement places Tailwind's layers around it when loaded first.
@@ -102,12 +105,18 @@ export type MotionToken = ${union(groups.motion)};
 export type LayerToken = ${union(groups.layer)};
 export type Token = ColorToken | SpaceToken | RadiusToken | ShadowToken | SizeToken | FontToken | TextToken | MotionToken | LayerToken;
 export type ThemeId = 'light' | 'dark'${(file.presets ?? []).map((p) => ` | '${p.id}'`).join('')};
+export type PresetId = ${(file.presets ?? []).map((p) => `'${p.id}'`).join(' | ') || 'never'};
 /** Light values; read the live value with getComputedStyle when the theme matters. */
 export declare const tokens: Readonly<Record<Token, string>>;
+/** Each preset: its color scheme (presets are light only) and the values that differ from light. */
+export declare const presets: Readonly<Record<PresetId, { readonly scheme: 'light' | 'dark'; readonly values: Readonly<Partial<Record<Token, string>>> }>>;
 /** \`var(--name)\` for inline styles: \`style={{ color: cssVar('ink-muted') }}\`. Only token names compile. */
 export declare function cssVar(name: Token): string;
 `;
-const js = `${HEADER}export const tokens = Object.freeze(${JSON.stringify(light, null, 2)});
+const presetJs = Object.fromEntries((file.presets ?? []).map((p) => [p.id, { scheme: p.scheme ?? 'light', values: p.values }]));
+// PURE: a bundler drops what a page does not import (the theme helpers import only presets and the accent).
+const js = `${HEADER}export const tokens = /* @__PURE__ */ Object.freeze(${JSON.stringify(light, null, 2)});
+export const presets = /* @__PURE__ */ Object.freeze(${JSON.stringify(presetJs, null, 2)});
 export function cssVar(name) { return 'var(--' + name + ')'; }
 `;
 

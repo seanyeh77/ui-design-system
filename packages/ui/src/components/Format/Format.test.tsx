@@ -31,6 +31,23 @@ test('format.relative: within a week 「2 小時前」「昨天」「3 天前」
   expect(format.relative(new Date(now.getTime() + 3600 * 1000), now)).toBe('2026/11/23（一）13:00');
 });
 
+test('format.relative: across midnight it counts calendar days, not 24-hour spans', () => {
+  // Shortly after midnight: 22:00 the evening before is 「昨天」, not 「3 小時前」; under an hour stays in minutes.
+  const early = at(2026, 11, 18, 1, 0);
+  expect(format.relative(at(2026, 11, 17, 22, 0), early)).toBe('昨天');
+  expect(format.relative(at(2026, 11, 17, 0, 30), early)).toBe('昨天');
+  expect(format.relative(at(2026, 11, 18, 0, 30), early)).toBe('30 分鐘前');
+  expect(format.relative(at(2026, 11, 17, 23, 30), early)).toBe('昨天');
+  // Late in the day: 01:00 the same day is 22 hours ago, the morning before is 「昨天」 though under 48 hours.
+  const late = at(2026, 11, 18, 23, 0);
+  expect(format.relative(at(2026, 11, 18, 1, 0), late)).toBe('22 小時前');
+  expect(format.relative(at(2026, 11, 17, 1, 0), late)).toBe('昨天');
+  expect(format.relative(at(2026, 11, 16, 23, 59), late)).toBe('前天');
+  // Seven calendar days back, even under 7 × 24 hours: the full date.
+  expect(format.relative(at(2026, 11, 11, 23, 59), at(2026, 11, 18, 0, 30))).toBe('2026/11/11（三）23:59');
+  expect(format.relative(at(2026, 11, 12, 0, 0), at(2026, 11, 18, 23, 0))).toBe('6 天前');
+});
+
 test('format.money: NT$ 1,280 with a space, minus before NT$, no decimals', () => {
   expect(format.money(1280)).toBe('NT$ 1,280');
   expect(format.money(-1280)).toBe('-NT$ 1,280');

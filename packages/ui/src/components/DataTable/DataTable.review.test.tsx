@@ -1,4 +1,4 @@
-import { afterEach, expect, test, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, expect, test, vi } from 'vitest';
 import { page } from 'vitest/browser';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
@@ -11,7 +11,14 @@ import { Badge, DataTable, Markdown, type BadgeStatus } from '../../index';
 afterEach(() => history.replaceState(null, '', location.pathname));
 
 type Order = { id: string; name: string; owner: string; status: BadgeStatus; progress: number; amount: number; items: number; updated: string };
-const NOW = Date.now();
+// A fixed clock (2026/11/18 12:00, a Wednesday): relative dates and 「今天」 read the same on any day the tests run.
+const NOW = new Date(2026, 10, 18, 12, 0).getTime();
+beforeAll(() => {
+  vi.setSystemTime(NOW);
+});
+afterAll(() => {
+  vi.useRealTimers();
+});
 const ago = (h: number) => new Date(NOW - h * 3600_000).toISOString();
 const ORDERS: Order[] = [
   { id: 'o1', items: 12, name: '年度採購', owner: '王小明', status: 'doing', progress: 42, amount: 128000, updated: ago(0.2) },
