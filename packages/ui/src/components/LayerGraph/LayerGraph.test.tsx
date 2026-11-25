@@ -4,6 +4,7 @@ import { page } from 'vitest/browser';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { LayerGraph, addMessages, format, setLocale, type LayerGraphEdge } from '../../index';
+import { idsKey } from './LayerGraph';
 
 const user = userEvent.setup();
 const nodes = [
@@ -1281,4 +1282,13 @@ test('LayerGraph: nothing is stored without storageKey; old prop names still wor
   expect(screen.getByRole('button', { name: /src\/cli/ }).textContent).toContain('18 個函式');
   expect(screen.getByRole('button', { name: /src\/cli/ }).getAttribute('aria-pressed')).toBe('true');
   localStorage.clear();
+});
+
+test('LayerGraph scroll memory: a short key per diagram, not every box id joined', () => {
+  const ids = Array.from({ length: 400 }, (_, i) => 'src/module/very/long/path/number_' + i);
+  const k = idsKey(ids);
+  expect(k.length).toBeLessThan(16);
+  expect(idsKey([...ids])).toBe(k);
+  expect(idsKey(ids.slice(1))).not.toBe(k);
+  expect(idsKey(['ab', 'c'])).not.toBe(idsKey(['a', 'bc']));
 });

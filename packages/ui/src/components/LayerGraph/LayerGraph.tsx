@@ -225,8 +225,24 @@ function resolveProps(q: LayerGraphProps): LayerGraphProps {
   };
 }
 
-// Sideways scroll of each diagram, kept while the page lives.
+// Sideways scroll of each diagram, kept while the page lives: by storageKey, or by a short hash of the box ids. At most
+// MEMORY diagrams, the oldest forgotten first, so a page that draws many diagrams does not keep growing it.
 const scrollMemory = new Map<string, number>();
+const MEMORY = 50;
+function remember(key: string, x: number) {
+  scrollMemory.delete(key);
+  scrollMemory.set(key, x);
+  if (scrollMemory.size > MEMORY) scrollMemory.delete(scrollMemory.keys().next().value as string);
+}
+/** A short key for a list of ids (FNV-1a, 32 bit, plus the count): the same diagram gets the same key. */
+export function idsKey(ids: string[]): string {
+  let h = 0x811c9dc5;
+  for (const id of ids) {
+    for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 0x01000193);
+    h = Math.imul(h ^ 0x7c, 0x01000193);
+  }
+  return ids.length + ':' + (h >>> 0).toString(36);
+}
 
 // Label width before layout: text in the sans font, `code` and numbers in the mono font, as labelParts draws them.
 let measure: CanvasRenderingContext2D | null | undefined;
@@ -635,7 +651,8 @@ export function LayerGraph(props: LayerGraphProps) {
   const { ref: scrollRef, more: scrollMore, overflows, scrolled, onScroll } = useScrollHint();
   const uid = React.useId().replace(/:/g, '');
   const [view, setView] = React.useState<'graph' | 'list'>('graph');
-  const memKey = p.scrollKey ?? all.map((n) => n.id).join('|');
+  const allIds = all.map((n) => n.id).join('\u0000');
+  const memKey = React.useMemo(() => p.scrollKey ?? idsKey(allIds.split('\u0000')), [p.scrollKey, allIds]);
   // Back to the same diagram: where it was scrolled to (FB).
   React.useLayoutEffect(() => {
     const el = scrollRef.current;
@@ -644,7 +661,7 @@ export function LayerGraph(props: LayerGraphProps) {
   }, [memKey, view, scrollRef]);
   const onScrollKeep = () => {
     const el = scrollRef.current;
-    if (el) scrollMemory.set(memKey, el.scrollLeft);
+    if (el) remember(memKey, el.scrollLeft);
     onScroll();
   };
   const selEdge = (pickEdge && edges.find((e) => edgeId(e) === p.selectedEdge)) || null;

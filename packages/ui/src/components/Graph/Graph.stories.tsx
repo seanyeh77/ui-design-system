@@ -24,6 +24,15 @@ function node(id: string): (typeof NODES)[number] {
 }
 function Demo() {
   const [sel, setSel] = React.useState<string | null>('trace_post_send');
+  const box = React.useRef<HTMLDivElement>(null);
+  // Wider than its box (phones): start with the selected node in the middle, not cut at the edge.
+  React.useLayoutEffect(() => {
+    const el = box.current;
+    const n = sel ? node(sel) : null;
+    if (el && n && el.scrollWidth > el.clientWidth) el.scrollLeft = Math.max(0, n.x + n.w / 2 + 16 - el.clientWidth / 2);
+    // Only on the first render: a later pick does not move the view.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   function related(e: (typeof EDGES)[number]) {
     return !sel || e[0] === sel || e[1] === sel;
   }
@@ -38,6 +47,7 @@ function Demo() {
   }
   return (
     <div
+      ref={box}
       className="ui-graph"
       style={{ maxWidth: 672, overflowX: 'auto', padding: 16, borderRadius: 'var(--radius-lg)', background: 'var(--surface)', boxShadow: 'var(--shadow-card)' }}
     >

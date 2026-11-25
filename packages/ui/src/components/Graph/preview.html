@@ -34,6 +34,13 @@
         var s = React.useState('trace_post_send'),
           sel = s[0],
           setSel = s[1];
+        var box = React.useRef(null);
+        // Wider than its box (phones): start with the selected node in the middle, not cut at the edge.
+        React.useLayoutEffect(function () {
+          var el = box.current,
+            n = sel && node(sel);
+          if (el && n && el.scrollWidth > el.clientWidth) el.scrollLeft = Math.max(0, n.x + n.w / 2 + 16 - el.clientWidth / 2);
+        }, []);
         function related(e) {
           return !sel || e[0] === sel || e[1] === sel;
         }
@@ -49,6 +56,7 @@
         return h(
           'div',
           {
+            ref: box,
             className: 'ui-graph',
             style: {
               maxWidth: 672,
