@@ -60,7 +60,7 @@ test('SettingsRow: clicking the text toggles the Switch, which is described by t
     </SettingsRow>,
   );
   await userEvent.setup().click(screen.getByText('每週摘要'));
-  expect(onChange).toHaveBeenCalledWith(true);
+  expect(onChange).toHaveBeenCalledWith(true, expect.anything());
   const sw = screen.getByRole('switch', { name: '每週摘要' });
   expect(document.getElementById(sw.getAttribute('aria-describedby') ?? '')?.textContent).toBe('每週一寄出。');
 });

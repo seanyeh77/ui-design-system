@@ -25,7 +25,7 @@
 
 - 每個分類的內容用 `SettingsSection` 分成卡片；SettingsSection 本身就是卡片，不再包 Card。
 - 開關用 `SettingsRow`：左邊名稱和一句說明，右邊 Switch，整列是 `<label>`，點文字也會切換。Switch 的 `label` 和 SettingsRow 的 `label` 寫同一句。
-- 什麼時候儲存：開關和選單改了就存；文字欄位離開欄位（blur）且驗證通過才存，不是每打一個字就存。存好後出現 Toast「已儲存」（`toast`），3 s 後消失。
+- 什麼時候儲存：開關和選單改了就存；文字欄位離開欄位（blur）且驗證通過才存，不是每打一個字就存。存好後呼叫 `toast('已儲存', { id: 'saved' })`，3 s 後消失，連續修改時同一則重新計時；AppShell 裡不用另外放 `<Toaster />`。舊的 `toast` prop 已 deprecated，仍會經由 `toast()` 顯示。
 - 刪除帳號這類操作放在最後一個分類的最下方，用 `DangerZone`，按下後先跳確認對話框。
 - 放在 AppShell 裡時，標題給 AppShell（`title="設定"`），SettingsLayout 不給 `title`：標題只出現一次。
 - 主題與強調色放在「外觀」分類（ThemePicker、AccentPicker）。

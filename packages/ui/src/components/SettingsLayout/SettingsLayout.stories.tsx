@@ -4,23 +4,16 @@ import * as UI from '../../index';
 export default { title: 'Pages/SettingsLayout', component: UI.SettingsLayout };
 
 function D() {
-  const [t, setT] = React.useState(''),
-    [n, setN] = React.useState('SeanYeh'),
-    [a, setA] = React.useState(true),
-    tm = React.useRef<ReturnType<typeof setTimeout>>(undefined);
-  function saved() {
-    setT('已儲存');
-    clearTimeout(tm.current);
-    tm.current = setTimeout(() => {
-      setT('');
-    }, 3000);
-  }
+  const [n, setN] = React.useState('SeanYeh'),
+    [a, setA] = React.useState(true);
+  // One 「已儲存」 that restarts on every change. Inside AppShell the Toaster is already there.
+  const saved = () => UI.toast('已儲存', { id: 'saved' });
   return (
     <div style={{ padding: 20, height: 520, boxSizing: 'border-box', overflow: 'auto' }}>
+      <UI.Toaster />
       <UI.SettingsLayout
         title="設定"
         urlSync={false}
-        toast={t}
         categories={[
           {
             id: 'profile',

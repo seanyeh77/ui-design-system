@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { act } from '@testing-library/react';
-import { SettingsLayout, Toast, Toaster, toast } from '../../index';
+import { AppShell, SettingsLayout, Toast, Toaster, toast } from '../../index';
 
 test('Toast: a polite status message; the caller times it, so it stays until removed', async () => {
   vi.useFakeTimers();
@@ -39,12 +39,34 @@ test('Toast: 復原 is a button inside the status and runs onAction once per pre
   expect(onAction).toHaveBeenCalledTimes(2);
 });
 
-test('SettingsLayout: 「已儲存」 shows as a Toast only while toast is set', () => {
+test('SettingsLayout: the deprecated toast prop shows through toast(), with its own Toaster, and closes when emptied', async () => {
   const cats = [{ id: 'a', label: '一般', content: <p>內容</p> }];
   const { rerender } = render(<SettingsLayout categories={cats} toast="已儲存" />);
-  expect(screen.getByRole('status').textContent).toBe('已儲存');
+  const region = await screen.findByRole('region', { name: '通知' });
+  await vi.waitFor(() => expect(region.textContent).toContain('已儲存'));
   rerender(<SettingsLayout categories={cats} toast="" />);
-  expect(screen.queryByRole('status')).toBeNull();
+  await vi.waitFor(() => expect(region.textContent).not.toContain('已儲存'));
+});
+
+test('Toaster: AppShell shows toasts without setup; a page Toaster takes over, so a toast never shows twice', async () => {
+  const nav = [{ items: [{ id: 'a', label: '總覽', icon: 'house' as const }] }];
+  const { rerender } = render(
+    <AppShell nav={nav} value="a" onNavigate={() => {}} title="總覽">
+      <p>內容</p>
+    </AppShell>,
+  );
+  await vi.waitFor(() => expect(screen.getAllByRole('region', { name: '通知' })).toHaveLength(1));
+  rerender(
+    <AppShell nav={nav} value="a" onNavigate={() => {}} title="總覽">
+      <Toaster />
+    </AppShell>,
+  );
+  await vi.waitFor(() => expect(screen.getAllByRole('region', { name: '通知' })).toHaveLength(1));
+  act(() => {
+    toast('已儲存');
+  });
+  await vi.waitFor(() => expect(screen.getAllByText('已儲存')).toHaveLength(1));
+  toast.close();
 });
 
 test('toast(): a plain message in the Toaster, inside a live region that was there before it, gone after 3 s', async () => {

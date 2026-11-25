@@ -3,6 +3,7 @@ import { SideNav, type NavBrand, type NavItem, type NavSection } from '../SideNa
 import { TopBar } from '../TopBar/TopBar';
 import { MobileTabBar, type MobileTab } from '../MobileTabBar/MobileTabBar';
 import { Drawer } from '../Drawer/Drawer';
+import { AutoToaster } from '../Toast/Toast';
 import { tr } from '../../i18n';
 import type { BreadcrumbItem } from '../Breadcrumb/Breadcrumb';
 import { cx, useMedia, useNarrow } from '../../internal/util';
@@ -234,7 +235,7 @@ export function AppShell({
         </main>
         {phone && tabs.length ? <MobileTabBar items={tabs} value={tabValue} onChange={onTab} labels={tabLabels} /> : null}
         {phone || tablet ? (
-          <Drawer open={moreOpen} onClose={() => setMoreOpen(false)} title={tr('全部頁面')} side={tablet ? 'left' : 'right'} width={tablet ? 300 : undefined}>
+          <Drawer open={moreOpen} onOpenChange={setMoreOpen} title={tr('全部頁面')} side={tablet ? 'left' : 'right'} width={tablet ? 300 : undefined}>
             <SideNav
               className="ui-shell-allnav"
               sections={nav}
@@ -246,6 +247,8 @@ export function AppShell({
             />
           </Drawer>
         ) : null}
+        {/* toast() works on every AppShell page without setup; a page's own <Toaster /> takes over. */}
+        <AutoToaster />
       </div>
     </div>
   );

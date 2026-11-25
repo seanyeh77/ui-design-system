@@ -102,12 +102,6 @@
   font-size: var(--text-compact);
   color: var(--ink-muted);
 }
-.ui-settings-toast {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: var(--z-palette);
-}
 @media (max-width: 599px) {
   .ui-settings-body {
     flex-direction: column;

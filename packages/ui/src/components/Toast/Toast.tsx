@@ -54,21 +54,41 @@ interface ToastData {
 }
 
 const manager = Base.createToastManager<ToastData>();
+type AddOptions = Parameters<typeof manager.add>[0];
 
-/** Shows a short message at the bottom right (bottom centre on phones, above the tab bar). Needs one <Toaster /> on
- *  the page. Returns the toast's id for toast.close(id). */
+// The manager only tells Toasters that are already listening. A toast() called before any Toaster is on the page (the
+// first render, or an effect that runs before AppShell's Toaster has subscribed) waits here and shows once one is.
+let liveViews = 0;
+let pending: AddOptions[] = [];
+const flushPending = () => {
+  if (!liveViews || !pending.length) return;
+  const list = pending;
+  pending = [];
+  for (const t of list) manager.add(t);
+};
+
+/** Shows a short message at the bottom right (bottom centre on phones, above the tab bar). Needs a Toaster on the
+ *  page: AppShell has one; without AppShell, put one <Toaster /> on the page. Returns the toast's id for
+ *  toast.close(id). */
 export function toast(message: React.ReactNode, options: ToastOptions = {}): string {
   const tone = options.tone ?? 'success';
-  return manager.add({
-    id: options.id,
+  const t: AddOptions = {
+    id: options.id ?? `ui-toast-${++toastSeq}`,
     title: message,
     timeout: options.action ? TOAST_DURATION.action : TOAST_DURATION.plain,
     priority: tone === 'danger' ? 'high' : 'low',
     data: { tone, action: options.action },
-  });
+  };
+  if (liveViews) return manager.add(t);
+  pending = [...pending.filter((x) => x.id !== t.id), t];
+  return t.id!;
 }
+let toastSeq = 0;
 /** Closes one toast, or every toast without an id. */
-toast.close = (id?: string) => manager.close(id);
+toast.close = (id?: string) => {
+  pending = id === undefined ? [] : pending.filter((x) => x.id !== id);
+  manager.close(id);
+};
 
 /** toast() and toast.close() from a component. */
 export function useToast() {
@@ -86,9 +106,52 @@ export interface ToasterProps {
   label?: string;
 }
 
-/** Where toast() messages appear: put one on the page (AppShell's page or the app root). Stacks the newest at the
- *  bottom; a persistent polite live region reads each one; F6 moves focus to the toasts. */
+// Who shows the toasts: every <Toaster /> on the page, and the automatic ones (AppShell's). An automatic one renders
+// only while no <Toaster /> is mounted and it is the first automatic one, so toasts never show twice.
+let pageToasters = 0;
+let autoToasters: object[] = [];
+const toasterListeners = new Set<() => void>();
+const emitToasters = () => toasterListeners.forEach((f) => f());
+const subscribeToasters = (f: () => void) => {
+  toasterListeners.add(f);
+  return () => toasterListeners.delete(f);
+};
+
+/** Where toast() messages appear. AppShell renders one by itself, so a page inside AppShell needs none; put one on
+ *  the page (or the app root) only without AppShell. Stacks the newest at the bottom; a persistent polite live region
+ *  reads each one; F6 moves focus to the toasts. */
 export function Toaster({ label }: ToasterProps) {
+  React.useLayoutEffect(() => {
+    pageToasters++;
+    emitToasters();
+    return () => {
+      pageToasters--;
+      emitToasters();
+    };
+  }, []);
+  return <ToasterView label={label} />;
+}
+
+/** AppShell's Toaster: shown only when the page has no <Toaster /> of its own and no other automatic one is shown. */
+export function AutoToaster() {
+  const [me] = React.useState(() => ({}));
+  React.useLayoutEffect(() => {
+    autoToasters = [...autoToasters, me];
+    emitToasters();
+    return () => {
+      autoToasters = autoToasters.filter((x) => x !== me);
+      emitToasters();
+    };
+  }, [me]);
+  const show = React.useSyncExternalStore(
+    subscribeToasters,
+    () => pageToasters === 0 && autoToasters[0] === me,
+    () => false,
+  );
+  return show ? <ToasterView /> : null;
+}
+
+function ToasterView({ label }: ToasterProps) {
   return (
     <Base.Provider toastManager={manager}>
       <Base.Portal>
@@ -102,6 +165,14 @@ export function Toaster({ label }: ToasterProps) {
 
 function ToastList() {
   const { toasts, close } = Base.useToastManager<ToastData>();
+  // Counted while shown; waiting toasts are added after this commit, once the Provider above has subscribed.
+  React.useEffect(() => {
+    liveViews++;
+    void Promise.resolve().then(flushPending);
+    return () => {
+      liveViews--;
+    };
+  }, []);
   // Ctrl Z (⌘Z) undoes through the newest toast that offers it.
   const live = React.useRef(toasts);
   React.useLayoutEffect(() => {

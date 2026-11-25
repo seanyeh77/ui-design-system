@@ -4,7 +4,7 @@ import { cx } from '../../internal/util';
 import { devWarn } from '../../internal/dev';
 import { ShellTitle } from '../../internal/shell';
 import { announce } from '../../announce';
-import { Toast } from '../Toast/Toast';
+import { AutoToaster, toast as showToast } from '../Toast/Toast';
 import { codeText } from '../InlineCode/InlineCode';
 
 export interface SettingsCategory {
@@ -28,7 +28,8 @@ export interface SettingsLayoutProps {
   /** Uncontrolled: keep the open category in the URL hash (#notifications), so a reload or a shared link opens it.
    *  Default true. */
   urlSync?: boolean;
-  /** Text of the 「已儲存」 toast; empty hides it. Changes save on their own, so there is no save button. */
+  /** @deprecated call toast('已儲存', { id: 'saved' }) when a change is saved; AppShell shows it. Until removed: a
+   *  non-empty text shows through toast(), an empty one closes it. */
   toast?: string;
   className?: string;
 }
@@ -36,6 +37,17 @@ export interface SettingsLayoutProps {
 /** A settings page: categories on the left, their sections on the right. Changes save at once. */
 export function SettingsLayout({ title, categories, value, onChange, urlSync = true, toast, className }: SettingsLayoutProps) {
   const shell = React.useContext(ShellTitle);
+  devWarn(
+    toast !== undefined,
+    'SettingsLayout',
+    "toast is deprecated: call toast('已儲存', { id: 'saved' }) from @seanyeh77/ui when a change is saved. AppShell shows it above the phone tab bar; outside AppShell put one <Toaster /> on the page.",
+  );
+  // The old prop, through the toast system: one toast that restarts when the text changes, closed when it is emptied.
+  React.useEffect(() => {
+    if (toast === undefined) return;
+    if (toast) showToast(toast, { id: 'ui-settings-saved' });
+    else showToast.close('ui-settings-saved');
+  }, [toast]);
   devWarn(
     title && shell.title,
     'SettingsLayout',
@@ -90,11 +102,7 @@ export function SettingsLayout({ title, categories, value, onChange, urlSync = t
         </nav>
         <div className="ui-settings-content">{item?.content}</div>
       </div>
-      {toast ? (
-        <div className="ui-settings-toast">
-          <Toast>{toast}</Toast>
-        </div>
-      ) : null}
+      {toast !== undefined ? <AutoToaster /> : null}
     </div>
   );
 }

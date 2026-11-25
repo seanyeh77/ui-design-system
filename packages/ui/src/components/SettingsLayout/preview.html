@@ -16,24 +16,18 @@
       var U = window.UI,
         h = React.createElement;
       function D() {
-        var t = React.useState(''),
-          n = React.useState('SeanYeh'),
+        var n = React.useState('SeanYeh'),
           a = React.useState(true),
-          tm = React.useRef(null);
-        function saved() {
-          t[1]('已儲存');
-          clearTimeout(tm.current);
-          tm.current = setTimeout(function () {
-            t[1]('');
-          }, 3000);
-        }
+          saved = function () {
+            U.toast('已儲存', { id: 'saved' });
+          };
         return h(
           'div',
           { style: { padding: 20, height: 520, boxSizing: 'border-box', overflow: 'auto' } },
+          h(U.Toaster),
           h(U.SettingsLayout, {
             title: '設定',
             urlSync: false,
-            toast: t[0],
             categories: [
               {
                 id: 'profile',

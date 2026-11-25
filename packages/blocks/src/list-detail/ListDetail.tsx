@@ -12,6 +12,7 @@ import {
   Select,
   TextArea,
   TextField,
+  toast,
   type DataTableColumn,
   type NavSection,
 } from '@seanyeh77/ui';
@@ -114,8 +115,8 @@ export function ListDetail({ items, owners, onSave }: ListDetailProps) {
               onClick={() => {
                 if (draft) onSave({ ...draft, updated: new Date() });
                 close();
-                // TODO(integrator): show 「已儲存」 here with the new toast API, e.g. toast('已儲存'), and render <Toaster />
-                // once in the page (the Toast component becomes toast() + <Toaster />).
+                // AppShell shows the toast; no Toaster of its own is needed.
+                toast(draft?.id ? '已儲存' : '已新增');
               }}
             >
               儲存
