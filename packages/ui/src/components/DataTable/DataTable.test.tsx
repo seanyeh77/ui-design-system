@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { page } from 'vitest/browser';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { Button, Card, DataTable, InlineCode, type DataTableColumn } from '../../index';
 
@@ -1220,4 +1220,19 @@ test('phone cards: a mono ID in the first column is a field; the first non-mono 
   const cell = (k: string) => container.querySelector(`.ui-dt-body [data-col="${k}"]`);
   expect(cell('host')?.classList.contains('is-m-title')).toBe(true);
   expect(cell('id')?.classList.contains('is-m-title')).toBe(false);
+  cleanup();
+  // No main column (only the ID and long text): the ID stays the title.
+  type Note = { id: string; fn: string; note: string };
+  const second = render(
+    <DataTable<Note>
+      label="筆記"
+      urlSync={false}
+      rows={[{ id: 'n1', fn: 'ring_push', note: '以為滿了會覆蓋最舊的資料' }]}
+      columns={[
+        { key: 'fn', label: '函式', mono: true },
+        { key: 'note', label: '筆記', long: true },
+      ]}
+    />,
+  );
+  expect(second.container.querySelector('.ui-dt-body [data-col="fn"]')?.classList.contains('is-m-title')).toBe(true);
 });

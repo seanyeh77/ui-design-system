@@ -715,18 +715,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const hasAct = !!p.rowActions;
   const onerow = onerowState && !narrow;
   const hasTitle = shownCols.some((c) => c.mobile === 'title');
-  // The phone card's title: the first column, or the first non-mono one when it is a mono ID (an ID is never the main
-  // column; it becomes a field of the card).
-  const titleIdx = hasTitle
-    ? -1
-    : shownCols[0]?.mono
-      ? Math.max(
-          0,
-          shownCols.findIndex((c) => !c.mono && !c.mobile),
-        )
-      : 0;
   const mobileClass = (c: DataTableColumn<R>, ci: number) => {
-    const m = c.mobile || (ci === titleIdx ? 'title' : null);
+    const m = c.mobile || (ci === titleIdx() ? 'title' : null);
     return m ? 'is-m-' + m : null;
   };
   // A caret on the left of each row when there are long columns (desktop; phone cards have 「顯示全部」).
@@ -741,6 +731,14 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   // column and never decides which column is the main one. A grow prop wins either way. Hugging columns are measured below (their heading and every cell on the page, widest wins).
   // A mono column (an ID, a hash) is never the main one: without another text column, none takes the room left.
   const mainKey = shownCols.find((c) => !isShort(c) && !c.long && !c.mono && c.grow !== 0)?.key;
+  // The phone card's title: the first column; when that is a mono ID and the table has a main column (a text column
+  // that is not mono, long or short), the main column, and the ID becomes a field of the card.
+  const titleIdx = () => {
+    if (hasTitle) return -1;
+    if (!shownCols[0]?.mono) return 0;
+    const main = shownCols.findIndex((c) => c.key === mainKey && !c.mobile);
+    return main < 0 ? 0 : main;
+  };
   const grows = (c: DataTableColumn<R>) => (c.grow != null ? c.grow > 0 : c.long || c.key === mainKey);
   // A column is at least as wide as content that cannot wrap (a code chip, a link with a path): measured below.
   const minOf = (c: DataTableColumn<R>) => {
