@@ -55,7 +55,7 @@ const columns: DataTableColumn<Import>[] = [
 - `rowHref={(row) => url}`：整列是連結（中鍵、Ctrl＋點開新分頁）；SPA 另給 `onRowOpen` 推路由。第一欄的 `render` 裡不再放連結。
 - `totals={{ amount: 'sum', rate: 'avg' }}`：合計列，有金額或數量要加總時才開（看情況）。`stickyFirst`：欄位多、常橫向捲動時固定第一欄（看情況）。`views`：幾組固定的看法（「我負責的」）時才開（看情況）。
 - 欄位：`hidden: true` 一開始不顯示（「⋯」的「欄位」可以打開）；`width` 只是最小寬度；`grow` 改變分剩下寬度的份數；`long: true` 的長文字截斷並可展開；`fullText` 給縮短的格子完整文字；`currency`、`decimals` 調整格式。
-- 手機（小於 600 px）：每列一張卡片，第一欄是標題，`mobile: 'status'` 的欄在標題右邊，`mobile: 'hide'` 不顯示，其他欄「欄名｜值」一行一欄，`rowActions` 在卡片最下面。
+- 手機（小於 600 px）：每列一張卡片，第一欄是標題（第一欄是 `mono` 的 ID 時，改用第一個非 `mono` 欄，ID 變成一行欄位），`mobile: 'status'` 的欄在標題右邊，`mobile: 'hide'` 不顯示，其他欄「欄名｜值」一行一欄，`rowActions` 在卡片最下面。
 - 記住讀者的選擇：`storageKey` 把拖出的欄寬和顯示的欄位存在 localStorage（和其他元件同名；`widthKey` 已棄用）。換成另一份資料時給新的 `resetKey`；同一頁兩個表格用 `urlKey` 分開網址參數，`urlSync={false}` 不寫網址。
 - `emptyText`：搜尋或篩選後沒有結果的一句話（預設「沒有符合的資料」）。完全沒有資料時用 EmptyState，見 guidelines。
 - 「⋯」裡的放大表格（`zoom`）、複製成 Markdown（`copy`、`copyText`、`onCopyError`）預設開；`columnMenu={false}` 拿掉「欄位」。

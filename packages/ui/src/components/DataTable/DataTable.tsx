@@ -715,8 +715,18 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const hasAct = !!p.rowActions;
   const onerow = onerowState && !narrow;
   const hasTitle = shownCols.some((c) => c.mobile === 'title');
+  // The phone card's title: the first column, or the first non-mono one when it is a mono ID (an ID is never the main
+  // column; it becomes a field of the card).
+  const titleIdx = hasTitle
+    ? -1
+    : shownCols[0]?.mono
+      ? Math.max(
+          0,
+          shownCols.findIndex((c) => !c.mono && !c.mobile),
+        )
+      : 0;
   const mobileClass = (c: DataTableColumn<R>, ci: number) => {
-    const m = c.mobile || (!hasTitle && ci === 0 ? 'title' : null);
+    const m = c.mobile || (ci === titleIdx ? 'title' : null);
     return m ? 'is-m-' + m : null;
   };
   // A caret on the left of each row when there are long columns (desktop; phone cards have 「顯示全部」).
@@ -1363,7 +1373,8 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     const n = Math.max(1, p.loadingRows ?? Math.min(pageSize, 10));
     const MAIN = ['72%', '56%', '64%', '48%'];
     // Bars as wide as typical content (px), so the hugging columns are measured as when loaded and nothing jumps.
-    const TYPICAL: Record<string, number> = { date: 128, dateTime: 184, datetime: 184, relative: 72, duration: 64, money: 96, percent: 56 };
+    // relative: as wide as dateTime, since format.relative shows a full date and time from 7 days back.
+    const TYPICAL: Record<string, number> = { date: 128, dateTime: 184, datetime: 184, relative: 184, duration: 64, money: 96, percent: 56 };
     const widthOf = (c: DataTableColumn<R>, i: number) =>
       c.key === mainKey
         ? MAIN[i % MAIN.length]

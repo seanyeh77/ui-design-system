@@ -1545,6 +1545,18 @@ AI 定的細節（待確認）：
 - 範本：清單與詳細頁的編輯抽屜用 `useFormErrors`，「儲存」只在沒有變更時停用，不因錯誤停用；Dashboard 的示範資料改成相對今天的最近 30 天，趨勢圖改為「每日完成的任務」，KPI「本月營收」改為「營收」。
 - Cover 預覽填滿頁寬，圖固定 480 px 靠右。
 
+## 2026-11-25 小修正
+
+0.47.0 之後的小修正（patch 版）。「DataTable 載入條的寬度」「TextField 前後綴的點擊」「README 的版本字樣」「手機卡片的標題」「`ui check` 在 file:// 頁面的字型錯誤」五項由使用者指定；下面是做法裡 agent 自己選的細節。
+
+### AI 定的細節（待確認）
+
+- DataTable `loading`：`relative` 欄的載入條改成和 `dateTime` 同寬（184 px，取兩者較大的），因為 `format.relative` 對 7 天以上的日期寫完整日期和時間；取代第三輪修正裡 `relative` 72 px 的寬度。
+- TextField：在框上（輸入框以外：前綴、後綴、單位、錯誤圖示）按下滑鼠左鍵時取消預設動作並聚焦輸入框，不移動游標位置（游標留在瀏覽器聚焦時的位置）；停用時不做事。
+- README：「網址固定一個版本」後面的括號改成「上例 `/dist/` 後面的版本號」，不寫版本，`pin-version` 不用多管一行。
+- DataTable 手機卡片：第一欄是 `mono` 時，標題改用第一個不是 `mono`、也沒有設 `mobile` 的欄；都沒有時仍用第一欄。只在第一欄是 `mono` 時改變，第一欄不是 `mono` 時照舊；列的名稱（`aria` 用）和 `rowHref` 的連結仍在第一欄。
+- `ui check`：頁面是 file:// 時，字型被 CORS 擋下的 console 錯誤（「Access to font at … blocked by CORS policy」和字型檔 `.woff2`、`.woff`、`.ttf`、`.otf` 的「Failed to load resource」）不算問題，每個頁面在報告最後寫一行 note：「fonts were blocked by CORS because the page is a file:// URL; serve the page over http to load fonts」。http 頁面的同樣錯誤照常算問題。
+
 ## 待確認清單（2026-11-25 整理）
 
 整份檔案裡標成「AI 定的細節（待確認）」、還沒確認的項目，一項一行；行號指向原文，原文沒有改。實驗室的代號後面括號寫出那個選項是什麼。
@@ -2074,3 +2086,11 @@ AI 定的細節（待確認）：
 - 第 1272 行（Markdown 內容與 ui check）：連結維持強調色加底線；滑過 `surface-sub` 底色（`radius-sm` 圓角），焦點是一般的 2 px 外框
 - 第 1273 行（Markdown 內容與 ui check）：項目符號或編號留在列外，和其他項目對齊
 - 第 1274 行（Markdown 內容與 ui check）：C1（程式碼區塊不算觸控目標） 的範圍：`ui check` 的觸控目標檢查跳過「只因為 `tabindex` 才能聚焦、本身會捲動（`overflow` 是 `auto` 或 `scroll`）、而且不是控制項（沒有連結、按鈕、輸入框的標籤，也沒有 button…
+
+### 2026-11-25 小修正
+
+- 第 1554 行（2026-11-25 小修正）：DataTable `loading`：`relative` 欄的載入條改成和 `dateTime` 同寬（184 px，取兩者較大的），因為 `format.relative` …
+- 第 1555 行（2026-11-25 小修正）：TextField：在框上（輸入框以外：前綴、後綴、單位、錯誤圖示）按下滑鼠左鍵時取消預設動作並聚焦輸入框，不移動游標位置（游標留在瀏覽器聚焦時的位置）；停用時不做事。
+- 第 1556 行（2026-11-25 小修正）：README：「網址固定一個版本」後面的括號改成「上例 `/dist/` 後面的版本號」，不寫版本，`pin-version` 不用多管一行。
+- 第 1557 行（2026-11-25 小修正）：DataTable 手機卡片：第一欄是 `mono` 時，標題改用第一個不是 `mono`、也沒有設 `mobile` 的欄；都沒有時仍用第一欄。只在第一欄是 `mono` 時改變…
+- 第 1558 行（2026-11-25 小修正）：`ui check`：頁面是 file:// 時，字型被 CORS 擋下的 console 錯誤（「Access to font at … blocked by CORS poli…

@@ -34,7 +34,7 @@ initTheme();
 </script>
 ```
 
-網址固定一個版本（上例的 `0.45.0`）：`/dist/<版本>/` 不會再變，`/dist/` 不帶版本則永遠是最新版，做好的頁面可能因此改變。
+網址固定一個版本（上例 `/dist/` 後面的版本號）：`/dist/<版本>/` 不會再變，`/dist/` 不帶版本則永遠是最新版，做好的頁面可能因此改變。
 
 - 主題：`setTheme('light' | 'dark' | 'auto')`，強調色：`setAccent('#2457d6')`。
 - 介面文字：`setLocale('en')` 切成英文，`addMessages(locale, dict)` 加其他語系。

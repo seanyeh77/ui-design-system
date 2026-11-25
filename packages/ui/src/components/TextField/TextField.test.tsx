@@ -54,3 +54,37 @@ test('prefix, suffix and unit: muted text inside the one frame, read with the de
   // A focus ring around the whole frame.
   expect(getComputedStyle(size.closest('.ui-field-box') as HTMLElement).outlineStyle).toBe('solid');
 });
+
+test('a press on the prefix, suffix or unit text focuses the input', () => {
+  render(
+    <>
+      <TextField label="金額" prefix="NT$" suffix="元" />
+      <TextField label="容量" unit="GB" />
+      <TextField label="停用" prefix="US$" disabled />
+    </>,
+  );
+  const press = (el: Element | null | undefined) => {
+    const ev = new MouseEvent('mousedown', { bubbles: true, cancelable: true, button: 0 });
+    if (!el) throw new Error('no element to press');
+    el.dispatchEvent(ev);
+    return ev;
+  };
+  const blur = () => (document.activeElement as HTMLElement | null)?.blur();
+  const amount = screen.getByLabelText('金額');
+  for (const text of ['NT$', '元']) {
+    blur();
+    const ev = press(screen.getByText(text, { selector: '.ui-field-affix' }));
+    expect(ev.defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(amount);
+  }
+  const size = screen.getByLabelText('容量');
+  blur();
+  press(size.closest('.ui-field')?.querySelector('.ui-field-unitline .ui-field-affix'));
+  expect(document.activeElement).toBe(size);
+  // A press on the input itself keeps its default (caret placement); a disabled field does nothing.
+  expect(press(size).defaultPrevented).toBe(false);
+  blur();
+  const off = screen.getByLabelText('停用');
+  press(off.closest('.ui-field')?.querySelector('.ui-field-affix'));
+  expect(document.activeElement).not.toBe(off);
+});

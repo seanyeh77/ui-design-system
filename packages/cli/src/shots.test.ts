@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { jobsFor, stemFor } from './shots.ts';
+import { isFileFontCors, jobsFor, stemFor } from './shots.ts';
 
 test('a file is named after its file name', () => {
   assert.equal(stemFor('file:///repo/site/preview/Button.html'), 'Button');
@@ -40,4 +40,14 @@ test('ui and cli pin the same exact Playwright version (the screenshot baselines
   const ui = read('../../ui/package.json').devDependencies?.playwright;
   assert.match(cli ?? '', /^\d+\.\d+\.\d+$/, 'packages/cli: playwright must be an exact version');
   assert.equal(cli, ui, 'packages/ui and packages/cli must pin the same playwright version; upgrading it means regenerating the visual baselines');
+});
+
+test('a font blocked by CORS on a file:// page is recognized; the same error on a served page is not', () => {
+  const cors =
+    "Access to font at 'https://example.com/f.woff2' from origin 'null' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.";
+  assert.equal(isFileFontCors('file:///tmp/p.html', cors, 'file:///tmp/p.html'), true);
+  assert.equal(isFileFontCors('file:///tmp/p.html', 'Failed to load resource: net::ERR_FAILED', 'https://example.com/f.woff2'), true);
+  assert.equal(isFileFontCors('file:///tmp/p.html', 'Failed to load resource: net::ERR_FAILED', 'https://example.com/app.js'), false);
+  assert.equal(isFileFontCors('http://localhost:5173/', cors, 'http://localhost:5173/'), false);
+  assert.equal(isFileFontCors('file:///tmp/p.html', 'TypeError: x is undefined', ''), false);
 });

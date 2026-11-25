@@ -1185,3 +1185,39 @@ test('phone cards: a field name sits on the value baseline; code in a row is the
   unmount();
   await page.viewport(1280, 900);
 });
+
+test('Loading story: column widths stay within 16 px when the data arrives (a relative date can be a full date and time)', async () => {
+  await page.viewport(1280, 800);
+  const { Loading } = await import('./DataTable.stories');
+  const { container } = render(Loading.render());
+  const widths = () =>
+    Object.fromEntries([...container.querySelectorAll<HTMLElement>('[role="columnheader"]')].map((h) => [h.textContent, h.getBoundingClientRect().width]));
+  await document.fonts.ready;
+  await new Promise((r) => setTimeout(r, 100));
+  const before = widths();
+  await userEvent.click(screen.getByRole('button', { name: '載入完成' }));
+  await waitFor(() => expect(container.querySelector('.ui-dt-skelrow')).toBeNull());
+  await new Promise((r) => setTimeout(r, 100));
+  const after = widths();
+  expect(Object.keys(after)).toEqual(Object.keys(before));
+  for (const k of Object.keys(before)) expect(Math.abs(after[k] - before[k]), k).toBeLessThanOrEqual(16);
+});
+
+test('phone cards: a mono ID in the first column is a field; the first non-mono column is the card title', () => {
+  type Host = { id: string; host: string; cpu: number };
+  const { container } = render(
+    <DataTable<Host>
+      label="主機"
+      urlSync={false}
+      rows={[{ id: 'h-0012', host: 'gpu-node-1', cpu: 42 }]}
+      columns={[
+        { key: 'id', label: 'ID', mono: true },
+        { key: 'host', label: '名稱' },
+        { key: 'cpu', label: 'CPU', numeric: true, unit: '%' },
+      ]}
+    />,
+  );
+  const cell = (k: string) => container.querySelector(`.ui-dt-body [data-col="${k}"]`);
+  expect(cell('host')?.classList.contains('is-m-title')).toBe(true);
+  expect(cell('id')?.classList.contains('is-m-title')).toBe(false);
+});

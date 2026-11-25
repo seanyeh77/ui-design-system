@@ -55,7 +55,17 @@ export function TextField({ label, hideLabel, hint, error, id, className, requir
       <FieldLabel htmlFor={fieldId} required={required} hidden={hideLabel}>
         {label}
       </FieldLabel>
-      <div className={cx('ui-field-box', affixed && 'has-affix')}>
+      <div
+        className={cx('ui-field-box', affixed && 'has-affix')}
+        // A press on the frame outside the input (the prefix, suffix or unit text) focuses the input, as a click on
+        // the label does; preventDefault keeps the focus from going to the body first.
+        onMouseDown={(e) => {
+          const box = e.currentTarget.querySelector('input');
+          if (!box || disabled || e.button !== 0 || e.target === box) return;
+          e.preventDefault();
+          box.focus();
+        }}
+      >
         {prefix ? (
           <span id={fieldId + '-pre'} className="ui-field-affix">
             {prefix}

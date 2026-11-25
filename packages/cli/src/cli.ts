@@ -20,6 +20,7 @@ import {
   changedShots,
   growToScrollContainer,
   compareWithBaselines,
+  isFileFontCors,
   jobsFor,
   optimizePngs,
   orphanBaselines,
@@ -441,6 +442,7 @@ async function check(targets: string[], opts: CheckOptions) {
     const out: string[] = [url];
     let bad = false;
     let viewportReported = false;
+    let fontCors = false;
     for (const width of [390, 1280]) {
       for (const theme of ['light', 'dark'] as const) {
         const phone = width === 390;
@@ -455,6 +457,8 @@ async function check(targets: string[], opts: CheckOptions) {
             const src = m.location().url;
             // Chromium asks every server for /favicon.ico; a missing one is not the page's error.
             if (/\/favicon\.ico$/.test(src)) return;
+            // A font blocked by CORS on a file:// page: a note once per page, not a console error.
+            if (isFileFontCors(url, m.text(), src)) return void (fontCors = true);
             errors.push(src && src !== url ? `${m.text()} (${src})` : m.text());
           });
           const resp = await page.goto(url, { waitUntil: 'load' }).catch((e: unknown) => {
@@ -593,6 +597,7 @@ async function check(targets: string[], opts: CheckOptions) {
         }
       }
     }
+    if (fontCors) out.push('  note: fonts were blocked by CORS because the page is a file:// URL; serve the page over http to load fonts');
     return { out, bad };
   };
 

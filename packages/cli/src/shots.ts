@@ -159,6 +159,16 @@ export async function waitForAnimations(page: Page, cap = 1500): Promise<void> {
 }
 
 /** File name of one screenshot. */
+/**
+ * A font a file:// page loads from a server, blocked by CORS (the page's origin is null): Chromium logs the CORS
+ * error and a failed load of the font file. Not a problem of the page itself; ui check reports it once as a note.
+ */
+export function isFileFontCors(pageUrl: string, text: string, src: string): boolean {
+  if (!pageUrl.startsWith('file:')) return false;
+  if (/^Access to font at .* has been blocked by CORS policy/.test(text)) return true;
+  return /^Failed to load resource/.test(text) && /\.(?:woff2?|ttf|otf)(?:[?#]|$)/i.test(src);
+}
+
 export const shotName = (stem: string, width: number, theme: string) => `${stem}-${width}-${theme}.png`;
 
 /**
