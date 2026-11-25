@@ -39,6 +39,7 @@ const guides: [string, string][] = [
   ['code', '閱讀程式碼的工具'],
   ['theme', 'Token 與主題'],
   ['motion', '動畫'],
+  ['maintaining', '維護設計系統'],
   ['decisions', '決策紀錄'],
 ];
 for (const [file, title] of guides)

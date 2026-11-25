@@ -31,3 +31,5 @@ const form = useFormErrors(values, (v) => ({
 - 回傳 `{ errors, touched, onBlur, submit, reset }`。`errors` 只有該顯示的錯誤；`touched` 是離開過的欄位。
 - `submit(handler)` 回傳事件處理函式：沒有錯時呼叫 `handler(values)`；有錯時全部顯示，下一個畫面更新後把焦點移到頁面順序中第一個有錯的欄位，欄位用 `aria-describedby` 念出它的錯誤。
 - 規則的來源：`docs/forms.md` 的錯誤訊息一節。
+
+<!-- @dsCard group="Forms" -->

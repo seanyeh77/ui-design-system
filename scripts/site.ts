@@ -97,7 +97,7 @@ for (const name of readdirSync(compDir).sort()) {
     const open = /<body[^>]*>/.exec(src);
     const body = src.slice(open ? open.index + open[0].length : 0, src.indexOf('</body>'));
     writeFileSync(new URL(`preview/${name}.html`, site), head(name) + body + '</body>\n</html>\n');
-  }
+  } else if (existsSync(readme)) group = groupOf(readFileSync(readme, 'utf8'));
   if (existsSync(readme)) {
     const md = readFileSync(readme, 'utf8');
     cpSync(readme, new URL(`md/${name}.md`, site));
@@ -111,7 +111,8 @@ writeFileSync(new URL('.nojekyll', site), '');
 execFileSync('pnpm', ['exec', 'shadcn', 'build', 'registry.json', '--output', 'site/r'], { stdio: 'inherit', cwd: root });
 const blocks = (JSON.parse(readFileSync(at('registry.json'), 'utf8')) as { items: { name: string; description: string }[] }).items;
 
-const guideFiles = readdirSync(at('docs/')).filter((f) => f.endsWith('.md') && f !== 'decisions.md');
+cpSync(at('packages/ui/docs/icons.md'), new URL('md/icons.md', site));
+const guideFiles = readdirSync(at('docs/')).filter((f) => f.endsWith('.md') && f !== 'decisions.md' && f !== 'maintaining.md');
 for (const f of guideFiles) if (!guides.some(([g]) => `${g}.md` === f)) throw new Error(`docs/${f}: add it to GUIDES in packages/cli/src/usage.ts`);
 const lines = [
   '# ui-design-system',
@@ -121,8 +122,10 @@ const lines = [
   '',
   '## Start here',
   '',
-  `- [AGENTS.md](${BASE}/AGENTS.md): how to build with the system, what to read, the checks to run, and how to change it`,
+  `- [AGENTS.md](${BASE}/AGENTS.md): how to build pages with the system, what to read, the checks to run (also in the package as docs/agents.md)`,
   ...guides.map(([f, t]) => `- [${f}](${BASE}/md/${f}.md): ${t}`),
+  `- [icons](${BASE}/md/icons.md): every built-in icon name, on one line (ui docs icons)`,
+  `- [maintaining](${BASE}/md/maintaining.md): how to change the design system itself (not needed to build a page)`,
   `- [decisions](${BASE}/md/decisions.md): history: the original wording of each design decision (not needed to build a page)`,
   `- [Storybook](${BASE}/): every component with live examples and its props table`,
   '',

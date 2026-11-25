@@ -70,7 +70,8 @@ const HELP_SHOTS = `ui shots <file or URL>... (--out DIR [--prune] | --compare D
 const HELP_DOCS = `ui docs [Name] [--full]
   Prints the 用法 block of a component (Button, DataTable…): what it is, a minimal example and the rules most often
   gotten wrong. --full prints the whole README. Guides print whole: guidelines (the core rules every page needs),
-  layout, forms, data, monitoring, code, theme, motion. Without a name, prints the reading order and lists every doc.`;
+  layout, forms, data, monitoring, code, theme, motion. ui docs icons prints every built-in icon name on one line;
+  ui docs agents prints the package's AGENTS.md. Without a name, prints the reading order and lists every doc.`;
 
 const HELP = `${HELP_CHECK}
 ${HELP_DOCS}
@@ -82,10 +83,26 @@ function docsDir(): string {
   return join(dirname(require.resolve('@seanyeh77/ui/package.json')), 'docs');
 }
 
-/** Guides (lowercase file names) first, then the components. */
+/** Each component's group, from docs/components.json (written at build time); empty for an older package. */
+function componentIndex(dir: string): { name: string; group: string }[] {
+  try {
+    return JSON.parse(readFileSync(join(dir, 'components.json'), 'utf8')) as { name: string; group: string }[];
+  } catch {
+    return [];
+  }
+}
+
+/** A guide is any doc that is not a component's README (guidelines, the topic files, icons, agents). */
+function isGuide(dir: string): (file: string) => boolean {
+  const names = new Set(componentIndex(dir).map((c) => c.name));
+  return (f) => (names.size ? !names.has(f.slice(0, -3)) : /^[a-z]/.test(f));
+}
+
+/** Guides first, then the components. */
 function docFiles(dir: string): string[] {
   const files = readdirSync(dir).filter((f) => f.endsWith('.md'));
-  const guide = (f: string) => (/^[a-z]/.test(f) ? 0 : 1);
+  const guideFile = isGuide(dir);
+  const guide = (f: string) => (guideFile(f) ? 0 : 1);
   return files.sort((a, b) => guide(a) - guide(b) || (a === 'guidelines.md' ? -1 : b === 'guidelines.md' ? 1 : a.localeCompare(b)));
 }
 
@@ -118,22 +135,17 @@ function list() {
   const dir = docsDir();
   const files = docFiles(dir);
   const lines = ['Guides, in reading order:'];
-  const guides = files.filter((f) => /^[a-z]/.test(f)).map((f) => f.slice(0, -3));
+  const guideFile = isGuide(dir);
+  const guides = files.filter(guideFile).map((f) => f.slice(0, -3));
   const ordered = [...GUIDES.map(([g]) => g).filter((g) => guides.includes(g)), ...guides.filter((g) => !GUIDES.some(([n]) => n === g))];
   for (const g of ordered) {
     // A guide is described by its title.
     const md = readFileSync(join(dir, `${g}.md`), 'utf8');
     lines.push(`  ${g.padEnd(18)} ${/^# (.+)$/m.exec(md)?.[1] ?? ''}`);
   }
-  // Components by group, like llms.txt: the groups come from docs/components.json (written at build time).
-  let index: { name: string; group: string }[] = [];
-  try {
-    index = JSON.parse(readFileSync(join(dir, 'components.json'), 'utf8')) as typeof index;
-  } catch {
-    // an older package without the index: one group
-  }
-  const groupOf = new Map(index.map((c) => [c.name, c.group]));
-  const components = files.filter((f) => !/^[a-z]/.test(f)).map((f) => f.slice(0, -3));
+  // Components by group, like llms.txt: the groups come from docs/components.json (an older package: one group).
+  const groupOf = new Map(componentIndex(dir).map((c) => [c.name, c.group]));
+  const components = files.filter((f) => !guideFile(f)).map((f) => f.slice(0, -3));
   const order = [...Object.keys(GROUPS), 'Other'];
   const byGroup = new Map<string, string[]>();
   for (const c of components) {

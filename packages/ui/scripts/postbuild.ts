@@ -135,11 +135,26 @@ for (const name of readdirSync(componentDir).sort()) {
   if (!existsSync(readme)) continue;
   cpSync(readme, new URL(`${name}.md`, docs));
   const preview = new URL(`${name}/preview.html`, componentDir);
-  const group = existsSync(preview) ? (/group="([^"]+)"/.exec(readFileSync(preview, 'utf8'))?.[1] ?? 'Other') : 'Other';
+  // The same rule as groupOf in packages/cli/src/usage.ts: the @dsCard line of preview.html, else of the README.
+  const group = /<!-- @dsCard group="([^"]+)"/.exec(readFileSync(existsSync(preview) ? preview : readme, 'utf8'))?.[1] ?? 'Other';
   groups.push({ name, group });
 }
 writeFileSync(new URL('components.json', docs), JSON.stringify(groups, null, 2) + '\n');
-// The guides: the core rules (guidelines.md) and the topic files. decisions.md is history, not something to build from.
+// icons.md: every built-in icon name on one line (`ui docs icons`), read from src/icons/names.ts.
+const names = read('icons/names.ts');
+const block = (from: string) => names.slice(names.indexOf(from), names.indexOf('\n}', names.indexOf(from)));
+const keys = (text: string) => [...text.matchAll(/^\s+'?([\w-]+)'?:/gm)].map((m) => m[1]);
+const phosphor = keys(block('export const LOAD')).sort();
+const lucide = keys(block('export const PH_ALIAS')).sort();
+if (phosphor.length < 50) throw new Error('postbuild: could not read the icon names from src/icons/names.ts');
+writeFileSync(
+  new URL('icons.md', docs),
+  `# 圖示名稱\n\nIcon 的 \`name\` 和元件的 \`icon\` 接受的 ${phosphor.length} 個內建 Phosphor 名稱（\`filled\` 換實心版；其他圖示傳 24 px 的 path）：\n\n${phosphor.join(' ')}\n\n也接受這 ${lucide.length} 個 Lucide 名稱（對應到上面的圖示）：\n\n${lucide.join(' ')}\n`,
+);
+// The guides: the core rules (guidelines.md) and the topic files. decisions.md (history) and maintaining.md (changing the
+// design system) are not something to build a page from. agents.md: AGENTS.md, the reading path, for offline use.
 const guides = new URL('../../docs/', root);
-for (const file of readdirSync(guides)) if (file.endsWith('.md') && file !== 'decisions.md') cpSync(new URL(file, guides), new URL(file, docs));
-console.log(`postbuild: styles (${files.length} files, ${components.length} per component), tokens, fonts and docs copied`);
+for (const file of readdirSync(guides))
+  if (file.endsWith('.md') && file !== 'decisions.md' && file !== 'maintaining.md') cpSync(new URL(file, guides), new URL(file, docs));
+cpSync(new URL('../../AGENTS.md', root), new URL('agents.md', docs));
+console.log(`postbuild: styles (${files.length} files, ${components.length} per component), tokens, fonts, docs and icon names`);

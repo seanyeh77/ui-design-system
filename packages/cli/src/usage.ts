@@ -42,19 +42,23 @@ export function summary(md: string): string {
   return line;
 }
 
-/** The groups of the component list, in order, with their Chinese names (llms.txt and ui list use the same). */
+/** The groups of the component list, in order, with their Chinese names (llms.txt and ui list use the same). A
+    component's group is the `group` of the @dsCard line of its preview.html (see groupOf). */
 export const GROUPS: Record<string, string> = {
   Foundations: '基礎',
-  Layout: '版面',
-  Actions: '按鈕',
+  Layout: '版面與外框',
+  Actions: '按鈕與操作',
   Forms: '表單',
   Data: '數據呈現',
+  Monitoring: '監控畫面',
+  Code: '程式碼與架構圖',
+  Text: '文字標記',
   Status: '狀態',
   Feedback: '回饋',
   Overlays: '浮層',
   Navigation: '導覽',
   Appearance: '外觀',
-  Pages: '頁面範本',
+  Pages: '整頁元件',
 };
 
 /** The reading order for an agent: the core rules every page needs, then a topic file only when the page has that topic. */
@@ -69,5 +73,6 @@ export const GUIDES: [string, string][] = [
   ['motion', 'Animation durations and effects, when you animate something yourself'],
 ];
 
-/** A component's group, from the first line of its preview.html: <!-- @dsCard group="Data" height=400 -->. */
-export const groupOf = (previewHtml: string) => /group="([^"]+)"/.exec(previewHtml)?.[1] ?? 'Other';
+/** A component's group, from the first line of its preview.html: <!-- @dsCard group="Data" height=400 -->. A module
+    without a preview (a hook) names it in a comment line of its README: <!-- @dsCard group="Forms" -->. */
+export const groupOf = (previewOrReadme: string) => /<!-- @dsCard group="([^"]+)"/.exec(previewOrReadme)?.[1] ?? 'Other';
