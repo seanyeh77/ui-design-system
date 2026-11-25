@@ -1,5 +1,5 @@
-import { expect, test } from 'vitest';
-import { render } from '@testing-library/react';
+import { expect, test, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
 import { DetailList } from '../../index';
 
 const items = [
@@ -49,4 +49,30 @@ test('DetailList labelWidth number: that many px', () => {
   const dl = container.querySelector('dl') as HTMLElement;
   const dd = container.querySelector('dd') as HTMLElement;
   expect(Math.round(dd.getBoundingClientRect().left - dl.getBoundingClientRect().left)).toBe(140 + 12);
+});
+
+test('DetailList href: the value is a Link, the row is a 48 px target that opens it; external opens a new tab', () => {
+  const opened = vi.fn((e: Event) => e.preventDefault());
+  const { container } = render(
+    <div style={{ width: 720 }}>
+      <DetailList
+        items={[
+          { label: '定義', value: 'ops.c:55', href: '#def' },
+          { label: '規格', value: 'POSIX', href: 'https://example.com/spec', external: true },
+          { label: '元件', value: 'src/server' },
+        ]}
+      />
+    </div>,
+  );
+  const link = screen.getByRole('link', { name: 'ops.c:55' });
+  expect(link.getAttribute('href')).toBe('#def');
+  link.addEventListener('click', opened);
+  const row = link.closest('.ui-dl-item') as HTMLElement;
+  expect(row.getBoundingClientRect().height).toBeGreaterThanOrEqual(48);
+  expect(getComputedStyle(row).cursor).toBe('pointer');
+  (row.querySelector('dt') as HTMLElement).click();
+  expect(opened).toHaveBeenCalledTimes(1);
+  expect(screen.getByRole('link', { name: /POSIX/ }).getAttribute('target')).toBe('_blank');
+  // Rows without href stay as they are.
+  expect(container.querySelectorAll('.ui-dl-item.has-link')).toHaveLength(2);
 });

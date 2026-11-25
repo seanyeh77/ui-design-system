@@ -1,9 +1,16 @@
-import type * as React from 'react';
+import * as React from 'react';
+import { Link } from '../Link/Link';
 import { cx } from '../../internal/util';
 
 export interface DetailListItem {
+  /** The field's name. */
   label: string;
+  /** The value: text or any element (InlineCode, Tag, Badge). With `href`, plain text that names where it goes. */
   value: React.ReactNode;
+  /** Makes the value a Link and the whole row a 48 px tall target that opens it. */
+  href?: string;
+  /** With `href`: another site, opened in a new tab (Link's `external`). */
+  external?: boolean;
 }
 
 export interface DetailListProps {
@@ -19,19 +26,39 @@ export interface DetailListProps {
   className?: string;
 }
 
-/** Labelled facts about one item: label beside the value when there is room, above it under 600 px. */
+/** Labelled facts about one item: label beside the value when there is room, above it under 600 px. A row with `href`
+ *  opens its link from anywhere on the row. */
 export function DetailList({ items, labelWidth, labelSize, className }: DetailListProps) {
   return (
     <dl
       className={cx('ui-dl', labelWidth === 'auto' && 'is-auto', typeof labelWidth === 'number' && 'is-fixed', labelSize === 'body' && 'is-body', className)}
       style={typeof labelWidth === 'number' ? ({ '--dl-label': labelWidth + 'px' } as React.CSSProperties) : undefined}
     >
-      {items.map((it, i) => (
-        <div key={i} className="ui-dl-item">
-          <dt>{it.label}</dt>
-          <dd>{it.value}</dd>
-        </div>
-      ))}
+      {items.map((it, i) =>
+        it.href ? (
+          <div
+            key={i}
+            className="ui-dl-item has-link"
+            // The row is the touch target: a click outside the link opens it too (keyboard users Tab to the link).
+            onClick={(e) => {
+              const a = e.currentTarget.querySelector('a');
+              if (a && !a.contains(e.target as Node) && !window.getSelection()?.toString()) a.click();
+            }}
+          >
+            <dt>{it.label}</dt>
+            <dd>
+              <Link href={it.href} external={it.external}>
+                {it.value}
+              </Link>
+            </dd>
+          </div>
+        ) : (
+          <div key={i} className="ui-dl-item">
+            <dt>{it.label}</dt>
+            <dd>{it.value}</dd>
+          </div>
+        ),
+      )}
     </dl>
   );
 }
