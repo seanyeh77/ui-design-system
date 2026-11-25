@@ -17,7 +17,9 @@ import phTag from '../../icons/ph/tag';
 includeIcons(phLock, phTag);
 
 export interface LayerGraphNode {
+  /** Unique id: edges, value and onChange use it. */
   id: string;
+  /** Shown on the box. Default: the id. */
   name?: string;
   /** The name is code (a path, a file, a module): Geist Mono. Default: the text font, for names in words (「被追蹤的程式」). */
   code?: boolean;
@@ -25,8 +27,6 @@ export interface LayerGraphNode {
   layer?: number;
   /** How big it is (functions, files, endpoints): drawn as the size bar. */
   size?: number;
-  /** @deprecated use size. */
-  fns?: number;
   /** Used by most others: not drawn as a layer; shown as a small box under the diagram with how often it is used.
    *  Selectable like the other boxes (same selected and onSelect): the boxes that use it show 「使用 N 次」. */
   shared?: boolean;
@@ -42,7 +42,9 @@ export interface LayerGraphNode {
 }
 
 export interface LayerGraphEdge {
+  /** The id of the box the line starts at. */
   from: string;
+  /** The id of the box the arrow points at. */
   to: string;
   /** How often: sets the line width. */
   count?: number;
@@ -57,11 +59,50 @@ export interface LayerGraphEdge {
   id?: string;
 }
 
+/** Every text LayerGraph writes, for your domain's words or another language. Pass only the ones to change. */
+export interface LayerGraphLabels {
+  /** Text under a box's size bar: a string with {n}, or a function of the size for words that change with the number
+   *  (`(n) => n === 1 ? '1 function' : `${n} functions``). Default 「{n} 個項目」. */
+  size: string | ((n: number) => string);
+  /** A selected edge's count: a string with {n}, or a function of the count. Default 「{n} 次」 (English 「1 call」). */
+  count: string | ((n: number) => string);
+  /** Under the name of an external box, and after it in the list. Default 「repo 外」. */
+  external: string;
+  /** Heading of the shared items under the diagram. Default 「共用項目」. */
+  shared: string;
+  /** A shared item's line; {a} is how many items use it, {b} the total count. Default 「{a} 個項目使用，共 {b} 次」. */
+  sharedMeta: string;
+  /** On a box that uses the selected shared item; {n} is how often. Default 「使用 {n} 次」. */
+  use: string;
+  /** Label of inferred edges without their own, and their legend entry. Default 「推測」 (legend 「推測的關係」). */
+  inferred: string;
+  /** Explains inferred edges in the legend (a Term). */
+  inferredText: string;
+  /** The word for declared edges, after a label in the list. Default 「宣告」. */
+  declared: string;
+  /** The legend entry for declared edges. Default 「專案宣告的關係」. */
+  declaredLegend: string;
+  /** Explains declared edges in the legend (a Term), e.g. which file declares them. */
+  declaredText: string;
+  /** Heading of the boxes in the list view. Default 「項目」. */
+  listNodes: string;
+  /** Heading of the lines in the list view. Default 「關係」. */
+  listEdges: string;
+}
+
 export interface LayerGraphProps {
+  /** The boxes. */
   nodes: LayerGraphNode[];
+  /** The lines between boxes (by id). */
   edges: LayerGraphEdge[];
+  /** The selected box's id (controlled); null for none. */
+  value?: string | null;
+  /** A box picked (its id) or picked again (null). Selecting a box dims everything unrelated and turns its lines
+   *  accent; it clears the selected edge. */
+  onChange?: (id: string | null) => void;
+  /** @deprecated use value. */
   selected?: string | null;
-  /** Selecting a box dims everything unrelated and turns its lines accent. Clears the selected edge. */
+  /** @deprecated use onChange. */
   onSelect?: (id: string | null) => void;
   /** The selected edge's id (controlled, like selected). */
   selectedEdge?: string | null;
@@ -76,34 +117,35 @@ export interface LayerGraphProps {
    *  'switch'): a Switch with the text 「線上文字」, on while labels show. 'icon': the tag icon button with a fixed name
    *  and aria-pressed, for a tight toolbar. false: none. */
   labelToggle?: boolean | 'switch' | 'icon';
-  /** px. Default 200. */
+  /** Box width in px. Default 200. */
   nodeWidth?: number;
-  /** Text under a box's size bar: a string with {n}, or a function of the size for words that change with the number
-   *  (`(n) => n === 1 ? '1 function' : `${n} functions``). Default 「{n} 個項目」. */
+  /** Your words for every text LayerGraph writes: { size: '{n} 個函式', count: '呼叫 {n} 次', … }. */
+  labels?: Partial<LayerGraphLabels>;
+  /** @deprecated use labels.size. */
   sizeLabel?: string | ((n: number) => string);
-  /** Label of a selected edge's count: a string with {n}, or a function of the count (`(n) => n === 1 ? '1 call' : …`).
-   *  Default 「{n} 次」 (English 「1 call」, 「2 calls」). */
+  /** @deprecated use labels.count. */
   countLabel?: string | ((n: number) => string);
-  /** Under the name of an external box, and after it in the list. Default 「repo 外」. */
+  /** @deprecated use labels.external. */
   externalLabel?: string;
-  /** Heading of the shared list. Default 「共用項目」. */
+  /** @deprecated use labels.shared. */
   sharedLabel?: string;
-  /** A shared item's line; {a} is how many items use it, {b} the total count. Default 「{a} 個項目使用，共 {b} 次」. */
+  /** @deprecated use labels.sharedMeta. */
   sharedMeta?: string;
-  /** On a box that uses the selected shared item; {n} is how often. Default 「使用 {n} 次」. */
+  /** @deprecated use labels.use. */
   useLabel?: string;
-  /** Label of inferred edges without their own. Default 「推測」. */
+  /** @deprecated use labels.inferred. */
   inferredLabel?: string;
-  /** Explains inferred edges in the legend (a Term). */
+  /** @deprecated use labels.inferredText. */
   inferredText?: string;
-  /** The word for declared edges, after a label in the list. Default 「宣告」. */
+  /** @deprecated use labels.declared. */
   declaredLabel?: string;
-  /** The legend entry for declared edges. Default 「專案宣告的關係」. */
+  /** @deprecated use labels.declaredLegend. */
   declaredLegend?: string;
-  /** Explains declared edges in the legend (a Term), e.g. which file declares them. */
+  /** @deprecated use labels.declaredText. */
   declaredText?: string;
   /** false hides the legend. By default it lists only the kinds of line the diagram has. */
   legend?: boolean;
+  /** Your own legend entries instead of the kinds of line the diagram has. */
   legendItems?: GraphLegendItem[];
   /** Default 「架構圖」. */
   label?: string;
@@ -114,17 +156,69 @@ export interface LayerGraphProps {
    *  between them grow), so lines and their labels have more room. Up past the drawn height: the diagram scrolls up and
    *  down inside a shorter frame. ↑↓ 16 px, Enter or a double-click goes back. Default false. */
   resizable?: boolean;
-  /** Remembers the dragged height in localStorage under this name (ui-lg-height:<name>). */
+  /** Remembers the reader's choices in localStorage under this name: the dragged height (ui-lg-height:<name>) and the
+   *  line-label switch (ui-lg-labels:<name>); it also names the diagram's sideways scroll, kept while the page lives.
+   *  Without it nothing is stored. */
+  storageKey?: string;
+  /** @deprecated use storageKey. */
   heightKey?: string;
   /** Controls of the page on the same row as 「圖／清單」, at its left, such as the page's own 「依元件／依檔案」 Tabs,
    *  so two switches do not sit on two rows. */
   toolbar?: React.ReactNode;
-  /** Headings of the list: { nodes, edges }. Default 「項目」 and 「關係」. */
+  /** @deprecated use labels.listNodes and labels.listEdges. */
   listLabels?: { nodes?: string; edges?: string };
-  /** Remembers the sideways scroll under this name when the diagram unmounts and comes back (another block, another
-   *  tab). Default: the box ids. */
+  /** @deprecated use storageKey. */
   scrollKey?: string;
   className?: string;
+}
+
+// The props each old name moved to (labels, value, onChange, storageKey): read through one object inside.
+const OLD_LABELS = {
+  sizeLabel: 'size',
+  countLabel: 'count',
+  externalLabel: 'external',
+  sharedLabel: 'shared',
+  sharedMeta: 'sharedMeta',
+  useLabel: 'use',
+  inferredLabel: 'inferred',
+  inferredText: 'inferredText',
+  declaredLabel: 'declared',
+  declaredLegend: 'declaredLegend',
+  declaredText: 'declaredText',
+} as const;
+
+/** The props with the new names folded into the ones the drawing reads: labels.* into the text props, value and
+ *  onChange into selected and onSelect, storageKey into the storage names (nothing stored without one). */
+function resolveProps(q: LayerGraphProps): LayerGraphProps {
+  const old = (Object.keys(OLD_LABELS) as (keyof typeof OLD_LABELS)[]).filter((k) => q[k] !== undefined);
+  devWarn(
+    old.length > 0 || q.listLabels !== undefined,
+    'LayerGraph',
+    `${[...old, ...(q.listLabels ? ['listLabels'] : [])].join(', ')} moved into labels: pass labels={{ ${old.map((k) => OLD_LABELS[k] + ': …').join(', ')}${q.listLabels ? (old.length ? ', ' : '') + 'listNodes: …, listEdges: …' : ''} }}. The old props work until the next release.`,
+  );
+  devWarn(q.selected !== undefined || q.onSelect !== undefined, 'LayerGraph', 'selected and onSelect are renamed value and onChange; pass those instead.');
+  devWarn(q.heightKey !== undefined || q.scrollKey !== undefined, 'LayerGraph', 'heightKey and scrollKey are one prop now: pass storageKey.');
+  const l = q.labels ?? {};
+  const key = q.storageKey ?? q.heightKey ?? q.scrollKey;
+  return {
+    ...q,
+    selected: q.value !== undefined ? q.value : q.selected,
+    onSelect: q.onChange ?? q.onSelect,
+    sizeLabel: l.size ?? q.sizeLabel,
+    countLabel: l.count ?? q.countLabel,
+    externalLabel: l.external ?? q.externalLabel,
+    sharedLabel: l.shared ?? q.sharedLabel,
+    sharedMeta: l.sharedMeta ?? q.sharedMeta,
+    useLabel: l.use ?? q.useLabel,
+    inferredLabel: l.inferred ?? q.inferredLabel,
+    inferredText: l.inferredText ?? q.inferredText,
+    declaredLabel: l.declared ?? q.declaredLabel,
+    declaredLegend: l.declaredLegend ?? q.declaredLegend,
+    declaredText: l.declaredText ?? q.declaredText,
+    listLabels: { nodes: l.listNodes ?? q.listLabels?.nodes, edges: l.listEdges ?? q.listLabels?.edges },
+    heightKey: key,
+    scrollKey: key,
+  };
 }
 
 // Sideways scroll of each diagram, kept while the page lives.
@@ -366,7 +460,8 @@ const clean = (pts: Pt[]): Pt[] =>
 /** Architecture as layers of boxes with arrows. Line width shows how often; inferred relations are dashed and labelled;
  *  shared items are listed under the diagram instead of drawn. Wider than its box: the boxes narrow (down to 120 px),
  *  then the whole diagram scales down (to 0.75 at least); past that it scrolls sideways at full width (PM, WA). */
-export function LayerGraph(p: LayerGraphProps) {
+export function LayerGraph(props: LayerGraphProps) {
+  const p = resolveProps(props);
   // PM: the width of the box the diagram sits in, and the fit worked out for that width.
   const [avail, setAvail] = React.useState(0);
   const [fit, setFit] = React.useState<{ at: number; nw: number; col: number; scale: number; full?: boolean } | null>(null);
@@ -407,17 +502,12 @@ export function LayerGraph(p: LayerGraphProps) {
   const all = p.nodes;
   const sel = p.selected ?? null;
   devWarn(
-    all.some((n) => n.fns != null),
-    'LayerGraph',
-    'fns is renamed size; pass size and, for the text under the bar, sizeLabel such as 「{n} 個函式」.',
-  );
-  devWarn(
     all.some((n) => n.external && n.shared),
     'LayerGraph',
     'a node is both external and shared; it is drawn as shared. Keep one of the two.',
   );
   // External boxes have no size: they are not part of the code being measured.
-  const sizeOf = (n: LayerGraphNode) => (n.external && !n.shared ? undefined : (n.size ?? n.fns));
+  const sizeOf = (n: LayerGraphNode) => (n.external && !n.shared ? undefined : n.size);
   const sharedIds = new Set(all.filter((n) => n.shared).map((n) => n.id));
   const main = all.filter((n) => !n.shared);
   // T (option 1): beside the name, a tag would cut some name to fewer than TAG_KEEP characters at this box width: every
@@ -532,13 +622,32 @@ export function LayerGraph(p: LayerGraphProps) {
   const switchLabels = () => {
     const on = !labelsOn;
     setLabelsOn(on);
+    // Remembered only with storageKey: without one nothing is stored.
+    if (!p.scrollKey) return;
     try {
-      window.localStorage.setItem(LABELS_KEY + (p.scrollKey ?? allIds(p.nodes)), on ? '1' : '0');
+      window.localStorage.setItem(LABELS_KEY + p.scrollKey, on ? '1' : '0');
     } catch {
       // Storage blocked or full: the labels still switch, the choice is just not remembered.
     }
   };
-  const [hover, setHover] = React.useState<string | null>(null);
+  // The hovered line: every part of it (line, label, number) gets is-hl straight in the DOM, so a hover never renders
+  // the diagram again or reruns its routing. Put back after a render (React rewrites className).
+  const canvasRef = React.useRef<HTMLDivElement>(null);
+  const hoverRef = React.useRef<string | null>(null);
+  const paintHover = React.useCallback(() => {
+    const root = canvasRef.current;
+    if (!root) return;
+    for (const el of root.querySelectorAll<Element>('[data-hl]')) el.classList.toggle('is-hl', el.getAttribute('data-hl') === hoverRef.current);
+  }, []);
+  const setHover = React.useCallback(
+    (id: string | null) => {
+      if (hoverRef.current === id) return;
+      hoverRef.current = id;
+      paintHover();
+    },
+    [paintHover],
+  );
+  React.useLayoutEffect(paintHover);
   // Wider than its box: a fade on the right while more is to the right, and a 「左右滑動」 hint until the first scroll.
   const { ref: scrollRef, more: scrollMore, overflows, scrolled, onScroll } = useScrollHint();
   const uid = React.useId().replace(/:/g, '');
@@ -799,7 +908,6 @@ export function LayerGraph(p: LayerGraphProps) {
       const r = related(e);
       const dim = focus && !r;
       const picked = e === selEdge;
-      const hovered = !!pickEdge && hover === edgeId(e) && !r;
       const up = isUp(e);
       let pts: Pt[];
       let tx: number;
@@ -906,8 +1014,8 @@ export function LayerGraph(p: LayerGraphProps) {
         arrow = `M${tx - 5} ${ty - 9} L${tx + 5} ${ty - 9} L${tx} ${ty} Z`;
         arrows.push([tx - 5, tx + 5, ty - 9, ty]);
       }
-      // Hover on a selectable line: darker and 2 px thicker.
-      const w = (lab(e) ? 1.5 : 1.5 + 5.5 * ((e.count || 0) / maxCount)) + (picked ? 1.5 : 0) + (hovered ? 2 : 0);
+      // Hover on a selectable line: darker and 2 px thicker (CSS, from --lg-w).
+      const w = (lab(e) ? 1.5 : 1.5 + 5.5 * ((e.count || 0) / maxCount)) + (picked ? 1.5 : 0);
       const cpts = clean(pts);
       ptsOf[idx] = cpts;
       for (let k = 1; k < cpts.length; k++) {
@@ -919,16 +1027,16 @@ export function LayerGraph(p: LayerGraphProps) {
       paths.push(
         <path
           key={'p' + idx}
-          className={cx('ui-lg-edge', e.declared ? 'is-declared' : e.inferred && 'is-inferred', r && 'is-related', dim && 'is-dim', hovered && 'is-hover')}
+          className={cx('ui-lg-edge', e.declared ? 'is-declared' : e.inferred && 'is-inferred', r && 'is-related', dim && 'is-dim')}
+          data-hl={edgeId(e)}
           d={d}
           strokeWidth={w}
+          style={{ '--lg-w': w } as React.CSSProperties}
         />,
       );
       if (!pickEdge && peek) {
         // edgeLabels 'hover' without selectable lines: an invisible path that only shows the label while hovered.
-        hitPaths.push(
-          <path key={'h' + idx} className="ui-lg-hit is-peek" d={d} onPointerEnter={() => setHover(edgeId(e))} onPointerLeave={() => setHover(null)} />,
-        );
+        hitPaths.push(<path key={'h' + idx} className="ui-lg-hit is-peek" d={d} data-hover={edgeId(e)} />);
       }
       if (pickEdge) {
         // An invisible 12 px path over the line: the click and keyboard target.
@@ -950,10 +1058,7 @@ export function LayerGraph(p: LayerGraphProps) {
               ev.stopPropagation();
               choose(e);
             }}
-            onPointerEnter={() => setHover(edgeId(e))}
-            onPointerLeave={() => setHover(null)}
-            onFocus={peek ? () => setHover(edgeId(e)) : undefined}
-            onBlur={peek ? () => setHover(null) : undefined}
+            data-hover={edgeId(e)}
             onKeyDown={(ev) => {
               if (ev.key === 'Enter' || ev.key === ' ') {
                 ev.preventDefault();
@@ -1086,14 +1191,14 @@ export function LayerGraph(p: LayerGraphProps) {
           // Over a line (no clear spot): a solid ground, so the line stops at the label instead of showing between letters.
           over && 'is-over',
           num > 0 && 'is-numbered',
-          num > 0 && (hover === edgeId(m.e) || m.e === selEdge) && 'is-shown',
+          num > 0 && m.e === selEdge && 'is-shown',
           pickEdge && 'is-clickable',
-          pickEdge && hover === edgeId(m.e) && 'is-hover',
           m.r && 'is-related',
           m.dim && 'is-dim',
-          // edgeLabels 'hover': hidden until its line is hovered, focused or selected; the room stays reserved.
-          peek && !m.r && hover !== edgeId(m.e) && m.e !== selEdge && 'is-quiet',
+          // edgeLabels 'hover': hidden until its line is hovered (is-hl), focused or selected; the room stays reserved.
+          peek && !m.r && m.e !== selEdge && 'is-quiet',
         )}
+        data-hl={edgeId(m.e)}
         style={{ left: x0, top }}
         onClick={
           pickEdge
@@ -1103,8 +1208,7 @@ export function LayerGraph(p: LayerGraphProps) {
               }
             : undefined
         }
-        onPointerEnter={pickEdge ? () => setHover(edgeId(m.e)) : undefined}
-        onPointerLeave={pickEdge ? () => setHover(null) : undefined}
+        data-hover={pickEdge ? edgeId(m.e) : undefined}
       >
         {lines.map((t, i) => (
           <React.Fragment key={i}>
@@ -1316,61 +1420,75 @@ export function LayerGraph(p: LayerGraphProps) {
       labels.push(
         <span
           key={'n' + o.m.idx}
-          className={cx('ui-lg-num', o.m.dim && 'is-dim', (hover === edgeId(o.m.e) || o.m.e === selEdge) && 'is-on')}
+          className={cx('ui-lg-num', o.m.dim && 'is-dim', o.m.e === selEdge && 'is-on')}
+          data-hl={edgeId(o.m.e)}
           style={{ left: o.x, top: o.y }}
           aria-hidden="true"
-          onPointerEnter={pickEdge ? () => setHover(edgeId(o.m.e)) : undefined}
-          onPointerLeave={pickEdge ? () => setHover(null) : undefined}
+          data-hover={pickEdge ? edgeId(o.m.e) : undefined}
         >
           {o.n}
         </span>,
       );
     return { paths, labels, hitPaths, need, crowd, wide, least, covered, numbered };
   };
-  // Room for the lanes: LANE_H px per labelled line into one box, plus the arrow and a margin.
-  for (const id in laneCount) {
-    const g = layerIndex[id] - 1;
-    if (g >= 0) gaps[g] = Math.max(gaps[g], laneCount[id] * LANE_H + 40);
-  }
-  // The least each gap gets: GAP, or the lanes' room.
-  const floor = gaps.slice();
-  placeRows();
-  let drawn = draw();
-  // At most GROW_MAX / GROW redraws: each one widens every gap that a label asked for.
-  const grows = () => [...drawn.need].filter((g) => gaps[g] < floor[g] + GROW_MAX);
-  for (let k = 0; k < GROW_MAX / GROW && grows().length; k++) {
-    for (const g of grows()) gaps[g] = Math.min(floor[g] + GROW_MAX, gaps[g] + GROW);
+  // Layout and routing: placing the rows, routing every line and placing every label, with the redraws that widen gaps
+  // and the diagram. Worked out again only when what it depends on changes (boxes, lines, the fit, the added space, the
+  // dragged height, the labels' switch, the selection and the label texts), never on a hover. A run moves the boxes and
+  // sets W, H and the gaps: kept with the result and put back when it is reused.
+  const routed = React.useMemo(() => {
+    // Room for the lanes: LANE_H px per labelled line into one box, plus the arrow and a margin.
+    for (const id in laneCount) {
+      const g = layerIndex[id] - 1;
+      if (g >= 0) gaps[g] = Math.max(gaps[g], laneCount[id] * LANE_H + 40);
+    }
+    // The least each gap gets: GAP, or the lanes' room.
+    const floor = gaps.slice();
     placeRows();
-    drawn = draw();
-  }
-  // A gap that grew to the most and still did not help goes back to GAP: the room bought nothing.
-  const stuck = [...drawn.need].filter((g) => gaps[g] >= floor[g] + GROW_MAX);
-  if (stuck.length) {
-    for (const g of stuck) gaps[g] = floor[g];
-    placeRows();
-    drawn = draw();
-    // Then only as much room as the labels need to cover a line rather than a box or each other (several labelled
-    // lines into one box, too close together for any label to miss the others' lines).
-    const crowded = () => [...drawn.crowd].filter((g) => stuck.includes(g) && gaps[g] < floor[g] + GROW_MAX);
-    for (let k = 0; k < GROW_MAX / GROW && crowded().length; k++) {
-      for (const g of crowded()) gaps[g] = Math.min(floor[g] + GROW_MAX, gaps[g] + GROW);
+    let drawn = draw();
+    // At most GROW_MAX / GROW redraws: each one widens every gap that a label asked for.
+    const grows = () => [...drawn.need].filter((g) => gaps[g] < floor[g] + GROW_MAX);
+    for (let k = 0; k < GROW_MAX / GROW && grows().length; k++) {
+      for (const g of grows()) gaps[g] = Math.min(floor[g] + GROW_MAX, gaps[g] + GROW);
       placeRows();
       drawn = draw();
     }
-  }
-  // A label written out past the left edge: everything moves right and the diagram widens by as much.
-  // Moving the boxes also frees the channels beside them, which can move a label again: up to 3 times.
-  for (let k = 0; k < 3 && drawn.least < 0; k++) {
-    const shift = Math.ceil(-drawn.least);
-    for (const id in pos) pos[id].x += shift;
-    W += shift;
-    drawn = draw();
-  }
-  // Past the right edge: the diagram widens to keep it whole.
-  if (drawn.wide > W) {
-    W = Math.ceil(drawn.wide);
-    drawn = draw();
-  }
+    // A gap that grew to the most and still did not help goes back to GAP: the room bought nothing.
+    const stuck = [...drawn.need].filter((g) => gaps[g] >= floor[g] + GROW_MAX);
+    if (stuck.length) {
+      for (const g of stuck) gaps[g] = floor[g];
+      placeRows();
+      drawn = draw();
+      // Then only as much room as the labels need to cover a line rather than a box or each other (several labelled
+      // lines into one box, too close together for any label to miss the others' lines).
+      const crowded = () => [...drawn.crowd].filter((g) => stuck.includes(g) && gaps[g] < floor[g] + GROW_MAX);
+      for (let k = 0; k < GROW_MAX / GROW && crowded().length; k++) {
+        for (const g of crowded()) gaps[g] = Math.min(floor[g] + GROW_MAX, gaps[g] + GROW);
+        placeRows();
+        drawn = draw();
+      }
+    }
+    // A label written out past the left edge: everything moves right and the diagram widens by as much.
+    // Moving the boxes also frees the channels beside them, which can move a label again: up to 3 times.
+    for (let k = 0; k < 3 && drawn.least < 0; k++) {
+      const shift = Math.ceil(-drawn.least);
+      for (const id in pos) pos[id].x += shift;
+      // eslint-disable-next-line react-hooks/use-memo, react-hooks/exhaustive-deps -- W is returned with the result and set again after the memo
+      W += shift;
+      drawn = draw();
+    }
+    // Past the right edge: the diagram widens to keep it whole.
+    if (drawn.wide > W) {
+      // eslint-disable-next-line react-hooks/use-memo -- as above
+      W = Math.ceil(drawn.wide);
+      drawn = draw();
+    }
+    return { drawn, W, H, gaps: gaps.slice(), pos: Object.fromEntries(Object.entries(pos).map(([k, v]) => [k, { ...v }])) };
+  }, [p.nodes, p.edges, NW, COL, NH, extra, labelsOn, sel, p.selectedEdge, pickEdge, p.onSelect, p.countLabel, p.inferredLabel, p.declaredLabel, p.nodeWidth]);
+  const drawn = routed.drawn;
+  W = routed.W;
+  H = routed.H;
+  gaps.splice(0, gaps.length, ...routed.gaps);
+  for (const id in routed.pos) pos[id] = { ...routed.pos[id] };
   const { paths, labels, hitPaths, numbered } = drawn;
   // Where the boxes start, and where the selected one is: the diagram scrolls there (below).
   const firstX = Math.min(...main.filter((n) => pos[n.id]).map((n) => boxOf(n.id).x), W);
@@ -1599,7 +1717,7 @@ export function LayerGraph(p: LayerGraphProps) {
   const frameH = p.resizable && dh < 0 ? Math.max(Math.min(MIN_FRAME, naturalH), naturalH + dh) : null;
   const dragTo = (v: number) => Math.max(Math.min(MIN_FRAME, naturalH) - naturalH, Math.min(v, between ? MAX_EXTRA * between * scale : 0));
   return (
-    <div className={cx('ui-graph ui-lg', p.className)}>
+    <div className={cx('ui-graph ui-lg', pickEdge && 'has-pick', p.className)}>
       {p.listView === false && !toggleShown && !p.toolbar ? null : (
         <div className="ui-lg-bar">
           {p.toolbar ? <div className="ui-lg-toolbar">{p.toolbar}</div> : null}
@@ -1636,6 +1754,7 @@ export function LayerGraph(p: LayerGraphProps) {
           style={frameH != null ? { height: frameH } : undefined}
         >
           <div
+            ref={canvasRef}
             className="ui-lg-canvas"
             style={
               scale === 1
@@ -1653,6 +1772,12 @@ export function LayerGraph(p: LayerGraphProps) {
             }
             role="group"
             aria-label={p.label || tr('架構圖')}
+            // Hover on a line, its label or its number: one listener for all (see setHover), so the parts drawn by the
+            // memoised routing carry only data-hover. Keyboard focus on a line shows its hidden label the same way.
+            onPointerOver={(e) => setHover((e.target as Element).closest('[data-hover]')?.getAttribute('data-hover') ?? null)}
+            onPointerLeave={() => setHover(null)}
+            onFocus={(e) => peek && setHover((e.target as Element).closest('[data-hover]')?.getAttribute('data-hover') ?? null)}
+            onBlur={() => peek && setHover(null)}
             // A click on the empty diagram clears the selected edge.
             onClick={pickEdge && p.selectedEdge != null ? () => pickEdge(null) : undefined}
           >

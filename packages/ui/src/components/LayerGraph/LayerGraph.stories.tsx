@@ -61,7 +61,7 @@ function Demo() {
   return (
     <div>
       <div style={card}>
-        <UI.LayerGraph nodes={nodes} edges={edges} selected={s} onSelect={setS} inferredText="由規則推得，編譯器無法確認。" />
+        <UI.LayerGraph labels={{ inferredText: '由規則推得，編譯器無法確認。' }} nodes={nodes} edges={edges} value={s} onChange={setS} />
       </div>
       <div style={card}>
         <UI.LayerGraph nodes={nodes2} edges={edges2} legend={false} />
@@ -101,7 +101,7 @@ function SelectEdge() {
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-start' }}>
       <div style={{ ...card, flex: '1 1 460px', minWidth: 0, marginBottom: 0 }}>
-        <UI.LayerGraph nodes={nodes4} edges={edges4} selected={box} onSelect={setBox} selectedEdge={edge} onSelectEdge={setEdge} legend={false} />
+        <UI.LayerGraph nodes={nodes4} edges={edges4} value={box} onChange={setBox} selectedEdge={edge} onSelectEdge={setEdge} legend={false} />
       </div>
       <div style={{ ...card, flex: '1 1 260px', marginBottom: 0 }}>
         {edge ? <UI.DetailList items={DETAILS[edge]} /> : <span style={{ color: 'var(--ink-muted)' }}>選一條線查看細節。</span>}
@@ -119,7 +119,7 @@ const edges5 = [
 export const InferredOnly = {
   render: () => (
     <div style={card}>
-      <UI.LayerGraph nodes={nodes4} edges={edges5} sizeLabel="{n} 個函式" inferredText="由規則推得，編譯器無法確認。" />
+      <UI.LayerGraph labels={{ size: '{n} 個函式', inferredText: '由規則推得，編譯器無法確認。' }} nodes={nodes4} edges={edges5} />
     </div>
   ),
 };
@@ -137,13 +137,13 @@ export const Tags = {
   render: () => (
     <div style={{ ...card, maxWidth: 680 }}>
       <UI.LayerGraph
+        labels={{ size: '{n} 個函式' }}
         nodes={tagged}
         edges={[
           { from: 'ctrl', to: 'oracle', count: 14 },
           { from: 'route', to: 'oracle', count: 6 },
           { from: 'topo', to: 'runner', count: 3 },
         ]}
-        sizeLabel="{n} 個函式"
       />
     </div>
   ),
@@ -153,7 +153,7 @@ export const Tags = {
 export const Narrow = {
   render: () => (
     <div style={{ ...card, maxWidth: 326 }}>
-      <UI.LayerGraph nodes={nodes4} edges={edges4} sizeLabel="{n} 個函式" />
+      <UI.LayerGraph labels={{ size: '{n} 個函式' }} nodes={nodes4} edges={edges4} />
     </div>
   ),
 };
@@ -173,13 +173,11 @@ function SharedSelect() {
   return (
     <div style={card}>
       <UI.LayerGraph
+        labels={{ size: '{n} 個函式', shared: '共用元件', sharedMeta: '{a} 個元件使用，共 {b} 次' }}
         nodes={nodes6}
         edges={edges6}
-        selected={s}
-        onSelect={setS}
-        sizeLabel="{n} 個函式"
-        sharedLabel="共用元件"
-        sharedMeta="{a} 個元件使用，共 {b} 次"
+        value={s}
+        onChange={setS}
       />
     </div>
   );
@@ -200,11 +198,11 @@ function UpLine() {
   return (
     <div style={{ ...card, maxWidth: 900 }}>
       <UI.LayerGraph
+        labels={{ size: '{n} 個函式' }}
         nodes={nodes7}
         edges={[{ from: 'cli', to: 'lib', count: 7 }, { from: 'ucx', to: 'lib', count: 3 }, upLine]}
         selectedEdge={edge}
         onSelectEdge={setEdge}
-        sizeLabel="{n} 個函式"
       />
     </div>
   );
@@ -218,13 +216,13 @@ function BothWays() {
   return (
     <div style={{ ...card, maxWidth: 900 }}>
       <UI.LayerGraph
+        labels={{ size: '{n} 個函式' }}
         nodes={nodes4}
         edges={[...edges4, upLine]}
-        selected={box}
-        onSelect={setBox}
+        value={box}
+        onChange={setBox}
         selectedEdge={edge}
         onSelectEdge={setEdge}
-        sizeLabel="{n} 個函式"
       />
     </div>
   );
@@ -249,7 +247,7 @@ function BothWaysNarrow() {
   const [edge, setEdge] = React.useState<string | null>(null);
   return (
     <div style={{ ...card, maxWidth: 358 }}>
-      <UI.LayerGraph nodes={nodes8} edges={edges8} selectedEdge={edge} onSelectEdge={setEdge} sizeLabel="{n} 個函式" />
+      <UI.LayerGraph labels={{ size: '{n} 個函式' }} nodes={nodes8} edges={edges8} selectedEdge={edge} onSelectEdge={setEdge} />
     </div>
   );
 }
@@ -276,7 +274,7 @@ function External() {
   const [edge, setEdge] = React.useState<string | null>(null);
   return (
     <div style={card}>
-      <UI.LayerGraph nodes={nodes9} edges={edges9} selected={sel} onSelect={setSel} selectedEdge={edge} onSelectEdge={setEdge} sizeLabel="{n} 個函式" />
+      <UI.LayerGraph labels={{ size: '{n} 個函式' }} nodes={nodes9} edges={edges9} value={sel} onChange={setSel} selectedEdge={edge} onSelectEdge={setEdge} />
     </div>
   );
 }
@@ -286,13 +284,13 @@ function HoverLabels() {
   return (
     <div style={card}>
       <UI.LayerGraph
+        labels={{ size: '{n} 個函式' }}
         nodes={nodes9}
         edges={edges9}
         selectedEdge={edge}
         onSelectEdge={setEdge}
         edgeLabels="hover"
-        scrollKey="labels-on-hover"
-        sizeLabel="{n} 個函式"
+        storageKey="labels-on-hover"
       />
     </div>
   );

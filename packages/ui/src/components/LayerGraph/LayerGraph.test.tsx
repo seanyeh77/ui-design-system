@@ -23,8 +23,8 @@ function Demo({ onEdge, onBox }: { onEdge: (id: string | null) => void; onBox: (
     <LayerGraph
       nodes={nodes}
       edges={edges}
-      selected={box}
-      onSelect={(id) => {
+      value={box}
+      onChange={(id) => {
         onBox(id);
         setBox(id);
       }}
@@ -104,10 +104,14 @@ test('LayerGraph: hovering a selectable line makes it darker and 2 px thicker; i
   const { container } = render(<Demo onEdge={() => {}} onBox={() => {}} />);
   const line = container.querySelectorAll<SVGPathElement>('.ui-lg-edge')[0];
   const before = Number(line.getAttribute('stroke-width'));
+  const shape = () => [...container.querySelectorAll('.ui-lg-edge, .ui-lg-label')].map((e) => (e.getAttribute('d') ?? '') + (e.getAttribute('style') ?? ''));
+  const before2 = shape();
   await user.hover(screen.getByRole('button', { name: 'src/ibmon 到 src/libibtrace，環境變數 IBTRACE_SHM' }));
-  expect(line.classList.contains('is-hover')).toBe(true);
-  expect(Number(line.getAttribute('stroke-width'))).toBe(before + 2);
-  expect(container.querySelector('.ui-lg-label')?.classList.contains('is-hover')).toBe(true);
+  expect(line.classList.contains('is-hl')).toBe(true);
+  expect(parseFloat(getComputedStyle(line).strokeWidth.replace('calc(', ''))).toBeCloseTo(before + 2, 1);
+  expect(container.querySelector('.ui-lg-label')?.classList.contains('is-hl')).toBe(true);
+  // A hover only sets classes: the paths and the label spots stay as drawn.
+  expect(shape()).toEqual(before2);
 });
 
 test('LayerGraph: wider than its box, it shows a fade and a hint until scrolled', async () => {
@@ -155,12 +159,12 @@ test('LayerGraph: a shared item is a selectable box; the boxes that use it say h
   const onSelect = vi.fn();
   const withShared = [...nodes, { id: 'common', name: 'src/common', shared: true }];
   const uses: LayerGraphEdge[] = [...edges, { from: 'ibmon', to: 'common', count: 6 }, { from: 'lib', to: 'common', count: 3 }];
-  const { container, rerender } = render(<LayerGraph nodes={withShared} edges={uses} selected={null} onSelect={onSelect} />);
+  const { container, rerender } = render(<LayerGraph nodes={withShared} edges={uses} value={null} onChange={onSelect} />);
   const chip = screen.getByRole('button', { name: /src\/common/ });
   expect(chip.getAttribute('aria-pressed')).toBe('false');
   await user.click(chip);
   expect(onSelect).toHaveBeenLastCalledWith('common');
-  rerender(<LayerGraph nodes={withShared} edges={uses} selected="common" onSelect={onSelect} />);
+  rerender(<LayerGraph nodes={withShared} edges={uses} selected="common" onChange={onSelect} />);
   expect(chip.classList.contains('is-selected')).toBe(true);
   const badges = [...container.querySelectorAll('.ui-lg-use')].map((n) => n.textContent);
   expect(badges).toEqual(['使用 6 次', '使用 3 次']);
@@ -240,7 +244,7 @@ test('LayerGraph: a line up can be selected, hovered and used from the keyboard'
   await user.click(line);
   expect(onEdge).toHaveBeenLastCalledWith('ring');
   await user.hover(line);
-  const drawn = [...container.querySelectorAll('.ui-lg-edge')].find((p) => p.classList.contains('is-hover'));
+  const drawn = [...container.querySelectorAll('.ui-lg-edge')].find((p) => p.classList.contains('is-hl'));
   expect(drawn).toBeTruthy();
   line.focus();
   await user.keyboard('{Enter}');
@@ -252,7 +256,7 @@ test('LayerGraph: a line up can be selected, hovered and used from the keyboard'
 test('LayerGraph: the list view shows every box and line as text, selectable like the diagram', async () => {
   const onEdge = vi.fn();
   const onBox = vi.fn();
-  const { container } = render(<LayerGraph nodes={nodes} edges={edges} onSelect={onBox} onSelectEdge={onEdge} sizeLabel="{n} 個函式" />);
+  const { container } = render(<LayerGraph labels={{ size: '{n} 個函式' }} nodes={nodes} edges={edges} onChange={onBox} onSelectEdge={onEdge} />);
   await user.click(screen.getByRole('tab', { name: '清單' }));
   const list = container.querySelector('.ui-lg-list');
   expect(list?.textContent).toContain('src/ibmon，91 個函式');
@@ -268,7 +272,7 @@ test('LayerGraph: the list view shows every box and line as text, selectable lik
 test('LayerGraph: the sideways scroll comes back with the diagram', async () => {
   await page.viewport(1280, 900);
   const wide = (k: boolean) => (
-    <div style={{ width: 180 }}>{k ? <LayerGraph nodes={nodes} edges={edges} legend={false} listView={false} scrollKey="keep" /> : <p>其他區塊</p>}</div>
+    <div style={{ width: 180 }}>{k ? <LayerGraph nodes={nodes} edges={edges} legend={false} listView={false} storageKey="keep" /> : <p>其他區塊</p>}</div>
   );
   const { container, rerender } = render(wide(true));
   const box = container.querySelector<HTMLElement>('.ui-lg-scroll');
@@ -316,7 +320,11 @@ test('LayerGraph: still too wide with 120 px boxes, the diagram scales, not belo
 
 test('LayerGraph: edgeLabels="hover" hides line labels until the line is hovered, focused or selected', async () => {
   await page.viewport(1280, 900);
-  const quiet = (c: HTMLElement) => c.querySelector('.ui-lg-label')?.classList.contains('is-quiet');
+  // Hidden: is-quiet and not lit by a hover or focus (is-hl).
+  const quiet = (c: HTMLElement) => {
+    const l = c.querySelector('.ui-lg-label');
+    return !!l?.classList.contains('is-quiet') && !l.classList.contains('is-hl');
+  };
   const { container, rerender } = render(<LayerGraph nodes={nodes} edges={edges} legend={false} edgeLabels="hover" />);
   const label = container.querySelector<HTMLElement>('.ui-lg-label');
   if (!label) throw new Error('no label');
@@ -342,7 +350,7 @@ test('LayerGraph: edgeLabels="hover" hides line labels until the line is hovered
   rerender(<LayerGraph nodes={nodes} edges={edges} legend={false} edgeLabels="hover" onSelectEdge={() => {}} selectedEdge="shm" />);
   expect(quiet(container)).toBe(false);
   // The selected box shows the labels of its lines.
-  rerender(<LayerGraph nodes={nodes} edges={edges} legend={false} edgeLabels="hover" selected="ibmon" onSelect={() => {}} />);
+  rerender(<LayerGraph nodes={nodes} edges={edges} legend={false} edgeLabels="hover" selected="ibmon" onChange={() => {}} />);
   expect(quiet(container)).toBe(false);
 });
 
@@ -351,7 +359,7 @@ test('LayerGraph: the 「線上文字」 switch shows or hides line labels and r
   window.localStorage.removeItem('ui-lg-labels:tc');
   const quiet = (c: HTMLElement) => c.querySelector('.ui-lg-label')?.classList.contains('is-quiet');
   const graph = (extra: Partial<React.ComponentProps<typeof LayerGraph>> = {}) => (
-    <LayerGraph nodes={nodes} edges={edges} legend={false} scrollKey="tc" {...extra} />
+    <LayerGraph nodes={nodes} edges={edges} legend={false} storageKey="tc" {...extra} />
   );
   const { container, unmount } = render(graph());
   const btn = screen.getByRole('switch', { name: '線上文字' });
@@ -385,7 +393,7 @@ test('LayerGraph: the 「線上文字」 switch shows or hides line labels and r
 
 test('LayerGraph: labelToggle="icon" keeps the tag button, a toggle button with a fixed name (TC)', async () => {
   window.localStorage.removeItem('ui-lg-labels:tci');
-  const { container } = render(<LayerGraph nodes={nodes} edges={edges} legend={false} scrollKey="tci" labelToggle="icon" />);
+  const { container } = render(<LayerGraph nodes={nodes} edges={edges} legend={false} storageKey="tci" labelToggle="icon" />);
   expect(screen.queryByRole('switch')).toBeNull();
   const btn = screen.getByRole('button', { name: '顯示線上文字' });
   expect(btn.getAttribute('aria-pressed')).toBe('true');
@@ -403,7 +411,7 @@ test('LayerGraph: the line-label switch works when storage throws', async () => 
   const set = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
     throw new Error('blocked');
   });
-  const { container } = render(<LayerGraph nodes={nodes} edges={edges} legend={false} scrollKey="tc2" />);
+  const { container } = render(<LayerGraph nodes={nodes} edges={edges} legend={false} storageKey="tc2" />);
   await user.click(screen.getByRole('switch', { name: '線上文字' }));
   expect(container.querySelector('.ui-lg-label')?.classList.contains('is-quiet')).toBe(true);
   get.mockRestore();
@@ -509,7 +517,7 @@ test('LayerGraph: a shared item counts every item that uses it, other shared ite
         { from: 'lib', to: 'common', count: 7 },
         { from: 'util', to: 'common', count: 2 },
       ]}
-      onSelect={() => {}}
+      onChange={() => {}}
     />,
   );
   const chip = [...container.querySelectorAll('.ui-lg-chip')].find((c) => c.textContent?.includes('src/common'));
@@ -534,7 +542,7 @@ test('LayerGraph: an external box sits above every layer, dashed, 「repo 外」
         { id: 'verbs', from: 'app', to: 'lib', inferred: true, label: '攔截 `verbs`' },
         { from: 'ibmon', to: 'lib', count: 3 },
       ]}
-      onSelect={onSelect}
+      onChange={onSelect}
       onSelectEdge={() => {}}
     />,
   );
@@ -633,7 +641,7 @@ test.each([
 
 test('LayerGraph: the tag button shows the filled tag while pressed', async () => {
   window.localStorage.removeItem('ui-lg-labels:tc3');
-  render(<LayerGraph nodes={nodes} edges={edges} legend={false} scrollKey="tc3" labelToggle="icon" />);
+  render(<LayerGraph nodes={nodes} edges={edges} legend={false} storageKey="tc3" labelToggle="icon" />);
   const btn = screen.getByRole('button', { name: '顯示線上文字' });
   const markup = () => btn.querySelector('svg')?.innerHTML ?? '';
   const pressed = markup();
@@ -668,7 +676,7 @@ for (const w of [620, 358]) {
     await page.viewport(1280, 900);
     const { container } = render(
       <div style={{ width: w }}>
-        <LayerGraph nodes={cmNodes} edges={cmEdges} legend={false} onSelectEdge={() => {}} externalLabel="repo 外" />
+        <LayerGraph labels={{ external: 'repo 外' }} nodes={cmNodes} edges={cmEdges} legend={false} onSelectEdge={() => {}} />
       </div>,
     );
     await new Promise((r) => setTimeout(r, 200));
@@ -735,7 +743,7 @@ test('LayerGraph list: each relation button is named with its description, not o
   expect(screen.getByRole('button', { name: 'src/ibmon 到 src/common：20 calls' })).toBeTruthy();
 });
 
-test('LayerGraph: countLabel and sizeLabel can be functions of the number; English says 「1 call」', async () => {
+test('LayerGraph: labels.count and labels.size can be functions of the number; English says 「1 call」', async () => {
   setLocale('en');
   try {
     const { container } = render(
@@ -745,10 +753,10 @@ test('LayerGraph: countLabel and sizeLabel can be functions of the number; Engli
           { id: 'b', name: 'b', layer: 1, size: 1033 },
         ]}
         edges={[{ id: 'x', from: 'a', to: 'b', count: 1 }]}
-        selected="a"
-        onSelect={() => {}}
+        value="a"
+        onChange={() => {}}
         legend={false}
-        sizeLabel={(n) => (n === 1 ? '1 function' : `${format.number(n)} functions`)}
+        labels={{ size: (n) => (n === 1 ? '1 function' : `${format.number(n)} functions`) }}
       />,
     );
     const counts = [...container.querySelectorAll('.ui-lg-count')].map((e) => e.textContent);
@@ -790,7 +798,7 @@ test('LayerGraph: a language without its own 「1 次」 uses its {n} form', () 
         ]}
         edges={[{ id: 'x', from: 'a', to: 'b', count: 1 }]}
         selected="a"
-        onSelect={() => {}}
+        onChange={() => {}}
         legend={false}
       />,
     );
@@ -871,12 +879,12 @@ test('LayerGraph: a wrapped label never starts a line with a comma', async () =>
 test('LayerGraph: a declared edge has long-short dashes, its label, 「宣告」 in the list and its own legend entry (DC)', async () => {
   const { container } = render(
     <LayerGraph
+      labels={{ declaredText: '由 rules.json 宣告' }}
       nodes={nodes}
       edges={[
         { id: 'ring', from: 'lib', to: 'ibmon', declared: true, label: '經由 `src/common` 傳資料（ring）' },
         { id: 'shm', from: 'ibmon', to: 'lib', inferred: true, label: '環境變數 `IBTRACE_SHM`' },
       ]}
-      declaredText="由 rules.json 宣告"
     />,
   );
   const lines = [...container.querySelectorAll<SVGPathElement>('.ui-lg-edge')];
@@ -914,7 +922,7 @@ test('LayerGraph: too wide even at 0.75, it scrolls with the boxes back at their
 test('LayerGraph list in English: no gap before the comma after a box name', async () => {
   setLocale('en');
   try {
-    const { container } = render(<LayerGraph nodes={nodes} edges={edges} onSelect={() => {}} />);
+    const { container } = render(<LayerGraph nodes={nodes} edges={edges} onChange={() => {}} />);
     await user.click(screen.getByRole('tab', { name: 'List' }));
     const li = container.querySelector('.ui-lg-li');
     const name = li?.querySelector('.ui-lg-libtn .ui-lg-liname');
@@ -1002,7 +1010,7 @@ test('LayerGraph on a phone: starts at the boxes, the leftmost whole; a box sele
         <button type="button" onClick={() => setS('ucx')}>
           選 ucx
         </button>
-        <LayerGraph nodes={ibNodes} edges={ibEdges} selected={s} onSelect={setS} scrollKey="phone-start" />
+        <LayerGraph nodes={ibNodes} edges={ibEdges} value={s} onChange={setS} storageKey="phone-start" />
       </div>
     );
   }
@@ -1088,7 +1096,7 @@ test('LayerGraph: a label with no spot of its own becomes a number on its line, 
   if (!hidden) throw new Error('no numbered label');
   expect(getComputedStyle(hidden).visibility).toBe('hidden');
   await user.hover(dots[0]);
-  await waitFor(() => expect(container.querySelector<HTMLElement>('.ui-lg-label.is-numbered.is-shown')).not.toBeNull());
+  await waitFor(() => expect(container.querySelector<HTMLElement>('.ui-lg-label.is-numbered.is-hl')).not.toBeNull());
   // Every label still on the diagram reads as its own line's: none sits over another label.
   expectLabelsClear(container);
 });
@@ -1104,7 +1112,7 @@ test('LayerGraph: tag stays whole beside a cut name, in the list and in the name
           { id: 't', name: 'topology_builder_long.py', layer: 0, size: 41 },
         ]}
         edges={[]}
-        onSelect={() => {}}
+        onChange={() => {}}
       />
     </div>,
   );
@@ -1198,11 +1206,11 @@ test('LayerGraph resizable (HC): down spreads the layers, up past the drawn heig
   expect(Math.abs(Number(bar.getAttribute('aria-valuenow')) - (h0 - 80))).toBeLessThanOrEqual(1);
 });
 
-test('LayerGraph resizable: heightKey remembers the height; without resizable there is no handle', () => {
+test('LayerGraph resizable: storageKey remembers the height; without resizable there is no handle', () => {
   localStorage.setItem('ui-lg-height:arch', '-40');
   const { container, unmount } = render(
     <div style={{ width: 880 }}>
-      <LayerGraph nodes={tall} edges={tallEdges} resizable heightKey="arch" />
+      <LayerGraph nodes={tall} edges={tallEdges} resizable storageKey="arch" />
     </div>,
   );
   expect((container.querySelector('.ui-lg-scroll') as HTMLElement).classList.contains('is-framed')).toBe(true);
@@ -1210,4 +1218,38 @@ test('LayerGraph resizable: heightKey remembers the height; without resizable th
   localStorage.removeItem('ui-lg-height:arch');
   render(<LayerGraph nodes={tall} edges={tallEdges} />);
   expect(screen.queryByRole('separator')).toBeNull();
+});
+
+test('LayerGraph: dimmed boxes keep their text at 4.5:1 (ink-muted), only shapes fade; still clickable', async () => {
+  const onBox = vi.fn();
+  const { container } = render(<LayerGraph nodes={nodes} edges={edges} value="cli" onChange={onBox} legend={false} />);
+  const dim = [...container.querySelectorAll<HTMLElement>('.ui-lg-node.is-dim')];
+  expect(dim.length).toBeGreaterThan(0);
+  const muted = getComputedStyle(document.documentElement).getPropertyValue('--ink-muted').trim();
+  for (const b of dim) {
+    expect(getComputedStyle(b).opacity).toBe('1');
+    const probe = document.createElement('span');
+    probe.style.color = muted;
+    document.body.append(probe);
+    expect(getComputedStyle(b).color).toBe(getComputedStyle(probe).color);
+    probe.remove();
+  }
+  await user.click(dim[0]);
+  expect(onBox).toHaveBeenCalled();
+});
+
+test('LayerGraph: nothing is stored without storageKey; old prop names still work', async () => {
+  localStorage.clear();
+  const a = render(<LayerGraph nodes={nodes} edges={edges} legend={false} />);
+  await user.click(screen.getByRole('switch', { name: '線上文字' }));
+  expect(Object.keys(localStorage).filter((k) => k.startsWith('ui-lg-'))).toEqual([]);
+  a.unmount();
+  const b = render(<LayerGraph nodes={nodes} edges={edges} legend={false} storageKey="arch" />);
+  await user.click(screen.getByRole('switch', { name: '線上文字' }));
+  expect(localStorage.getItem('ui-lg-labels:arch')).toBe('0');
+  b.unmount();
+  render(<LayerGraph nodes={nodes} edges={edges} legend={false} sizeLabel="{n} 個函式" selected="cli" onSelect={() => {}} />);
+  expect(screen.getByRole('button', { name: /src\/cli/ }).textContent).toContain('18 個函式');
+  expect(screen.getByRole('button', { name: /src\/cli/ }).getAttribute('aria-pressed')).toBe('true');
+  localStorage.clear();
 });
