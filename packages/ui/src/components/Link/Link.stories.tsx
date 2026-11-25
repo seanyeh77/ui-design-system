@@ -16,5 +16,7 @@ export const Default = {
 };
 
 export const RouterLink = {
+  // The <a> stands in for a router's link component (NextLink, react-router Link).
+  // eslint-disable-next-line ui/no-native-controls
   render: () => <UI.Link render={<a href="#orders" data-router="" />}>全部訂單</UI.Link>,
 };

@@ -63,7 +63,7 @@ export function MultiSelect({
   const more = value.length - shown.length;
   return (
     <div className={cx('ui-field', error && 'has-error', disabled && 'is-disabled', className)}>
-      <FieldLabel htmlFor={id} required={required} hidden={hideLabel}>
+      <FieldLabel htmlFor={id} id={id + '-label'} required={required} hidden={hideLabel}>
         {label}
       </FieldLabel>
       <Combobox.Root
@@ -101,6 +101,9 @@ export function MultiSelect({
             ) : null}
             <Combobox.Input
               id={id}
+              // Named by the label's id too: while the list is open the page around it is hidden from assistive
+              // technology, and a <label for> outside no longer names the field.
+              aria-labelledby={id + '-label'}
               className="ui-ms-input"
               aria-invalid={error ? true : undefined}
               aria-required={required || undefined}

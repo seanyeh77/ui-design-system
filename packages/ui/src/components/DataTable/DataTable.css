@@ -1292,6 +1292,12 @@
   min-width: 0;
   font-family: var(--font-mono);
 }
+/* Touch screens: the from and to fields are full 48 px targets. */
+@media (pointer: coarse) {
+  .ui-dt-range-inputs .ui-input {
+    height: var(--touch-target);
+  }
+}
 .ui-mark {
   background: var(--mark);
   color: inherit;

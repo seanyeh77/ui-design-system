@@ -19,3 +19,10 @@
   min-height: var(--control-height);
   font-size: var(--text-control);
 }
+/* On touch screens a list option is a full 48 px row (touch-target), not a 40 px row with a hit area spilling over its
+   neighbours. */
+@media (pointer: coarse) {
+  [role='option'] {
+    min-height: var(--touch-target);
+  }
+}

@@ -1389,13 +1389,16 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                   );
                 })
               ) : (
-                <div className="ui-dt-empty">
-                  {p.emptyText || tr('沒有符合的資料')}
-                  {q || activeN ? (
-                    <div>
-                      <Button onClick={clearFilters}>{tr('清除篩選')}</Button>
-                    </div>
-                  ) : null}
+                // A row with one cell, so the table keeps the rows its role needs (ARIA table > rowgroup > row).
+                <div className="ui-dt-emptyrow" role="row">
+                  <div className="ui-dt-empty" role="cell">
+                    {p.emptyText || tr('沒有符合的資料')}
+                    {q || activeN ? (
+                      <div>
+                        <Button onClick={clearFilters}>{tr('清除篩選')}</Button>
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               )}
             </div>

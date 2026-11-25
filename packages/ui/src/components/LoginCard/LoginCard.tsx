@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Button } from '../Button/Button';
 import { TextField } from '../TextField/TextField';
+import { Link } from '../Link/Link';
 import { tr } from '../../i18n';
 import { Icon } from '../../icons/Icon';
 import { cx } from '../../internal/util';
@@ -77,9 +78,9 @@ export function LoginCard(p: LoginCardProps) {
             <div className="ui-login-pwlabel">
               <FieldLabel htmlFor={pwId}>{tr('密碼')}</FieldLabel>
               {p.forgotHref ? (
-                <a href={p.forgotHref} className="ui-link">
+                <Link href={p.forgotHref} className="ui-login-forgot">
                   {tr('忘記密碼')}
-                </a>
+                </Link>
               ) : null}
             </div>
             <div className={cx('ui-pwfield', pErr && 'is-invalid')}>

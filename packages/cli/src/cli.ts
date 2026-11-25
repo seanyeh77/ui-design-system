@@ -274,7 +274,17 @@ async function axeRun(page: Page, contrastOnly = false, skip: string[] = []): Pr
       const runOnly = contrastOnly ? { type: 'rule', values: ['color-contrast'] } : { type: 'tag', values: tags };
       // target-size is ui check's own 24 px check, with the inline exemptions above.
       const rules = Object.fromEntries(['target-size', ...skip].map((id) => [id, { enabled: false }]));
-      const r = await axe.run(document, { runOnly, resultTypes: ['violations'], preload: false, rules });
+      // The page may run axe itself (Storybook's accessibility addon): axe runs one at a time, so wait for that run.
+      const run = async (tries: number): Promise<{ violations: Violation[] }> => {
+        try {
+          return await axe.run(document, { runOnly, resultTypes: ['violations'], preload: false, rules });
+        } catch (e) {
+          if (tries <= 0 || !String(e).includes('already running')) throw e;
+          await new Promise((ok) => setTimeout(ok, 200));
+          return run(tries - 1);
+        }
+      };
+      const r = await run(50);
       return r.violations.map((v) => ({
         id: v.id,
         impact: v.impact ?? '',

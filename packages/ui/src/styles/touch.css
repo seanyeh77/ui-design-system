@@ -3,7 +3,7 @@
 @media (pointer: coarse) {
   :where(
     button:not(.ui-term):not(.ui-code):not(.ui-cal-day):not(.ui-dt-view),
-    a.ui-link,
+    a.ui-login-forgot,
     a.ui-btn,
     [role='tab']:not(.ui-dt-view),
     [role='switch'],
@@ -19,7 +19,7 @@
   }
   :where(
     button:not(.ui-term):not(.ui-code):not(.ui-cal-day):not(.ui-dt-view),
-    a.ui-link,
+    a.ui-login-forgot,
     a.ui-btn,
     [role='tab']:not(.ui-dt-view),
     [role='switch'],
