@@ -23,6 +23,12 @@ export interface Findings {
   outside: string[];
   /** Targets under 24 x 24 px whose 24 px circle meets another target (WCAG 2.2, 2.5.8): the desktop minimum. */
   small24: string[];
+  /** Fields side by side in one form row (a FormGrid row, a flex row of fields) whose controls differ in height by more than 1 px. */
+  formMixed: string[];
+  /** Paragraphs of two or more lines set in text-align: center (reported by the caller at 390 px only). */
+  centered: string[];
+  /** An AppShell page whose document scrolls as well as its own main area: scrollHeight against the window height. */
+  docScroll: string;
 }
 
 export function measure(): Findings {
@@ -42,6 +48,9 @@ export function measure(): Findings {
     truncated: [],
     outside: [],
     small24: [],
+    formMixed: [],
+    centered: [],
+    docScroll: '',
   };
   const describe = (el: Element) => {
     let s = el.tagName.toLowerCase();
@@ -333,6 +342,73 @@ export function measure(): Findings {
           hit = `${describe(bar)}: ${describe(items[i].el)} ${Math.round(a.height)} px, ${describe(items[j].el)} ${Math.round(b.height)} px`;
       }
     if (hit) out.mixed.push(hit);
+  }
+
+  // 7b. Fields side by side in a form: the controls of one row (a FormGrid row, or fields in one flex row) share one
+  // height, as in a toolbar. The control of a field is its outermost input box (a field box, a select trigger, an
+  // input); a TextArea is taller on purpose and is left out. Fields in a toolbar are measured by 7.
+  const fieldControls = 'input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=range]), [role=combobox], ' + boxes + ', .ui-input';
+  const rows = new Map<Element, { field: Element; el: Element; r: DOMRect }[]>();
+  for (const field of document.querySelectorAll('.ui-field')) {
+    if (field.parentElement?.closest('.ui-field') || field.closest(bars) || !visible(field)) continue;
+    const el = [...field.querySelectorAll(fieldControls)].find((c) => {
+      const own = c.parentElement?.closest(fieldControls);
+      return !(own && field.contains(own)) && visible(c) && !c.closest('[aria-hidden="true"], [role=listbox], [role=dialog]');
+    });
+    if (!el || el.matches('textarea') || el.querySelector('textarea')) continue;
+    // The row: the nearest ancestor that lays its children out side by side (a grid, or a flex row).
+    let row: Element | null = field.parentElement;
+    for (; row && row !== document.body; row = row.parentElement) {
+      const cs = getComputedStyle(row);
+      if (/grid/.test(cs.display) || (/flex/.test(cs.display) && !cs.flexDirection.startsWith('column'))) break;
+    }
+    if (!row || row === document.body) continue;
+    rows.set(row, [...(rows.get(row) ?? []), { field, el, r: el.getBoundingClientRect() }]);
+  }
+  for (const [row, items] of rows) {
+    if (out.formMixed.length >= 6) break;
+    let hit = '';
+    for (let i = 0; i < items.length && !hit; i++)
+      for (let j = i + 1; j < items.length && !hit; j++) {
+        const a = items[i].r;
+        const b = items[j].r;
+        const sameLine = Math.min(a.bottom, b.bottom) > Math.max(a.top, b.top);
+        if (sameLine && Math.abs(a.height - b.height) > 1) {
+          const name = (f: Element) => f.querySelector('.ui-field-label, label')?.textContent?.trim().slice(0, 16) || describe(f);
+          hit = `${describe(row)}: "${name(items[i].field)}" ${Math.round(a.height)} px, "${name(items[j].field)}" ${Math.round(b.height)} px`;
+        }
+      }
+    if (hit) out.formMixed.push(hit);
+  }
+
+  // 7c. Long text centered: a paragraph of two or more lines in text-align: center is hard to read on a phone (each
+  // line starts somewhere else). Only blocks of running text count (at least 160 px wide, with inline content only);
+  // labels, buttons, table cells and chart labels are short and left out, and so are EmptyState and ErrorPage, whose
+  // title and short description are centered by design.
+  for (const el of document.body.querySelectorAll<HTMLElement>('*')) {
+    if (out.centered.length >= 6) break;
+    const cs = getComputedStyle(el);
+    if (!/center/.test(cs.textAlign) || cs.display.startsWith('inline') || /flex|grid/.test(cs.display)) continue;
+    if (![...el.childNodes].some((n) => n.nodeType === 3 && !!n.textContent?.trim())) continue;
+    if ([...el.children].some((c) => !getComputedStyle(c).display.startsWith('inline') && getComputedStyle(c).display !== 'none')) continue;
+    if (
+      el.closest(
+        '.ui-empty, .ui-errorpage, button, [role=button], td, th, [role=cell], [role=gridcell], [role=columnheader], svg, .ui-md table, [aria-hidden="true"]',
+      )
+    )
+      continue;
+    if (!visible(el) || el.getBoundingClientRect().width < 160) continue;
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const lines = new Set([...range.getClientRects()].filter((r) => r.width > 1).map((r) => Math.round(r.top / 4))).size;
+    if (lines >= 2) out.centered.push(`${describe(el)} (${lines} lines)`);
+  }
+
+  // 7d. A page in AppShell scrolls inside its main area (.ui-shell-main); when the document scrolls too, the page
+  // has two scroll bars and the top bar scrolls away (page padding or margin around the frame, content past it).
+  if (document.querySelector('.ui-shell')) {
+    const doc = document.scrollingElement ?? document.documentElement;
+    if (doc.scrollHeight > innerHeight + 1) out.docScroll = `document ${doc.scrollHeight} px tall in a ${innerHeight} px window`;
   }
 
   // 8. A raised status chip: inside a table row or a card a Badge is a dot and text, with no shadow of its own.

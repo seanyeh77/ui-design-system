@@ -76,3 +76,44 @@ export const GUIDES: [string, string][] = [
 /** A component's group, from the first line of its preview.html: <!-- @dsCard group="Data" height=400 -->. A module
     without a preview (a hook) names it in a comment line of its README: <!-- @dsCard group="Forms" -->. */
 export const groupOf = (previewOrReadme: string) => /<!-- @dsCard group="([^"]+)"/.exec(previewOrReadme)?.[1] ?? 'Other';
+
+/** The Markdown without its HTML comments (the @dsCard line of a hook's README, notes to maintainers); comments inside
+    fenced code stay, they are part of an example. Blank lines left behind are collapsed. */
+export function stripComments(md: string): string {
+  let fenced = false;
+  const kept: string[] = [];
+  let open = false;
+  for (const line of md.split('\n')) {
+    if (!open && /^\s*(```|~~~)/.test(line)) fenced = !fenced;
+    if (fenced) {
+      kept.push(line);
+      continue;
+    }
+    let rest = line;
+    let text = '';
+    while (rest) {
+      if (open) {
+        const close = rest.indexOf('-->');
+        if (close < 0) break;
+        rest = rest.slice(close + 3);
+        open = false;
+      } else {
+        const start = rest.indexOf('<!--');
+        if (start < 0) {
+          text += rest;
+          break;
+        }
+        text += rest.slice(0, start);
+        rest = rest.slice(start + 4);
+        open = true;
+      }
+    }
+    // A line that held only a comment goes away whole.
+    if (text.trim() || line.trim() === '') kept.push(text.trimEnd());
+  }
+  return kept
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trimEnd()
+    .concat('\n');
+}

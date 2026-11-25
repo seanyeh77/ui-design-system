@@ -200,3 +200,41 @@ test('targets under 24 px fail next to another target and pass with room around 
   const big = await run(`<button style="width:24px;height:24px" aria-label="a"></button><button style="width:24px;height:24px" aria-label="b"></button>`);
   assert.deepEqual(big.small24, []);
 });
+
+const field = (label: string, control: string) =>
+  `<div class="ui-field" style="display:flex;flex-direction:column;gap:6px"><label class="ui-field-label">${label}</label>${control}</div>`;
+const input = (h: number) => `<input class="ui-input" style="height:${h}px;box-sizing:border-box">`;
+
+test('fields of one form row with different control heights fail; a TextArea and the next row do not count', async (t) => {
+  if (skip) return t.skip(skip);
+  const grid = (cells: string) => `<div class="ui-formgrid-in" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">${cells}</div>`;
+  const bad = await run(grid(field('名稱', input(40)) + field('標籤', `<div class="ui-ms" style="height:42px;box-sizing:border-box;border:1px solid"></div>`)));
+  assert.equal(bad.formMixed.length, 1);
+  assert.match(bad.formMixed[0], /標籤" 42 px/);
+  const ok = await run(
+    grid(field('名稱', input(40)) + field('Email', input(40)) + field('備註', '<textarea style="height:96px"></textarea>') + field('電話', input(40))),
+  );
+  assert.deepEqual(ok.formMixed, []);
+  const flexRow = await run(`<div style="display:flex;gap:16px">${field('開始', input(40))}${field('結束', input(36))}</div>`);
+  assert.equal(flexRow.formMixed.length, 1);
+});
+
+test('a centered paragraph of two or more lines is reported; one line, EmptyState and buttons are not', async (t) => {
+  if (skip) return t.skip(skip);
+  const long = '這是一段很長的說明文字，會在手機寬度上換成好幾行，置中對齊時每一行的起點都不同，很難閱讀。';
+  const res = await run(`<p style="text-align:center;width:360px">${long}</p>`, 390);
+  assert.equal(res.centered.length, 1);
+  const ok = await run(
+    `<p style="text-align:center;width:360px">一行就好</p><div class="ui-empty" style="text-align:center"><p style="width:360px">${long}</p></div><button style="text-align:center;width:200px">${long}</button>`,
+    390,
+  );
+  assert.deepEqual(ok.centered, []);
+});
+
+test('an AppShell page whose document scrolls is reported', async (t) => {
+  if (skip) return t.skip(skip);
+  const shell = (pad: number) =>
+    `<div style="padding:${pad}px"><div class="ui-shell" style="height:100vh;display:flex"><main style="overflow-y:auto;flex:1"><div style="height:2000px"></div></main></div></div>`;
+  assert.match((await run(shell(24))).docScroll, /document \d+ px tall/);
+  assert.equal((await run(shell(0))).docScroll, '');
+});

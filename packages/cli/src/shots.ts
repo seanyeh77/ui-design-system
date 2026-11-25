@@ -16,25 +16,37 @@ export interface Job {
   stem: string;
 }
 
+/** A name part made safe for a file name: only letters, digits, dot, dash and underscore remain (no colon or slash). */
+export function cleanName(s: string): string {
+  return s
+    .replace(/[^\p{L}\p{N}._-]+/gu, '-')
+    .replace(/-{2,}/g, '-')
+    .replace(/^[-.]+|-+$/g, '');
+}
+
 /**
  * The name a page's screenshots are filed under. A file: its name without the extension (Button.html → Button). A
- * page on a server: its path and hash (http://localhost:5173/settings#billing → settings-billing, / → index), so the
- * pages of one site do not overwrite each other. Only letters, digits, dot, dash and underscore remain (no colon).
+ * page on a server: its path (http://localhost:5173/projects/42 → projects-42, / → index), so the pages of one site do
+ * not overwrite each other. Then the query and the hash of either, sanitised (iframe.html?id=button--primary →
+ * iframe-id-button-primary; settings#billing → settings-billing), so variants of one page get their own files.
  */
 export function stemFor(url: string): string {
-  const clean = (s: string) =>
-    s
-      .replace(/[^\p{L}\p{N}._-]+/gu, '-')
-      .replace(/-{2,}/g, '-')
-      .replace(/^[-.]+|-+$/g, '');
   let u: URL;
   try {
     u = new URL(url);
   } catch {
-    return clean(url) || 'page';
+    return cleanName(url) || 'page';
   }
-  const hash = decodeURIComponent(u.hash.slice(1));
-  const path = decodeURIComponent(u.pathname).replace(/\/+$/, '');
+  const decode = (s: string) => {
+    try {
+      return decodeURIComponent(s.replace(/\+/g, ' '));
+    } catch {
+      return s;
+    }
+  };
+  const query = [...u.searchParams].map(([k, v]) => (v ? `${k}-${v}` : k)).join('-');
+  const hash = decode(u.hash.slice(1));
+  const path = decode(u.pathname).replace(/\/+$/, '');
   const base =
     u.protocol === 'file:'
       ? (path.split('/').pop() ?? '').replace(/\.[^.]*$/, '')
@@ -43,7 +55,7 @@ export function stemFor(url: string): string {
           .split('/')
           .filter(Boolean)
           .join('-') || 'index';
-  return clean(hash ? `${base}-${hash}` : base) || 'page';
+  return cleanName([base, query, hash].filter(Boolean).join('-')) || 'page';
 }
 
 /** Turns paths and URLs into jobs, named by stemFor; a second target with the same name gets -2, -3, … */
@@ -83,7 +95,8 @@ export function shotLaunchOptions(): LaunchOptions {
  * keeps the document at the window's height and scrolls its main area (.ui-shell-main), so a full-page shot would
  * stop at the window's bottom edge. When the document does not scroll but one large element (at least 60 % of the
  * window's height) does, the viewport grows by what that element hides, up to 12000 px, until nothing is hidden.
- * Returns the viewport to restore. Runs the given settle step after each resize.
+ * Content that renders late (data after a fetch, a list after fonts) changes the scroll height: the height is measured
+ * again after each settle step until two measurements in a row agree. Returns the viewport to restore.
  */
 export async function growToScrollContainer(
   page: Page,
@@ -91,26 +104,58 @@ export async function growToScrollContainer(
   settle: () => Promise<void>,
 ): Promise<{ width: number; height: number }> {
   let size = viewport;
-  for (let i = 0; i < 4; i++) {
-    const hidden = await page.evaluate(() => {
+  let last = '';
+  for (let i = 0; i < 10; i++) {
+    const m = await page.evaluate(() => {
       const doc = document.scrollingElement ?? document.documentElement;
-      if (doc.scrollHeight > innerHeight + 1) return 0;
+      if (doc.scrollHeight > innerHeight + 1) return { hidden: 0, key: `doc ${doc.scrollHeight}` };
       let most = 0;
+      let key = 'none';
       for (const el of document.body.querySelectorAll('*')) {
         if (el.clientHeight < innerHeight * 0.6) continue;
         const cs = getComputedStyle(el);
         if (!/auto|scroll/.test(cs.overflowY) || cs.display === 'none') continue;
-        most = Math.max(most, el.scrollHeight - el.clientHeight);
+        const hidden = el.scrollHeight - el.clientHeight;
+        if (hidden >= most) {
+          most = hidden;
+          key = `box ${el.scrollHeight}`;
+        }
       }
-      return most;
+      return { hidden: most, key: `${key} ${innerHeight}` };
     });
-    if (hidden <= 1) break;
-    size = { width: size.width, height: Math.min(12000, size.height + Math.ceil(hidden)) };
-    await page.setViewportSize(size);
+    if (m.hidden > 1 && size.height < 12000) {
+      size = { width: size.width, height: Math.min(12000, size.height + Math.ceil(m.hidden)) };
+      await page.setViewportSize(size);
+    } else if (m.key === last) break;
+    last = m.key;
     await settle();
-    if (size.height >= 12000) break;
   }
   return size;
+}
+
+/**
+ * Waits until the page's animations and transitions have finished, up to `cap` ms. Endless ones (a spinner, a
+ * skeleton's shimmer) and paused ones are not waited for. Animations that start while waiting are waited for too.
+ * For ui check, on the real clock (ui shots stops animations instead).
+ */
+export async function waitForAnimations(page: Page, cap = 1500): Promise<void> {
+  await page.evaluate(async (cap) => {
+    const end = performance.now() + cap;
+    const moving = () =>
+      document.getAnimations().filter((a) => {
+        if (a.playState !== 'running' && !a.pending) return false;
+        const t = a.effect?.getComputedTiming();
+        return !!t && Number.isFinite(t.endTime);
+      });
+    const frame = () => new Promise((ok) => requestAnimationFrame(() => ok(undefined)));
+    for (let list = moving(); list.length && performance.now() < end; list = moving()) {
+      const left = end - performance.now();
+      await Promise.race([Promise.all(list.map((a) => a.finished.catch(() => undefined))), new Promise((ok) => setTimeout(ok, left))]);
+      // What the end of an animation sets off (a row removed on animationend, the next step) starts in the next frame.
+      await frame();
+    }
+    await frame();
+  }, cap);
 }
 
 /** File name of one screenshot. */
@@ -145,6 +190,9 @@ export async function shootPage(browser: Browser, job: Job, settle: number): Pro
         await page.clock.pauseAt(Date.parse(FIXED_TIME));
         const resp = await page.goto(job.url, { waitUntil: 'load' });
         if (resp && !resp.ok()) throw new Error(`HTTP ${resp.status()}`);
+        // Data the page fetches after load (and the fonts it then needs) is part of the shot. A page that polls never
+        // goes idle: after 5 s the shot goes ahead.
+        await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => undefined);
         const fonts = () => page.evaluate(() => document.fonts.ready.then(() => undefined));
         await fonts();
         await page.evaluate(applyTheme, theme);
@@ -168,9 +216,12 @@ export async function shootPage(browser: Browser, job: Job, settle: number): Pro
           }
         });
         await page.waitForTimeout(100);
+        await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => undefined);
+        await fonts();
         await growToScrollContainer(page, viewport, async () => {
           await page.waitForTimeout(100);
           await page.clock.runFor(100);
+          await fonts();
         });
         // A short real wait lets ResizeObserver callbacks and the renders they cause (not timer-driven) settle;
         // then shots until two in a row are the same, as Playwright's toHaveScreenshot does.
