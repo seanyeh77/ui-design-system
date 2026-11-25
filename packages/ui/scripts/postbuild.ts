@@ -128,10 +128,17 @@ writeFileSync(
 const docs = new URL('docs/', root);
 mkdirSync(docs, { recursive: true });
 const componentDir = new URL('components/', src);
-for (const name of readdirSync(componentDir)) {
+// components.json: each component's group (from the first line of its preview.html), for `ui list`.
+const groups: { name: string; group: string }[] = [];
+for (const name of readdirSync(componentDir).sort()) {
   const readme = new URL(`${name}/README.md`, componentDir);
-  if (existsSync(readme)) cpSync(readme, new URL(`${name}.md`, docs));
+  if (!existsSync(readme)) continue;
+  cpSync(readme, new URL(`${name}.md`, docs));
+  const preview = new URL(`${name}/preview.html`, componentDir);
+  const group = existsSync(preview) ? (/group="([^"]+)"/.exec(readFileSync(preview, 'utf8'))?.[1] ?? 'Other') : 'Other';
+  groups.push({ name, group });
 }
+writeFileSync(new URL('components.json', docs), JSON.stringify(groups, null, 2) + '\n');
 // The guides: the core rules (guidelines.md) and the topic files. decisions.md is history, not something to build from.
 const guides = new URL('../../docs/', root);
 for (const file of readdirSync(guides)) if (file.endsWith('.md') && file !== 'decisions.md') cpSync(new URL(file, guides), new URL(file, docs));

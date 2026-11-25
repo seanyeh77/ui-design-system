@@ -2,7 +2,7 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import type { Browser, LaunchOptions } from 'playwright';
+import type { Browser, LaunchOptions, Page } from 'playwright';
 import { compareShots, samePixels, type Tolerance } from './compare.ts';
 
 export const WIDTHS = [390, 1280] as const;
@@ -16,18 +16,42 @@ export interface Job {
   stem: string;
 }
 
-/** Turns paths and URLs into jobs. Names come from the file name; a second target with the same name gets -2, -3, … */
+/**
+ * The name a page's screenshots are filed under. A file: its name without the extension (Button.html → Button). A
+ * page on a server: its path and hash (http://localhost:5173/settings#billing → settings-billing, / → index), so the
+ * pages of one site do not overwrite each other. Only letters, digits, dot, dash and underscore remain (no colon).
+ */
+export function stemFor(url: string): string {
+  const clean = (s: string) =>
+    s
+      .replace(/[^\p{L}\p{N}._-]+/gu, '-')
+      .replace(/-{2,}/g, '-')
+      .replace(/^[-.]+|-+$/g, '');
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return clean(url) || 'page';
+  }
+  const hash = decodeURIComponent(u.hash.slice(1));
+  const path = decodeURIComponent(u.pathname).replace(/\/+$/, '');
+  const base =
+    u.protocol === 'file:'
+      ? (path.split('/').pop() ?? '').replace(/\.[^.]*$/, '')
+      : path
+          .replace(/\.html?$/i, '')
+          .split('/')
+          .filter(Boolean)
+          .join('-') || 'index';
+  return clean(hash ? `${base}-${hash}` : base) || 'page';
+}
+
+/** Turns paths and URLs into jobs, named by stemFor; a second target with the same name gets -2, -3, … */
 export function jobsFor(targets: string[], toUrl: (t: string) => string): Job[] {
   const stems = new Map<string, number>();
   return targets.map((target) => {
     const url = toUrl(target);
-    const base = decodeURIComponent(
-      url
-        .replace(/[?#].*$/, '')
-        .replace(/\/$/, '')
-        .split('/')
-        .pop() || 'page',
-    ).replace(/\.[^.]*$/, '');
+    const base = stemFor(url);
     const n = (stems.get(base) ?? 0) + 1;
     stems.set(base, n);
     return { url, stem: n > 1 ? `${base}-${n}` : base };
@@ -52,6 +76,41 @@ export function applyTheme(t: 'light' | 'dark') {
  */
 export function shotLaunchOptions(): LaunchOptions {
   return process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : { channel: 'chromium' };
+}
+
+/**
+ * Makes a full-page screenshot hold what scrolls inside the page's own scroll container. A frame such as AppShell
+ * keeps the document at the window's height and scrolls its main area (.ui-shell-main), so a full-page shot would
+ * stop at the window's bottom edge. When the document does not scroll but one large element (at least 60 % of the
+ * window's height) does, the viewport grows by what that element hides, up to 12000 px, until nothing is hidden.
+ * Returns the viewport to restore. Runs the given settle step after each resize.
+ */
+export async function growToScrollContainer(
+  page: Page,
+  viewport: { width: number; height: number },
+  settle: () => Promise<void>,
+): Promise<{ width: number; height: number }> {
+  let size = viewport;
+  for (let i = 0; i < 4; i++) {
+    const hidden = await page.evaluate(() => {
+      const doc = document.scrollingElement ?? document.documentElement;
+      if (doc.scrollHeight > innerHeight + 1) return 0;
+      let most = 0;
+      for (const el of document.body.querySelectorAll('*')) {
+        if (el.clientHeight < innerHeight * 0.6) continue;
+        const cs = getComputedStyle(el);
+        if (!/auto|scroll/.test(cs.overflowY) || cs.display === 'none') continue;
+        most = Math.max(most, el.scrollHeight - el.clientHeight);
+      }
+      return most;
+    });
+    if (hidden <= 1) break;
+    size = { width: size.width, height: Math.min(12000, size.height + Math.ceil(hidden)) };
+    await page.setViewportSize(size);
+    await settle();
+    if (size.height >= 12000) break;
+  }
+  return size;
 }
 
 /** File name of one screenshot. */
@@ -109,6 +168,10 @@ export async function shootPage(browser: Browser, job: Job, settle: number): Pro
           }
         });
         await page.waitForTimeout(100);
+        await growToScrollContainer(page, viewport, async () => {
+          await page.waitForTimeout(100);
+          await page.clock.runFor(100);
+        });
         // A short real wait lets ResizeObserver callbacks and the renders they cause (not timer-driven) settle;
         // then shots until two in a row are the same, as Playwright's toHaveScreenshot does.
         await page.waitForTimeout(200);

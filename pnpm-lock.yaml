@@ -107,6 +107,9 @@ importers:
       '@seanyeh77/ui':
         specifier: workspace:^
         version: link:../ui
+      axe-core:
+        specifier: 4.14.1
+        version: 4.14.1
       pixelmatch:
         specifier: ^8.0.0
         version: 8.0.0
@@ -1704,6 +1707,10 @@ packages:
 
   axe-core@4.14.0:
     resolution: {integrity: sha512-9WTZxEjsZ7b13TH8JPmbV2z8CHbl80/2hm3XPEG4JgNdQLK81IBRXmSxHfMAOkSqQeRxT/0dwNDz2GOm3zzpcQ==}
+    engines: {node: '>=4'}
+
+  axe-core@4.14.1:
+    resolution: {integrity: sha512-FHfa+lmNjQZfJz1q8wKqIDwC6DExcHt/pkjNQb09a3NPjCKg2rhu5qb2S4r76ASyFNNtuFooJpZe37OgudVGtQ==}
     engines: {node: '>=4'}
 
   balanced-match@4.0.4:
@@ -4740,6 +4747,8 @@ snapshots:
   atomically@1.7.0: {}
 
   axe-core@4.14.0: {}
+
+  axe-core@4.14.1: {}
 
   balanced-match@4.0.4: {}
 

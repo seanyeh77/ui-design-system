@@ -11,25 +11,12 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, 
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { summary } from '../packages/cli/src/usage.ts';
+import { GROUPS, GUIDES as guides, groupOf, summary } from '../packages/cli/src/usage.ts';
 
 const root = new URL('../', import.meta.url);
 const site = new URL('site/', root);
 const at = (p: string) => new URL(p, root);
 const BASE = 'https://seanyeh77.github.io/ui-design-system';
-const GROUPS: Record<string, string> = {
-  Foundations: '基礎',
-  Layout: '版面',
-  Actions: '按鈕',
-  Forms: '表單',
-  Data: '數據呈現',
-  Status: '狀態',
-  Feedback: '回饋',
-  Overlays: '浮層',
-  Navigation: '導覽',
-  Appearance: '外觀',
-  Pages: '頁面範本',
-};
 
 execFileSync('pnpm', ['--filter', '@seanyeh77/docs', 'build'], { stdio: 'inherit', cwd: root });
 cpSync(at('packages/ui/dist'), new URL('dist/', site), { recursive: true });
@@ -105,7 +92,7 @@ for (const name of readdirSync(compDir).sort()) {
   let group = 'Other';
   if (existsSync(preview)) {
     const src = readFileSync(preview, 'utf8');
-    group = /group="([^"]+)"/.exec(src)?.[1] ?? 'Other';
+    group = groupOf(src);
     // <body> may carry attributes (<body style="padding: 0">): start after the tag, whatever it holds.
     const open = /<body[^>]*>/.exec(src);
     const body = src.slice(open ? open.index + open[0].length : 0, src.indexOf('</body>'));
@@ -124,19 +111,8 @@ writeFileSync(new URL('.nojekyll', site), '');
 execFileSync('pnpm', ['exec', 'shadcn', 'build', 'registry.json', '--output', 'site/r'], { stdio: 'inherit', cwd: root });
 const blocks = (JSON.parse(readFileSync(at('registry.json'), 'utf8')) as { items: { name: string; description: string }[] }).items;
 
-// The reading order for an agent: the core rules every page needs, then a topic file only when the page has that topic.
-const guides: [string, string][] = [
-  ['guidelines', 'Core rules every page needs (read first): look, type, controls, layout, formats, copy, status, accessibility, checks'],
-  ['layout', 'Page frames, navigation, search and first-use tours: when you lay out a frame yourself'],
-  ['forms', 'Which input component to use and how to arrange a form'],
-  ['data', 'Tables, result lists, file trees, KPIs and charts'],
-  ['monitoring', 'Full-screen always-on monitoring screens (ConsoleLayout and its parts)'],
-  ['code', 'Code-reading tools: code views, architecture graphs, project docs'],
-  ['theme', 'Every token, theme and accent settings, the accent derivation, the Slidev teaching preset'],
-  ['motion', 'Animation durations and effects, when you animate something yourself'],
-];
 const guideFiles = readdirSync(at('docs/')).filter((f) => f.endsWith('.md') && f !== 'decisions.md');
-for (const f of guideFiles) if (!guides.some(([g]) => `${g}.md` === f)) throw new Error(`docs/${f}: add it to the guides list in scripts/site.ts`);
+for (const f of guideFiles) if (!guides.some(([g]) => `${g}.md` === f)) throw new Error(`docs/${f}: add it to GUIDES in packages/cli/src/usage.ts`);
 const lines = [
   '# ui-design-system',
   '',

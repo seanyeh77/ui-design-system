@@ -143,3 +143,60 @@ test('a one-line code block and a scrolling table frame are content, not touch t
   );
   assert.equal(still.small.length, 2);
 });
+
+test('the viewport meta is reported as there or missing', async (t) => {
+  if (skip) return t.skip(skip);
+  assert.equal((await run('<p>text</p>', 390)).viewportMeta, false);
+  assert.equal((await run('<meta name="viewport" content="width=device-width, initial-scale=1"><p>text</p>', 390)).viewportMeta, true);
+});
+
+test('a row link is not a small target when its whole row opens it', async (t) => {
+  if (skip) return t.skip(skip);
+  const res = await run(
+    `<table><tbody><tr class="ui-dt-row" style="cursor:pointer;height:52px"><td><a class="ui-dt-rowlink" href="#a">api-gateway</a></td></tr></tbody></table>
+     <div class="ui-card" style="cursor:pointer;height:120px"><a href="#b">專案 A</a></div>`,
+    390,
+  );
+  assert.deepEqual(res.small, []);
+  assert.equal(res.inline.length, 2);
+  // A link in a row that does nothing on its own is still a small target.
+  const alone = await run(`<ul><li style="height:52px"><a href="#c" style="display:inline-block;height:20px">文件</a></li></ul>`, 390);
+  assert.equal(alone.small.length, 1);
+});
+
+test('interface text cut off without a tooltip or title fails; with one it passes; Markdown content is left out', async (t) => {
+  if (skip) return t.skip(skip);
+  const box = 'style="width:80px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:block"';
+  const res = await run(
+    `<button class="ui-btn" ${box}>部署全部的服務到正式環境</button>
+     <button class="ui-btn" ${box} title="部署全部的服務到正式環境">部署全部的服務到正式環境</button>
+     <span data-ui-tip="t1"><h3 ${box}>每個節點的平均使用率與峰值</h3></span>
+     <div class="ui-md"><h3 ${box}>每個節點的平均使用率與峰值</h3></div>
+     <h2 class="ui-card-title" style="width:400px;overflow:hidden">短標題</h2>`,
+  );
+  assert.equal(res.truncated.length, 1);
+  assert.match(res.truncated[0], /button\.ui-btn/);
+});
+
+test('text past the edge of its card fails; text in a scroll box inside the card passes', async (t) => {
+  if (skip) return t.skip(skip);
+  const res = await run(
+    `<div class="ui-card" style="width:200px;height:120px;position:relative;margin:40px">
+       <svg width="200" height="120" style="overflow:visible"><text x="-30" y="60">2026-11</text></svg>
+     </div>
+     <div class="ui-card" style="width:200px;margin:40px"><div style="overflow-x:auto"><div style="width:600px">很長很長的表格列 ${'資料 '.repeat(30)}</div></div></div>`,
+  );
+  assert.equal(res.outside.length, 1);
+  assert.match(res.outside[0], /2026-11/);
+});
+
+test('targets under 24 px fail next to another target and pass with room around them (WCAG 2.5.8)', async (t) => {
+  if (skip) return t.skip(skip);
+  const b = (x: number) => `<button style="position:absolute;left:${x}px;top:20px;width:16px;height:16px;padding:0;border:0" aria-label="b${x}"></button>`;
+  const crowded = await run(b(10) + b(30));
+  assert.equal(crowded.small24.length, 2);
+  const spaced = await run(b(10) + b(60));
+  assert.deepEqual(spaced.small24, []);
+  const big = await run(`<button style="width:24px;height:24px" aria-label="a"></button><button style="width:24px;height:24px" aria-label="b"></button>`);
+  assert.deepEqual(big.small24, []);
+});
