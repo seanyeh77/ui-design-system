@@ -182,6 +182,7 @@ export {
   storedAccent,
   pickedAccent,
   themePreset,
+  themeScript,
   textOn,
   heatToken,
   divergeToken,

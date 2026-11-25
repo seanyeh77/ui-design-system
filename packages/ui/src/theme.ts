@@ -15,6 +15,8 @@ export { DEFAULT_ACCENT };
 
 export const THEME_KEY = 'ui-theme';
 export const ACCENT_KEY = 'ui-accent';
+/** The picked accent's derived tokens, for themeScript. */
+const ACCENT_VARS_KEY = 'ui-accent-vars';
 const PRESET_ATTR = 'data-theme-preset';
 
 const isSetting = (v: string | null): v is ThemeSetting => v === 'auto' || v === 'light' || v === 'dark';
@@ -200,6 +202,29 @@ export const ACCENT_SWATCHES: readonly (readonly [name: string, hex: string])[] 
 
 const ACCENT_VARS = ['--accent', '--accent-hover', '--accent-press', '--accent-soft', '--accent-text', '--on-accent', '--focus', '--focus-ring'];
 
+/** Every accent token for one color on one theme's grounds. */
+function accentVars(hex: string, dark: boolean, surface: string, bg: string, sub: string, chrome: string): Record<string, string> {
+  const soft = dark ? mixHex(surface, hex, 0.22) : mixHex('#ffffff', hex, 0.12);
+  // Text in the accent also sits on zebra rows, code blocks, the top bar and its own soft fill (a selected row).
+  const text = accentText(hex, dark, bg, surface, sub, chrome, soft);
+  // The fill reaches 3:1 on the same grounds (a checked box in a selected row); hover and press go away from the page:
+  // darker in light, lighter in dark, so they keep 3:1 and their text.
+  const fill = accentFill(hex, dark, bg, surface, sub, chrome, soft);
+  const away = dark ? '#ffffff' : '#000000';
+  return {
+    '--accent': fill,
+    '--accent-hover': mixHex(fill, away, 0.12),
+    '--accent-press': mixHex(fill, away, 0.22),
+    '--accent-soft': soft,
+    '--accent-text': text,
+    '--on-accent': onFill(fill),
+    // One focus style everywhere: a 2 px outline in the accent's text color, 3:1 or more on every ground.
+    '--focus': text,
+    // Old name of --focus, kept for pages written before it.
+    '--focus-ring': text,
+  };
+}
+
 /** Derives every accent token from one color (自訂強調色的換算 in docs/theme.md) and writes them on <html>.
  *  Returns false for anything but #rrggbb. quiet: apply without storing. */
 export function setAccent(hex: string, quiet = false): boolean {
@@ -215,27 +240,18 @@ export function setAccent(hex: string, quiet = false): boolean {
   const bg = toHex(cs.getPropertyValue('--bg')) ?? GROUNDS.bg[mode];
   const sub = toHex(cs.getPropertyValue('--surface-sub')) ?? GROUNDS['surface-sub'][mode];
   const chrome = toHex(cs.getPropertyValue('--surface-chrome')) ?? GROUNDS['surface-chrome'][mode];
-  const soft = dark ? mixHex(surface, hex, 0.22) : mixHex('#ffffff', hex, 0.12);
-  // Text in the accent also sits on zebra rows, code blocks, the top bar and its own soft fill (a selected row).
-  const text = accentText(hex, dark, bg, surface, sub, chrome, soft);
-  // The fill reaches 3:1 on the same grounds (a checked box in a selected row); hover and press go away from the page:
-  // darker in light, lighter in dark, so they keep 3:1 and their text.
-  const fill = accentFill(hex, dark, bg, surface, sub, chrome, soft);
-  const away = dark ? '#ffffff' : '#000000';
-  const vars: Record<string, string> = {
-    '--accent': fill,
-    '--accent-hover': mixHex(fill, away, 0.12),
-    '--accent-press': mixHex(fill, away, 0.22),
-    '--accent-soft': soft,
-    '--accent-text': text,
-    '--on-accent': onFill(fill),
-    // One focus style everywhere: a 2 px outline in the accent's text color, 3:1 or more on every ground.
-    '--focus': text,
-    // Old name of --focus, kept for pages written before it.
-    '--focus-ring': text,
-  };
+  const vars = accentVars(hex, dark, surface, bg, sub, chrome);
   for (const [k, v] of Object.entries(vars)) root.style.setProperty(k, v);
   if (!quiet) writeStored(ACCENT_KEY, hex);
+  // The picked accent's tokens for themeScript, which applies them before the first paint: this theme as drawn, the
+  // other from the theme defaults (a preset is light only).
+  if (readStored(ACCENT_KEY) === hex) {
+    const other = !dark;
+    const o = other ? 'dark' : 'light';
+    const cache: Record<string, unknown> = { hex, [mode]: vars };
+    if (!themePreset()) cache[o] = accentVars(hex, other, GROUNDS.surface[o], GROUNDS.bg[o], GROUNDS['surface-sub'][o], GROUNDS['surface-chrome'][o]);
+    writeStored(ACCENT_VARS_KEY, JSON.stringify(cache));
+  }
   return true;
 }
 
@@ -244,6 +260,7 @@ export function resetAccent(): void {
   if (!hasDom()) return;
   for (const k of ACCENT_VARS) document.documentElement.style.removeProperty(k);
   writeStored(ACCENT_KEY, null);
+  writeStored(ACCENT_VARS_KEY, null);
 }
 
 /** Applies the picked accent for the current theme, or removes the inline variables when none is picked. */
@@ -302,3 +319,11 @@ export function divergeToken(
   const strong = a >= limits.strong;
   return diff < 0 ? (strong ? 'diverge-neg-strong' : 'diverge-neg') : strong ? 'diverge-pos-strong' : 'diverge-pos';
 }
+
+/**
+ * A small script for an inline <script> in <head> of a server-rendered page: applies the stored theme (data-theme,
+ * data-theme-setting) and the picked accent before the first paint, so the page does not flash the light theme or the
+ * default accent until initTheme runs. A preset goes on <html data-theme-preset> in the server's markup; the script
+ * keeps it. Still call initTheme() at startup.
+ */
+export const themeScript = `(function(){try{var d=document.documentElement,s=localStorage,t=s.getItem('${THEME_KEY}');if(t!=='light'&&t!=='dark')t='auto';var p=d.getAttribute('${PRESET_ATTR}');var m=t!=='auto'?t:window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';d.setAttribute('data-theme',p||m);d.setAttribute('data-theme-setting',t);var a=s.getItem('${ACCENT_KEY}'),c=JSON.parse(s.getItem('${ACCENT_VARS_KEY}')||'null'),v=a&&c&&c.hex===a&&c[p?'light':m];if(v)for(var k in v)d.style.setProperty(k,v[k])}catch(e){}})();`;

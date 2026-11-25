@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from 'vitest';
-import { DEFAULT_ACCENT, accentText, setAccent, setTheme, toHex } from './theme';
+import { DEFAULT_ACCENT, accentText, resetAccent, setAccent, setTheme, themeScript, toHex } from './theme';
 
 // Contrast as WCAG 2 counts it, to check the results independently of theme.ts.
 const lum = (hex: string) =>
@@ -146,4 +146,28 @@ test('color-scheme follows the theme: native scrollbars and controls turn dark i
   expect(getComputedStyle(document.documentElement).colorScheme).toBe('dark');
   setTheme('light');
   expect(getComputedStyle(document.documentElement).colorScheme).toBe('light');
+});
+
+test('themeScript applies the stored theme and the picked accent before initTheme, as setAccent would', () => {
+  const root = document.documentElement;
+  setTheme('light');
+  setAccent('#d63384');
+  setTheme('dark');
+  const want = ['--accent', '--accent-text', '--focus'].map((k) => root.style.getPropertyValue(k));
+  // A fresh page: nothing on <html> yet.
+  for (const k of ['--accent', '--accent-hover', '--accent-press', '--accent-soft', '--accent-text', '--on-accent', '--focus', '--focus-ring']) root.style.removeProperty(k);
+  root.removeAttribute('data-theme');
+  root.removeAttribute('data-theme-setting');
+  new Function(themeScript)();
+  expect(root.getAttribute('data-theme')).toBe('dark');
+  expect(root.getAttribute('data-theme-setting')).toBe('dark');
+  expect(['--accent', '--accent-text', '--focus'].map((k) => root.style.getPropertyValue(k))).toEqual(want);
+  // After a theme switch the other theme's tokens are there too.
+  setTheme('light');
+  const light = root.style.getPropertyValue('--accent-text');
+  root.style.removeProperty('--accent-text');
+  new Function(themeScript)();
+  expect(root.style.getPropertyValue('--accent-text')).toBe(light);
+  resetAccent();
+  setTheme('auto');
 });

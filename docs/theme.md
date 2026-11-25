@@ -9,6 +9,8 @@
 
 主題設定有三個選項：自動（跟隨系統的 `prefers-color-scheme`）、淺色、深色。頁面載入時呼叫一次 `initTheme()`，由它在根元素設 `data-theme` 與 `color-scheme`（原生捲軸和表單控制項跟著變深）；頁面不要自己設 `data-theme`。換主題用 `setTheme()`，換強調色用 `setAccent()`；自己做主題介面時，`storedTheme()`、`storedAccent()`、`pickedAccent()`（使用者有選才有值）讀目前的選擇，`resetAccent()` 回到 token 的預設。使用者沒選強調色時不寫 inline 變數，由 `tokens.css`（主題或 preset）決定。
 
+Server render 的頁面（Next.js 等）在 `<head>` 放一段 inline script：`<script dangerouslySetInnerHTML={{ __html: themeScript }} />`（`themeScript` 從 `@seanyeh77/ui` 匯入，是一段字串）。它在第一次繪製前套上記住的主題和使用者選的強調色，頁面不會先閃一下淺色或預設強調色；用 preset 時在 server 的 `<html>` 寫 `data-theme-preset`，script 會保留。之後照常呼叫 `initTheme()`。
+
 | 用途 | Token |
 |---|---|
 | 頁面底色 | `bg` |
