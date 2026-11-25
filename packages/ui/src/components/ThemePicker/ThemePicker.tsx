@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { tr } from '../../i18n';
 import { browserKey, cx } from '../../internal/util';
-import { setTheme, storedTheme, type ThemeSetting } from '../../theme';
+import { useStored } from '../../internal/stored';
+import { THEME_KEY, parseTheme, setTheme, type ThemeSetting } from '../../theme';
 
 const THEMES: { id: ThemeSetting; label: string }[] = [
   { id: 'auto', label: '自動' },
@@ -21,8 +22,10 @@ export interface ThemePickerProps {
 
 /** Three preview cards (自動、淺色、深色) for the settings page under 外觀. */
 export function ThemePicker({ value, onChange, label, className }: ThemePickerProps) {
-  const [own, setOwn] = React.useState<ThemeSetting>(() => value ?? storedTheme());
-  const cur = value ?? own;
+  // 'auto' on the server and the first browser render, then the stored setting; a pick with onChange stays local.
+  const [stored] = useStored<ThemeSetting>(THEME_KEY, parseTheme, 'auto');
+  const [own, setOwn] = React.useState<ThemeSetting | null>(null);
+  const cur = value ?? own ?? stored;
   const refs = React.useRef<(HTMLButtonElement | null)[]>([]);
   const pick = (id: ThemeSetting) => {
     setOwn(id);

@@ -53,6 +53,10 @@ const BASE_H = 900;
 const MAX_ZOOM = 1.5;
 const PHONE = 600;
 
+const noSubscribe = () => () => {};
+const fullscreenEnabled = () => typeof document !== 'undefined' && document.fullscreenEnabled === true;
+const serverFalse = () => false;
+
 /** Zoom for a screen of w × h px: 1 up to 1440 × 900, then grows with the screen, at most 1.5. */
 export function consoleZoom(w: number, h: number): number {
   return Math.max(1, Math.min(MAX_ZOOM, Math.min(w / BASE_W, h / BASE_H)));
@@ -65,7 +69,8 @@ export function ConsoleLayout({ title, tags, status, kpis, clock, fullscreen = t
   const ref = React.useRef<HTMLDivElement>(null);
   const [size, setSize] = React.useState<{ w: number; h: number } | null>(null);
   const [full, setFull] = React.useState(false);
-  const canFull = typeof document !== 'undefined' && document.fullscreenEnabled === true;
+  // false on the server and the first browser render, so the markup matches; then whether full screen is allowed.
+  const canFull = React.useSyncExternalStore(noSubscribe, fullscreenEnabled, serverFalse);
 
   React.useLayoutEffect(() => {
     const el = ref.current;

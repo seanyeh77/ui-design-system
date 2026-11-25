@@ -233,23 +233,36 @@ function matchLinks(lines: string[], start: number, links: readonly CodeLink[] |
   links?.forEach((l, i) => {
     const s = lines[l.line - start];
     if (s == null) {
-      devWarn(true, 'CodeView', `第 ${l.line} 行不在程式碼裡，連結「${l.text}」沒有加上。line 和 target 一樣從 start（${start}）算起。`);
+      devWarn(true, 'CodeView', `line ${l.line} is not in the code, so the link "${l.text}" was not added. Count line from start (${start}), as target does.`);
       return;
     }
     let from = -1;
     if (l.col != null) {
       const at = colIndex(s, l.col);
       if (at >= 0 && s.startsWith(l.text, at)) from = at;
-      else devWarn(true, 'CodeView', `第 ${l.line} 行第 ${l.col} 欄不是「${l.text}」，連結沒有加上。col 從 1 開始、以字元計；位元組或 UTF-16 位置要先換算。`);
+      else
+        devWarn(
+          true,
+          'CodeView',
+          `line ${l.line} column ${l.col} is not "${l.text}", so the link was not added. Count col from 1 in characters; convert byte or UTF-16 offsets first.`,
+        );
     } else {
       from = findName(s, l.text);
-      devWarn(from < 0, 'CodeView', `第 ${l.line} 行找不到完整的「${l.text}」，連結沒有加上。text 要和程式碼一字不差（整個帶點的名稱），或給 col。`);
+      devWarn(
+        from < 0,
+        'CodeView',
+        `line ${l.line} has no whole "${l.text}", so the link was not added. Make text match the code exactly (the whole dotted name), or pass col.`,
+      );
     }
     if (from < 0) return;
     const hit = { from, to: from + l.text.length, i };
     const list = out.get(l.line) ?? [];
     if (list.some((h) => h.from < hit.to && hit.from < h.to)) {
-      devWarn(true, 'CodeView', `第 ${l.line} 行的「${l.text}」和另一個連結重疊，沒有加上。同一行出現兩次的名稱，第二個要給 col。`);
+      devWarn(
+        true,
+        'CodeView',
+        `"${l.text}" on line ${l.line} overlaps another link, so it was not added. For a name that appears twice on a line, pass col for the second one.`,
+      );
       return;
     }
     list.push(hit);

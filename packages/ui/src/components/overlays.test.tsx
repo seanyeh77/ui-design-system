@@ -152,11 +152,16 @@ test('MultiSelect adds and removes chips', async () => {
 
 test('DatePicker picks today from the calendar', async () => {
   const onChange = vi.fn();
-  render(<DatePicker label="日期" value={null} onChange={onChange} />);
-  await user.click(screen.getByRole('button', { name: '開啟日曆' }));
-  await user.click(await screen.findByRole('button', { name: '今天' }));
-  const d = onChange.mock.calls[0][0] as Date;
-  expect(d.toDateString()).toBe(new Date().toDateString());
+  vi.setSystemTime(new Date(2026, 10, 18, 12, 0));
+  try {
+    render(<DatePicker label="日期" value={null} onChange={onChange} />);
+    await user.click(screen.getByRole('button', { name: '開啟日曆' }));
+    await user.click(await screen.findByRole('button', { name: '今天' }));
+    const d = onChange.mock.calls[0][0] as Date;
+    expect(d.toDateString()).toBe(new Date(2026, 10, 18).toDateString());
+  } finally {
+    vi.useRealTimers();
+  }
 });
 
 test('Popover opens on click and shows its content', async () => {
@@ -188,8 +193,8 @@ test('CommandPalette opens with Ctrl K and picks with Enter', async () => {
         open={open}
         onOpenChange={setOpen}
         items={[
-          { label: '設定', kind: '頁面' },
-          { label: '帳單', kind: '頁面' },
+          { label: '設定', kind: 'page' },
+          { label: '帳單', kind: 'page' },
         ]}
         onSelect={onSelect}
       />

@@ -433,7 +433,9 @@ test('Markdown: on a touch screen a row link is at least 48 px tall', async () =
   try {
     expect(matchMedia('(pointer: coarse)').matches).toBe(true);
     const { container } = render(<Markdown>{'- [論文](docs/paper.md)\n- [規格](docs/spec.md)'}</Markdown>);
-    for (const a of container.querySelectorAll('a.is-row')) expect(a.getBoundingClientRect().height).toBeGreaterThanOrEqual(48);
+    const rows = container.querySelectorAll('a.is-row');
+    expect(rows).toHaveLength(2);
+    for (const a of rows) expect(a.getBoundingClientRect().height).toBeGreaterThanOrEqual(48);
   } finally {
     await cdp().send('Emulation.setEmulatedMedia', { features: [] });
     await cdp().send('Emulation.setTouchEmulationEnabled', { enabled: false });

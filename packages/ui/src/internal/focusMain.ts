@@ -1,7 +1,13 @@
 // How the person last acted: a key, or a pointer (mouse, pen, touch). The heading focusMain() moves to shows a bar on
 // its left only after a key: someone who changed page with a mouse sees no change.
+// Followed only after installFocusMain() (AppShell and initTheme call it): importing the module has no side effect.
 let lastInput: 'key' | 'pointer' = 'pointer';
-if (typeof document !== 'undefined') {
+let installed = false;
+
+/** Starts following the last kind of input on the document; safe to call more than once. */
+export function installFocusMain(): void {
+  if (installed || typeof document === 'undefined') return;
+  installed = true;
   document.addEventListener('keydown', () => (lastInput = 'key'), true);
   document.addEventListener('pointerdown', () => (lastInput = 'pointer'), true);
 }

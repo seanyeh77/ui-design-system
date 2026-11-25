@@ -163,7 +163,7 @@ export const I18N: I18nState = {
       表格: 'Table',
       '{n} px': '{n} px',
       '主要區域 {a} px，面板 {b} px': 'Main area {a} px, panel {b} px',
-      'repo 外': 'outside the repo',
+      外部: 'External',
       詳細: 'Details',
       '展開 {name}': 'Expand {name}',
       '收合 {name}': 'Collapse {name}',
@@ -284,7 +284,8 @@ export const I18N: I18nState = {
       全部收合: 'Collapse all',
       這裡還沒有檔案: 'No files here yet',
       顯示全部: 'Show all',
-      收合: 'Show less',
+      收合: 'Collapse',
+      '清單::收合': 'Show less',
       依狀態篩選: 'Filter by status',
       展開: 'Expand',
       沒有項目: 'Nothing here',
@@ -300,8 +301,16 @@ export const I18N: I18nState = {
       共用項目: 'Shared',
       次數越多線越粗: 'Thicker lines mean more often',
       架構圖: 'Architecture',
-      '{n} 次': '{n} calls',
-      '1 次': '1 call',
+      '{n} 次': '{n} uses',
+      '1 次': '1 use',
+      '使用 {n} 次': 'Used {n} times',
+      編號的線: 'Numbered lines',
+      '複製成 Markdown': 'Copy as Markdown',
+      '快選::上個月': 'Last month',
+      頁面: 'Page',
+      設定: 'Setting',
+      指令: 'Command',
+      檔案: 'File',
       原始碼: 'Source',
       '顯示全部 {n} 行': 'Show all {n} lines',
       '只顯示第 {n} 行前後': 'Show only around line {n}',
@@ -340,11 +349,16 @@ function msgsFor(loc: string): Record<string, string> | null {
   return I18N.messages[loc] || I18N.messages[loc.split('-')[0]] || null;
 }
 
-/** Translates a built-in zh-TW string into the current locale; {name} placeholders take vars. */
+/** Translates a built-in zh-TW string into the current locale; {name} placeholders take vars. A key may start with a
+ *  context and 「::」 ('快選::上個月'): only the text after it is shown in zh-TW. */
 export function tr(key: string, vars?: Record<string, string | number>): string {
   // zh-TW (and zh-Hant) is the source text; other Chinese locales (zh-CN) use the messages an app adds for them.
   const m = isZhTW() ? null : msgsFor(I18N.locale);
-  const out = m?.[key] ?? key;
+  // A context before 「::」 tells apart one word with two meanings ('快選::上個月' is Last month, '上個月' Previous
+  // month); zh-TW shows the text after it, and a locale without the context key uses the plain one.
+  const at = key.indexOf('::');
+  const text = at >= 0 ? key.slice(at + 2) : key;
+  const out = m?.[key] ?? (at >= 0 ? m?.[text] : undefined) ?? text;
   return vars ? out.replace(/\{(\w+)\}/g, (a, k: string) => (vars[k] !== undefined ? String(vars[k]) : a)) : out;
 }
 
@@ -361,16 +375,37 @@ export function unitFor(unit: CountUnit | undefined, n: number): string {
   return tr(unit);
 }
 
-/** Switches the interface language and, optionally, the currency used by format.money. */
+const localeListeners = new Set<() => void>();
+
+/** Calls f after every change of locale or currency (setLocale) and of messages (addMessages); returns the unsubscribe.
+ *  useLocale() is built on it. */
+export function subscribeLocale(f: () => void): () => void {
+  localeListeners.add(f);
+  return () => {
+    localeListeners.delete(f);
+  };
+}
+
+/** Switches the interface language and, optionally, the currency used by format.money. Components that read the
+ *  locale with useLocale() (and their children) render again. */
 export function setLocale(locale: string, opts?: { currency?: string }): void {
-  I18N.locale = locale || 'zh-TW';
+  const next = locale || 'zh-TW';
+  const changed = next !== I18N.locale || (!!opts?.currency && opts.currency !== I18N.currency);
+  I18N.locale = next;
   if (opts?.currency) I18N.currency = opts.currency;
   if (typeof document !== 'undefined') document.documentElement.setAttribute('lang', I18N.locale);
+  if (changed) emitLocale();
+}
+
+/** Tells the subscribers that the locale changed (LocaleProvider, after it set the locale while rendering). */
+export function emitLocale(): void {
+  localeListeners.forEach((f) => f());
 }
 
 /** Adds or overrides translations for a locale. Keys are the zh-TW strings. */
 export function addMessages(locale: string, dict: Record<string, string>): void {
   I18N.messages[locale] = { ...I18N.messages[locale], ...dict };
+  emitLocale();
 }
 
 export const isZhTW = (): boolean => /^zh-(TW|Hant)/i.test(I18N.locale);

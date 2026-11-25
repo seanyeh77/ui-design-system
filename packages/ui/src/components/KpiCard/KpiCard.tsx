@@ -56,7 +56,7 @@ function sansCjk(text: string): React.ReactNode[] {
 export function KpiCard(props: KpiCardProps) {
   const { label, value, unit, decimals = 0, delta, deltaUnit, good, spark, compareLabel, size = 'default', verdict, target, className } = props;
   const compact = size === 'compact';
-  devWarn(compact && !!spark, 'KpiCard', 'size="compact" 不畫迷你折線，spark 會被忽略。拿掉 spark，或改用一般大小。');
+  devWarn(compact && !!spark, 'KpiCard', 'size="compact" draws no sparkline, so spark is ignored. Drop spark, or use the default size.');
   devWarn(props.format === 'percent' && !unit, 'KpiCard', 'format=\'percent\' shows the number only; pass unit="%" for the smaller % after it.');
   const t = useCountUp(value, 900);
   const valRef = React.useRef<HTMLDivElement>(null);

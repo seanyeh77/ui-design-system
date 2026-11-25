@@ -6,6 +6,7 @@
  * Element#animate, scrollIntoView and others: the components check for them and skip what needs them.
  */
 import * as React from 'react';
+import { hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
@@ -52,6 +53,11 @@ const settle = () => act(() => new Promise((r) => setTimeout(r, 30)));
 // Exported components that no story shows, rendered here instead.
 const unstoried: Record<string, () => React.ReactElement> = {
   Icon: () => <UI.Icon name="gear" />,
+  LocaleProvider: () => (
+    <UI.LocaleProvider locale="zh-TW">
+      <UI.Button>儲存</UI.Button>
+    </UI.LocaleProvider>
+  ),
   StatusLegend: () => (
     <UI.StatusLegend
       label="狀態"
@@ -124,6 +130,110 @@ describe('every story: click its buttons, tabs and switches; drag its separators
 describe('every story renders on the server', () => {
   test.each(stories)('$id', ({ Story }) => {
     expect(renderToString(<Story />)).toBeTypeOf('string');
+  });
+});
+
+// What a returning visitor has stored, by key prefix: other choices than the defaults, so a component that reads storage
+// while rendering gives different markup than the server did.
+const STORED: [prefix: string, value: string][] = [
+  ['ui-theme', 'dark'],
+  ['ui-accent', '#027874'],
+  ['ui-nav-collapsed', '1'],
+  ['ui-nav-pinned', '1'],
+  ['ui-section:', '1'],
+  ['ui-tour:', '1'],
+  ['ui-dt-cols:', '{"owner":false}'],
+  ['ui-dt-width:', '{"name":300}'],
+  ['ui-lg-labels:', '0'],
+  ['ui-lg-height:', '80'],
+  ['ui-split:', '520'],
+  ['ui-workbench:', '{"open":{"explorer":false,"side":false,"panel":false}}'],
+];
+
+// Components that read storage only when uncontrolled or given a storage key, which the stories do not do.
+function TourCase() {
+  const tour = UI.useTour('hydration');
+  return <UI.IconButton icon="question" label="導覽" hint={tour.hint('第一次來？看看導覽。')} onClick={tour.start} />;
+}
+const storedCases = [
+  { id: 'stored/ThemePicker', Story: () => <UI.ThemePicker /> },
+  { id: 'stored/AccentPicker', Story: () => <UI.AccentPicker /> },
+  {
+    id: 'stored/Section',
+    Story: () => (
+      <UI.Section title="細節" storageKey="hydration">
+        內容
+      </UI.Section>
+    ),
+  },
+  { id: 'stored/Tour', Story: TourCase },
+  {
+    id: 'stored/DataTable',
+    Story: () => (
+      <UI.DataTable
+        label="清單"
+        widthKey="hydration"
+        columns={[
+          { key: 'name', label: '名稱' },
+          { key: 'owner', label: '負責人' },
+          { key: 'at', label: '更新', format: 'relative' },
+        ]}
+        rows={[{ id: '1', name: 'a', owner: 'b', at: new Date(2026, 10, 18, 9, 0).toISOString() }]}
+      />
+    ),
+  },
+  {
+    id: 'stored/LayerGraph',
+    Story: () => (
+      <UI.LayerGraph
+        resizable
+        heightKey="hydration"
+        scrollKey="hydration"
+        nodes={[
+          { id: 'a', name: 'a', layer: 0 },
+          { id: 'b', name: 'b', layer: 1 },
+        ]}
+        edges={[{ from: 'a', to: 'b', label: '呼叫' }]}
+      />
+    ),
+  },
+  { id: 'stored/ConsoleLayout', Story: () => <UI.ConsoleLayout title="監控" main={<div>主畫面</div>} /> },
+];
+
+describe('every story hydrates without a mismatch, with stored choices and media queries that differ from the server', () => {
+  test.each([...stories, ...storedCases])('$id', async ({ Story }) => {
+    // The server: nothing stored, no matchMedia.
+    localStorage.clear();
+    const html = renderToString(<Story />);
+    // The browser: stored choices and every media query matching (dark, phone, touch, reduced motion).
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key: string) => STORED.find(([k]) => key.startsWith(k))?.[1] ?? null);
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: true,
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    }));
+    const container = document.createElement('div');
+    container.innerHTML = html;
+    document.body.appendChild(container);
+    let root: ReturnType<typeof hydrateRoot> | undefined;
+    try {
+      await act(async () => {
+        root = hydrateRoot(container, <Story />, {
+          onRecoverableError: (e) => errors.push('recoverable: ' + (e instanceof Error ? e.message : String(e))),
+        });
+      });
+      await settle();
+    } finally {
+      act(() => root?.unmount());
+      container.remove();
+      vi.unstubAllGlobals();
+      localStorage.clear();
+    }
   });
 });
 

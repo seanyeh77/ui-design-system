@@ -222,7 +222,7 @@ test('Tour: warns in development when a target is taller than most of the window
       <Tour open steps={[{ target: 'page', title: '整頁', text: 'x' }]} onClose={() => {}} />
     </>,
   );
-  await waitFor(() => expect(warn.mock.calls.some((c) => String(c[0]).includes('比視窗的 70% 高'))).toBe(true));
+  await waitFor(() => expect(warn.mock.calls.some((c) => String(c[0]).includes('taller than 70% of the window'))).toBe(true));
   warn.mockRestore();
 });
 

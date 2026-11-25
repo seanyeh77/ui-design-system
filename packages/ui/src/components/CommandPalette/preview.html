@@ -13,10 +13,10 @@
       var ITEMS = [
         { id: 1, kind: '函式', label: 'trace_post_send', code: true, detail: '`src/…/hooks/ops.c:55`' },
         { id: 2, kind: '函式', label: 'curl_easy_perform', code: true, detail: 'libcurl.so.4（外部）' },
-        { id: 3, kind: '檔案', label: 'src/server/hooks/post.h', code: true, detail: '12 個函式' },
+        { id: 3, kind: 'file', label: 'src/server/hooks/post.h', code: true, detail: '12 個函式' },
         { id: 4, kind: '元件', label: 'server', code: true, detail: '3 個檔案' },
         { id: 5, kind: '環境變數', label: 'APP_LOG_LEVEL', code: true, detail: '在 `env.c:31` 讀取' },
-        { id: 6, kind: '頁面', label: '影響範圍', detail: '改一個函式會影響誰' },
+        { id: 6, kind: 'page', label: '影響範圍', detail: '改一個函式會影響誰' },
       ];
       function App() {
         var s = React.useState(true),

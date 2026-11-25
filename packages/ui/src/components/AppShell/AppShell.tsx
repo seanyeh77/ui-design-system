@@ -5,10 +5,11 @@ import { MobileTabBar, type MobileTab } from '../MobileTabBar/MobileTabBar';
 import { Drawer } from '../Drawer/Drawer';
 import { tr } from '../../i18n';
 import type { BreadcrumbItem } from '../Breadcrumb/Breadcrumb';
-import { cx, store, useMedia, useNarrow } from '../../internal/util';
+import { cx, useMedia, useNarrow } from '../../internal/util';
+import { asText, useStored } from '../../internal/stored';
 import { devWarn } from '../../internal/dev';
 import { ensureAnnouncer } from '../../announce';
-import { focusMain } from '../../internal/focusMain';
+import { focusMain, installFocusMain } from '../../internal/focusMain';
 import { includeIcons } from '../../icons/store';
 import phDotsThree from '../../icons/ph/dots-three';
 
@@ -72,14 +73,14 @@ export function AppShell({
   const phone = useNarrow();
   // 600 to 1024 px (tablets, narrow windows): no sidebar; the top bar's menu button opens the whole nav in a drawer.
   const tablet = useMedia('(min-width: 600px) and (max-width: 1024px)');
-  const [userCollapsed, setUserCollapsed] = React.useState(() => store(COLLAPSE_KEY) === '1');
+  // Stored choices: the same on the server and the first render in the browser (none stored), then the stored ones.
+  const [storedCollapsed, setStoredCollapsed] = useStored<string | null>(COLLAPSE_KEY, asText, null);
+  const [storedPin, setStoredPin] = useStored<string | null>(PIN_KEY, asText, null);
+  const userCollapsed = storedCollapsed === '1';
   // Pinned: the sidebar sits beside the content as before (240 px, or 72 px collapsed). Not pinned: a 72 px strip of
   // icons that opens over the content. Someone who already chose collapsed or expanded keeps a pinned sidebar.
-  const [pinned, setPinned] = React.useState(() => {
-    const v = store(PIN_KEY);
-    if (v != null) return v === '1';
-    return store(COLLAPSE_KEY) != null || defaultPinned;
-  });
+  const pinned = storedPin != null ? storedPin === '1' : storedCollapsed != null || defaultPinned;
+  React.useEffect(installFocusMain, []);
   const [open, setOpen] = React.useState(false);
   const openTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
   const closeTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -98,8 +99,7 @@ export function AppShell({
   );
   const collapsed = pinned ? userCollapsed : !open;
   const togglePin = () => {
-    store(PIN_KEY, pinned ? '0' : '1');
-    setPinned(!pinned);
+    setStoredPin(pinned ? '0' : '1');
     setOpen(false);
   };
   const top = nav.flatMap((s) => s.items);
@@ -167,8 +167,7 @@ export function AppShell({
           pinned
           onPin={togglePin}
           onToggle={() => {
-            store(COLLAPSE_KEY, userCollapsed ? '0' : '1');
-            setUserCollapsed(!userCollapsed);
+            setStoredCollapsed(userCollapsed ? '0' : '1');
           }}
         />
       ) : (

@@ -13,7 +13,7 @@ export function cellText<R extends Row>(c: DataTableColumn<R>, v: unknown): stri
   const asDate = () => (v instanceof Date ? v : new Date(v as string | number));
   if (c.format === 'money') return format.money(Number(v), { currency: c.currency });
   if (c.format === 'date') return format.date(asDate());
-  if (c.format === 'datetime') return format.dateTime(asDate());
+  if (c.format === 'dateTime' || c.format === 'datetime') return format.dateTime(asDate());
   if (c.format === 'relative') return format.relative(asDate());
   if (c.format === 'duration') return format.duration(Number(v));
   // percent fixes the decimals only; the % comes from unit, as in KpiCard.
@@ -27,7 +27,7 @@ export function cellText<R extends Row>(c: DataTableColumn<R>, v: unknown): stri
 }
 
 /** Date formats: shown as dates, written as <time>, sorted by time. */
-export const DATE_FORMATS = ['date', 'datetime', 'relative'] as const;
+export const DATE_FORMATS = ['date', 'dateTime', 'datetime', 'relative'] as const;
 export const isDateCol = <R extends Row>(c: DataTableColumn<R>): boolean => (DATE_FORMATS as readonly string[]).includes(c.format ?? '');
 
 /** A cell value as a Date, or null when it is missing or not a date. */

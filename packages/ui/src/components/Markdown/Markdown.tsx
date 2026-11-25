@@ -337,7 +337,11 @@ function inline(src: string, c: Ctx): React.ReactNode[] {
             /* kept as written */
           }
           const t = c.terms?.find((x) => x.term === id);
-          devWarn(!t, 'Markdown', `[${m.text}](term:${termId}) 找不到 terms 裡 term 為「${id}」的項目，只顯示文字。把它加進 terms，或改 term: 後面的字。`);
+          devWarn(
+            !t,
+            'Markdown',
+            `[${m.text}](term:${termId}) has no entry with term "${id}" in terms, so only the text shows. Add it to terms, or change the word after term:.`,
+          );
           c.seen?.add(id);
           out.push(t ? termNode(t, c.k(), inline(m.text, noTerms(c))) : <React.Fragment key={c.k()}>{inline(m.text, noTerms(c))}</React.Fragment>);
           i = m.end;

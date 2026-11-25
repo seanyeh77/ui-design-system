@@ -38,16 +38,26 @@ function dateTime(d: Date | null | undefined, o?: { weekday?: boolean }): string
   return isZhTW() && day.endsWith('）') ? day + time(d) : `${day} ${time(d)}`;
 }
 
-/** Within 7 days: 「2 小時前」、「昨天」. Older: full date and time. Pass now to test. */
+/** Whole local calendar days from d to now: 1 for any time yesterday, whatever the hour. */
+function dayDiff(d: Date, now: Date): number {
+  // Through UTC dates of the local day, so a 23-hour or 25-hour day (daylight saving) still counts as one.
+  const day = (x: Date) => Date.UTC(x.getFullYear(), x.getMonth(), x.getDate());
+  return Math.round((day(now) - day(d)) / 86400000);
+}
+
+/** Under 1 hour: 「現在」 or 「5 分鐘前」. The same calendar day: 「2 小時前」. An earlier day: by calendar days, 「昨天」
+ *  for any time yesterday (also 30 minutes before midnight seen after it, once an hour has passed), 「3 天前」 up to 6
+ *  days. 7 calendar days or more, or in the future: the full date and time. Pass now to test. */
 function relative(d: Date | null | undefined, now: Date = new Date()): string {
   if (!d) return '';
   const s = (now.getTime() - d.getTime()) / 1000;
-  if (s < 0 || s >= 604800) return dateTime(d);
+  const days = dayDiff(d, now);
+  if (s < 0 || days >= 7) return dateTime(d);
   const rt = new Intl.RelativeTimeFormat(I18N.locale, { numeric: 'auto' });
   if (s < 60) return rt.format(0, 'second');
   if (s < 3600) return rt.format(-Math.floor(s / 60), 'minute');
-  if (s < 86400) return rt.format(-Math.floor(s / 3600), 'hour');
-  return rt.format(-Math.floor(s / 86400), 'day');
+  if (days === 0) return rt.format(-Math.floor(s / 3600), 'hour');
+  return rt.format(-days, 'day');
 }
 
 function month(d: Date): string {

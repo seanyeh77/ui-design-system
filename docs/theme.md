@@ -7,10 +7,10 @@
 - 中性色調：暖灰。淺色主題底色極淺灰，深色主題底色深灰。
 - 卡片分層：陰影。
 - 強調色：預設 `#2457d6`，使用者可以自訂，不限定顏色。用量中量，用在主要按鈕、連結、圖示、標籤與選取狀態。
-- 語意色：配合強調色的飽和度。
+- 語意色（`success`、`warning`、`danger`、`info`）：固定的顏色，不跟著強調色變；換強調色只重新計算強調相關的 token。
 - Tailwind：只用設計系統的 token class（`bg-surface`、`text-ink-muted`、`rounded-md`、`shadow-card`）；Tailwind 內建的顏色、圓角和陰影（`text-gray-500`、`rounded-xl`、`shadow-lg`）由 ESLint 規則 `no-tailwind-defaults` 抓出來。
 
-主題設定有三個選項：自動（跟隨系統的 `prefers-color-scheme`）、淺色、深色。頁面根元素設 `data-theme="light"` 或 `"dark"`；頁面載入時呼叫一次 `initTheme()`。
+主題設定有三個選項：自動（跟隨系統的 `prefers-color-scheme`）、淺色、深色。頁面載入時呼叫一次 `initTheme()`，由它在根元素設 `data-theme` 與 `color-scheme`（原生捲軸和表單控制項跟著變深）；頁面不要自己設 `data-theme`。換主題用 `setTheme()`，換強調色用 `setAccent()`；自己做主題介面時，`storedTheme()`、`storedAccent()`、`pickedAccent()`（使用者有選才有值）讀目前的選擇，`resetAccent()` 回到 token 的預設。使用者沒選強調色時不寫 inline 變數，由 `tokens.css`（主題或 preset）決定。
 
 | 用途 | Token |
 |---|---|
@@ -57,10 +57,9 @@
 .save-btn {
   background: var(--success);
 }
-:root {
-  --accent: #0e827d; /* 也蓋過 tokens.css，不論檔案先後、不論 data-theme */
-}
 ```
+
+- 強調色不要用 CSS 覆寫 `--accent`：只改 `--accent` 時 `accent-text`、`accent-soft`、`on-accent`、`focus` 不會跟著換算，對比也不會檢查。用 `setAccent('#027874')`，它依下方「自訂強調色的換算」算出全部強調 token。
 
 - Tailwind v4：在主要 CSS 檔的最前面、`@import 'tailwindcss'` 之前寫一行順序，utility class 就能蓋過元件，Tailwind 的 preflight（`base`）不會蓋掉元件：
 
@@ -116,6 +115,7 @@ import './ui.css';
 - 圖示組：Phosphor（MIT 授權，可商用），平常用 Regular 線條版；選中時換成同一個圖示的實心版（Fill）並用強調色，例如側邊欄和手機底部分頁列的選中項目。
 - 線寬：Phosphor 的線寬固定，不另外調整；自訂的 24 × 24 線條圖示用 2 px（`icon-stroke`）。
 - 用法：`h(UI.Icon, { name: 'house' })`，加 `filled: true` 用實心版；名稱照 Phosphor，常用的 80 個已內建，`icons` 列出全部名稱（也接受 Lucide 的名稱，例如 `trash-2`）。元件的 `icon` 屬性接受同樣的名稱，或自訂圖示的 24 px path。
+- 自訂圖示 `d` 傳 SVG 標記字串（以 `<` 開頭）時會當成 HTML 直接放進 `<svg>`：只傳自己程式碼裡寫死的圖示，絕不傳使用者輸入或外部資料的字串。
 - 載入：每個圖示是一個獨立的模組，有 build 的專案只打包頁面用到的圖示，用法不變。元件固定會顯示的圖示（下拉箭頭、關閉的 x、勾號等）跟著元件一起打包，第一次畫面就有，server render 也有。用 `name` 或 `icon` 指定的其他圖示在第一次顯示時才載入：載入前是同樣大小的空白方框（版面不會跳動），載入後同一個圖示之後都立即顯示。server render 時這些圖示是空白方框，hydrate 後再補上。
 - 首屏的圖示想在第一次畫面就出現時，render 前先 `await preloadIcons(['house', 'gear'])`；不呼叫也能用，只是晚一個網路來回。import `icons` 的頁面會帶入全部圖示，所以只在真的需要全部名稱時才 import。`bundle.js` 內含全部圖示，一律立即顯示。
 
@@ -137,11 +137,11 @@ import './ui.css';
 - `accent-text`：強調色的文字色，對 `bg`、`surface`、`surface-sub`、`surface-chrome` 與換算出的 `accent-soft` 都要至少 4.5:1。強調色本身已經達標時就等於強調色（預設 `#2457d6` 在淺色主題不變）；不夠時，淺色主題混入黑色、每步 4%，深色主題混入白色、每步 5%，直到全部都達 4.5:1。例如淺色主題 `#ffe066` → `#7a6c31`、`#c4600f` → `#a5510d`、`#0f8a85` → `#0d7975`；深色主題 `#1a1a6e` → `#afafcc`，預設 `#2457d6` → `#92abeb`。讀 `bg`、`surface` 時接受 `#rgb`（打包工具會把 `#ffffff` 縮成 `#fff`）、`#rrggbb` 與 `rgb()`；讀不出來時 `accent-text` 就用強調色本身，不往黑或白混。
 - `focus`（以及舊名稱 `focus-ring`）：等於 `accent-text`。
 - 用強調色寫的文字、緊貼文字的圖示和狀態記號一律讀 `accent-text`，不讀 `accent`。
-- 語意色：飽和度跟隨強調色。
+- 語意色不跟著強調色變：`success`、`warning`、`danger`、`info` 在每個強調色下都是同一組顏色。
 
 ## 教材主題（teaching preset）
 
-Slidev 教材投影片使用 `data-theme="teaching"`。投影片的 CSS 只讀 token 名稱，數值由這個 preset 提供。
+Slidev 教材投影片使用 teaching preset：啟動時呼叫 `initTheme({ preset: 'teaching' })`（或在根元素先寫 `data-theme-preset="teaching"` 再呼叫 `initTheme()`），由它設 `data-theme="teaching"`；投影片不要自己設 `data-theme`。preset 只有淺色，`setTheme('dark')` 會記住設定但畫面維持 teaching。投影片的 CSS 只讀 token 名稱，數值由這個 preset 提供。
 
 已確認的選擇：
 

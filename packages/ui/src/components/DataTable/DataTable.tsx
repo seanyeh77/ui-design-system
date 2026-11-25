@@ -8,7 +8,9 @@ import { tr, unitFor, type CountUnit } from '../../i18n';
 import { Icon, type CustomIcon } from '../../icons/Icon';
 import { TOUCH_ONLY, copyText, cx, idPart, monoNums, reduced, resizeObserver, seenOnly, useMedia, useNarrow } from '../../internal/util';
 import { Tooltip } from '../Tooltip/Tooltip';
-import { devWarn } from '../../internal/dev';
+import { RelativeTime } from '../RelativeTime/RelativeTime';
+import { DEV, devWarn } from '../../internal/dev';
+import { useStored } from '../../internal/stored';
 import { CheckMark } from '../../internal/Field';
 import { announce } from '../../announce';
 import { ScrollHint, useScrollHint } from '../../internal/scrollHint';
@@ -114,6 +116,15 @@ const MOVE = { dur: 320, stagger: 25, ease: 'cubic-bezier(.2,.8,.2,1)' };
 const ARROWS: Record<'asc' | 'desc' | 'none', CustomIcon> = { asc: 'M12 19V5M6 11l6-6 6 6', desc: 'M12 5v14M6 13l6 6 6-6', none: 'M8 9l4-4 4 4M8 15l4 4 4-4' };
 
 const get = (row: Row, key: string): unknown => (row as Record<string, unknown>)[key];
+// Stored column choices and widths (widthKey): an object, else the default.
+const NO_TOGGLED: Record<string, boolean> = {};
+const parseObject = (raw: string) => {
+  const v: unknown = JSON.parse(raw);
+  if (!v || typeof v !== 'object') throw new Error('not an object');
+  return v;
+};
+const parseToggled = (raw: string) => parseObject(raw) as Record<string, boolean>;
+const parseWidths = (raw: string) => parseObject(raw) as Record<string, number>;
 const isNum = (c: DataTableColumn<never>) => c.numeric || c.format === 'money' || c.format === 'percent' || c.format === 'duration';
 // Short by what it holds: numbers, units, dates, durations and status. It hugs its content instead of taking the room
 // left (see widths below). A width is only a least width: it never makes a column short.
@@ -272,25 +283,10 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   const [view, setView] = React.useState(p.views?.[0]?.id ?? null);
   // Columns people turned on or off in the 「欄位」 menu; the others follow their own `hidden`. Remembered under widthKey.
   const colsKey = p.widthKey ? 'ui-dt-cols:' + p.widthKey : null;
-  const [toggled, setToggledState] = React.useState<Record<string, boolean>>(() => {
-    if (!colsKey) return {};
-    try {
-      const v = JSON.parse(localStorage.getItem(colsKey) || 'null');
-      return v && typeof v === 'object' ? (v as Record<string, boolean>) : {};
-    } catch {
-      return {};
-    }
-  });
-  const setToggled = (t: Record<string, boolean>) => {
-    setToggledState(t);
-    if (!colsKey) return;
-    try {
-      if (Object.keys(t).length) localStorage.setItem(colsKey, JSON.stringify(t));
-      else localStorage.removeItem(colsKey);
-    } catch {
-      // Storage blocked or full: it works the same, without remembering.
-    }
-  };
+  // None on the server and the first browser render, then the stored choice (useStored); an empty choice is removed.
+  const [toggled, setToggled] = useStored<Record<string, boolean>>(colsKey ?? undefined, parseToggled, NO_TOGGLED, (t) =>
+    Object.keys(t).length ? JSON.stringify(t) : null,
+  );
   // Rows opened with the caret on the left: their long columns in full, below the row.
   const [opened, setOpened] = React.useState<Record<string, boolean>>({});
   const narrow = useNarrow();
@@ -312,25 +308,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
   // The summary tabs, the search field and the buttons fit on one row.
   const [onerowState, setOnerow] = React.useState(false);
   // A2: widths readers dragged (px per column key); null = width and grow decide. Remembered under widthKey.
-  const [widths, setWidthsState] = React.useState<Record<string, number> | null>(() => {
-    if (!p.widthKey) return null;
-    try {
-      const v = JSON.parse(localStorage.getItem('ui-dt-width:' + p.widthKey) || 'null');
-      return v && typeof v === 'object' ? (v as Record<string, number>) : null;
-    } catch {
-      return null;
-    }
-  });
-  const setWidths = (w: Record<string, number> | null) => {
-    setWidthsState(w);
-    if (!p.widthKey) return;
-    try {
-      if (w) localStorage.setItem('ui-dt-width:' + p.widthKey, JSON.stringify(w));
-      else localStorage.removeItem('ui-dt-width:' + p.widthKey);
-    } catch {
-      // Storage blocked or full: it works the same, without remembering.
-    }
-  };
+  const [widths, setWidths] = useStored<Record<string, number> | null>(p.widthKey ? 'ui-dt-width:' + p.widthKey : undefined, parseWidths, null);
   // In the 「放大表格」 dialog: open, and the widths dragged there (not kept; the page's widths stay).
   const [zoomed, setZoomed] = React.useState(false);
   const [zoomWidths, setZoomWidths] = React.useState<Record<string, number> | null>(null);
@@ -363,7 +341,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     setSumVal('all');
     setSort(initialSort);
     // Remembered columns (widthKey) are the reader's own, like the widths: a new data set keeps them.
-    if (!colsKey) setToggledState({});
+    if (!colsKey) setToggled({});
     setOpened({});
     setFit({});
     setWant({});
@@ -380,57 +358,64 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     // eslint-disable-next-line react-hooks/exhaustive-deps -- written when the conditions change, not when the filter list is rebuilt
   }, [valuesKey, q]);
   devWarn(
-    cols.some((c) => c.format === 'percent' && !c.unit),
+    () => cols.some((c) => c.format === 'percent' && !c.unit),
     'DataTable',
     "format: 'percent' sets 1 decimal and shows no % sign; add unit: '%' to that column.",
   );
   devWarn(
-    rows.length > 1 && rows.every((r) => get(r, 'id') == null) && selectable,
+    () => rows.length > 1 && rows.every((r) => get(r, 'id') == null) && selectable,
     'DataTable',
     'rows have no id, so a selection follows the position, not the row. Add an id to each row.',
   );
 
+  devWarn(
+    () => cols.some((c) => c.format === 'datetime'),
+    'DataTable',
+    "format: 'datetime' is the old spelling, kept for now. Write format: 'dateTime', as format.dateTime().",
+  );
   devWarn(!!cols[0]?.hidden, 'DataTable', 'the first column is always shown, so its hidden: true does nothing. Move the column, or drop hidden.');
   devWarn(
-    (p.columnMenu === false || cols.length <= 2) && cols.some((c, i) => i > 0 && c.hidden),
+    () => (p.columnMenu === false || cols.length <= 2) && cols.some((c, i) => i > 0 && c.hidden),
     'DataTable',
     'a column has hidden: true but there is no 「欄位」 menu (columnMenu is false, or the table has 2 columns or fewer), so nobody can turn it on. Turn the menu on, or leave the column out.',
   );
   // One condition in one place: a status the summary tabs pick should not be a filter or a view as well.
   const sumKey = p.summary?.key;
-  const twiceFilter = sumKey ? filters.find((f) => f.key === sumKey) : undefined;
-  devWarn(
-    twiceFilter,
-    'DataTable',
-    `the filter 「${twiceFilter?.label}」 filters ${String(sumKey)}, which the summary tabs already filter, so the same condition is in two places. Drop it from filters (or drop summary).`,
-  );
-  // A view filters the same key when the rows it keeps are exactly the rows of one summary value.
-  const twiceView =
-    sumKey && rows.length
-      ? p.views?.find((v) => {
-          if (!v.filter) return false;
-          const kept = rows.filter((r) => v.filter?.(r));
-          if (!kept.length || kept.length === rows.length) return false;
-          const val = String(get(kept[0], sumKey));
-          return kept.every((r) => String(get(r, sumKey)) === val) && rows.filter((r) => String(get(r, sumKey)) === val).length === kept.length;
-        })
-      : undefined;
-  devWarn(
-    twiceView,
-    'DataTable',
-    `the view 「${twiceView?.label}」 keeps exactly the rows of one ${String(sumKey)} value, which a summary tab already picks, so the same condition is in two places. Drop the view (or drop summary).`,
-  );
-  // A number with its unit baked into a string cannot be formatted, aligned or sorted as a number.
-  for (const c of cols) {
-    if (!c.unit && !c.numeric) continue;
-    const bad = rows
-      .map((r) => get(r, c.key))
-      .find((v) => typeof v === 'string' && /\d/.test(v) && (c.unit ? v.includes(c.unit) : !/^\s*-?[\d,]*\.?\d+\s*$/.test(v)));
+  if (DEV) {
+    const twiceFilter = sumKey ? filters.find((f) => f.key === sumKey) : undefined;
     devWarn(
-      bad !== undefined,
+      twiceFilter,
       'DataTable',
-      `column 「${c.label}」 got the string 「${String(bad)}」. Pass a number${c.unit ? '' : ' and the unit in unit'} (e.g. { numeric: true, unit: '${c.unit || '字'}' } with 1234), so it is formatted, right-aligned and sorted as a number.`,
+      `the filter 「${twiceFilter?.label}」 filters ${String(sumKey)}, which the summary tabs already filter, so the same condition is in two places. Drop it from filters (or drop summary).`,
     );
+    // A view filters the same key when the rows it keeps are exactly the rows of one summary value.
+    const twiceView =
+      sumKey && rows.length
+        ? p.views?.find((v) => {
+            if (!v.filter) return false;
+            const kept = rows.filter((r) => v.filter?.(r));
+            if (!kept.length || kept.length === rows.length) return false;
+            const val = String(get(kept[0], sumKey));
+            return kept.every((r) => String(get(r, sumKey)) === val) && rows.filter((r) => String(get(r, sumKey)) === val).length === kept.length;
+          })
+        : undefined;
+    devWarn(
+      twiceView,
+      'DataTable',
+      `the view 「${twiceView?.label}」 keeps exactly the rows of one ${String(sumKey)} value, which a summary tab already picks, so the same condition is in two places. Drop the view (or drop summary).`,
+    );
+    // A number with its unit baked into a string cannot be formatted, aligned or sorted as a number.
+    for (const c of cols) {
+      if (!c.unit && !c.numeric) continue;
+      const bad = rows
+        .map((r) => get(r, c.key))
+        .find((v) => typeof v === 'string' && /\d/.test(v) && (c.unit ? v.includes(c.unit) : !/^\s*-?[\d,]*\.?\d+\s*$/.test(v)));
+      devWarn(
+        bad !== undefined,
+        'DataTable',
+        `column 「${c.label}」 got the string 「${String(bad)}」. Pass a number${c.unit ? '' : ' and the unit in unit'} (e.g. { numeric: true, unit: '${c.unit || 'items'}' } with 1234), so it is formatted, right-aligned and sorted as a number.`,
+      );
+    }
   }
   const hidden: Record<string, boolean> = {};
   cols.forEach((c, i) => (hidden[c.key] = i > 0 && (toggled[c.key] ?? !!c.hidden)));
@@ -937,11 +922,17 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
     else if (isDateCol(c) && asDate(raw)) {
       const d = asDate(raw) as Date;
       const abs = absDate(r, c);
-      const t = (
-        <time className="ui-dt-time" dateTime={isoOf(d, c.format === 'date')}>
-          {markMatch(cellText(c, raw), mark)}
-        </time>
-      );
+      // Relative times stay current (one shared minute timer) and render the same on the server and at hydration.
+      const t =
+        c.format === 'relative' ? (
+          <RelativeTime className="ui-dt-time" value={d}>
+            {(text) => markMatch(text, mark)}
+          </RelativeTime>
+        ) : (
+          <time className="ui-dt-time" dateTime={isoOf(d, c.format === 'date')}>
+            {markMatch(cellText(c, raw), mark)}
+          </time>
+        );
       v = abs ? (
         <Tooltip label={abs} describe={false} disabled={touch}>
           {t}
@@ -1317,7 +1308,7 @@ export function DataTable<R extends Row = Record<string, unknown>>(p: DataTableP
                             id={ci === 0 ? `${pfx}-n-${start + i}` : undefined}
                             // fullText: the whole text as the cell's description, not hidden text beside the short one
                             // (that put 「ucp.c:62，src/…/ucp.c:62」 in the page's text and the phone card).
-                            aria-description={[c.fullText?.(x.r), absDate(x.r, c)].filter(Boolean).join('，') || undefined}
+                            aria-description={[c.fullText?.(x.r), absDate(x.r, c)].filter(Boolean).join(tr('，')) || undefined}
                             data-label={c.label}
                             data-col={c.key}
                             className={cellClass(c, ci, c.long && 'is-long', mobileClass(c, ci))}

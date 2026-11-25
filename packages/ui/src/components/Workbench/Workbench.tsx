@@ -4,7 +4,8 @@ import { IconButton } from '../IconButton/IconButton';
 import { SearchField } from '../SearchField/SearchField';
 import { Breadcrumb, type BreadcrumbItem } from '../Breadcrumb/Breadcrumb';
 import { Icon, type CustomIcon } from '../../icons/Icon';
-import { cx, IS_MAC, store, resizeObserver } from '../../internal/util';
+import { cx, IS_MAC, resizeObserver } from '../../internal/util';
+import { readStored, useStored } from '../../internal/stored';
 import { devWarn } from '../../internal/dev';
 import { tr } from '../../i18n';
 import { dropTransition } from '../../motion';
@@ -144,10 +145,8 @@ function defaults(views: WorkbenchView[], d: WorkbenchProps['defaultLayout']): W
 }
 
 // A stored layout, checked against today's views: unknown ids dropped, new ones placed as the defaults say.
-function restore(key: string, def: WorkbenchLayout): WorkbenchLayout {
+function restore(raw: string, def: WorkbenchLayout): WorkbenchLayout {
   try {
-    const raw = store(key);
-    if (!raw) return def;
     const s = JSON.parse(raw) as Partial<WorkbenchLayout>;
     const all = [...def.side, ...def.panel];
     const side = (s.side ?? []).filter((x) => all.includes(x));
@@ -554,9 +553,20 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
   const byId = React.useMemo(() => Object.fromEntries(views.map((v) => [v.id, v])), [views]);
   const key = 'ui-workbench:' + p.id;
   const def = React.useMemo(() => defaults(views, p.defaultLayout), [views, p.defaultLayout]);
-  const [lay, setLay] = React.useState<WorkbenchLayout>(() => restore(key, def));
+  // The default layout on the server and the first browser render, then the stored one (also when another tab changes it).
+  const parseLayout = React.useCallback((raw: string) => restore(raw, def), [def]);
+  const [lay, saveLay] = useStored<WorkbenchLayout>(key, parseLayout, def);
+  // An update reads the layout from storage, so two updates in one event build on each other.
+  const setLay = React.useCallback(
+    (u: WorkbenchLayout | ((l: WorkbenchLayout) => WorkbenchLayout)) => {
+      const raw = readStored(key);
+      const cur = raw ? restore(raw, def) : def;
+      saveLay(typeof u === 'function' ? u(cur) : u);
+    },
+    [key, def, saveLay],
+  );
   devWarn(
-    new Set(views.map((v) => v.id)).size !== views.length,
+    () => new Set(views.map((v) => v.id)).size !== views.length,
     'Workbench',
     'two views share an id. Give each view its own id: the layout stores views by id.',
   );
@@ -575,9 +585,6 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
     return () => ro?.disconnect();
   }, []);
 
-  React.useEffect(() => {
-    store(key, JSON.stringify(lay));
-  }, [key, lay]);
   const onLayoutChange = p.onLayoutChange;
   React.useEffect(() => {
     onLayoutChange?.(lay);
@@ -633,7 +640,7 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
     return a && lay[r].includes(a) ? a : lay[r][0];
   };
 
-  const update = React.useCallback((fn: (l: WorkbenchLayout) => WorkbenchLayout) => setLay((l) => fn(l)), []);
+  const update = React.useCallback((fn: (l: WorkbenchLayout) => WorkbenchLayout) => setLay((l) => fn(l)), [setLay]);
   const openSheet = (from: ViewRegion) =>
     setSheet((s) => {
       const act = lay.active[from] && lay[from].includes(lay.active[from] as string) ? lay.active[from] : lay[from][0];
@@ -752,7 +759,13 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
   const attention = (r: ViewRegion) => lay[r].some((id) => byId[id]?.attention);
   const toggleBtn = (r: WorkbenchRegion, open: boolean, dot: boolean) => (
     <span className="ui-wb-toggle">
-      <IconButton variant="quiet" icon={toggleIcon(r, open)} label={regionName[r] + '（' + keys[r] + '）'} aria-pressed={open} onClick={() => toggle(r)} />
+      <IconButton
+        variant="quiet"
+        icon={toggleIcon(r, open)}
+        label={tr('{v}（{t}）', { v: regionName[r], t: keys[r] })}
+        aria-pressed={open}
+        onClick={() => toggle(r)}
+      />
       {dot ? <span className="ui-wb-dot is-on-button" aria-hidden="true" /> : null}
     </span>
   );
@@ -810,7 +823,7 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
               <IconButton
                 variant="quiet"
                 icon={r === 'side' ? 'caret-right' : 'caret-down'}
-                label={tr('收合{region}', { region: regionName[r] }) + '（' + keys[r] + '）'}
+                label={tr('{v}（{t}）', { v: tr('收合{region}', { region: regionName[r] }), t: keys[r] })}
                 onClick={() => toggle(r)}
               />
             </>

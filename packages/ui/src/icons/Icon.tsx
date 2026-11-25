@@ -21,7 +21,8 @@ function iconKey(source: string | undefined): PhosphorName | undefined {
 export interface IconProps {
   /** Built-in Phosphor name, e.g. 'house', 'trash' (Lucide names work as aliases). */
   name?: IconName;
-  /** A custom icon when it is not built in: 24 px path data, or SVG markup. */
+  /** A custom icon when it is not built in: 24 px path data, or SVG markup, which is inserted as HTML: never pass a
+   *  string that came from a user or outside data. */
   d?: CustomIcon;
   /** Default 20. */
   size?: number;

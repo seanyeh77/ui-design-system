@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { afterAll, beforeAll, expect, test, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { DataTable } from './components/DataTable/DataTable';
 import { KpiCard } from './components/KpiCard/KpiCard';
@@ -26,7 +26,15 @@ function cjkInMono(root: HTMLElement): string[] {
   return out;
 }
 
-const hoursAgo = (h: number) => new Date(Date.now() - h * 3600_000);
+// A fixed clock (2026/11/18 12:00, a Wednesday): relative dates and 「今天」 read the same on any day the tests run.
+const NOW = new Date(2026, 10, 18, 12, 0).getTime();
+beforeAll(() => {
+  vi.setSystemTime(NOW);
+});
+afterAll(() => {
+  vi.useRealTimers();
+});
+const hoursAgo = (h: number) => new Date(NOW - h * 3600_000);
 
 test('KpiCard: the unit (個, 人, 天) is in the text font, the digits in Geist Mono', () => {
   const { container } = render(

@@ -27,7 +27,7 @@ export type { CheckboxProps } from './components/Checkbox/Checkbox';
 export { CodeView } from './components/CodeView/CodeView';
 export type { CodeLink, CodeViewHandle, CodeViewProps } from './components/CodeView/CodeView';
 export { CommandPalette } from './components/CommandPalette/CommandPalette';
-export type { CommandPaletteProps, PaletteItem } from './components/CommandPalette/CommandPalette';
+export type { CommandPaletteProps, PaletteItem, PaletteKind } from './components/CommandPalette/CommandPalette';
 export { DangerZone } from './components/DangerZone/DangerZone';
 export type { DangerZoneProps } from './components/DangerZone/DangerZone';
 export { DataTable } from './components/DataTable/DataTable';
@@ -85,7 +85,8 @@ export { ZoneMap } from './components/ZoneMap/ZoneMap';
 export type { ZoneMapProps, Zone } from './components/ZoneMap/ZoneMap';
 export { EventTimeline } from './components/EventTimeline/EventTimeline';
 export type { EventTimelineProps, TimelineEvent, EventKind } from './components/EventTimeline/EventTimeline';
-export { ConsoleLayout, consoleZoom } from './components/ConsoleLayout/ConsoleLayout';
+export { ConsoleLayout } from './components/ConsoleLayout/ConsoleLayout';
+export { consoleZoom } from './deprecated';
 export type { ConsoleLayoutProps, ConsoleExtra } from './components/ConsoleLayout/ConsoleLayout';
 export { TimeControl } from './components/TimeControl/TimeControl';
 export type { TimeControlProps } from './components/TimeControl/TimeControl';
@@ -107,6 +108,8 @@ export { Popover } from './components/Popover/Popover';
 export type { PopoverProps } from './components/Popover/Popover';
 export { ProgressBar } from './components/ProgressBar/ProgressBar';
 export type { ProgressBarProps } from './components/ProgressBar/ProgressBar';
+export { RelativeTime } from './components/RelativeTime/RelativeTime';
+export type { RelativeTimeProps } from './components/RelativeTime/RelativeTime';
 export { ProgressRing } from './components/ProgressRing/ProgressRing';
 export type { ProgressRingProps } from './components/ProgressRing/ProgressRing';
 export { ProjectSwitcher } from './components/ProjectSwitcher/ProjectSwitcher';
@@ -156,11 +159,27 @@ export { TreeList } from './components/TreeList/TreeList';
 export type { TreeListProps, TreeMark, TreeNode } from './components/TreeList/TreeList';
 export type { Token, TokenClass, Tokenizer, CodeLanguage } from './components/CodeView/tokens';
 export * from './format-entry';
+export { subscribeLocale } from './i18n';
+export { LocaleProvider, useLocale, type LocaleProviderProps } from './locale';
 export { Icon, type IconProps, type IconName, type IconSource, type CustomIcon } from './icons/Icon';
 export { icons } from './icons/map';
 export { preloadIcons } from './icons/store';
 export { MOTION } from './motion';
-export { initTheme, setAccent, setTheme, textOn, heatToken, divergeToken, type ThemeSetting } from './theme';
+export {
+  initTheme,
+  setAccent,
+  resetAccent,
+  setTheme,
+  storedTheme,
+  storedAccent,
+  pickedAccent,
+  themePreset,
+  textOn,
+  heatToken,
+  divergeToken,
+  type ThemeSetting,
+  type ThemePreset,
+} from './theme';
 export { announce } from './announce';
 export { focusMain } from './components/AppShell/AppShell';
 export { Workbench, useWorkbench } from './components/Workbench/Workbench';

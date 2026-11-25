@@ -1272,3 +1272,29 @@ AI 定的細節（待確認）：
 - 連結維持強調色加底線；滑過 `surface-sub` 底色（`radius-sm` 圓角），焦點是一般的 2 px 外框。
 - 項目符號或編號留在列外，和其他項目對齊；文字起點和其他項目相同，底色往左多 6 px，不蓋到符號或編號。相鄰的兩個整列連結之間 2 px。
 - C1 的範圍：`ui check` 的觸控目標檢查跳過「只因為 `tabindex` 才能聚焦、本身會捲動（`overflow` 是 `auto` 或 `scroll`）、而且不是控制項（沒有連結、按鈕、輸入框的標籤，也沒有 button、tab、slider、separator 等 role）」的元素。目前符合的有 CodeView 與 Markdown 的程式碼區塊（`pre.ui-cv-body`）和 Markdown 的表格框（`.ui-md-table-wrap`），頁面自己可以 Tab 到的捲動區也一樣。它們能聚焦是為了用鍵盤捲動，點一下不會做任何事，手指本來就能直接捲動。
+
+## 2026-11-25 全面審查修正：核心
+
+範圍：主題與 token、伺服器渲染（SSR）後的 hydration、i18n、日期格式、開發時警告、測試的時間。使用者把細節交給 agent：「都照你的意見，因為我外來新專案每個前端都會使用 design system，不要讓前端只支持特定場景為原則去判斷，另外希望是 agent 能夠使用者個 design 使用越少的 token 或是更專注於設計網頁與 UX 這樣最好」、「全部都交給 subagent，最後驗證也是」。
+
+### AI 定的細節（待確認）
+
+- 存在 localStorage 的選擇（主題、強調色、側邊欄收合與釘選、Section、導覽看過沒、DataTable 的欄位與欄寬、LayerGraph 的高度與線上文字、Workbench 的版面）一律透過 `useStored`：伺服器和瀏覽器第一次渲染用預設值，hydrate 後才換成存下的值，所以存了選擇的使用者在 SSR 頁面上會看到一次從預設換到自己選擇的變化，換來的是沒有 hydration 不一致。其他分頁改了同一個 key 時跟著變（`storage` 事件）。
+- `useMedia` 在伺服器和 hydrate 時都是 false。數字從 0 數上去的動畫（KpiCard、ProgressRing）在 hydrate 時從 0 開始，接手後才依「減少動態效果」直接顯示結果。ConsoleLayout 的全螢幕按鈕在接手後才判斷能不能用。
+- Workbench 的版面只在改變時才存，不在第一次顯示時就存一份預設版面。
+- preset 的 API：`initTheme({ preset: 'teaching' })`，狀態放在根元素的 `data-theme-preset`（頁面也可以先寫好這個屬性再呼叫 `initTheme()`，伺服器渲染時就不會閃）；`initTheme({ preset: null })` 拿掉。preset 只有淺色：`setTheme('dark')` 記住設定但畫面維持 preset。
+- 強調色只在使用者選過時寫 inline 變數；沒選時由 `tokens.css` 決定（淺色、深色或 preset 的預設強調色）。新增 `resetAccent()` 回到預設、`pickedAccent()`（沒選時是 null）、`themePreset()`；`storedTheme()`、`storedAccent()` 也匯出。
+- 語意色不跟著強調色變（theme.md 原本寫「配合強調色的飽和度」，實際上沒有這樣做）：照實寫成固定的顏色，不實作跟著變。
+- `DEFAULT_ACCENT` 和 setAccent 在沒有 `tokens.css` 時用的底色，改由 `scripts/theme-defaults.ts` 從 tokens.json 產生 `src/generated/themeDefaults.ts`；檔案進版控，`pnpm test` 會檢查它和 tokens.json 一致。
+- `color-scheme`：淺色與 teaching 是 `light`、深色是 `dark`。tokens.json 的 preset 加 `scheme` 欄位。tokens.json 的 `usage` 說明全部改成英文（原本中英混用）；`space-5` 改寫成實際用途（對話框、抽屜、空狀態的內距，卡片用 `space-4`）；`sidebar-collapsed` 拿掉「平板預設」（平板改用抽屜）。
+- `format.relative`：1 小時內仍寫分鐘，即使跨過午夜（「30 分鐘前」比「昨天」準確）；1 小時以上跨過午夜就用日曆天（「昨天」、「前天」、「3 天前」）；同一天寫小時；7 個日曆天以上寫完整日期時間（原本是滿 7 × 24 小時）。
+- 新元件 `RelativeTime`：`<time>`，頁面上所有實例共用一個每 60 秒的計時器；伺服器和瀏覽器時鐘不同造成的文字差異用 `suppressHydrationWarning`，接手後立刻用瀏覽器時間重畫。DataTable 的 `format: 'relative'` 改用它。
+- 欄位格式統一寫成 `format: 'dateTime'`（和 `format.dateTime()` 一致）；`'datetime'` 照舊可用，開發時警告。
+- `devWarn` 可以傳函式（條件和訊息只在開發時計算），另外匯出 `DEV`；DataTable 逐列檢查的警告包在 `if (DEV)` 裡，正式版不再每次渲染都掃過所有列。所有警告改成英文「原因. 修法.」。
+- i18n：`useLocale()`、`subscribeLocale()`、`<LocaleProvider locale>`；`t()` 在 React 外照用。元件本身沒有各自訂閱語系，換語系時由呼叫 `useLocale()` 的頁面元件重新渲染整頁。`LocaleProvider` 在渲染時設定整個模組共用的語系，所以一次只能渲染一個請求。
+- 一詞多義用「情境::原文」當 key（`'快選::上個月'` 是 Last month，`'上個月'` 是 Previous month；DataTable 的「收合」改成 `'清單::收合'` 是 Show less，單獨的「收合」是 Collapse）。中文只顯示「::」後面的字。
+- 預設文字改成不限專案：LayerGraph 外部方框的預設標籤「repo 外」改成「外部」（英文 External），範例與預覽頁傳 `externalLabel="repo 外"` 保持原樣；次數「{n} 次」英文改成「{n} uses」（原本是只適用於函式呼叫的「calls」）。
+- CommandPalette 內建種類改用固定 id：`'page'`、`'setting'`、`'command'`、`'file'`，名稱經過翻譯；舊的中文名稱照舊可用，開發時警告。
+- GraphLegend 只翻譯內建的預設圖例，頁面傳進來的文字照原樣顯示。
+- `consoleZoom` 是 ConsoleLayout 內部的規則：繼續匯出但標成 deprecated，呼叫時開發警告，下一次不相容的版本移除。
+- `focusMain` 的鍵盤或滑鼠偵測不再在 import 時掛上，改由 AppShell 和 `initTheme()` 呼叫 `installFocusMain()`。

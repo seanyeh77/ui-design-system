@@ -37,7 +37,7 @@ export function DateRangePicker({ label, value, onChange, placeholder, className
     [tr('最近 7 天'), [dayAdd(t0, -6), t0]],
     [tr('最近 30 天'), [dayAdd(t0, -29), t0]],
     [tr('本月'), [new Date(t0.getFullYear(), t0.getMonth(), 1), new Date(t0.getFullYear(), t0.getMonth() + 1, 0)]],
-    [tr('上個月'), [new Date(t0.getFullYear(), t0.getMonth() - 1, 1), new Date(t0.getFullYear(), t0.getMonth(), 0)]],
+    [tr('快選::上個月'), [new Date(t0.getFullYear(), t0.getMonth() - 1, 1), new Date(t0.getFullYear(), t0.getMonth(), 0)]],
   ];
   const toggle = (next: boolean) => {
     setOpen(next);

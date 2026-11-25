@@ -34,7 +34,7 @@ type Import = { id: string; name: string; status: BadgeStatus; source: string; s
 
 - 頁面的主要操作（一個 `primary` 的「新增」）給 `action`：在工具列的最右端。不要為了它給 Card 一個只有按鈕的標題列（開發時 console 會警告）。
 - 主要的文字欄放第一欄：它占剩下的寬度，也是手機卡片的標題、列的名稱。每列給 `id`。
-- 數字給 `numeric: true` 加 `unit`（傳數字 `1234`，不傳字串 `'1,234 筆'`）；長度（秒）用 `format: 'duration'`；日期用 `format: 'date' | 'datetime' | 'relative'`。
+- 數字給 `numeric: true` 加 `unit`（傳數字 `1234`，不傳字串 `'1,234 筆'`）；長度（秒）用 `format: 'duration'`；日期用 `format: 'date' | 'dateTime' | 'relative'`（舊寫法 `'datetime'` 還能用，開發時會警告）。
 - 失敗的列：原因寫在 `secondary`（標題下的第二行），「重試」放 `rowActions`；可勾選時 `bulkActions` 也放「重試」。進行中的列：`doing` 的 Badge，進度文字（「匯入中 42%」）寫在 `secondary`，格子裡不放 ProgressBar。
 - `rowActions` 最多 2 個 IconButton；更多時，最後幾個放進「⋯」（`Menu`）。它們不占一欄，滑過或鍵盤移到列上時才疊在列的右端。有自己頁面的列給 `rowHref`，不另加「開啟」按鈕。
 - 同一個條件只放一個地方：狀態用 `summary` 時，`filters` 和 `views` 不再篩選同一欄（開發時 console 會警告）。
@@ -53,12 +53,12 @@ type Import = { id: string; name: string; status: BadgeStatus; source: string; s
   - `width` 對每一種欄位都只是最小寬度，不會讓欄位變成貼合內容的短欄，也不會讓別的欄變成主要欄：第一個文字欄給了 `width` 仍然占剩下的寬度。欄位短不短只看內容的種類（數字、`unit`、`format`、狀態）。
   - 量寬度在第一次顯示、換頁、篩選、顯示或隱藏欄位、資料換新和字型載入後進行，每個畫面最多一次；格子文字的變動本身不觸發。寬度沒有變大時不更新。
 - 第二行 `secondary: (row) => ReactNode`：在格子文字下方，13 px `ink-muted`，一行，太長用「…」。搜尋會找它的文字；手機卡片也顯示。
-- 日期欄（`format: 'date' | 'datetime' | 'relative'`）是 `<time dateTime>`，等寬數字，依時間排序。日期加時間寫成 `2026/11/04（三）13:00`：全形「）」本身留了半個字的空，後面不再加空格。相對時間（「2 小時前」）滑鼠滑過時 Tooltip 顯示完整日期時間，螢幕閱讀器從格子的描述聽到它；不多一個 Tab 停點。觸控螢幕不顯示 Tooltip。
+- 日期欄（`format: 'date' | 'dateTime' | 'relative'`）是 `<time dateTime>`，等寬數字，依時間排序。日期加時間寫成 `2026/11/04（三）13:00`：全形「）」本身留了半個字的空，後面不再加空格。相對時間（「2 小時前」）用 `RelativeTime`，每分鐘自己更新，跨過午夜以日曆天計算；滑鼠滑過時 Tooltip 顯示完整日期時間，螢幕閱讀器從格子的描述聽到它；不多一個 Tab 停點。觸控螢幕不顯示 Tooltip。
 - 長度 `format: 'duration'`：值是秒數，未滿 1 小時 `46:42`，以上 `1:54:49`（`format.duration`）；靠右、等寬數字，依秒數排序。
 - 數字欄 `numeric: true`：數字用 Geist Mono、等寬數字、靠右對齊；`unit` 和中文字用一般字體（Geist Mono 不用在中文上）。
 - 格子裡的 InlineCode：白底加 1 px 框線，奇數列、偶數列和滑過的列上都看得出範圍。
 - 單位寫在每格數字後面：欄位設定 `unit`，例如 `unit: 'GB'` 會顯示「3,480.3 GB」。表格裡的數字不縮寫。
-- 欄位格式 `format`：`money`（NT$ 1,280,000）、`date`（2026/11/04（三））、`datetime`、`relative`（一週內寫「2 小時前」）、`percent`（一位小數，% 用 `unit: '%'` 加上，和 KpiCard 一樣）、`duration`（46:42）。
+- 欄位格式 `format`：`money`（NT$ 1,280,000）、`date`（2026/11/04（三））、`dateTime`、`relative`（一週內寫「2 小時前」）、`percent`（一位小數，% 用 `unit: '%'` 加上，和 KpiCard 一樣）、`duration`（46:42）。
 - 狀態欄使用 Badge；列裡的 Badge 是圓點加文字（Badge 自己的樣式）。
 - 有單位的欄位收到含單位的字串（`'1,234 字'`）時，開發時 console 會警告：改傳數字加 `unit`。
 - 欄位標題不換行；欄寬至少要放得下標題和排序箭頭（`width` 設最小寬度），放不下時表格橫向捲動，底色延伸到最右邊。容器比表格窄時（例如旁邊開著詳細面板），右邊還有欄位時右緣有漸層，表格下方靠右有提示，觸控螢幕寫「→ 左右滑動」、滑鼠寫「→ 向右捲動」；第一次左右捲動後提示隱藏但保留位置，捲到最右邊時漸層消失。看的是表格自己的寬度，不是視窗寬度；隱藏欄位、換資料或字型載入後重新量一次，放得下時不顯示提示。

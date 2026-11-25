@@ -29,9 +29,9 @@ export interface SegmentedControlProps<V extends string = string> {
  *  different content use Tabs. */
 export function SegmentedControl<V extends string = string>({ items, value, onChange, label, iconOnly = false, className }: SegmentedControlProps<V>) {
   devWarn(
-    iconOnly && items.some((t) => !t.icon),
+    () => iconOnly && items.some((t) => !t.icon),
     'SegmentedControl',
-    'iconOnly 需要每一項都有 icon；沒有圖示的那一項只剩空白。補上 icon，或拿掉 iconOnly 改顯示文字。',
+    'iconOnly needs an icon on every item, so an item without one shows as a blank. Add the icon, or drop iconOnly to show the text.',
   );
   const refs = React.useRef<(HTMLButtonElement | null)[]>([]);
   const idx = Math.max(
