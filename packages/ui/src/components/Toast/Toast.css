@@ -75,6 +75,13 @@ div.ui-toast[role='status'] {
   font-weight: 400;
   color: var(--ink-muted);
 }
+/* A touch screen without a pointer that hovers (a phone, a tablet without a mouse): most have no keyboard, so the
+   shortcut is not shown. aria-keyshortcuts stays for a keyboard that is attached. */
+@media (pointer: coarse) and (hover: none) {
+  .ui-toast-kbd {
+    display: none;
+  }
+}
 .ui-toast-close {
   flex: none;
   display: inline-flex;
