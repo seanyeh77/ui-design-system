@@ -260,10 +260,29 @@
 .ui-dt-tools.is-onerow > .ui-dt-actions {
   flex: none;
 }
+/* The summary keeps the segmented look (a gray track, the current part a raised white pill), the user's choice for
+   summaries; plain Tabs are underlined. */
+.ui-tabs.ui-dt-summary {
+  height: auto;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  background: var(--surface-sub);
+  box-shadow: none;
+}
+.ui-dt-summary .ui-tabs-ind {
+  top: 4px;
+  bottom: 4px;
+  height: auto;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
 .ui-dt-summary .ui-tab {
   min-width: 0;
   height: 32px;
   padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
 }
 /* Phones, also for tools that moved into a Card title row (outside the table, so not reached by the container). The
    buttons are as tall as the 48 px search field beside them. */

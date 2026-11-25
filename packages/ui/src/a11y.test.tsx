@@ -356,7 +356,8 @@ test('Tabs wider than their box scroll sideways: no tab wraps or overlaps the ne
     </div>,
   );
   const tabs = screen.getAllByRole('tab');
-  for (const t of tabs) expect(t.getBoundingClientRect().height).toBeLessThan(40);
+  // One line each: as tall as the 48 px row on a phone, never taller.
+  for (const t of tabs) expect(t.getBoundingClientRect().height).toBeLessThanOrEqual(48);
   for (let i = 1; i < tabs.length; i++) expect(tabs[i].getBoundingClientRect().left).toBeGreaterThanOrEqual(tabs[i - 1].getBoundingClientRect().right - 0.5);
   const list = screen.getByRole('tablist');
   expect(list.getBoundingClientRect().width).toBeLessThanOrEqual(300.5);
@@ -695,4 +696,24 @@ test("TreeList: the whole tree is one Tab stop; → goes into a row's link or bu
   await user.keyboard('{ArrowRight}');
   await user.keyboard('{ArrowDown}');
   await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('treeitem', { name: 'report' })));
+});
+
+test('Tabs and SegmentedControl look different: Tabs an underline on a baseline rule, SegmentedControl a raised pill', async () => {
+  await page.viewport(1280, 800);
+  render(
+    <>
+      <UI.Tabs label="內容" value="a" items={[{ id: 'a', label: '概要' }, { id: 'b', label: '紀錄' }]} />
+      <UI.SegmentedControl label="顯示方式" value="list" onChange={() => {}} options={[{ value: 'list', label: '清單' }, { value: 'grid', label: '格狀' }]} />
+    </>,
+  );
+  const list = screen.getByRole('tablist');
+  expect(list.getBoundingClientRect().height).toBe(40);
+  expect(getComputedStyle(list).backgroundColor).toBe('rgba(0, 0, 0, 0)');
+  expect(getComputedStyle(list).boxShadow).toContain('inset');
+  await waitFor(() => expect(list.querySelector('.ui-tabs-ind')).not.toBeNull());
+  const ind = list.querySelector('.ui-tabs-ind') as HTMLElement;
+  expect(ind.getBoundingClientRect().height).toBe(2);
+  expect(Math.round(ind.getBoundingClientRect().bottom)).toBe(Math.round(list.getBoundingClientRect().bottom));
+  const seg = document.querySelector('.ui-seg') as HTMLElement;
+  expect(getComputedStyle(seg).backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
 });
