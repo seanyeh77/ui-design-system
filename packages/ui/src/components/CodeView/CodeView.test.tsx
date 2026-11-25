@@ -529,3 +529,12 @@ test('peek range scrolls the box around the code when the code itself does not s
   (window.getSelection() as Selection).removeAllRanges();
   outside.remove();
 });
+
+test('a CodeView without file or title is a group named by its language, not one more 「原始碼」 landmark', () => {
+  render(<CodeView code="x = 1  # 註解" language="py" />);
+  expect(screen.queryByRole('region')).toBeNull();
+  const group = screen.getByRole('group');
+  expect(group.getAttribute('aria-label')).toMatch(/程式碼$/);
+  const comment = group.querySelector('.is-comment') as HTMLElement;
+  expect(getComputedStyle(comment).fontStyle).toBe('normal');
+});

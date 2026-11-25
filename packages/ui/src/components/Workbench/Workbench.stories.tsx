@@ -38,18 +38,15 @@ const TREE: UI.TreeNode[] = [
   { id: 'src', name: 'src', icon: 'folder', children: [{ id: 'child', name: 'child.c', icon: 'file' }] },
 ];
 
-const list = (rows: string[]) => (
-  <ul style={{ margin: 0, padding: '8px 12px 8px 28px', fontSize: 13 }}>
-    {rows.map((r) => (
-      <li key={r}>{r}</li>
-    ))}
-  </ul>
+// A panel's list: a bare compact TreeList (the system's list rows), not a page-styled <ul>.
+const list = (label: string, rows: string[]) => (
+  <UI.TreeList kind="plain" density="compact" bare label={label} items={rows.map((r, i) => ({ id: String(i), name: r }))} />
 );
 const VIEWS: UI.WorkbenchView[] = [
-  { id: 'outline', title: '大綱', render: () => list(['VirtualRouter', '_sync_as', '_monitor_loop']) },
-  { id: 'refs', title: '參考', render: () => list(['topology.py:31 建立 VirtualRouter']) },
-  { id: 'problems', title: '問題', attention: true, render: () => list(['controller.py:44 例外被吞掉，沒有記錄。']) },
-  { id: 'output', title: '輸出', render: () => list(['已讀入 42 個檔案、318 個函式']) },
+  { id: 'outline', title: '大綱', render: () => list('大綱', ['VirtualRouter', '_sync_as', '_monitor_loop']) },
+  { id: 'refs', title: '參考', render: () => list('參考', ['topology.py:31 建立 VirtualRouter']) },
+  { id: 'problems', title: '問題', attention: true, render: () => list('問題', ['controller.py:44 例外被吞掉，沒有記錄。']) },
+  { id: 'output', title: '輸出', render: () => list('輸出', ['已讀入 42 個檔案、318 個函式']) },
 ];
 
 function Explorer({ sel, onSel }: { sel: string; onSel: (id: string) => void }) {

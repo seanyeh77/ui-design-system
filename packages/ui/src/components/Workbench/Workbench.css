@@ -278,7 +278,7 @@
 }
 .ui-wb-exfoot {
   flex: none;
-  padding: 4px;
+  padding: var(--space-2) var(--space-3);
   border-top: 1px solid var(--line);
 }
 /* Splitters: 8 px to grab, a 1 px line; a 2 px accent line on hover (after 150 ms), while dragging and on focus. */

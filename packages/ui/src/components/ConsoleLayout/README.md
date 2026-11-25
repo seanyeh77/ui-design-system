@@ -13,7 +13,7 @@ h(UI.ConsoleLayout, {
   clock: '即時',
   main: h(UI.Card, { title: '設施分區' }, h(UI.ZoneMap, { label: '設施分區', zones: zones, fill: true })),
   side: [h(UI.Card, { key: 't' }, h(UI.TimeControl, timeProps))],
-  bottom: h(UI.Card, null, h(UI.LineChart, chartProps)),
+  bottom: h(UI.Card, { title: '進氣溫度' }, h(UI.LineChart, chartProps)),
 });
 ```
 
@@ -47,7 +47,7 @@ h(UI.ConsoleLayout, {
   clock: '即時',
   main: h(UI.Card, { title: '設施分區' }, h(UI.ZoneMap, { label: '設施分區', zones: zones, fill: true })),
   side: [h(UI.Card, { key: 't' }, h(UI.TimeControl, timeProps)), h(UI.Card, { key: 'e', title: '事件' }, h(UI.EventTimeline, eventProps))],
-  bottom: h(UI.Card, null, h(UI.LineChart, chartProps)),
+  bottom: h(UI.Card, { title: '進氣溫度' }, h(UI.LineChart, chartProps)),
   extras: [{ id: 'meters', minHeight: 1040, node: h(UI.Card, { title: '各區進氣溫度' }, meters) }],
 });
 ```

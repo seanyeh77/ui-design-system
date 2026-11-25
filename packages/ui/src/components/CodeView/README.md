@@ -19,7 +19,7 @@
 - 行號：灰色等寬數字靠右，沒有底色和分隔線；左邊留 12 px（和標題列的檔名對齊），和程式碼隔 16 px。可以選取複製程式碼，不會連行號一起複製。`lineNumbers={false}` 不顯示行號，給沒有人會引用行號的短片段用；螢幕閱讀器仍念「第 n 行」。
 - 目標行（`target`，一行或 `[from, to]`）：淡強調色底，左側 3 px 強調色細條，行號變粗。有 `maxHeight` 時會自動捲到目標行。
 - 太長的行自動換行，續行縮排 4 個字元寬，縮排裡有一條 2 px 的灰色直線（`line-strong`），看得出是同一行的接續，不是下一行程式。優先在逗號、句點和左括號後面換行；`->`、`==`、`&&` 這類運算子不會從中間斷開。不用橫向捲動。
-- 語法上色低調：關鍵字藍（`code-keyword`）、常數與字串綠（`code-constant`）、註解灰色斜體，其他是文字顏色。語言看 `file` 的副檔名（c、h、cpp、js、ts、py、sh），或用 `language` 指定；`highlight={false}` 關掉。內建的上色只認這幾種語言；其他語言給 `tokenizer`，把每行切成 `[class, 文字]`（class 是 `is-keyword`、`is-constant`、`is-comment`、`is-string` 或空字串）。
+- 語法上色低調：關鍵字藍（`code-keyword`）、常數與字串綠（`code-constant`）、註解灰色（不用斜體：字型沒有斜體字面，中文註解被硬斜很難讀），其他是文字顏色。語言看 `file` 的副檔名（c、h、cpp、js、ts、py、sh），或用 `language` 指定；`highlight={false}` 關掉。內建的上色只認這幾種語言；其他語言給 `tokenizer`，把每行切成 `[class, 文字]`（class 是 `is-keyword`、`is-constant`、`is-comment`、`is-string` 或空字串）。
 - 手機上（寬度小於 600 px）只顯示目標行前後 2 行（`context`），下方「顯示全部 N 行」。
 - 標題列：`file` 顯示路徑，給 `fileHref` 或 `onFile` 變成連結；右邊用次要文字色寫程式語言，是純文字不是按鈕，C 寫成「C 語言」（單一個「C」看起來像按鈕），螢幕閱讀器讀「程式語言：C 語言」。`languageLabel` 換掉這個字，`false` 不顯示。沒有檔案時可以給 `title`。
 - 註解和字串裡的路徑可以變成連結：給 `refHref: (path) => 連結`（回傳 `undefined` 的不變）或 `onRef: (path, e) => …`，和 `CodeText` 一樣。算路徑的：有資料夾和副檔名的（`docs/design/ring-overrun.md`）、檔名加行號（`ring.c:42`、`src/app.c:86-90`）；程式碼本身和只有檔名的（`printf.h`）不算。有連結時是 `<a>`，只有 `onRef` 時是按鈕；強調文字色、底線。

@@ -49,7 +49,7 @@ export const Monitoring = {
           </UI.Card>,
         ]}
         bottom={
-          <UI.Card>
+          <UI.Card title="進氣溫度">
             <UI.LineChart
               label="進氣溫度"
               unit="°C"
