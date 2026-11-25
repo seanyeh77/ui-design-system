@@ -1428,7 +1428,6 @@ AI 定的細節（待確認）：
 
 ### AI 定的細節（待確認）
 
-- 平板範圍改成 600 到 959 px：AppShell 的導覽抽屜原本用到 1024 px（實驗室 NB 寫「1024 px 以下改成抽屜」），和斷點 token（`bp-desktop` 960 px）、Grid、SplitPane 的 960 px 不一致。改成 960 px，整個系統只有一組斷點；960 到 1024 px 的視窗現在有側邊欄（不釘選時只占 72 px）。
 - Dashboard 的期間選擇（DateRangePicker 加 `hideLabel`，或「今天／7 天／30 天」的 SegmentedControl）放在內容最上方、第一排卡片之前，不放頂部列：頂部列只放整個 app 共用的東西（搜尋、通知、帳號），期間只影響這一頁；放在內容裡不用自己寫 CSS，手機上也放得下。
 - 空清單：還沒有任何資料時 Card 裡用 EmptyState 取代 DataTable，「新增」放在 EmptyState 的 `action`（secondary，照 EmptyState 的規則）；搜尋或篩選後沒有結果時用 DataTable 的 `emptyText`，工具列留著。
 - 載入與失敗：載入中每個區塊一塊同大小的 Skeleton；載入失敗時在那個區塊的位置放 `Alert tone="danger"`，動作「重試」。
@@ -1448,7 +1447,7 @@ AI 定的細節（待確認）：
 
 ### 先確認：目前的規則依賴這些
 
-- 平板範圍：AppShell 在 600 到 959 px 改成導覽抽屜，960 px 以上有側邊欄，和斷點 token（`bp-desktop` 960 px）一致。實驗室 NB（窄於桌面時改成導覽抽屜）原本寫「1024 px 以下」，這次改成 960 px，少一組斷點（見下方「文件整理」）。
+- 導覽的平板邊界不用確認：1024 px 以下改成導覽抽屜是使用者在實驗室 NB 確認的選擇（「1024 px 以下改成抽屜」，第 306 行）。AppShell 在 600 到 1023 px 用導覽抽屜，1024 px 以上有側邊欄；這個邊界只管導覽，頁面排版的斷點（600、960、1280 px）不變。
 - SegmentedControl 高 40 px（和工具列控制項同高），觸控裝置 48 px，Workbench 的 `mainBar` 裡 28 px；Tabs 整排也是 40 px（第 1355 行）。
 - Toast：一般訊息 3 s；有「復原」時 10 s，滑鼠或焦點在上面時暫停，Ctrl Z（⌘Z）也能復原；`toast()` 加 AppShell 自動放的 Toaster（第 1354、1412 行）。
 - 清單頁的「新增」放在 DataTable 的 `action`，工具列最右端，不放 Card 標題列（第 1233 行）。
