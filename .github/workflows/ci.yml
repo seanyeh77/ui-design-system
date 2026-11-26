@@ -1,7 +1,9 @@
 name: CI
 
 # Release (publish.yml) and Docs site (pages.yml) start only after this workflow succeeds on a push to main.
-# The two jobs below are the checks to require in the branch protection of main: "check" and "pages".
+# The two jobs below are the checks to require in the branch protection of main: "check" and "pages". On a push to main
+# whose commit already passed both on another branch (ci-shots), the "reuse" job lets them skip: GitHub counts a
+# skipped job as passing for required checks, and a run whose jobs are only success or skipped ends as success.
 on:
   push:
     branches: [main]
@@ -20,8 +22,48 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Push to main only: is there a finished CI run of this same commit on another branch in which both "check" and
+  # "pages" succeeded (ci-shots, where the visual baselines are made)? Then the same commit is not tested a second time.
+  # Any error or doubt gives reuse=false, so the full CI runs. Only runs of push and workflow_dispatch count: a
+  # pull_request run tests the merge commit, not the head commit. A run on main itself never counts, so a re-run
+  # of a reused run does not reuse its own skipped result.
+  reuse:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: read
+    outputs:
+      reuse: ${{ steps.find.outputs.reuse }}
+    steps:
+      - id: find
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          reuse=false
+          if ids=$(gh api "repos/$REPO/actions/workflows/ci.yml/runs?head_sha=$SHA&status=completed&per_page=100" \
+            --jq ".workflow_runs[] | select(.conclusion == \"success\" and .head_sha == \"$SHA\" and .head_branch != \"main\" and .id != $RUN_ID and (.event == \"push\" or .event == \"workflow_dispatch\")) | .id"); then
+            for id in $ids; do
+              ok=$(gh api "repos/$REPO/actions/runs/$id/jobs?per_page=100" \
+                --jq '[.jobs[] | select((.name == "check" or .name == "pages") and .conclusion == "success") | .name] | unique | length' || echo 0)
+              if [ "$ok" = 2 ]; then
+                reuse=true
+                echo "CI run $id of the same commit passed check and pages: they are skipped here." >> "$GITHUB_STEP_SUMMARY"
+                break
+              fi
+            done
+          fi
+          echo "reuse=$reuse" >> "$GITHUB_OUTPUT"
+          [ "$reuse" = true ] || echo "No earlier successful run of this commit: the full CI runs." >> "$GITHUB_STEP_SUMMARY"
+
   # Build, types, lint, unit and browser tests, and the changeset check of pull requests.
   check:
+    # Skipped (counts as success) only when reuse said so; the reuse job itself is skipped outside pushes to main.
+    needs: reuse
+    if: ${{ !cancelled() && needs.reuse.outputs.reuse != 'true' }}
     # Pinned, like Update visual baselines: the baselines are rendered on this image, and another one renders fonts differently.
     runs-on: ubuntu-24.04
     steps:
@@ -46,6 +88,8 @@ jobs:
 
   # The automatic part of "Before you finish" on every component preview, and the visual regression check.
   pages:
+    needs: reuse
+    if: ${{ !cancelled() && needs.reuse.outputs.reuse != 'true' }}
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

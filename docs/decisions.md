@@ -1597,6 +1597,20 @@ codemap 升到 0.47.2 後跑 `ui check` 和 ESLint 回報五個問題，都要�
 - Workbench 左右邊界：和下方面板一樣，把手 8 px 加上往主畫面那一側 16 px，合計 24 px（`::before`）；上下只到主畫面旁邊：從主畫面上方的列（36 px）下緣，到下方面板邊界點擊範圍的上緣（面板開著時），所以不蓋到上方列的按鈕、面板的分頁列，也不蓋到檔案總管和右側欄自己的列。範圍會蓋到主畫面左右邊緣 16 px 裡的東西，包括主畫面自己捲動時右邊的捲軸（右側欄的邊界）；預覽裡的 CodeView 內縮 16 px，只被蓋到它可捲動區塊的邊緣（照 C1，程式碼區塊不算觸控目標）。（其他做法：往兩邊各延伸 8 px，會蓋到兩側列的右端或展開箭頭。）
 - Workbench 區塊名稱：每個名稱兩種寫法，用已有的「情境::原文」key：原 key 是單獨或句首的寫法（`Side bar`），`句中::` 加原 key 是句中的寫法（`side bar`、`panel`；專有名詞 `Explorer` 照樣大寫）。句子（`Hide the {region}`）自己加 the，名稱不加冠詞。只給原 key 的翻譯在句中也用它，所以是相容的 patch。沒有選「每個區塊各寫完整句子」：句子會多三倍，換名稱時要改每一句。
 
+## 2026-11-26 main 沿用同一個 commit 的 CI 結果
+
+使用者的問題：同一個 commit 在 `ci-shots` 跑一次 CI（約 10 min），快轉到 `main` 後又跑一次（約 7.6 min）；使用者同意去掉重複的那一次（「要」），並要求不開 PR、直接 push `main`。
+
+### AI 定的細節（待確認）
+
+- 判斷方式：`ci.yml` 新增 `reuse` job，只在 push 時跑，用 `GITHUB_TOKEN` 和 `actions: read`、`gh api` 查同一個 SHA 的 CI run；有一個 run 已完成且成功、不在 `main`、不是這次的 run，而且它的 `check` 和 `pages` 兩個 job 都是 `success`，輸出 `reuse=true`，否則 `reuse=false`。
+- 只算 `push` 和 `workflow_dispatch` 的 run：`pull_request` 的 run 測的是 merge commit，不是 head commit，所以不算。`main` 上的 run 也不算，避免重跑時拿到上一次被跳過的結果。
+- 失敗保底：API 出錯、找不到、被取消或失敗的 run，一律 `reuse=false`，完整跑 CI。
+- `check` 和 `pages` 加 `needs: reuse` 和 `if: !cancelled() && needs.reuse.outputs.reuse != 'true'`：`reuse` 在 pull request 和其他分支被跳過時，輸出是空的，兩個 job 照常跑。
+- 被跳過的 job 不讓 workflow 失敗，結論是 `success`，所以 `publish.yml` 和 `pages.yml` 的 `workflow_run.conclusion == 'success'` 條件照舊成立，兩個檔案沒改。
+- `reuse` job 用 `ubuntu-24.04`，`timeout-minutes: 5`，不 checkout；不用 actions/github-script，少一個要釘的第三方 action。
+- 如果 branch protection 把 `check` 和 `pages` 設為必要檢查，被跳過的 job 對必要檢查算通過（GitHub 的行為）；寫在 `docs/maintaining.md`。
+
 ## 待確認清單（2026-11-25 整理）
 
 整份檔案裡標成「AI 定的細節（待確認）」、還沒確認的項目，一項一行；行號指向原文，原文沒有改。實驗室的代號後面括號寫出那個選項是什麼。
@@ -2162,3 +2176,13 @@ codemap 升到 0.47.2 後跑 `ui check` 和 ESLint 回報五個問題，都要�
 - 第 1596 行（2026-11-26 加快發布流程）：已知限制：`components.jsdom.test.tsx` import 每個 story，改到任何一個元件都會跑它；改到被很多元件用的共用檔（例如 `i…
 - 第 1597 行（2026-11-26 加快發布流程）：Workbench 左右邊界：和下方面板一樣，把手 8 px 加上往主畫面那一側 16 px，合計 24 px（`::before`）；上下只到主畫面旁邊：從主…
 - 第 1598 行（2026-11-26 加快發布流程）：Workbench 區塊名稱：每個名稱兩種寫法，用已有的「情境::原文」key：原 key 是單獨或句首的寫法（`Side bar`），`句中::` 加原 ke…
+
+### 2026-11-26 main 沿用同一個 commit 的 CI 結果
+
+- 第 1606 行（2026-11-26 main 沿用同一個 commit 的 CI 結果）：判斷方式：`ci.yml` 新增 `reuse` job，只在 push 時跑，用 `GITHUB_TOKEN` 和…
+- 第 1607 行（2026-11-26 main 沿用同一個 commit 的 CI 結果）：只算 `push` 和 `workflow_dispatch` 的 run：`pull_request` 的 run…
+- 第 1608 行（2026-11-26 main 沿用同一個 commit 的 CI 結果）：失敗保底：API 出錯、找不到、被取消或失敗的 run，一律 `reuse=false`，完整跑 CI。
+- 第 1609 行（2026-11-26 main 沿用同一個 commit 的 CI 結果）：`check` 和 `pages` 加 `needs: reuse` 和 `if: !cancelled() && …
+- 第 1610 行（2026-11-26 main 沿用同一個 commit 的 CI 結果）：被跳過的 job 不讓 workflow 失敗，結論是 `success`，所以 `publish.yml` 和 `…
+- 第 1611 行（2026-11-26 main 沿用同一個 commit 的 CI 結果）：`reuse` job 用 `ubuntu-24.04`，`timeout-minutes: 5`，不 checko…
+- 第 1612 行（2026-11-26 main 沿用同一個 commit 的 CI 結果）：如果 branch protection 把 `check` 和 `pages` 設為必要檢查，被跳過的 job 對…

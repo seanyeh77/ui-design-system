@@ -47,6 +47,7 @@ pnpm workspace。`pnpm install` 之後，`pnpm check` 依序 build、型別檢�
 - 視覺變更：改到 CSS（元件的 `.css`、`packages/ui/src/styles/`）、元件畫出的 markup（`packages/ui/src/components/<Name>/` 裡的 `.tsx`、`.ts`，不含 story 和測試）、`preview.html` 或 token 和字型（`packages/tokens/`）；`packages/ui/src` 的共用程式、`scripts/site.ts`、`ui shots` 的程式和相依套件也算（會影響所有預覽）。README、文件、測試、story、lint 規則、`ui check` 和 CI 設定不算。`pnpm changed:visual` 列出改到的視覺檔案和可能改變的預覽。
   - 視覺變更：`git push -f origin <branch>:ci-shots`，在 `ci-shots` 跑 Update visual baselines（見「畫面比對」），看過變化的圖、`ci-shots` 的 CI 通過後，把 `main` 快轉到 `ci-shots`。
   - 其他改動：直接 push `main`。判斷錯了只會讓 `main` 的 CI 畫面比對失敗，Release 不會跑。
+- `main` 的 CI 沿用同一個 commit 在 `ci-shots` 的結果：push `main` 時，`reuse` job 找到同一個 SHA 在其他分支成功的 CI（`check` 和 `pages` 都成功）就跳過這兩個 job，整個 workflow 約 1 分鐘內以 `success` 結束，Release 和 Docs site 照常開始；找不到、失敗或被取消的都不算，照舊完整跑。若 branch protection 把 `check`、`pages` 設為必要檢查，被跳過的 job 對必要檢查算通過。
 - Release（`publish.yml`）和 Docs site（`pages.yml`）都在 `main` 的 push 跑完 CI 且成功後才開始（`workflow_run`），用的是 CI 測過的那個 commit；CI 失敗時兩者都不跑。Docs site 也可以在 Actions 手動執行，重建目前的 `main`。
 - Release 沒有找到 changeset 時跑 `pnpm release`：發布 npm 上還沒有的版本，經由 trusted publishing（每個套件在 npmjs.com 把這個 repo 的 `publish.yml` 設為 Trusted Publisher，不用 token），並推送 git tag。
 - 保底：`main` 上還有 changeset（沒跑 `pnpm version-packages`）時，Release 開或更新「Version packages」PR，裡面跑同一個 `pnpm run version-packages`。這個 PR 由 workflow token 推送，GitHub 不會自動對它跑 CI，所以 Release 用 `workflow_dispatch` 在 `changeset-release/main` 上啟動 CI，結果掛在 PR 的 commit 上。合併後照上一條發布。
