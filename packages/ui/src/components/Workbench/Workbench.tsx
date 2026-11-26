@@ -121,6 +121,8 @@ export function useWorkbench(): WorkbenchApi {
 
 const TOP = 48;
 const BAR = 36;
+/** How far a border's hit area reaches over the main view beyond its 8 px handle: 8 + 16 = 24 px (WCAG 2.5.8). */
+const REACH = 16;
 const LIM: Record<WorkbenchRegion, [number, number]> = { explorer: [180, 480], side: [240, 560], panel: [120, Infinity] };
 const DEF_SIZE: Record<WorkbenchRegion, number> = { explorer: 260, side: 320, panel: 220 };
 const STEP = 16;
@@ -802,7 +804,11 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
     [],
   );
 
+  // Two forms of each region's name: standalone (a label, or the start of a sentence: 「Side bar width」) and inside a
+  // sentence (「Hide the side bar」). The sentence adds the article; a locale without the 「句中::」 key uses the
+  // standalone form in both places.
   const regionName = { explorer: tr('檔案總管'), side: tr('右側欄'), panel: tr('下方面板') };
+  const regionIn = { explorer: tr('句中::檔案總管'), side: tr('句中::右側欄'), panel: tr('句中::下方面板') };
   const keys = { explorer: (IS_MAC ? '⌘' : 'Ctrl ') + 'B', side: (IS_MAC ? '⌘⌥' : 'Ctrl Alt ') + 'B', panel: (IS_MAC ? '⌘' : 'Ctrl ') + 'J' };
   const attention = (r: ViewRegion) => lay[r].some((id) => byId[id]?.attention);
   const toggleBtn = (r: WorkbenchRegion, open: boolean, dot: boolean) => (
@@ -822,7 +828,7 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
     const o = drag?.over;
     if (!o || o.region !== r) return null;
     const same = lay[r].includes(drag.id);
-    const text = o.noop ? tr('位置不變') : same ? tr('放開以排在這裡') : tr('放開以移到{region}', { region: regionName[r] });
+    const text = o.noop ? tr('位置不變') : same ? tr('放開以排在這裡') : tr('放開以移到{region}', { region: regionIn[r] });
     return (
       <div className="ui-wb-dropframe" aria-hidden="true">
         <span>{text}</span>
@@ -864,14 +870,14 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
               <IconButton
                 variant="quiet"
                 icon={MOVE_ICON}
-                label={tr('把目前分頁移到{region}', { region: regionName[r === 'side' ? 'panel' : 'side'] })}
+                label={tr('把目前分頁移到{region}', { region: regionIn[r === 'side' ? 'panel' : 'side'] })}
                 onClick={() => moveOver(r)}
                 disabled={!act}
               />
               <IconButton
                 variant="quiet"
                 icon={r === 'side' ? 'caret-right' : 'caret-down'}
-                label={tr('{v}（{t}）', { v: tr('收合{region}', { region: regionName[r] }), t: keys[r] })}
+                label={tr('{v}（{t}）', { v: tr('收合{region}', { region: regionIn[r] }), t: keys[r] })}
                 onClick={() => toggle(r)}
               />
             </>
@@ -885,6 +891,13 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
 
   const brand = p.brand;
   const hasBar = !!(p.crumbs?.length || p.mainBar);
+  // The side borders' 24 px hit area reaches over the main view only: below its bar, and above the bottom panel's border
+  // and that border's own 24 px area, so it never covers the bar's buttons or the panel's tabs.
+  const reach = {
+    '--ui-wb-reach-top': `${hasBar ? BAR : 0}px`,
+    // The panel's border starts 1 px above the panel, so its area ends REACH + 1 px above it.
+    '--ui-wb-reach-bottom': `${panelOpen ? panelH + REACH + 1 : 0}px`,
+  } as React.CSSProperties;
   const filter = p.explorerFilter;
   const brandInner = brand ? (
     <>
@@ -975,7 +988,7 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
                   type="button"
                   tabIndex={-1}
                   className={cx('ui-wb-scrim', exOpen && 'is-open')}
-                  aria-label={tr('關閉{region}', { region: regionName.explorer })}
+                  aria-label={tr('關閉{region}', { region: regionIn.explorer })}
                   onClick={() => setOv((o) => ({ ...o, explorer: false }))}
                 />
               ) : null}
@@ -1006,7 +1019,7 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
                     onChange={(v) => update((l) => ({ ...l, size: { ...l.size, explorer: v } }))}
                     onReset={() => update((l) => ({ ...l, size: { ...l.size, explorer: def.size.explorer } }))}
                     onDrag={setSizing}
-                    style={{ left: exW }}
+                    style={{ left: exW, ...reach }}
                   />
                 ) : null}
               </aside>
@@ -1049,7 +1062,7 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
                   type="button"
                   tabIndex={-1}
                   className={cx('ui-wb-scrim', sideOpen && 'is-open')}
-                  aria-label={tr('關閉{region}', { region: regionName.side })}
+                  aria-label={tr('關閉{region}', { region: regionIn.side })}
                   onClick={() => setOv((o) => ({ ...o, side: false }))}
                 />
               ) : null}
@@ -1078,7 +1091,7 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
                     onChange={(v) => update((l) => ({ ...l, size: { ...l.size, side: v } }))}
                     onReset={() => update((l) => ({ ...l, size: { ...l.size, side: def.size.side } }))}
                     onDrag={setSizing}
-                    style={{ left: -1 }}
+                    style={{ left: -1, ...reach }}
                   />
                 ) : null}
               </aside>
@@ -1091,7 +1104,7 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
               style={{ bottom: (panelOpen ? panelH : 0) + 8 }}
               {...regionDrop('side')}
             >
-              {tr('放開以移到{region}', { region: regionName.side })}
+              {tr('放開以移到{region}', { region: regionIn.side })}
             </div>
           ) : null}
           {showDropPanel ? (
@@ -1100,7 +1113,7 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
               style={{ left: mainL + 8, right: mainR + (showDropSide ? 120 : 8) }}
               {...regionDrop('panel')}
             >
-              {tr('放開以移到{region}', { region: regionName.panel })}
+              {tr('放開以移到{region}', { region: regionIn.panel })}
             </div>
           ) : null}
 

@@ -290,7 +290,7 @@
   padding: var(--space-2) var(--space-3);
   border-top: 1px solid var(--line);
 }
-/* Splitters: 8 px to grab, a 1 px line; a 2 px accent line on hover (after 150 ms), while dragging and on focus. */
+/* Splitters: 8 px to grab (24 px on desktop, below), a 1 px line; a 2 px accent line on hover (after 150 ms), while dragging and on focus. */
 .ui-wb-split {
   position: absolute;
   z-index: var(--z-float);
@@ -310,7 +310,23 @@
   cursor: row-resize;
 }
 /* The bottom panel's border: a 24 px hit area (WCAG 2.5.8), the 8 px handle plus 16 px above it over the bottom of the
-   main view, so it never covers the panel's tab row below. */
+   main view, so it never covers the panel's tab row below. The side borders do the same towards the main view, between
+   its bar and the bottom panel (--ui-wb-reach-top and --ui-wb-reach-bottom, set by Workbench), so they never cover the
+   explorer's or the right panel's rows, the bar's buttons or the panel's tabs. */
+.ui-wb-ex > .ui-wb-split.is-v::before,
+.ui-wb-side > .ui-wb-split.is-v::before {
+  content: '';
+  position: absolute;
+  top: var(--ui-wb-reach-top, 0);
+  bottom: var(--ui-wb-reach-bottom, 0);
+  width: 24px;
+}
+.ui-wb-ex > .ui-wb-split.is-v::before {
+  left: 0;
+}
+.ui-wb-side > .ui-wb-split.is-v::before {
+  right: 0;
+}
 .ui-wb-panel > .ui-wb-split.is-h::before {
   content: '';
   position: absolute;

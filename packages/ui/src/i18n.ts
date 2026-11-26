@@ -239,9 +239,14 @@ export const I18N: I18nState = {
       關閉提示: 'Dismiss',
       鍵盤操作: 'Keyboard',
       顯示或關閉這份說明: 'Show or hide this list',
+      // Workbench region names: the plain key is the standalone form (a label, the start of a sentence); 「句中::」
+      // is the form inside a sentence, after 「the」. Proper names keep their capital there, common nouns do not.
       檔案總管: 'Explorer',
       右側欄: 'Side bar',
       下方面板: 'Panel',
+      '句中::檔案總管': 'Explorer',
+      '句中::右側欄': 'side bar',
+      '句中::下方面板': 'panel',
       有新內容: 'New content',
       '更多分頁（{n} 個）': 'More tabs ({n})',
       '更多 {n}': '{n} more',

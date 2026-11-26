@@ -133,3 +133,16 @@ React.useEffect(() => {
 `open` 是寬螢幕記下的開關。窄螢幕上疊在主畫面上的區塊、手機的合併面板是否打開不在 `layout` 裡；手機上在合併面板換分頁時，`active` 會跟著更新。
 
 外觀、鍵盤與無障礙的完整規格在 repo 的 `docs/maintaining/Workbench.md`。
+
+## 區塊名稱的翻譯
+
+區塊名稱只能用 `addMessages` 改，每個區塊兩種寫法，都不加冠詞（句子自己有 the）：
+
+- 原 key（`檔案總管`、`右側欄`、`下方面板`）：單獨出現或在句首，例如 `Side bar`、`Side bar width`。
+- `句中::` 加原 key：在句子中間，例如 `Hide the side bar`。普通名詞小寫，專有名詞（`Explorer`）照樣大寫。
+
+```ts
+addMessages('en', { 右側欄: 'Outline', '句中::右側欄': 'outline' });
+```
+
+只給原 key 時句中也用它。

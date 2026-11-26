@@ -1,8 +1,12 @@
 name: Release
 
-# Changesets opens a "Version packages" pull request; merging it publishes to npm with trusted publishing (OIDC):
-# each package lists this repo and publish.yml as its Trusted Publisher on npmjs.com, so no npm token is stored.
-# Keep the file name: the Trusted Publisher setting names it.
+# Publishes to npm with trusted publishing (OIDC): each package lists this repo and publish.yml as its Trusted Publisher
+# on npmjs.com, so no npm token is stored. Keep the file name: the Trusted Publisher setting names it.
+#
+# The usual path has no pull request: the commit pushed to main already holds the new versions (pnpm version-packages
+# ran in it and removed the changesets), so changesets/action finds no changeset and runs the publish script, which
+# publishes every version npm does not have yet and pushes its git tags. When changesets still reach main, the action
+# opens or updates the "Version packages" pull request instead, as a fallback; merging it publishes the same way.
 #
 # Runs only after CI succeeded on a push to main, on the commit CI tested.
 on:
@@ -47,6 +51,7 @@ jobs:
       - run: npm install -g npm@11.21.3
       - name: Check that npm can publish with OIDC
         run: node -e "const [a,b,c]=process.argv[1].split('.').map(Number); if (a*1e6+b*1e3+c < 11005001) { console.error('npm '+process.argv[1]+' cannot use trusted publishing; it needs 11.5.1 or newer.'); process.exit(1) }" "$(npm -v)"
+      # No changesets: publish (pnpm release). Changesets left: the "Version packages" pull request.
       - id: changesets
         uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
         with:

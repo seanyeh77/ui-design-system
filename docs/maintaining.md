@@ -4,7 +4,7 @@
 
 ## 結構
 
-pnpm workspace。`pnpm install` 之後，`pnpm check` 依序 build、型別檢查、lint 和測試全部套件；CI 另外跑文件網站、每個預覽的 `ui check` 和畫面比對。
+pnpm workspace。`pnpm install` 之後，`pnpm check` 依序 build、型別檢查、lint 和測試全部套件（本機平常只跑相關的測試，見「發布」）；CI 另外跑文件網站、每個預覽的 `ui check` 和畫面比對。
 
 | 路徑 | 內容 |
 | --- | --- |
@@ -42,8 +42,14 @@ pnpm workspace。`pnpm install` 之後，`pnpm check` 依序 build、型別檢�
 ## 發布
 
 - 改到已發布的套件就加 changeset（`pnpm changeset`）；不需要發布的改動加空的（`pnpm changeset --empty`）。
+- 發布不開 PR：同一個 commit 裡跑 `pnpm version-packages`，也就是 `changeset version`（升版、寫 CHANGELOG、刪掉 changeset）之後 `scripts/pin-version.ts` 把 AGENTS.md 和 README.md 釘住的版本（`/dist/<version>/`、jsDelivr 的 `@<version>`）改成新版本；`pnpm lint` 檢查兩者一致。
+- 推之前在本機跑 `pnpm build`、`pnpm typecheck`、`pnpm lint`、`pnpm test:changed`。`test:changed`（`scripts/test-changed.ts`）只跑和 `origin/main` 相比改到的檔案相關的測試；全部測試在 CI 跑（2 核心的電腦上要 13 分鐘以上，CI 約 2.5 分鐘）。要在本機跑全部時用 `pnpm check`。
+- 視覺變更：改到 CSS（元件的 `.css`、`packages/ui/src/styles/`）、元件畫出的 markup（`packages/ui/src/components/<Name>/` 裡的 `.tsx`、`.ts`，不含 story 和測試）、`preview.html` 或 token 和字型（`packages/tokens/`）；`packages/ui/src` 的共用程式、`scripts/site.ts`、`ui shots` 的程式和相依套件也算（會影響所有預覽）。README、文件、測試、story、lint 規則、`ui check` 和 CI 設定不算。`pnpm changed:visual` 列出改到的視覺檔案和可能改變的預覽。
+  - 視覺變更：`git push -f origin <branch>:ci-shots`，在 `ci-shots` 跑 Update visual baselines（見「畫面比對」），看過變化的圖、`ci-shots` 的 CI 通過後，把 `main` 快轉到 `ci-shots`。
+  - 其他改動：直接 push `main`。判斷錯了只會讓 `main` 的 CI 畫面比對失敗，Release 不會跑。
 - Release（`publish.yml`）和 Docs site（`pages.yml`）都在 `main` 的 push 跑完 CI 且成功後才開始（`workflow_run`），用的是 CI 測過的那個 commit；CI 失敗時兩者都不跑。Docs site 也可以在 Actions 手動執行，重建目前的 `main`。
-- Release 有 changeset 時開或更新「Version packages」PR：它跑 `pnpm run version-packages`，也就是 `changeset version` 之後 `scripts/pin-version.ts` 把 AGENTS.md 和 README.md 釘住的版本（`/dist/<version>/`、jsDelivr 的 `@<version>`）改成新版本；`pnpm lint` 檢查兩者一致。這個 PR 由 workflow token 推送，GitHub 不會自動對它跑 CI，所以 Release 用 `workflow_dispatch` 在 `changeset-release/main` 上啟動 CI，結果掛在 PR 的 commit 上。合併它之後，`main` 的 CI 成功時 Release 經由 trusted publishing 發布到 npm（每個套件在 npmjs.com 把這個 repo 的 `publish.yml` 設為 Trusted Publisher，不用 token）。
+- Release 沒有找到 changeset 時跑 `pnpm release`：發布 npm 上還沒有的版本，經由 trusted publishing（每個套件在 npmjs.com 把這個 repo 的 `publish.yml` 設為 Trusted Publisher，不用 token），並推送 git tag。
+- 保底：`main` 上還有 changeset（沒跑 `pnpm version-packages`）時，Release 開或更新「Version packages」PR，裡面跑同一個 `pnpm run version-packages`。這個 PR 由 workflow token 推送，GitHub 不會自動對它跑 CI，所以 Release 用 `workflow_dispatch` 在 `changeset-release/main` 上啟動 CI，結果掛在 PR 的 commit 上。合併後照上一條發布。
 - commit 不加 Claude 的 co-author 或 Claude-Session trailer。
 
 ## 設計決策

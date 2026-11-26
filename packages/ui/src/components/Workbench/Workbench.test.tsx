@@ -2,7 +2,8 @@ import * as React from 'react';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { render, screen, waitFor, within, fireEvent } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { IconButton, TreeList, Workbench, useWorkbench, type WorkbenchHandle, type WorkbenchLayout, type WorkbenchView } from '../../index';
+import { page } from 'vitest/browser';
+import { IconButton, TreeList, Workbench, setLocale, t, useWorkbench, type WorkbenchHandle, type WorkbenchLayout, type WorkbenchView } from '../../index';
 
 const user = userEvent.setup();
 const views: WorkbenchView[] = [
@@ -461,4 +462,82 @@ test('wide: the bottom panel border has a 24 px hit area that reaches up over th
   const tab = within(region('下方面板')).getAllByRole('tab')[0].getBoundingClientRect();
   expect(r.bottom - 24).toBeLessThan(r.top);
   expect(r.bottom).toBeLessThanOrEqual(tab.top + 4);
+});
+
+test('wide: the explorer and right panel borders have a 24 px hit area over the main view, not over the bar, the panels or the tabs', async () => {
+  await page.viewport(1440, 900);
+  render(shell(1440));
+  await waitFor(() => expect(isOpen('右側欄')).toBe(true));
+  // Let the regions finish sliding in.
+  await new Promise((r) => setTimeout(r, 400));
+  const main = (document.querySelector('.ui-wb-main') as HTMLElement).getBoundingClientRect();
+  const bar = (document.querySelector('.ui-wb-mainbar') as HTMLElement).getBoundingClientRect();
+  const tab = within(region('下方面板')).getAllByRole('tab')[0].getBoundingClientRect();
+  const y = (main.top + main.bottom) / 2;
+  // +1: the main view is to the right of the explorer's border; -1: to the left of the right panel's.
+  for (const [name, dir] of [
+    ['檔案總管寬度', 1],
+    ['右側欄寬度', -1],
+  ] as const) {
+    const split = screen.getByRole('separator', { name });
+    const hit = (x: number, at: number) => document.elementFromPoint(x, at)?.closest('.ui-wb-split') === split;
+    const r = split.getBoundingClientRect();
+    expect(r.width).toBe(8);
+    expect(getComputedStyle(split, '::before').width).toBe('24px');
+    // The handle's edge away from the main view; the area is 24 px from there towards the main view.
+    const edge = dir > 0 ? r.left : r.right;
+    expect(hit(edge + dir * 1, y)).toBe(true);
+    expect(hit(edge + dir * 23, y)).toBe(true);
+    expect(hit(edge + dir * 25, y)).toBe(false);
+    // Not over the explorer's or the right panel's own rows.
+    expect(hit(edge - dir * 2, y)).toBe(false);
+    // Only beside the main view: not over the bar above it nor over the bottom panel's tab row.
+    expect(hit(edge + dir * 16, (bar.top + bar.bottom) / 2)).toBe(false);
+    expect(hit(edge + dir * 16, (tab.top + tab.bottom) / 2)).toBe(false);
+    expect(hit(edge + dir * 16, main.top + 1)).toBe(true);
+  }
+});
+
+test('English: region names in a sentence are lower case after 「the」 (except Explorer), and capitalised at the start', async () => {
+  setLocale('en');
+  try {
+    // Every Workbench sentence built from a region name, the way Workbench builds it: at the start the standalone form,
+    // inside a sentence the 「句中::」 form.
+    const regions = ['檔案總管', '右側欄', '下方面板'];
+    const sentences = ['放開以移到{region}', '把目前分頁移到{region}', '收合{region}', '關閉{region}', '{region}寬度', '{region}高度'];
+    const out = sentences.flatMap((key) => regions.map((r) => t(key, { region: t(key.startsWith('{region}') ? r : `句中::${r}`) })));
+    for (const s of out) {
+      expect(s).not.toMatch(/\bthe the\b/i);
+      // Common nouns are lower case inside a sentence; only the first word is capitalised.
+      expect(s.slice(1)).not.toMatch(/Side bar|Panel/);
+      expect(s[0]).toBe(s[0].toUpperCase());
+    }
+    expect(out).toEqual(
+      expect.arrayContaining([
+        'Move this tab to the side bar',
+        'Move this tab to the panel',
+        'Drop to move to the panel',
+        'Drop to move to the side bar',
+        'Hide the side bar',
+        'Hide the Explorer',
+        'Close the side bar',
+        'Side bar width',
+        'Explorer width',
+        'Panel height',
+      ]),
+    );
+
+    // The same in the rendered page.
+    render(shell(1440));
+    await waitFor(() => expect(isOpen('Side bar')).toBe(true));
+    screen.getByRole('separator', { name: 'Side bar width' });
+    screen.getByRole('separator', { name: 'Explorer width' });
+    screen.getByRole('separator', { name: 'Panel height' });
+    within(region('Panel')).getByRole('button', { name: 'Move this tab to the side bar' });
+    within(region('Side bar')).getByRole('button', { name: 'Move this tab to the panel' });
+    within(region('Side bar')).getByRole('button', { name: /^Hide the side bar/ });
+    within(region('Panel')).getByRole('button', { name: /^Hide the panel/ });
+  } finally {
+    setLocale('zh-TW');
+  }
 });

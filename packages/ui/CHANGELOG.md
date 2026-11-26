@@ -1,5 +1,13 @@
 # @seanyeh77/ui
 
+## 0.48.1
+
+### Patch Changes
+
+- Workbench 的英文句子不再把區塊名稱的大寫形式放在句中：「Move this tab to the side bar」「Hide the side bar」「Drop to move to the panel」，句首仍是「Side bar width」「Panel height」。每個區塊名稱多一個句中的寫法（`'句中::右側欄': 'side bar'`、`'句中::下方面板': 'panel'`、`'句中::檔案總管': 'Explorer'`），句子自己加 the，名稱不加冠詞。用 `addMessages` 改區塊名稱時，原 key 是單獨或句首的寫法，`句中::` 加原 key 是句中的寫法；只給原 key 時兩處都用它，和之前一樣。
+- Workbench：桌面上檔案總管和右側欄的邊界點擊範圍從 8 px 加大到 24 px（WCAG 2.5.8），往主畫面那一側延伸 16 px，只在主畫面旁邊，不蓋到兩側的列、主畫面上方列的按鈕和下方面板的分頁列。看得到的線和把手不變。
+- @seanyeh77/tokens@0.48.1
+
 ## 0.48.0
 
 ### Minor Changes

@@ -1583,6 +1583,20 @@ codemap 升到 0.47.2 後跑 `ui check` 和 ESLint 回報五個問題，都要�
 - `no-native-controls`：有 `hidden` 屬性（`hidden`、`hidden={true}`）的 `<input>` 不算，任何 type 都一樣（看不到，不是頁面上的控制項）；`hidden={條件}` 仍然檢查。`<input type="file">` 的訊息改成「FileUpload for a drop area, or useFilePicker to open the picker from a button or menu item」。
 - 版本：新增 `useFilePicker`，`@seanyeh77/ui` 是 minor；其他三個套件一起升到同一版（changeset 的 fixed 群組）。
 
+## 2026-11-26 加快發布流程
+
+使用者的問題：「為什麼每次迭代都這麼久，有方法可以加速嗎？」三個做法（版本號直接放進修正的 commit、不再開 Version Packages PR；沒有視覺變更時不跑 ci-shots 和基準圖；本機只跑相關的測試、全部測試交給 CI），使用者回答「都做」。同一版一起修：Workbench 左右兩條直的邊界在桌面上點擊範圍只有 8 px；Workbench 英文句子裡的區塊名稱（codemap 回報「Move this tab to the Side bar」「Hide the Panel」，用自己的翻譯也修不好）。
+
+### AI 定的細節（待確認）
+
+- 發布：`main` 上沒有 changeset 時 changesets/action（v2.1.2）直接跑 `publish-script`，發布 npm 上沒有的版本並推送 tag；還有 changeset 時照舊開「Version packages」PR，當作保底。`publish.yml` 的條件（CI 成功、`workflow_run` 的 `head_sha`）和步驟都沒改，只改說明。
+- 視覺變更的範圍：元件資料夾裡的 `.tsx`、`.ts`、`.css`、`preview.html`，`packages/ui/src` 其他的程式和 CSS（包含 `i18n.ts`，算影響所有預覽），`packages/tokens/`，`scripts/site.ts`，`ui shots` 的 `shots.ts` 和 `compare.ts`，`pnpm-lock.yaml` 和套件的 `package.json`（只改 `version` 那一行時不算）。不算的：`.md`、測試、story、`docs/`、`labs/`、`apps/`、`.github/`、`.changeset/`、`tests/`、lint 規則、`packages/blocks/`、其他 CLI 程式、其他 scripts、根目錄的 `package.json`。
+- `pnpm changed:visual [ref]`：和 `ref`（預設 `origin/main`）的 merge base 比較，含還沒 commit 和沒追蹤的檔案；只印出結果，不會失敗。可能改變的預覽：改到的元件、import 它的元件（看 `from '../<Name>/'`），以及 `preview.html` 裡出現這些元件名稱的預覽；改到影響所有預覽的檔案時列出全部。
+- `pnpm test:changed [ref]`：同樣和 merge base 比較。ui：先跑 `test` 裡的三個快速檢查，再 `vitest run --changed`（browser 和 jsdom 兩個 project）；改到 `packages/tokens/`、`pnpm-lock.yaml`、ui 的 `package.json`、`vitest.config.ts` 或 `src/test/` 時跑全部 ui 測試。eslint-plugin：`vitest run --changed`。cli：改到 `packages/cli/` 時跑全部（約 10 s），因為 `node --test` 沒有「相關檔案」的選項。`--passWithNoTests`：沒有相關測試時算通過。
+- 已知限制：`components.jsdom.test.tsx` import 每個 story，改到任何一個元件都會跑它；改到被很多元件用的共用檔（例如 `i18n.ts`）時 `--changed` 幾乎等於全部。
+- Workbench 左右邊界：和下方面板一樣，把手 8 px 加上往主畫面那一側 16 px，合計 24 px（`::before`）；上下只到主畫面旁邊：從主畫面上方的列（36 px）下緣，到下方面板邊界點擊範圍的上緣（面板開著時），所以不蓋到上方列的按鈕、面板的分頁列，也不蓋到檔案總管和右側欄自己的列。範圍會蓋到主畫面左右邊緣 16 px 裡的東西，包括主畫面自己捲動時右邊的捲軸（右側欄的邊界）；預覽裡的 CodeView 內縮 16 px，只被蓋到它可捲動區塊的邊緣（照 C1，程式碼區塊不算觸控目標）。（其他做法：往兩邊各延伸 8 px，會蓋到兩側列的右端或展開箭頭。）
+- Workbench 區塊名稱：每個名稱兩種寫法，用已有的「情境::原文」key：原 key 是單獨或句首的寫法（`Side bar`），`句中::` 加原 key 是句中的寫法（`side bar`、`panel`；專有名詞 `Explorer` 照樣大寫）。句子（`Hide the {region}`）自己加 the，名稱不加冠詞。只給原 key 的翻譯在句中也用它，所以是相容的 patch。沒有選「每個區塊各寫完整句子」：句子會多三倍，換名稱時要改每一句。
+
 ## 待確認清單（2026-11-25 整理）
 
 整份檔案裡標成「AI 定的細節（待確認）」、還沒確認的項目，一項一行；行號指向原文，原文沒有改。實驗室的代號後面括號寫出那個選項是什麼。
@@ -2138,3 +2152,13 @@ codemap 升到 0.47.2 後跑 `ui check` 和 ESLint 回報五個問題，都要�
 - 第 1582 行（2026-11-26 codemap 回報修正）：`useFilePicker({ accept, multiple, onPick })` 回傳 `{ open }`，不回傳要頁面自己放的 `input`：h…
 - 第 1583 行（2026-11-26 codemap 回報修正）：`no-native-controls`：有 `hidden` 屬性（`hidden`、`hidden={true}`）的 `<input>` 不算，任何 ty…
 - 第 1584 行（2026-11-26 codemap 回報修正）：版本：新增 `useFilePicker`，`@seanyeh77/ui` 是 minor；其他三個套件一起升到同一版（changeset 的 fixed 群組…
+
+### 2026-11-26 加快發布流程
+
+- 第 1592 行（2026-11-26 加快發布流程）：發布：`main` 上沒有 changeset 時 changesets/action（v2.1.2）直接跑 `publish-script`，發布 npm 上…
+- 第 1593 行（2026-11-26 加快發布流程）：視覺變更的範圍：元件資料夾裡的 `.tsx`、`.ts`、`.css`、`preview.html`，`packages/ui/src` 其他的程式和 CSS（…
+- 第 1594 行（2026-11-26 加快發布流程）：`pnpm changed:visual [ref]`：和 `ref`（預設 `origin/main`）的 merge base 比較，含還沒 commit …
+- 第 1595 行（2026-11-26 加快發布流程）：`pnpm test:changed [ref]`：同樣和 merge base 比較。ui：先跑 `test` 裡的三個快速檢查，再 `vitest run …
+- 第 1596 行（2026-11-26 加快發布流程）：已知限制：`components.jsdom.test.tsx` import 每個 story，改到任何一個元件都會跑它；改到被很多元件用的共用檔（例如 `i…
+- 第 1597 行（2026-11-26 加快發布流程）：Workbench 左右邊界：和下方面板一樣，把手 8 px 加上往主畫面那一側 16 px，合計 24 px（`::before`）；上下只到主畫面旁邊：從主…
+- 第 1598 行（2026-11-26 加快發布流程）：Workbench 區塊名稱：每個名稱兩種寫法，用已有的「情境::原文」key：原 key 是單獨或句首的寫法（`Side bar`），`句中::` 加原 ke…
