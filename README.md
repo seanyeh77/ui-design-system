@@ -23,11 +23,11 @@ initTheme();
 ```html
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.47.2/fonts.css">
-<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.47.2/tokens.css">
-<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.47.2/styles.css">
+<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.48.0/fonts.css">
+<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.48.0/tokens.css">
+<link rel="stylesheet" href="https://seanyeh77.github.io/ui-design-system/dist/0.48.0/styles.css">
 <div id="root"></div>
-<script src="https://seanyeh77.github.io/ui-design-system/dist/0.47.2/bundle.js"></script>
+<script src="https://seanyeh77.github.io/ui-design-system/dist/0.48.0/bundle.js"></script>
 <script>
   UI.initTheme();
   ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(UI.Button, { variant: 'primary' }, '儲存'));
