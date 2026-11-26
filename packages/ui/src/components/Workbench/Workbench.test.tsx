@@ -388,3 +388,77 @@ test('storageKey keeps the layout; without it nothing is stored; the deprecated 
   expect(warn.mock.calls.some((c) => String(c[0]).includes('`id` is deprecated'))).toBe(true);
   warn.mockRestore();
 });
+
+test('a new views array on every render and onLayoutChange kept in state settle without an update loop', async () => {
+  const errors: unknown[] = [];
+  const spy = vi.spyOn(console, 'error').mockImplementation((...a) => errors.push(a));
+  let renders = 0;
+  const reports: WorkbenchLayout[] = [];
+  function Host({ storageKey }: { storageKey?: string }) {
+    renders++;
+    const [layout, setLayout] = React.useState<WorkbenchLayout | null>(null);
+    const [n, setN] = React.useState(0);
+    // Each render builds new view objects that read fresh state, as a page usually does.
+    const fresh: WorkbenchView[] = [
+      { id: 'outline', title: '大綱', render: () => <p>大綱 {n}</p> },
+      { id: 'problems', title: '問題', render: () => <p>問題 {layout?.panel.length ?? 0}</p> },
+      { id: 'output', title: '輸出', render: () => <p>輸出</p> },
+    ];
+    return (
+      <div style={{ width: 1440, height: 640 }}>
+        <button type="button" onClick={() => setN((x) => x + 1)}>
+          加一
+        </button>
+        <Workbench
+          storageKey={storageKey}
+          views={fresh}
+          defaultLayout={{ side: ['outline'], panel: ['problems', 'output'] }}
+          onLayoutChange={(l) => {
+            reports.push(l);
+            setLayout(l);
+          }}
+        >
+          <p>主畫面</p>
+        </Workbench>
+      </div>
+    );
+  }
+  try {
+    for (const storageKey of ['loop', undefined]) {
+      renders = 0;
+      reports.length = 0;
+      const r = render(<Host storageKey={storageKey} />);
+      await screen.findByText('問題 2');
+      await new Promise((res) => setTimeout(res, 200));
+      expect(renders).toBeLessThan(10);
+      // One report for the first layout; a re-render with the same content reports nothing.
+      expect(reports.length).toBe(1);
+      await user.click(screen.getByRole('button', { name: '加一' }));
+      await screen.findByText('大綱 1');
+      await new Promise((res) => setTimeout(res, 100));
+      expect(reports.length).toBe(1);
+      // A real change is still reported.
+      await user.click(screen.getByRole('tab', { name: '輸出' }));
+      await waitFor(() => expect(reports.at(-1)?.active.panel).toBe('output'));
+      expect(reports.length).toBe(2);
+      r.unmount();
+    }
+    expect(errors.filter((e) => String(e).includes('Maximum update depth'))).toEqual([]);
+  } finally {
+    spy.mockRestore();
+  }
+});
+
+test('wide: the bottom panel border has a 24 px hit area that reaches up over the main view, not down over the tabs', async () => {
+  render(shell(1440));
+  await waitFor(() => expect(isOpen('下方面板')).toBe(true));
+  const split = screen.getByRole('separator', { name: '下方面板高度' });
+  const before = getComputedStyle(split, '::before');
+  expect(before.height).toBe('24px');
+  const r = split.getBoundingClientRect();
+  // Bottom-anchored: the area grows upwards from the handle's bottom edge.
+  expect(before.bottom).toBe('0px');
+  const tab = within(region('下方面板')).getAllByRole('tab')[0].getBoundingClientRect();
+  expect(r.bottom - 24).toBeLessThan(r.top);
+  expect(r.bottom).toBeLessThanOrEqual(tab.top + 4);
+});

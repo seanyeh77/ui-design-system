@@ -27,6 +27,7 @@ import { Workbench, useWorkbench, TreeList, IconButton, SearchField } from '@sea
 ```
 
 - 外層要給高度（例如 `height: 100vh`）；Workbench 填滿它。給 `storageKey` 才會記住版面。
+- `views` 和 `defaultLayout` 可以每次繪製都是新的陣列（`render` 讀最新的 state）：版面只看 view 的 `id` 和 `defaultLayout` 的內容，不必 `useMemo`。
 - `brand` 的名稱是整頁的 `h1`，主畫面和它上方的列在 `main` 裡（名稱是 `label`，預設「編輯器」）：頁面不再另放 `h1` 或 `main`。
 - `mainBar`（36 px 的列）只放 `IconButton variant="quiet"` 或 `SegmentedControl iconOnly`；不放 40 px 的一般按鈕、輸入框、Select 或 Tabs。
 - 主畫面裡的 CodeView 用 `header="float"`：檔名已經在麵包屑上。
@@ -109,7 +110,7 @@ React.useEffect(() => {
 ## 讀取目前的版面
 
 - `useWorkbench().layout`：目前的 `WorkbenchLayout`（`side`、`panel` 兩邊各有哪些分頁，`active.side`、`active.panel` 目前的分頁，`open` 開或關，`size` 大小）。Workbench 裡面的元件會跟著重新繪製。
-- `onLayoutChange(layout)`：第一次繪製時和之後每次改變（換分頁、移動分頁、開關區塊、改大小）都會呼叫。
+- `onLayoutChange(layout)`：第一次繪製時和之後每次改變（換分頁、移動分頁、開關區塊、改大小）都會呼叫；內容沒變時不呼叫，所以可以直接 `onLayoutChange={setLayout}` 存進頁面的 state。
 - `ref` 的 `getLayout()`：呼叫當下的版面。
 
 把下方面板目前的分頁寫進網址：

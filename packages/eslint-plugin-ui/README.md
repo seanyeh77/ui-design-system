@@ -23,7 +23,7 @@ export default [ui.configs.recommended];
 | --- | --- | --- |
 | `no-raw-color` | error | style、`fill`、`stroke` 和 Tailwind `[…]` 裡寫死的顏色 |
 | `no-tailwind-defaults` | error | Tailwind 自己的色盤、圓角和陰影（`bg-gray-100`、`rounded-xl`、`shadow-lg`） |
-| `no-native-controls` | error | 系統有元件取代的原生元素：`<select>`、`<table>`、`<dialog>`、`<progress>`、`<textarea>`、`<button>`（用 Button 或 IconButton）、`<a>`（用 Link），以及沒有 type 或 type 為 text、search、email、password、number、range、checkbox、radio、date、file、color、submit 的 `<input>`。帶 `ui-` 開頭 class 的原生元素（`<button className="ui-link-btn">`）不算 |
+| `no-native-controls` | error | 系統有元件取代的原生元素：`<select>`、`<table>`、`<dialog>`、`<progress>`、`<textarea>`、`<button>`（用 Button 或 IconButton）、`<a>`（用 Link），以及沒有 type 或 type 為 text、search、email、password、number、range、checkbox、radio、date、file、color、submit 的 `<input>`。帶 `ui-` 開頭 class 的原生元素（`<button className="ui-link-btn">`）和有 `hidden` 屬性的 `<input>`（看不到，例如由按鈕打開的檔案選擇）不算；檔案選擇改用 FileUpload 或 `useFilePicker` |
 | `no-nested-card` | error | Card 裡再放 Card |
 | `danger-confirm` | error | 沒有 `confirm` 的危險按鈕，`variant={x ? 'danger' : 'quiet'}` 也算 |
 | `one-primary-button` | warn | 同一區第二個主要按鈕，條件式的 `variant` 也算 |

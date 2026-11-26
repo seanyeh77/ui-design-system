@@ -38,6 +38,8 @@ tester.run('no-native-controls', rules['no-native-controls'], {
     '<ui.Button>儲存</ui.Button>',
     '<input type="hidden" name="id" value="1" />',
     '<input type={kind} />',
+    '<input type="file" hidden accept=".json" onChange={read} />',
+    '<input type="file" hidden={true} />',
     '<button type="button" className="ui-link-btn" onClick={go}>重看導覽</button>',
     { code: '<a href="/docs">文件</a>', options: [{ allow: ['a'] }] },
     { code: '<input type="range" />', options: [{ allow: ['input[type=range]'] }] },
@@ -54,6 +56,13 @@ tester.run('no-native-controls', rules['no-native-controls'], {
     { code: '<input type="password" />', errors: 1 },
     { code: '<input type="number" />', errors: 1 },
     { code: '<input type="range" />', errors: 1 },
+    {
+      code: '<input type="file" />',
+      errors: [
+        { message: '<input type="file">: use FileUpload for a drop area, or useFilePicker to open the picker from a button or menu item from @seanyeh77/ui.' },
+      ],
+    },
+    { code: '<input type="file" hidden={!show} />', errors: 1 },
     { code: '<input type={secret ? "password" : "text"} />', errors: 2 },
     { code: '<a href="/docs">文件</a>', errors: [{ message: 'Native <a>: use Link from @seanyeh77/ui.' }] },
     { code: '<button onClick={go}>儲存</button>', errors: 1 },

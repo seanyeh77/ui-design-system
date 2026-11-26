@@ -66,7 +66,7 @@ export interface WorkbenchProps {
   explorerHead?: React.ReactNode;
   /** Below the explorer, fixed: 「設定」 and the like. */
   explorerFoot?: React.ReactNode;
-  /** Tabs of the side bar and the bottom panel. Where each one sits is the user's choice, kept per browser. */
+  /** Tabs of the side bar and the bottom panel, kept per browser where the user put them; may be a new array on every render (only the ids count for the layout). */
   views?: WorkbenchView[];
   /** The layout before the user changes it, and after 「還原預設版面」. Views in neither list go to the panel. */
   defaultLayout?: {
@@ -81,8 +81,7 @@ export interface WorkbenchProps {
   label?: string;
   /** Extra class on the root element. */
   className?: string;
-  /** Called with the layout on the first render and after every change (a tab picked or moved, a region opened or
-   *  closed, a size changed), for example to put the panel's current tab in the URL. */
+  /** Called with the layout on the first render and after every change of its content (a tab picked or moved, a region opened or closed, a size changed), never for an equal layout, so it can be a state setter. */
   onLayoutChange?: (layout: WorkbenchLayout) => void;
   /** show, toggle, resetLayout and getLayout from outside, such as URL handling in the page around the Workbench. */
   ref?: React.Ref<WorkbenchHandle>;
@@ -136,8 +135,7 @@ const TOGGLE: Record<WorkbenchRegion, [string, string]> = {
 const toggleIcon = (r: WorkbenchRegion, open: boolean) => (FRAME + TOGGLE[r][open ? 0 : 1]) as CustomIcon;
 const MOVE_ICON = 'M4 8h15m0 0-3.5-3.5M19 8l-3.5 3.5M20 16H5m0 0 3.5-3.5M5 16l3.5 3.5' as CustomIcon;
 
-function defaults(views: WorkbenchView[], d: WorkbenchProps['defaultLayout']): WorkbenchLayout {
-  const ids = views.map((v) => v.id);
+function defaults(ids: string[], d: WorkbenchProps['defaultLayout']): WorkbenchLayout {
   const side = (d?.side ?? []).filter((x) => ids.includes(x));
   const panel = (d?.panel ?? []).filter((x) => ids.includes(x) && !side.includes(x));
   for (const x of ids) if (!side.includes(x) && !panel.includes(x)) panel.push(x);
@@ -170,6 +168,19 @@ function restore(raw: string, def: WorkbenchLayout): WorkbenchLayout {
     return def;
   }
 }
+
+// Plain JSON values (a layout) compared by content.
+function same(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (typeof a !== 'object' || typeof b !== 'object' || !a || !b || Array.isArray(a) !== Array.isArray(b)) return false;
+  const ka = Object.keys(a).filter((k) => (a as Record<string, unknown>)[k] !== undefined);
+  const kb = Object.keys(b).filter((k) => (b as Record<string, unknown>)[k] !== undefined);
+  return ka.length === kb.length && ka.every((k) => same((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]));
+}
+
+// Ids joined into one string: the same views in the same order give the same text whatever array holds them.
+const SEP = '\u0000';
+const splitIds = (sig: string) => (sig ? sig.split(SEP) : []);
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Math.round(v)));
 const inField = (t: EventTarget | null) => t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
@@ -274,10 +285,13 @@ function TabRow(p: {
   onReorder?: (ids: string[]) => void;
   buttons: React.ReactNode;
 }) {
+  // The ids by content, so a parent that builds a new array with the same ids on every render measures nothing new.
+  const idsSig = p.ids.join(SEP);
+  const ids = React.useMemo(() => splitIds(idsSig), [idsSig]);
   const track = React.useRef<HTMLDivElement>(null);
   const tabs = React.useRef<Record<string, HTMLButtonElement | null>>({});
   const widths = React.useRef<Record<string, number>>({});
-  const [fit, setFit] = React.useState(p.ids.length);
+  const [fit, setFit] = React.useState(ids.length);
   const [box, setBox] = React.useState<{ left: number; right: number } | null>(null);
   const [forward, setForward] = React.useState(true);
   const [edges, setEdges] = React.useState({ left: false, right: false });
@@ -296,11 +310,11 @@ function TabRow(p: {
   // Phones: while a tab is held, the row shows the order it will have when let go.
   const order = hold
     ? (() => {
-        const a = p.ids.filter((x) => x !== hold.id);
+        const a = ids.filter((x) => x !== hold.id);
         a.splice(hold.at, 0, hold.id);
         return a;
       })()
-    : p.ids;
+    : ids;
   let shown = order;
   let hidden: string[] = [];
   if (menu && fit < order.length) {
@@ -313,7 +327,8 @@ function TabRow(p: {
     const tr2 = track.current;
     if (!tr2) return;
     const el = p.active ? tabs.current[p.active] : null;
-    setBox(el ? { left: el.offsetLeft + 10, right: tr2.clientWidth - el.offsetLeft - el.offsetWidth + 10 } : null);
+    const b = el ? { left: el.offsetLeft + 10, right: tr2.clientWidth - el.offsetLeft - el.offsetWidth + 10 } : null;
+    setBox((m) => (m === b || (m && b && m.left === b.left && m.right === b.right) ? m : b));
     const left = tr2.scrollLeft > 1;
     const right = tr2.scrollLeft + tr2.clientWidth < tr2.scrollWidth - 1;
     setEdges((m) => (m.left === left && m.right === right ? m : { left, right }));
@@ -322,20 +337,20 @@ function TabRow(p: {
       // Room for 「更多 N」 when some do not fit.
       let used = 0;
       let n = 0;
-      const total = p.ids.reduce((a, id) => a + (widths.current[id] ?? 80), 0);
+      const total = ids.reduce((a, id) => a + (widths.current[id] ?? 80), 0);
       const room = tr2.clientWidth - (total > tr2.clientWidth ? 72 : 0);
-      for (const id of p.ids) {
+      for (const id of ids) {
         used += widths.current[id] ?? 80;
         if (used > room) break;
         n++;
       }
       setFit((f) => (f === n ? f : n));
     }
-  }, [p.active, p.ids, menu]);
+  }, [p.active, ids, menu]);
 
   React.useLayoutEffect(() => {
     if (prevActive.current !== p.active) {
-      setForward(p.ids.indexOf(p.active ?? '') > p.ids.indexOf(prevActive.current ?? ''));
+      setForward(ids.indexOf(p.active ?? '') > ids.indexOf(prevActive.current ?? ''));
       prevActive.current = p.active;
     }
     measure();
@@ -349,19 +364,19 @@ function TabRow(p: {
     const ro = resizeObserver(measure);
     ro?.observe(tr2);
     return () => ro?.disconnect();
-  }, [p.active, p.ids, measure, menu, hold]);
+  }, [p.active, ids, measure, menu, hold]);
 
   const drag = p.drag;
   const over = drag?.over?.region === p.region ? drag.over : undefined;
-  const di = drag ? p.ids.indexOf(drag.id) : -1;
-  const noop = (before: string | null) => di >= 0 && (before === drag?.id || before === (p.ids[di + 1] ?? null));
+  const di = drag ? ids.indexOf(drag.id) : -1;
+  const noop = (before: string | null) => di >= 0 && (before === drag?.id || before === (ids[di + 1] ?? null));
 
   const tabEl = (id: string, i: number, list: string[]) => {
     const v = p.views[id];
     const on = id === p.active;
     const next = list[i + 1] ?? null;
     const lineBefore = !!over && !over.noop && over.before === id;
-    const lineAfter = !!over && !over.noop && over.before === null && i === list.length - 1 && list.length === p.ids.length;
+    const lineAfter = !!over && !over.noop && over.before === null && i === list.length - 1 && list.length === ids.length;
     return (
       <button
         key={id}
@@ -439,7 +454,7 @@ function TabRow(p: {
               pr.mode = 'drag';
               c.setPointerCapture?.(e.pointerId);
               navigator.vibrate?.(10);
-              setHold({ id: pr.id, at: p.ids.indexOf(pr.id) });
+              setHold({ id: pr.id, at: ids.indexOf(pr.id) });
             }
           }, 300);
           press.current = pr;
@@ -475,7 +490,7 @@ function TabRow(p: {
           if (pr.mode === 'drag' && hold) {
             const next = order;
             setHold(null);
-            if (next.join('\n') !== p.ids.join('\n')) p.onReorder?.(next);
+            if (next.join(SEP) !== idsSig) p.onReorder?.(next);
           }
         },
         onPointerCancel: () => {
@@ -572,7 +587,11 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
   const name = p.storageKey ?? p.id;
   // No name: the layout is kept in memory only, until the page reloads.
   const key = name ? 'ui-workbench:' + name : undefined;
-  const def = React.useMemo(() => defaults(views, p.defaultLayout), [views, p.defaultLayout]);
+  // The defaults follow the view ids and defaultLayout's content, not the arrays that hold them: a page that builds
+  // new views and a new defaultLayout on every render (each render reading fresh state) gets the same layout object.
+  const idsSig = views.map((v) => v.id).join(SEP);
+  const defSig = JSON.stringify(p.defaultLayout ?? null);
+  const def = React.useMemo(() => defaults(splitIds(idsSig), JSON.parse(defSig) as WorkbenchProps['defaultLayout']), [idsSig, defSig]);
   // The default layout on the server and the first browser render, then the stored one (also when another tab changes it).
   const parseLayout = React.useCallback((raw: string) => restore(raw, def), [def]);
   const [stored, saveLay] = useStored<WorkbenchLayout>(key, parseLayout, def);
@@ -609,10 +628,14 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
     return () => ro?.disconnect();
   }, []);
 
+  // Reported only when the layout's content changed, not when the page passes a new function or a new object with the
+  // same content: a page that keeps the layout in its own state renders once per change.
   const onLayoutChange = p.onLayoutChange;
+  const reported = React.useRef<WorkbenchLayout | null>(null);
   React.useEffect(() => {
+    if (reported.current && same(reported.current, lay)) return;
+    reported.current = lay;
     onLayoutChange?.(lay);
-    // Only when the layout changes, not when the page passes a new function.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lay]);
 
@@ -728,7 +751,7 @@ export function Workbench({ ref, ...p }: WorkbenchProps) {
     if (r === 'panel' && sideOverlay) setOv((o) => ({ ...o, side: true }));
   };
   const resetLayout = () => {
-    setLay(defaults(views, p.defaultLayout));
+    setLay(def);
     setOv({ explorer: false, side: false });
     setSheet({ open: false });
     setSheetH(null);

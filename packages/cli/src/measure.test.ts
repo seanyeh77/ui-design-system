@@ -262,3 +262,25 @@ test('a field box counts as the control in a toolbar row', async (t) => {
   assert.equal(res.mixed.length, 1);
   assert.match(res.mixed[0], /48 px/);
 });
+
+test('text cut with an ellipsis inside its card is measured by the part that shows', async (t) => {
+  if (skip) return t.skip(skip);
+  const res = await run(
+    `<div class="ui-card" style="width:200px;margin:40px;padding:8px;box-sizing:border-box">
+       <p title="說明" style="margin:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${'很長的專案說明文字 '.repeat(8)}</p>
+       <div style="overflow:hidden"><span style="display:block;white-space:nowrap">${'一行不換行的路徑 '.repeat(8)}</span></div>
+     </div>`,
+  );
+  assert.deepEqual(res.outside, []);
+});
+
+test('a term in a sentence is exempt from the touch checks, also when the text around it is in other elements', async (t) => {
+  if (skip) return t.skip(skip);
+  const res = await run(
+    `<p style="line-height:22px"><span>登入後伺服器會寫一個</span><button class="ui-term is-word" style="display:inline;padding:0;border:0;font:inherit">cookie</button><span>。</span></p>`,
+    390,
+  );
+  assert.deepEqual(res.small, []);
+  assert.deepEqual(res.small24, []);
+  assert.equal(res.inline.length, 1);
+});

@@ -61,6 +61,8 @@ export { ErrorPage } from './components/ErrorPage/ErrorPage';
 export type { ErrorPageProps } from './components/ErrorPage/ErrorPage';
 export { FileUpload } from './components/FileUpload/FileUpload';
 export type { FileUploadProps, UploadFile } from './components/FileUpload/FileUpload';
+export { useFilePicker } from './components/FileUpload/useFilePicker';
+export type { FilePicker, FilePickerOptions } from './components/FileUpload/useFilePicker';
 export { FormGrid } from './components/FormGrid/FormGrid';
 export type { FormGridProps } from './components/FormGrid/FormGrid';
 export { GraphDefs, GraphLegend } from './components/Graph/Graph';

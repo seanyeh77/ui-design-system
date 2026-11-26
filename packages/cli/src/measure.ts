@@ -111,6 +111,9 @@ export function measure(): Findings {
   // In a line of text (a link in a sentence, a code reference in a list item, anything in Markdown content) a target's
   // size is set by the line height: WCAG 2.5.8 exempts it.
   const inText = (el: Element, cs: CSSStyleDeclaration) => isInline(el, cs) || cs.display === 'inline' || !!el.closest('.ui-md');
+  // A term in a sentence (Term variant="inline", or the default Term beside text) is exempt like a link in a sentence,
+  // also when the text around it sits in sibling elements rather than in the term's own parent.
+  const inSentence = (el: Element, cs: CSSStyleDeclaration) => isInline(el, cs) || el.matches('.ui-term.is-word, .ui-term.is-inline');
   for (const el of new Set(document.querySelectorAll<HTMLElement>(sel))) {
     if (el.closest('[aria-hidden="true"], [inert]')) continue;
     const cs = getComputedStyle(el);
@@ -156,7 +159,7 @@ export function measure(): Findings {
         h = Math.max(h, ph);
       }
     }
-    targets.push({ el, r, w, h, inline: inText(el, cs) });
+    targets.push({ el, r, w, h, inline: inText(el, cs) || inSentence(el, cs) });
     if (w >= 47.5 && h >= 47.5) continue;
     if (wholeRow(el)) {
       out.inline.push(`${describe(el)} (its row or card is the target)`);
@@ -168,7 +171,7 @@ export function measure(): Findings {
       out.inline.push(`${describe(el)} line`);
       continue;
     }
-    (isInline(el, cs) ? out.inline : out.small).push(`${describe(el)} ${Math.round(w)} x ${Math.round(h)} px`);
+    (inSentence(el, cs) ? out.inline : out.small).push(`${describe(el)} ${Math.round(w)} x ${Math.round(h)} px`);
   }
 
   // 2b. Targets under 24 x 24 px (WCAG 2.2, 2.5.8, the minimum on any screen). The spacing exception: an undersized
@@ -294,7 +297,9 @@ export function measure(): Findings {
   }
 
   // 6c. Text outside its card: a label (a chart's axis label, a long word) that lies past the card's edge, drawn over
-  // the border or clipped away. Text inside a scroll box within the card scrolls into view and is left out.
+  // the border or clipped away. Text inside a scroll box within the card scrolls into view and is left out. Text clipped
+  // by an element inside the card (overflow hidden or clip, as text-overflow: ellipsis needs) is measured by the part
+  // that shows: its box cut to that element's box.
   for (const card of document.querySelectorAll<HTMLElement>('.ui-card')) {
     if (out.outside.length >= 6) break;
     if (!visible(card)) continue;
@@ -314,7 +319,23 @@ export function measure(): Findings {
       if (parent.closest('[class*="sr-only"], [class*="visually-hidden"]') || getComputedStyle(parent).position === 'fixed') continue;
       const range = document.createRange();
       range.selectNodeContents(n);
-      const r = [...range.getClientRects()].find(past);
+      const clipTo = (r: DOMRect) => {
+        let { left, right, top, bottom } = r;
+        for (let a: Element | null = parent; a && a !== card; a = a.parentElement) {
+          const cs = getComputedStyle(a);
+          const ab = a.getBoundingClientRect();
+          if (/hidden|clip/.test(cs.overflowX)) {
+            left = Math.max(left, ab.left);
+            right = Math.min(right, ab.right);
+          }
+          if (/hidden|clip/.test(cs.overflowY)) {
+            top = Math.max(top, ab.top);
+            bottom = Math.min(bottom, ab.bottom);
+          }
+        }
+        return new DOMRect(left, top, Math.max(0, right - left), Math.max(0, bottom - top));
+      };
+      const r = [...range.getClientRects()].map(clipTo).find(past);
       if (r) {
         out.outside.push(
           `${describe(card)}: "${n.textContent.trim().slice(0, 24)}" ${Math.round(Math.max(box.left - r.left, r.right - box.right, box.top - r.top, r.bottom - box.bottom))} px outside`,

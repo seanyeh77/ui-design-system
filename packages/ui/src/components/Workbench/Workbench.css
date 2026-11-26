@@ -309,6 +309,16 @@
   margin-top: -4px;
   cursor: row-resize;
 }
+/* The bottom panel's border: a 24 px hit area (WCAG 2.5.8), the 8 px handle plus 16 px above it over the bottom of the
+   main view, so it never covers the panel's tab row below. */
+.ui-wb-panel > .ui-wb-split.is-h::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 24px;
+}
 .ui-wb-split-line {
   position: absolute;
   background: transparent;

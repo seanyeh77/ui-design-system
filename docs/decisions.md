@@ -1567,6 +1567,22 @@ AI 定的細節（待確認）：
 - DataTable 手機卡片的批次列：表頭在手機上不顯示，所以「全選」勾選框（全選、部分選取時是「−」）放在「已選 n 筆」前面，和列的勾選框同一欄，「已選 n 筆」和列的標題同一個左緣。桌面維持表頭的「全選」，批次列不放。
 - 手機卡片不左右捲動：`useScrollHint` 只在框本身會左右捲動（`overflow-x` 不是 `visible` 或 `clip`）時才算有更多內容，手機卡片的右側漸淡和「左右滑動」都不會出現；CSS 在卡片模式也把漸淡拿掉。
 
+## 2026-11-26 codemap 回報修正
+
+codemap 升到 0.47.2 後跑 `ui check` 和 ESLint 回報五個問題，都要在設計系統這邊修：Workbench 在 `views` 每次繪製都是新陣列時無限重繪（React #185）、桌面下方面板的邊界點擊範圍不到 24 px、手機上行內 Term 不到 48 px、`text-overflow: ellipsis` 的文字被當成在卡片外、沒有從按鈕打開檔案選擇的方法。Term 的做法使用者偏好「豁免」，和句子裡的連結相同。下面是做法裡 agent 自己選的細節。
+
+### AI 定的細節（待確認）
+
+- Workbench：版面的預設值只看 view 的 `id`（依順序）和 `defaultLayout` 的內容（JSON），不看陣列本身；`views` 每次繪製都是新陣列時，版面物件保持同一個。畫面上的分頁名稱和內容仍用這次繪製的 `views`。
+- Workbench `onLayoutChange`：和上一次回報的版面逐欄比較（`side`、`panel`、`active`、`open`、`size`），內容相同時不呼叫；第一次繪製仍呼叫一次。
+- Workbench 分頁列：指示線的位置（左、右）不變時保留原物件；量測依分頁 id 的內容，不依陣列本身。其他用 `useStored` 的元件（DataTable、LayerGraph、Section、Tour、AppShell、ThemePicker、AccentPicker）的 parse 都在模組層、預設值是常數或基本型別，沒有同樣的問題；SplitPane 自己讀寫 localStorage，也沒有。
+- Workbench 桌面下方面板的邊界：看得到的部分和 8 px 的把手不變，點擊範圍往上延伸 16 px（`::before`，蓋在主畫面底部），合計 24 px（WCAG 2.5.8 的最小值），不往下蓋到面板的分頁列；滑過這 16 px 時邊界同樣變強調色。只改下方面板；左右兩條直的邊界沒有被回報，不動。手機的把手維持原樣。
+- Term 行內：選擇豁免，不擴大觸控範圍：`variant="inline"`（`.ui-term.is-word`）和放在句子裡的預設樣式（`.ui-term.is-inline`）一律當作句子裡的詞，`ui check` 的 48 px 和 24 px 檢查都不算它，列在豁免清單；即使旁邊的文字在別的元素裡（不是同一個父元素的文字節點）也算。觸控 CSS 原本就不擴大這兩種，沒有改。
+- `ui check`「卡片外的文字」：文字到卡片之間（不含卡片本身）有 `overflow` 是 `hidden` 或 `clip` 的元素時，文字的範圍先裁成那個元素的框（依 `overflow-x`、`overflow-y` 各自裁），再比對卡片邊緣；被卡片本身裁掉的文字照常算問題。
+- `useFilePicker({ accept, multiple, onPick })` 回傳 `{ open }`，不回傳要頁面自己放的 `input`：hook 在第一次 `open()` 時用 `document.createElement` 建一個 `hidden` 的 `<input type="file">` 放進 `document.body`（部分瀏覽器只對放在文件裡的 input 打開檔案選擇），元件卸載時移除；選完清空 `value`；取消（沒有檔案）時不呼叫 `onPick`。放在 FileUpload 的資料夾、寫在 FileUpload README，從 `@seanyeh77/ui` 匯出。
+- `no-native-controls`：有 `hidden` 屬性（`hidden`、`hidden={true}`）的 `<input>` 不算，任何 type 都一樣（看不到，不是頁面上的控制項）；`hidden={條件}` 仍然檢查。`<input type="file">` 的訊息改成「FileUpload for a drop area, or useFilePicker to open the picker from a button or menu item」。
+- 版本：新增 `useFilePicker`，`@seanyeh77/ui` 是 minor；其他三個套件一起升到同一版（changeset 的 fixed 群組）。
+
 ## 待確認清單（2026-11-25 整理）
 
 整份檔案裡標成「AI 定的細節（待確認）」、還沒確認的項目，一項一行；行號指向原文，原文沒有改。實驗室的代號後面括號寫出那個選項是什麼。
@@ -2110,3 +2126,15 @@ AI 定的細節（待確認）：
 - 第 1566 行（2026-11-26 手機卡片對齊）：DataTable 手機卡片：勾選框和狀態 Badge 置中在標題第一行（一行高的框），有第二行時標題的上下 6 px 內距拿掉
 - 第 1567 行（2026-11-26 手機卡片對齊）：DataTable 手機卡片的批次列：「全選」放在「已選 n 筆」前面，和列的勾選框同一欄，「已選 n 筆」對齊列的標題
 - 第 1568 行（2026-11-26 手機卡片對齊）：手機卡片不左右捲動：`useScrollHint` 只在框本身會左右捲動時才算有更多內容，卡片模式沒有右側漸淡
+
+### 2026-11-26 codemap 回報修正
+
+- 第 1576 行（2026-11-26 codemap 回報修正）：Workbench：版面的預設值只看 view 的 `id`（依順序）和 `defaultLayout` 的內容（JSON），不看陣列本身；`views` 每次…
+- 第 1577 行（2026-11-26 codemap 回報修正）：Workbench `onLayoutChange`：和上一次回報的版面逐欄比較（`side`、`panel`、`active`、`open`、`size`），…
+- 第 1578 行（2026-11-26 codemap 回報修正）：Workbench 分頁列：指示線的位置（左、右）不變時保留原物件；量測依分頁 id 的內容，不依陣列本身。其他用 `useStored` 的元件（DataTa…
+- 第 1579 行（2026-11-26 codemap 回報修正）：Workbench 桌面下方面板的邊界：看得到的部分和 8 px 的把手不變，點擊範圍往上延伸 16 px（`::before`，蓋在主畫面底部），合計 24 …
+- 第 1580 行（2026-11-26 codemap 回報修正）：Term 行內：選擇豁免，不擴大觸控範圍：`variant="inline"`（`.ui-term.is-word`）和放在句子裡的預設樣式（`.ui-term…
+- 第 1581 行（2026-11-26 codemap 回報修正）：`ui check`「卡片外的文字」：文字到卡片之間（不含卡片本身）有 `overflow` 是 `hidden` 或 `clip` 的元素時，文字的範圍先裁成…
+- 第 1582 行（2026-11-26 codemap 回報修正）：`useFilePicker({ accept, multiple, onPick })` 回傳 `{ open }`，不回傳要頁面自己放的 `input`：h…
+- 第 1583 行（2026-11-26 codemap 回報修正）：`no-native-controls`：有 `hidden` 屬性（`hidden`、`hidden={true}`）的 `<input>` 不算，任何 ty…
+- 第 1584 行（2026-11-26 codemap 回報修正）：版本：新增 `useFilePicker`，`@seanyeh77/ui` 是 minor；其他三個套件一起升到同一版（changeset 的 fixed 群組…

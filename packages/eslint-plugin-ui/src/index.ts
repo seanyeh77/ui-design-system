@@ -261,7 +261,7 @@ const INPUT_REPLACE: Record<string, string> = {
   radio: 'RadioGroup',
   date: 'DatePicker',
   search: 'SearchField',
-  file: 'FileUpload',
+  file: 'FileUpload for a drop area, or useFilePicker to open the picker from a button or menu item',
   color: 'AccentPicker',
   submit: 'Button',
   button: 'Button',
@@ -294,6 +294,9 @@ const noNativeControls: Rule.RuleModule = {
         if (cls.some((c) => typeof c === 'string' && /(^|\s)ui-[a-z]/.test(c))) return;
         if (REPLACE[name]) context.report({ node, message: 'Native <{{n}}>: use {{c}} from @seanyeh77/ui.', data: { n: name, c: REPLACE[name] } });
         if (name === 'input') {
+          // <input hidden> shows nothing: a file input that a button opens (as useFilePicker keeps) or form data.
+          const hid = attr(el, 'hidden');
+          if (hid && attrValues(hid).length && attrValues(hid).every((v) => v === true || v === '' || v === 'hidden')) return;
           const typeAttr = attr(el, 'type');
           // type={kind}: unknown at lint time; hidden inputs carry form data and show nothing.
           const types = typeAttr ? attrValues(typeAttr) : [''];
