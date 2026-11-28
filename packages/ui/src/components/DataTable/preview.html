@@ -251,8 +251,8 @@
           });
         };
         var rows = [
-          { id: 'L1', at: 'go_http.go:120', why: 'frameworks/go_http.go:120 呼叫 route() 之前就回傳，路由表不會建立。', state: '錯誤', text: '筆記說 handler 會呼叫 router，程式碼裡找不到這個呼叫，只在註解出現。' },
-          { id: 'L2', at: 'tshelper.ts:44', why: 'backends/tshelper.ts:44 先讀 tsconfig 再解析 import。', state: '待確認', text: '待確認：讀設定檔和建立 import 圖的順序，和筆記寫的相反。' },
+          { id: 'L1', at: 'go_http.go:12', why: 'net/go_http.go:12 呼叫 route() 之前就回傳，路由表不會建立。', state: '錯誤', text: '筆記說 handler 會呼叫 router，程式碼裡找不到這個呼叫，只在註解出現。' },
+          { id: 'L2', at: 'tshelper.ts:44', why: 'ts/tshelper.ts:44 先讀 tsconfig 再解析 import。', state: '待確認', text: '待確認：讀設定檔和建立 import 圖的順序，和筆記寫的相反。' },
           { id: 'L3', at: 'ring.c:12', why: '相同。', state: '正確', text: '相同。' },
         ];
         return h(
@@ -265,7 +265,7 @@
             search: false,
             columns: [
               { key: 'at', label: '位置', width: 120, grow: 0, render: function (r) { return loc(r.at); } },
-              { key: 'why', label: '原因', long: true, width: 120, grow: 0, render: function (r) { return refs(r.why); }, searchText: function (r) { return r.why; } },
+              { key: 'why', label: '原因', long: true, width: 90, grow: 0, render: function (r) { return refs(r.why); }, searchText: function (r) { return r.why; } },
               { key: 'text', label: '筆記內容', long: true, width: 140, grow: 0 },
               { key: 'state', label: '結果' },
             ],
