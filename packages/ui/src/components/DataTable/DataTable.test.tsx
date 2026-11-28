@@ -173,6 +173,46 @@ test('a long cell cut off on desktop shows the whole text on focus', async () =>
   await waitFor(() => expect(document.querySelector('.ui-tooltip')?.textContent).toBe(LONG));
 });
 
+test('a cut long cell and a location link are 24 px targets in 14 px / 22 px text, and the row keeps its height', async () => {
+  await page.viewport(1280, 800);
+  const loc = (f: string) => (
+    <InlineCode look="location" href={'#' + f}>
+      {f}
+    </InlineCode>
+  );
+  const rows = [
+    { id: 'a', name: 'main.c', why: 'go_http.go:120', text: LONG },
+    { id: 'b', name: 'util.c', why: 'tshelper.ts:44', text: '短' },
+    { id: 'c', name: 'ring.c', why: 'ring.c:12', text: '短' },
+  ];
+  const columns: DataTableColumn<(typeof rows)[number]>[] = [
+    { key: 'why', label: '位置', width: 140, grow: 0, render: (r) => loc(r.why) },
+    { key: 'text', label: '說明', long: true, width: 200, grow: 0 },
+    cols[0],
+  ];
+  // A page that sets its own text size, as an app may: the line is 22 px, under the 24 px target.
+  const { container } = render(
+    <div style={{ width: 640, fontSize: 14, lineHeight: '22px' }}>
+      <DataTable columns={columns} rows={rows} urlSync={false} search={false} />
+    </div>,
+  );
+  const cut = await waitFor(() => {
+    const el = container.querySelector<HTMLElement>('.ui-dt-long.is-cut');
+    if (!el) throw new Error('not cut');
+    return el;
+  });
+  const plain = container.querySelector<HTMLElement>('.ui-dt-long:not(.is-cut)');
+  expect(cut.getBoundingClientRect().height).toBeGreaterThanOrEqual(24);
+  // The text line and the row are as tall as in the row whose text is not cut (the last row has no bottom line).
+  expect(getComputedStyle(cut).lineHeight).toBe('22px');
+  const [r1, r2] = [...container.querySelectorAll<HTMLElement>('.ui-dt-body .ui-dt-row')].map((r) => r.getBoundingClientRect().height);
+  expect(r1).toBe(r2);
+  expect(plain?.getBoundingClientRect().height).toBe(22);
+  for (const a of container.querySelectorAll<HTMLElement>('.ui-dt-body a.ui-code.is-location')) {
+    expect(a.getBoundingClientRect().height).toBeGreaterThanOrEqual(24);
+  }
+});
+
 test('a table wider than its box shows a fade and a scroll hint', async () => {
   await page.viewport(1280, 800);
   const wide = (['a', 'b', 'c', 'd', 'e'] as const).map((k) => ({ key: k, label: '欄位 ' + k, width: 160 }));

@@ -49,7 +49,7 @@ const HELP_CHECK = `ui check <file or URL>... [--shots DIR] [--strict] [--wait M
   Each measurement waits until the page's animations and transitions end (up to 1.5 s), so a fade is not measured
   half way.
   A page without <meta name="viewport"> gets one report at 390 px (缺 viewport meta) and no touch-target check there.
-  It also opens what the page hides behind clicks, in light at both widths: each tab of a [role=tablist], each
+  It also opens what the page hides behind clicks, at both widths in both themes: each tab of a [role=tablist], each
   SettingsLayout category, and each menu or popover of an [aria-haspopup] button in a toolbar or top bar (up to 12
   states a page), and checks every state for the problems the page did not already have. The line of each width and
   theme counts the problems of the page and of its opened states; each state's problems follow under its name.
@@ -57,7 +57,7 @@ const HELP_CHECK = `ui check <file or URL>... [--shots DIR] [--strict] [--wait M
   --no-interact    skips the automatic tabs, categories and toolbar menus (--open still runs).
   --no-axe         skips the axe-core pass.
   --shots DIR      saves a full-page screenshot of each width and theme in DIR (<name>-<width>-<theme>.png, <name> as
-                   in ui shots), and one of each opened state (<name>-<width>-light-<state>.png; an open dialog, drawer or menu at the viewport size).
+                   in ui shots), and one of each opened state (<name>-<width>-<theme>-<state>.png; an open dialog, drawer or menu at the viewport size).
   --strict         also fails on inline text links under 48 px.
   --wait MS        waits this long after load before measuring (default 800).
   Exits 2 when a page cannot be checked at all: it does not load, or the check itself crashes.`;
@@ -506,10 +506,11 @@ async function check(targets: string[], opts: CheckOptions) {
             await page.setViewportSize(viewport);
           };
           await shoot('');
-          // The states behind clicks, in light only (the layout is the same in dark): --open selectors, then the
-          // toolbar menus, tabs and categories. Each reports only what the page did not already have.
+          // The states behind clicks, in both themes like the page itself, so a problem behind a tab is reported in
+          // light and dark alike: --open selectors, then the toolbar menus, tabs and categories. Each reports only what
+          // the page did not already have.
           const states: { label: string; problems: string[] }[] = [];
-          if (theme === 'light' && (opts.open.length || opts.interact)) {
+          if (opts.open.length || opts.interact) {
             // What the page already had, item by item: a target by its name (not its neighbor), an axe rule by its id.
             const itemKey = (item: string) => item.split(', next to ')[0].replace(/ \d+ x \d+ px$/, '');
             const axeKey = (line: string) => line.split(' ')[0];
@@ -544,7 +545,7 @@ async function check(targets: string[], opts: CheckOptions) {
                 // A modal menu or dialog hides the rest of the page from screen readers (aria-hidden) while focus stays
                 // trapped inside it: axe's aria-hidden-focus on that hidden rest is not a problem of the open state.
                 const skip = trigger ? ['aria-hidden-focus'] : [];
-                const more = (await run(() => axeRun(page, false, skip)).catch(() => [] as string[])).filter((v) => !knownAxe.has(axeKey(v)));
+                const more = (await run(() => axeRun(page, theme === 'dark', skip)).catch(() => [] as string[])).filter((v) => !knownAxe.has(axeKey(v)));
                 if (more.length) found.push('accessibility (axe-core): ' + more.join(' | '));
               }
               // A shot of the opened state, named after it: Button-390-light-the-menu-of-更多.png. An overlay (trigger) is

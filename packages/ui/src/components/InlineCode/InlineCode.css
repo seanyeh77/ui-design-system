@@ -58,6 +58,12 @@
   font-size: var(--text-small);
   white-space: nowrap;
 }
+/* In a table cell a location is often a target on its own, beside the row's other links: its box is about 17 px of
+   13 px text. Vertical padding on an inline box grows the box it is clicked by to at least 24 px (WCAG 2.5.8) and
+   moves neither the line nor the row; there is no background, so nothing shows. */
+:is(.ui-dt-body, .ui-dt-detail) .ui-code.is-link.is-location {
+  padding-block: 4px;
+}
 .ui-code.is-link.is-name:is(:hover, :focus-visible),
 .ui-code.is-link.is-location:is(:hover, :focus-visible) {
   text-decoration: underline;

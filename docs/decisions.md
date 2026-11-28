@@ -1611,6 +1611,19 @@ codemap 升到 0.47.2 後跑 `ui check` 和 ESLint 回報五個問題，都要�
 - `reuse` job 用 `ubuntu-24.04`，`timeout-minutes: 5`，不 checkout；不用 actions/github-script，少一個要釘的第三方 action。
 - 如果 branch protection 把 `check` 和 `pages` 設為必要檢查，被跳過的 job 對必要檢查算通過（GitHub 的行為）；寫在 `docs/maintaining.md`。
 
+## 2026-11-28 DataTable 長文字儲存格的點擊範圍
+
+codemap 用 0.48.1 跑 `ui check`，1280 px 淺色回報兩個被截斷的長文字儲存格（`span.ui-dt-long`，`tabIndex` 0，帶 Tooltip）只有 22 px 高，又緊鄰 InlineCode `look="location"` 的連結（WCAG 2.5.8）；深色和 390 px 沒有回報。原因有三個：codemap 自己把文字設成 14 px / 22 px，儲存格的高度跟著行高，不到 24 px；`ui check` 把前一格被截斷、看不到也點不到的連結，仍以它完整的框當作鄰近目標；打開分頁、分類和選單後的狀態只在淺色檢查，被回報的表格在 codemap 的分頁後面，所以只有淺色看得到。淺色、深色和 teaching 的行高、框線、padding 和字型逐一比對過，表格的每個元素都相同，差別只在量測。下面是做法裡 agent 自己選的細節。
+
+### AI 定的細節（待確認）
+
+- 被截斷的長文字（`.ui-dt-long.is-cut`）：上下 padding `max(0px, (24px - 1lh) / 2)`，再用同樣大小的負 margin 抵銷，所以點擊範圍至少 24 px 高，行高、文字位置和列高不變；行高 24 px 以上時兩者都是 0。只加在被截斷（可以 focus）時，沒被截斷的長文字不是目標，不動。（其他做法：`::before` 延伸點擊範圍，但儲存格的 `overflow: hidden` 會把它裁掉，點不到。）
+- 表格裡的位置連結（`.ui-dt-body` 和 `.ui-dt-detail` 裡的 `.ui-code.is-link.is-location`）：上下 padding 4 px。行內元素的上下 padding 不改變行高和列高，沒有背景，畫面上看不出來；13 px 的字框約 17 px，加上去約 25 px。在句子裡換行時，上下兩行的位置連結點擊範圍會重疊幾 px，後面那一個優先。只在表格裡加，其他地方的位置連結不變。
+- `ui check` 的 24 px 檢查：鄰近目標先裁成它和 `body` 之間每個 `overflow` 不是 `visible` 的祖先的框（依 `overflow-x`、`overflow-y` 各自裁），完全被裁掉的不算鄰近目標；`position: fixed` 的目標不裁。被檢查的目標本身不裁。和「卡片外的文字」的裁切相同。
+- `ui check` 打開的狀態（分頁、SettingsLayout 分類、工具列選單、`--open`）改成淺色和深色都檢查，和頁面本身一樣；深色的狀態和深色的頁面一樣只跑 axe-core 的 color-contrast。每個狀態多一次點擊和量測，檢查時間約多一倍（只在有分頁或選單的頁面）。`--shots` 的狀態截圖檔名改成 `<name>-<width>-<theme>-<state>.png`。
+- 預覽：DataTable 預覽加一個「位置與說明」表格，外層設 14 px / 22 px 文字，原因欄是含位置連結的長文字（120 px），下一欄是被截斷的筆記內容，前一欄是位置連結；修正前在 1280 px 淺色和深色都回報，修正後 390 px 和 1280 px、淺色和深色都通過。
+- 另外看到、這次沒有改：DataTable 在 390 px 的手機卡片裡，單獨一欄的位置連結（`white-space: nowrap`）路徑比卡片寬時會超出卡片（`ui check` 回報水平溢出）。位置連結「不在中間斷開」是 InlineCode 的規則，要不要在手機卡片裡斷開由使用者決定。
+
 ## 待確認清單（2026-11-25 整理）
 
 整份檔案裡標成「AI 定的細節（待確認）」、還沒確認的項目，一項一行；行號指向原文，原文沒有改。實驗室的代號後面括號寫出那個選項是什麼。
@@ -2186,3 +2199,12 @@ codemap 升到 0.47.2 後跑 `ui check` 和 ESLint 回報五個問題，都要�
 - 第 1610 行（2026-11-26 main 沿用同一個 commit 的 CI 結果）：被跳過的 job 不讓 workflow 失敗，結論是 `success`，所以 `publish.yml` 和 `…
 - 第 1611 行（2026-11-26 main 沿用同一個 commit 的 CI 結果）：`reuse` job 用 `ubuntu-24.04`，`timeout-minutes: 5`，不 checko…
 - 第 1612 行（2026-11-26 main 沿用同一個 commit 的 CI 結果）：如果 branch protection 把 `check` 和 `pages` 設為必要檢查，被跳過的 job 對…
+
+### 2026-11-28 DataTable 長文字儲存格的點擊範圍
+
+- 第 1620 行（2026-11-28 DataTable 長文字儲存格的點擊範圍）：被截斷的長文字上下 padding 補到 24 px、負 margin 抵銷，行高和列高不變
+- 第 1621 行（2026-11-28 DataTable 長文字儲存格的點擊範圍）：表格裡的位置連結上下 padding 4 px（行內，不改變行高）
+- 第 1622 行（2026-11-28 DataTable 長文字儲存格的點擊範圍）：`ui check` 的 24 px 檢查把鄰近目標裁成看得到的部分
+- 第 1623 行（2026-11-28 DataTable 長文字儲存格的點擊範圍）：`ui check` 打開的狀態淺色和深色都檢查，狀態截圖檔名帶主題
+- 第 1624 行（2026-11-28 DataTable 長文字儲存格的點擊範圍）：DataTable 預覽加「位置與說明」表格（14 px / 22 px 文字）
+- 第 1625 行（2026-11-28 DataTable 長文字儲存格的點擊範圍）：手機卡片裡過長的位置連結會超出卡片，這次沒改，待決定

@@ -1,4 +1,4 @@
-<!-- @dsCard group="Data" height=2280 -->
+<!-- @dsCard group="Data" height=2560 -->
 <!doctype html>
 <html lang="zh-Hant">
   <head>
@@ -239,6 +239,39 @@
           }),
         );
       }
+      // A page with its own 14 px / 22 px text: a cut long cell and the location links beside it are still 24 px
+      // targets, and a link cut off by its cell does not crowd the next one.
+      function LongLinks() {
+        var loc = function (f) {
+          return h(U.InlineCode, { look: 'location', href: '#' + f }, f);
+        };
+        var refs = function (s) {
+          return s.split(/(\S+\.\w+:\d+)/).map(function (p, i) {
+            return i % 2 ? h(U.InlineCode, { key: i, look: 'location', href: '#' + p }, p) : p;
+          });
+        };
+        var rows = [
+          { id: 'L1', at: 'go_http.go:120', why: 'frameworks/go_http.go:120 呼叫 route() 之前就回傳，路由表不會建立。', state: '錯誤', text: '筆記說 handler 會呼叫 router，程式碼裡找不到這個呼叫，只在註解出現。' },
+          { id: 'L2', at: 'tshelper.ts:44', why: 'backends/tshelper.ts:44 先讀 tsconfig 再解析 import。', state: '待確認', text: '待確認：讀設定檔和建立 import 圖的順序，和筆記寫的相反。' },
+          { id: 'L3', at: 'ring.c:12', why: '相同。', state: '正確', text: '相同。' },
+        ];
+        return h(
+          'div',
+          { style: { padding: '0 20px 20px', maxWidth: 600, fontSize: 14, lineHeight: '22px' } },
+          h(U.DataTable, {
+            caption: '位置與說明',
+            rows: rows,
+            urlSync: false,
+            search: false,
+            columns: [
+              { key: 'at', label: '位置', width: 120, grow: 0, render: function (r) { return loc(r.at); } },
+              { key: 'why', label: '原因', long: true, width: 120, grow: 0, render: function (r) { return refs(r.why); }, searchText: function (r) { return r.why; } },
+              { key: 'text', label: '筆記內容', long: true, width: 140, grow: 0 },
+              { key: 'state', label: '結果' },
+            ],
+          }),
+        );
+      }
       // A 檢查筆記 summary in English: four states with counts. On a phone the row scrolls; the
       // selected state scrolls into view.
       function Summary() {
@@ -277,7 +310,7 @@
           }),
         );
       }
-      ReactDOM.createRoot(document.getElementById('root')).render(h('div', null, h(Jobs), h(D), h(Long), h(Summary)));
+      ReactDOM.createRoot(document.getElementById('root')).render(h('div', null, h(Jobs), h(D), h(Long), h(LongLinks), h(Summary)));
     </script>
   </body>
 </html>

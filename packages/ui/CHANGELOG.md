@@ -1,5 +1,14 @@
 # @seanyeh77/ui
 
+## 0.48.2
+
+### Patch Changes
+
+- DataTable 被截斷的長文字儲存格（可以 focus、帶 Tooltip）點擊範圍至少 24 px 高（WCAG 2.5.8），頁面把行高設在 24 px 以下時也一樣：上下 padding 補足、負 margin 抵銷，行高和列高不變。表格裡的 InlineCode `look="location"` 連結上下加 4 px padding，點擊範圍約 25 px，行高不變、畫面看不出來。
+  
+  `ui check`：24 px 檢查的鄰近目標只算看得到的部分，被儲存格或其他 `overflow` 裁掉的連結不再算成旁邊儲存格的鄰居；打開分頁、分類和選單後的狀態改成淺色和深色都檢查（原本只在淺色，所以分頁後面的問題只在淺色回報），狀態截圖檔名改成 `<name>-<width>-<theme>-<state>.png`。
+- @seanyeh77/tokens@0.48.2
+
 ## 0.48.1
 
 ### Patch Changes

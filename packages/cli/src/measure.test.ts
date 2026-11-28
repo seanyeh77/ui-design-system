@@ -201,6 +201,21 @@ test('targets under 24 px fail next to another target and pass with room around 
   assert.deepEqual(big.small24, []);
 });
 
+test('a link cut off by its cell is no neighbor where it runs on under the next cell (WCAG 2.5.8)', async (t) => {
+  if (skip) return t.skip(skip);
+  // Two cells of 120 px: a 300 px link in the first is cut at 120 px; the second holds a 22 px focusable text.
+  const row = (clip: string) =>
+    `<div style="display:flex;width:240px;line-height:22px">
+       <div style="width:120px;${clip}white-space:nowrap"><a href="#a" style="display:inline-block;width:300px">codemap/a.go:1</a></div>
+       <span tabindex="0" style="display:block;width:120px">long text</span>
+     </div>`;
+  const shown = await run(row(''));
+  assert.equal(shown.small24.length, 1);
+  assert.match(shown.small24[0], /next to a "codemap\/a.go:1"/);
+  const cut = await run(row('overflow:hidden;'));
+  assert.deepEqual(cut.small24, []);
+});
+
 const field = (label: string, control: string) =>
   `<div class="ui-field" style="display:flex;flex-direction:column;gap:6px"><label class="ui-field-label">${label}</label>${control}</div>`;
 const input = (h: number) => `<input class="ui-input" style="height:${h}px;box-sizing:border-box">`;

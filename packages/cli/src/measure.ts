@@ -174,6 +174,24 @@ export function measure(): Findings {
     (inSentence(el, cs) ? out.inline : out.small).push(`${describe(el)} ${Math.round(w)} x ${Math.round(h)} px`);
   }
 
+  // A box cut to the ancestors that clip their overflow (overflow other than visible, or clip): what of it shows and
+  // takes clicks. null when nothing of it shows.
+  const shownPart = (el: Element, r: DOMRect) => {
+    let { left, top, right, bottom } = r;
+    // A fixed box (a popup, a floating bar) is not clipped by the boxes it sits in.
+    if (getComputedStyle(el).position === 'fixed') return { left, top, right, bottom };
+    for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+      const cs = getComputedStyle(a);
+      const cutX = cs.overflowX !== 'visible';
+      const cutY = cs.overflowY !== 'visible';
+      if (!cutX && !cutY) continue;
+      const ar = a.getBoundingClientRect();
+      if (cutX) [left, right] = [Math.max(left, ar.left), Math.min(right, ar.right)];
+      if (cutY) [top, bottom] = [Math.max(top, ar.top), Math.min(bottom, ar.bottom)];
+      if (right <= left || bottom <= top) return null;
+    }
+    return { left, top, right, bottom };
+  };
   // 2b. Targets under 24 x 24 px (WCAG 2.2, 2.5.8, the minimum on any screen). The spacing exception: an undersized
   // target passes when a 24 px circle on its center meets no other target and no other undersized target's circle.
   // Inline links in text and the exempt lines above are left out, as in the 48 px check.
@@ -190,12 +208,16 @@ export function measure(): Findings {
     }
     const near = targets.find((o) => {
       if (o === t || o.el.contains(t.el) || t.el.contains(o.el)) return false;
+      // The part of the other target that shows: a link cut off by its cell (overflow hidden, a long text with an
+      // ellipsis) can neither be seen nor clicked where it runs on under the next cell.
+      const v = shownPart(o.el, o.r);
+      if (!v) return false;
       // Distance from this center to the other target's box, and to the other's center when it is undersized too.
-      const dx = Math.max(o.r.left - cx, 0, cx - o.r.right);
-      const dy = Math.max(o.r.top - cy, 0, cy - o.r.bottom);
+      const dx = Math.max(v.left - cx, 0, cx - v.right);
+      const dy = Math.max(v.top - cy, 0, cy - v.bottom);
       if (Math.hypot(dx, dy) < 12) return true;
       const small = o.w < 23.5 || o.h < 23.5;
-      return small && Math.hypot(o.r.left + o.r.width / 2 - cx, o.r.top + o.r.height / 2 - cy) < 24;
+      return small && Math.hypot((v.left + v.right) / 2 - cx, (v.top + v.bottom) / 2 - cy) < 24;
     });
     if (near) out.small24.push(`${describe(t.el)} ${Math.round(t.w)} x ${Math.round(t.h)} px, next to ${describe(near.el)}`);
   }

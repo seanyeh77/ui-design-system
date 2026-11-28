@@ -1102,10 +1102,14 @@
     transition: none;
   }
 }
-/* A long cell cut off on desktop: focusable, so the keyboard gets its Tooltip too. */
+/* A long cell cut off on desktop: focusable, so the keyboard gets its Tooltip too. Being a target, it is at least 24 px
+   tall (WCAG 2.5.8) even when the page sets a line height under 24 px (14 px / 22 px text): padding grows the box to
+   24 px and an equal negative margin takes it back, so the line, the text and the row keep their height. */
 .ui-dt-long.is-cut {
   cursor: default;
   border-radius: var(--radius-sm);
+  padding-block: max(0px, calc((24px - 1lh) / 2));
+  margin-block: min(0px, calc((1lh - 24px) / 2));
 }
 
 .ui-dt-views {
