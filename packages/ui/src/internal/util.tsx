@@ -85,6 +85,29 @@ export function resizeObserver(cb: ResizeObserverCallback): ResizeObserver | nul
   return typeof ResizeObserver === 'function' ? new ResizeObserver(cb) : null;
 }
 
+// Web fonts that finished loading since this module ran: text measured on a canvas before then used the fallback font.
+let fontLoads = 0;
+const fontListeners = new Set<() => void>();
+if (typeof document !== 'undefined' && typeof document.fonts?.addEventListener === 'function') {
+  document.fonts.addEventListener('loadingdone', () => {
+    fontLoads++;
+    for (const f of fontListeners) f();
+  });
+}
+const subFonts = (f: () => void) => {
+  fontListeners.add(f);
+  return () => fontListeners.delete(f);
+};
+const getFonts = () => fontLoads;
+const serverZero = () => 0;
+
+/** A number that goes up each time web fonts finish loading (document.fonts `loadingdone`). Layout worked out from text
+ *  measured on a canvas depends on it, so it is worked out again with the loaded fonts instead of keeping the fallback
+ *  font's widths. 0 on the server and while hydrating. */
+export function useFontLoads(): number {
+  return React.useSyncExternalStore(subFonts, getFonts, serverZero);
+}
+
 /** True under 600 px, the same width where cards stack. */
 export function useNarrow(): boolean {
   return useMedia('(max-width: 599px)');

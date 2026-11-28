@@ -17,6 +17,7 @@
 @import './styles/motion.css' layer(ui.components);
 @import './styles/chart.css' layer(ui.components);
 @import './components/Link/Link.css' layer(ui.components);
+@import './components/Tooltip/Tooltip.css' layer(ui.components);
 @import './components/InlineCode/InlineCode.css' layer(ui.components);
 @import './components/Button/Button.css' layer(ui.components);
 @import './components/Dialog/Dialog.css' layer(ui.components);
@@ -39,7 +40,6 @@
 @import './components/ProgressBar/ProgressBar.css' layer(ui.components);
 @import './components/LoadingBar/LoadingBar.css' layer(ui.components);
 @import './components/ProgressRing/ProgressRing.css' layer(ui.components);
-@import './components/Tooltip/Tooltip.css' layer(ui.components);
 @import './components/IconButton/IconButton.css' layer(ui.components);
 @import './components/TopBar/TopBar.css' layer(ui.components);
 @import './components/SideNav/SideNav.css' layer(ui.components);

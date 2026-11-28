@@ -1,5 +1,9 @@
 # @seanyeh77/tokens
 
+## 0.48.3
+
+No changes in this release.
+
 ## 0.48.2
 
 No changes in this release.

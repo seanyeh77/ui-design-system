@@ -58,6 +58,28 @@
   font-size: var(--text-small);
   white-space: nowrap;
 }
+/* A location in a phone card (DataTable under 600 px) is no wider than the card's value column: the folders are cut
+   with 「…」 first and the file name and line stay (codemap/…/tshelper.ts:42); a file name wider than the column is
+   cut at its end. InlineCode shows the whole path in a Tooltip while it is cut. Desktop tables and text keep the
+   plain inline link. */
+@media (max-width: 599px) {
+  .ui-dt-body .ui-code.is-link.is-location {
+    display: inline-flex;
+    max-width: 100%;
+  }
+  .ui-dt-body .ui-code.is-link.is-location > .ui-code-dir {
+    flex: 0 1 auto;
+    min-width: 1ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ui-dt-body .ui-code.is-link.is-location > .ui-code-file {
+    flex: 0 0 auto;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
 /* In a table cell a location is often a target on its own, beside the row's other links: its box is about 17 px of
    13 px text. Vertical padding on an inline box grows the box it is clicked by to at least 24 px (WCAG 2.5.8) and
    moves neither the line nor the row; there is no background, so nothing shows. Desktop rows only: in a phone card

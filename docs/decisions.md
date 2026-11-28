@@ -1624,6 +1624,21 @@ codemap 用 0.48.1 跑 `ui check`，1280 px 淺色回報兩個被截斷的長文
 - 預覽：DataTable 預覽加一個「位置與說明」表格，外層設 14 px / 22 px 文字，原因欄是含位置連結的長文字（90 px），下一欄是被截斷的筆記內容，前一欄是位置連結；修正前在 1280 px 淺色和深色都回報，修正後 390 px 和 1280 px、淺色和深色都通過。
 - 另外看到、這次沒有改：DataTable 在 390 px 的手機卡片裡，單獨一欄的位置連結（`white-space: nowrap`）路徑比卡片寬時會超出卡片（`ui check` 回報水平溢出）。位置連結「不在中間斷開」是 InlineCode 的規則，要不要在手機卡片裡斷開由使用者決定。
 
+## 2026-11-28 LayerGraph 截圖不穩定
+
+LayerGraph 預覽 1280 px 深色的整頁截圖在 Update visual baselines 和 CI 之間高度不一樣（4037 px、4057 px），CI 偶爾失敗；使用者同意修正。原因在元件：線上標籤和方框名稱的寬度用 canvas 量，網頁字型還沒載入時量到的是備用字型的寬度；繞線結果（`useMemo`）、方框變窄的寬度（fit）和加開的間距（spread）都存著這次量測的結果，字型載入後沒有重算，只有寬度、方框或線改變時才會。最後畫出來的圖取決於字型在第幾次 render 前載完，所以同一頁每次可能不一樣，使用者也會看到用備用字型寬度排的標籤。另外縮放比例改變時只改了 canvas 的 `transform` 和 margin，ResizeObserver 和 MutationObserver 都看不到，右緣漸層和「向右捲動」可能停在舊的狀態。
+
+同一版一起做：使用者選「B」（「不換行，超出的部分用「…」截斷，點擊或滑過時顯示完整路徑」），處理上一節最後一項（手機卡片裡過長的位置連結超出卡片）。
+
+### AI 定的細節（待確認）
+
+- 字型載入後重算：共用的 `useFontLoads()`（`internal/util.tsx`）在 `document.fonts` 每次 `loadingdone` 時加 1；LayerGraph 把它放進繞線的相依值，fit 和 spread 的 key 也帶著它，所以字型載完後從頭排一次，結果和一開始就有字型時相同。重排在 layout effect 裡完成，畫面不會先閃一次。其他網頁字型（例如頁面後來才用到的中文字）載完也會讓 LayerGraph 重排一次。沒有改 `ui shots`：它已經等 `document.fonts.ready` 和兩張一樣的截圖，問題不在等待。
+- 右緣漸層和「向右捲動」：LayerGraph 在寬、高或縮放比例改變後（layout effect）重新量一次是否超出，不再只靠 ResizeObserver 和下一個 animation frame。
+- 位置連結截斷（B）：只在 DataTable 手機卡片（600 px 以下的 `.ui-dt-body`）啟用；桌面的表格、Markdown 表格和句子裡維持原樣，所以桌面表格的外觀和 4 px 的點擊範圍 padding 不變。位置連結的文字分成資料夾和「檔名:行號」兩段，先截資料夾（中間省略，例如「codemap/…/tshelper.ts:42」），檔名比整欄還寬時才截在檔名尾端；資料夾至少留 1 個字元。沒有用 `direction: rtl` 的開頭省略：斜線和標點的順序會亂，螢幕閱讀器也可能受影響。
+- 截斷時 Tooltip 顯示完整路徑（`wrap`，和被截斷的長文字儲存格同一個 Tooltip），滑過、點一下和鍵盤焦點都會出現；沒截斷時 Tooltip 關閉。Tooltip 不另外當描述（`describe={false}`），因為連結名稱已經是完整路徑。
+- 名稱：兩段在截斷時是 flex 項目，螢幕閱讀器可能在中間多念一個空白，所以字串的位置連結都設 `aria-label` 為完整路徑（和原本念的相同）。`children` 不是字串時不分段、不截斷，和原本一樣。
+- `src/styles.css` 裡 Tooltip 的 CSS 移到 InlineCode 前面（InlineCode 現在用到 Tooltip，分檔的 CSS 要先載入它）。
+
 ## 待確認清單（2026-11-25 整理）
 
 整份檔案裡標成「AI 定的細節（待確認）」、還沒確認的項目，一項一行；行號指向原文，原文沒有改。實驗室的代號後面括號寫出那個選項是什麼。
@@ -2208,3 +2223,12 @@ codemap 用 0.48.1 跑 `ui check`，1280 px 淺色回報兩個被截斷的長文
 - 第 1623 行（2026-11-28 DataTable 長文字儲存格的點擊範圍）：`ui check` 打開的狀態淺色和深色都檢查，狀態截圖檔名帶主題
 - 第 1624 行（2026-11-28 DataTable 長文字儲存格的點擊範圍）：DataTable 預覽加「位置與說明」表格（14 px / 22 px 文字）
 - 第 1625 行（2026-11-28 DataTable 長文字儲存格的點擊範圍）：手機卡片裡過長的位置連結會超出卡片，這次沒改，待決定
+
+### 2026-11-28 LayerGraph 截圖不穩定
+
+- 第 1635 行（2026-11-28 LayerGraph 截圖不穩定）：網頁字型每次載完，LayerGraph 從頭重排（繞線、方框寬度、加開的間距）；`ui shots` 沒改
+- 第 1636 行（2026-11-28 LayerGraph 截圖不穩定）：寬、高或縮放比例改變後重新量右緣漸層和「向右捲動」
+- 第 1637 行（2026-11-28 LayerGraph 截圖不穩定）：位置連結截斷（使用者選 B）只在 DataTable 手機卡片啟用，先截資料夾、留檔名和行號，不用 `direction: rtl`
+- 第 1638 行（2026-11-28 LayerGraph 截圖不穩定）：截斷時用 `wrap` 的 Tooltip 顯示完整路徑，不當描述
+- 第 1639 行（2026-11-28 LayerGraph 截圖不穩定）：字串的位置連結設 `aria-label` 為完整路徑
+- 第 1640 行（2026-11-28 LayerGraph 截圖不穩定）：`src/styles.css` 裡 Tooltip 的 CSS 移到 InlineCode 前面

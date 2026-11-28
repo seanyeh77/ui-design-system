@@ -213,6 +213,80 @@ test('a cut long cell and a location link are 24 px targets in 14 px / 22 px tex
   }
 });
 
+test('a phone card: a location wider than the card is cut with 「…」 inside it, keeps the file name, shows the whole path in a Tooltip and is still named and linked by it', async () => {
+  await page.viewport(390, 844);
+  const path = 'codemap/packages/analysis/src/internal/typescript/very/deeply/nested/folder/tshelper.ts:42';
+  const rows = [{ id: 'a', name: 'main.c', why: path }];
+  const columns: DataTableColumn<(typeof rows)[number]>[] = [
+    cols[0],
+    {
+      key: 'why',
+      label: '位置',
+      render: (r) => (
+        <InlineCode look="location" href="#loc">
+          {r.why}
+        </InlineCode>
+      ),
+    },
+  ];
+  try {
+    const { container } = render(<DataTable columns={columns} rows={rows} urlSync={false} search={false} />);
+    const link = screen.getByRole('link', { name: path });
+    // No horizontal overflow: not the page, not the card, not the link past its value column.
+    const row = link.closest('.ui-dt-row');
+    if (!row) throw new Error('no row');
+    await waitFor(() => expect(link.getBoundingClientRect().right).toBeLessThanOrEqual(row.getBoundingClientRect().right + 0.5));
+    expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(390);
+    const scroll = container.querySelector<HTMLElement>('.ui-dt-scroll');
+    expect(scroll && scroll.scrollWidth <= scroll.clientWidth + 1).toBe(true);
+    // The folders are cut, the file name and line are whole.
+    const dir = link.querySelector<HTMLElement>('.ui-code-dir');
+    const file = link.querySelector<HTMLElement>('.ui-code-file');
+    if (!dir || !file) throw new Error('no parts');
+    expect(dir.scrollWidth).toBeGreaterThan(dir.clientWidth + 1);
+    expect(getComputedStyle(dir).textOverflow).toBe('ellipsis');
+    expect(file.scrollWidth).toBeLessThanOrEqual(file.clientWidth + 1);
+    expect(file.textContent).toBe('tshelper.ts:42');
+    // The accessible name and the link target stay the whole path.
+    expect(link.textContent).toBe(path);
+    expect(link.getAttribute('href')).toBe('#loc');
+    // Focus (as after a tap) shows the whole path.
+    link.focus();
+    await waitFor(() => expect(document.querySelector('.ui-tooltip')?.textContent).toBe(path));
+  } finally {
+    await page.viewport(1280, 800);
+  }
+});
+
+test('a location that fits in a phone card has no Tooltip, and a desktop table keeps the plain inline link', async () => {
+  await page.viewport(390, 844);
+  const rows = [{ id: 'a', name: 'main.c', why: 'src/ring.c:12' }];
+  const columns: DataTableColumn<(typeof rows)[number]>[] = [
+    cols[0],
+    {
+      key: 'why',
+      label: '位置',
+      render: (r) => (
+        <InlineCode look="location" href="#loc">
+          {r.why}
+        </InlineCode>
+      ),
+    },
+  ];
+  try {
+    render(<DataTable columns={columns} rows={rows} urlSync={false} search={false} />);
+    const link = screen.getByRole('link', { name: 'src/ring.c:12' });
+    link.focus();
+    await new Promise((r) => setTimeout(r, 100));
+    expect(document.querySelector('.ui-tooltip')).toBeNull();
+    link.blur();
+    await page.viewport(1280, 800);
+    await waitFor(() => expect(getComputedStyle(link).display).not.toBe('inline-flex'));
+  } finally {
+    await page.viewport(1280, 800);
+  }
+});
+
 test('a table wider than its box shows a fade and a scroll hint', async () => {
   await page.viewport(1280, 800);
   const wide = (['a', 'b', 'c', 'd', 'e'] as const).map((k) => ({ key: k, label: '欄位 ' + k, width: 160 }));

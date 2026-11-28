@@ -5,7 +5,7 @@ import { IconButton } from '../IconButton/IconButton';
 import { Switch } from '../Switch/Switch';
 import { tr } from '../../i18n';
 import { format } from '../../format';
-import { cx, monoNums, resizeObserver } from '../../internal/util';
+import { cx, monoNums, resizeObserver, useFontLoads } from '../../internal/util';
 import { ScrollHint, useScrollHint } from '../../internal/scrollHint';
 import { codeSpans } from '../../internal/codeSpans';
 import { devWarn } from '../../internal/dev';
@@ -502,8 +502,12 @@ export function LayerGraph(props: LayerGraphProps) {
   const p = resolveProps(props);
   // PM: the width of the box the diagram sits in, and the fit worked out for that width.
   const [avail, setAvail] = React.useState(0);
-  const [fit, setFit] = React.useState<{ at: number; nw: number; col: number; scale: number; full?: boolean } | null>(null);
-  const fitted = fit && fit.at === avail ? fit : null;
+  // Text is measured on a canvas: until the web fonts load it gets the fallback font's widths. Each finished font load
+  // works the fit, the added space and the routing out again, so the result does not depend on when the fonts arrived.
+  const fontLoads = useFontLoads();
+  const [fit, setFit] = React.useState<{ at: string; nw: number; col: number; scale: number; full?: boolean } | null>(null);
+  const fitAt = avail + '@' + fontLoads;
+  const fitted = fit && fit.at === fitAt ? fit : null;
   const NW = fitted?.nw ?? (p.nodeWidth || 200);
   const GAP = 56;
   // HC: the dragged height, in screen px from the drawn one: above 0 spreads the layers apart, below 0 makes a
@@ -512,7 +516,7 @@ export function LayerGraph(props: LayerGraphProps) {
   const [dh, setDh] = useStored(p.resizable && p.heightKey ? 'ui-lg-height:' + p.heightKey : undefined, parseHeight, 0, (v) => String(Math.round(v)));
   // Space added between boxes, 24 px at a time (up to 5 times), while a label still has to cover a line.
   // Kept per diagram and per width: other boxes or lines, or a resized box, start again from no added space.
-  const spreadKey = avail + '#' + p.nodes.map((n) => n.id).join('|') + '#' + p.edges.map((e) => e.from + '>' + e.to + ':' + (e.label ?? '')).join('|');
+  const spreadKey = fitAt + '#' + p.nodes.map((n) => n.id).join('|') + '#' + p.edges.map((e) => e.from + '>' + e.to + ':' + (e.label ?? '')).join('|');
   const [spreadAt, setSpread] = React.useState({ key: '', n: 0 });
   const spread = spreadAt.key === spreadKey ? spreadAt.n : 0;
   const COL = (fitted?.col ?? 40) + spread * 24;
@@ -648,7 +652,7 @@ export function LayerGraph(props: LayerGraphProps) {
   );
   React.useLayoutEffect(paintHover);
   // Wider than its box: a fade on the right while more is to the right, and a 「左右滑動」 hint until the first scroll.
-  const { ref: scrollRef, more: scrollMore, overflows, scrolled, onScroll } = useScrollHint();
+  const { ref: scrollRef, more: scrollMore, overflows, scrolled, onScroll, measure: measureHint } = useScrollHint();
   const uid = React.useId().replace(/:/g, '');
   const [view, setView] = React.useState<'graph' | 'list'>('graph');
   const memKey = p.scrollKey ?? idsKey(all.map((n) => n.id));
@@ -1482,7 +1486,24 @@ export function LayerGraph(props: LayerGraphProps) {
       drawn = draw();
     }
     return { drawn, W, H, gaps: gaps.slice(), pos: Object.fromEntries(Object.entries(pos).map(([k, v]) => [k, { ...v }])) };
-  }, [p.nodes, p.edges, NW, COL, NH, extra, labelsOn, sel, p.selectedEdge, pickEdge, p.onSelect, p.countLabel, p.inferredLabel, p.declaredLabel, p.nodeWidth]);
+  }, [
+    p.nodes,
+    p.edges,
+    NW,
+    COL,
+    NH,
+    extra,
+    labelsOn,
+    sel,
+    p.selectedEdge,
+    pickEdge,
+    p.onSelect,
+    p.countLabel,
+    p.inferredLabel,
+    p.declaredLabel,
+    p.nodeWidth,
+    fontLoads,
+  ]);
   const drawn = routed.drawn;
   W = routed.W;
   H = routed.H;
@@ -1687,7 +1708,7 @@ export function LayerGraph(props: LayerGraphProps) {
       const lose = W - avail - (cols - 1) * (40 - 24);
       const nw = Math.max(Math.min(base, 120), Math.floor(base - Math.max(0, lose) / cols));
       // eslint-disable-next-line react-hooks/set-state-in-effect -- the width is known only after this layout is drawn
-      setFit({ at: avail, nw, col: 24, scale: 1 });
+      setFit({ at: fitAt, nw, col: 24, scale: 1 });
       return;
     }
     // Scrolling anyway (WA): the boxes are back at their own width, names whole.
@@ -1703,7 +1724,12 @@ export function LayerGraph(props: LayerGraphProps) {
     }
     const want = W <= avail + 0.5 ? 1 : s;
     if (want !== fitted.scale) setFit({ ...fitted, scale: want });
-  }, [avail, showList, fitted, W, p.nodeWidth, cols]);
+  }, [avail, fitAt, showList, fitted, W, p.nodeWidth, cols]);
+  // The fade and 「向右捲動」 follow the fit: a new scale changes only the canvas's transform and margins, which neither
+  // its ResizeObserver nor its MutationObserver sees, so the overflow is measured again after each change.
+  React.useLayoutEffect(() => {
+    if (!showList) measureHint();
+  }, [measureHint, showList, W, H, scale]);
   // A label still covering a line: more space between boxes, then drawn again (up to 120 px more).
   const coveredNow = drawn.covered;
   React.useLayoutEffect(() => {

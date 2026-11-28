@@ -236,7 +236,8 @@ test('Markdown tables: names, paths and words stay whole; only spaces and CJK br
       </Markdown>
     </div>,
   );
-  const oneLine = (el: Element) => el.getClientRects().length === 1;
+  // One line: every box of the link on the same line (a location is two spans, so it can have two boxes side by side).
+  const oneLine = (el: Element) => new Set([...el.getClientRects()].map((r) => Math.round(r.top))).size === 1;
   expect(oneLine(screen.getByRole('link', { name: 'VirtualRouter._probe_neighbor' }))).toBe(true);
   expect(oneLine(screen.getByRole('link', { name: 'harness/controller.py:684' }))).toBe(true);
   const word = [...document.querySelectorAll('td')].find((t) => t.textContent?.startsWith('subprocess.Popen')) as HTMLElement;

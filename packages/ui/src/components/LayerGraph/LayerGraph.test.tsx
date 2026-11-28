@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { expect, test, vi } from 'vitest';
 import { page } from 'vitest/browser';
-import { render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { LayerGraph, addMessages, format, setLocale, type LayerGraphEdge } from '../../index';
 import { idsKey } from './LayerGraph';
@@ -1291,4 +1291,51 @@ test('LayerGraph scroll memory: a short key per diagram, not every box id joined
   expect(idsKey([...ids])).toBe(k);
   expect(idsKey(ids.slice(1))).not.toBe(k);
   expect(idsKey(['ab', 'c'])).not.toBe(idsKey(['a', 'bc']));
+});
+
+test('a web font that loads after the first layout: the fit and the labels are worked out again with its widths', async () => {
+  // A face no other test uses, under --font-mono: until it loads, the canvas measures the fallback monospace font.
+  const root = document.documentElement;
+  root.style.setProperty('--font-mono', "'LgLate', monospace");
+  const lateNodes = [
+    { id: 'a', name: 'src/loader_with_a_long_name', code: true, layer: 0, size: 12 },
+    { id: 'b', name: 'src/hooks', code: true, layer: 0, size: 40 },
+    { id: 'c', name: 'src/cli', code: true, layer: 0, size: 18 },
+    { id: 'd', name: 'src/runtime', code: true, layer: 1, size: 75 },
+  ];
+  const lateEdges: LayerGraphEdge[] = [
+    { from: 'a', to: 'd', inferred: true, label: '經由 `dlsym_lookup_symbol` 取得' },
+    { from: 'b', to: 'd', inferred: true, label: '函式指標表 `ops_table`' },
+    { from: 'c', to: 'd', count: 4 },
+  ];
+  const graph = () => (
+    <div style={{ width: 460 }}>
+      <LayerGraph nodes={lateNodes} edges={lateEdges} legend={false} listView={false} labelToggle={false} />
+    </div>
+  );
+  const canvas = () => document.querySelector('.ui-lg-canvas')?.outerHTML ?? '';
+  try {
+    const first = render(graph());
+    const before = canvas();
+    const face = new FontFace('LgLate', `url(${new URL('../../../../tokens/fonts/geist-mono-latin-700-normal.woff2', import.meta.url).href})`);
+    document.fonts.add(face);
+    await face.load();
+    // The same diagram drawn from scratch with the font loaded: what the late load must end at.
+    first.unmount();
+    render(graph());
+    const fresh = canvas();
+    expect(fresh).not.toBe(before);
+    cleanup();
+    // Now the order that went wrong: drawn first, the font loads after.
+    document.fonts.delete(face);
+    const face2 = new FontFace('LgLate', `url(${new URL('../../../../tokens/fonts/geist-mono-latin-700-normal.woff2', import.meta.url).href})`);
+    render(graph());
+    expect(canvas()).toBe(before);
+    document.fonts.add(face2);
+    await face2.load();
+    await waitFor(() => expect(canvas()).toBe(fresh));
+    document.fonts.delete(face2);
+  } finally {
+    root.style.removeProperty('--font-mono');
+  }
 });

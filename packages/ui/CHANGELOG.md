@@ -1,5 +1,12 @@
 # @seanyeh77/ui
 
+## 0.48.3
+
+### Patch Changes
+
+- LayerGraph 在網頁字型載入後重新排版（繞線、方框寬度、加開的間距），結果不再取決於字型何時載完；縮放比例改變後重新量右緣漸層和「向右捲動」。InlineCode `look="location"` 在 DataTable 手機卡片裡比值的那一欄寬時，用「…」截斷資料夾、留下檔名和行號，截斷時滑過、點一下或焦點顯示完整路徑，連結名稱仍是完整路徑。
+- @seanyeh77/tokens@0.48.3
+
 ## 0.48.2
 
 ### Patch Changes

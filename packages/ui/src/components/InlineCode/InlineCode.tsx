@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { cx, keepUnits } from '../../internal/util';
+import { cx, keepUnits, resizeObserver } from '../../internal/util';
+import { Tooltip } from '../Tooltip/Tooltip';
 import { codeSpans, hasCodeSpan } from '../../internal/codeSpans';
 
 interface InlineCodeBase {
@@ -35,11 +36,30 @@ export type InlineCodeProps = InlineCodeBase &
 export function InlineCode({ children, href, onClick, className, look = 'chip' }: InlineCodeProps) {
   // Like Term: a link inside a sentence (text beside it) keeps its line height; on its own it gets the 48 px touch area.
   const [inline, setInline] = React.useState(false);
+  const self = React.useRef<HTMLElement | null>(null);
   const link = React.useCallback((el: HTMLElement | null) => {
+    self.current = el;
     const par = el?.parentNode;
     setInline(!!par && Array.from(par.childNodes).some((n) => n.nodeType === 3 && !!n.textContent?.trim()));
   }, []);
   const isLink = !!(href || onClick);
+  // A location never breaks inside. Where its box is narrower (a phone card's value column), the folders are cut with
+  // 「…」 and the file name and line stay (codemap/…/tshelper.ts:42): two spans of the same text, so the accessible
+  // name is still the whole path. The whole path shows in a Tooltip while it is cut.
+  const location = isLink && look === 'location' && typeof children === 'string';
+  const slash = location ? (children as string).lastIndexOf('/') + 1 : 0;
+  const [cut, setCut] = React.useState(false);
+  React.useLayoutEffect(() => {
+    const el = self.current;
+    if (!location || !el) return;
+    const check = () => {
+      setCut([...el.children].some((c) => c.scrollWidth > c.clientWidth + 1));
+    };
+    check();
+    const ro = resizeObserver(check);
+    ro?.observe(el);
+    return () => ro?.disconnect();
+  }, [location, children]);
   const cls = cx(
     'ui-code',
     isLink && 'is-link',
@@ -48,19 +68,36 @@ export function InlineCode({ children, href, onClick, className, look = 'chip' }
     typeof children === 'string' && children.length <= 24 && 'is-short',
     className,
   );
-  if (href)
-    return (
-      <a ref={link} className={cls} href={href} onClick={onClick}>
-        {children}
-      </a>
-    );
-  if (onClick)
-    return (
-      <button ref={link} type="button" className={cls} onClick={onClick}>
-        {children}
-      </button>
-    );
-  return <code className={cls}>{children}</code>;
+  const body = location ? (
+    <>
+      {slash ? <span className="ui-code-dir">{(children as string).slice(0, slash)}</span> : null}
+      <span className="ui-code-file">{(children as string).slice(slash)}</span>
+    </>
+  ) : (
+    children
+  );
+  // The two spans become flex items where the path is cut, and a screen reader would read a space between them: the
+  // name is set to the whole path.
+  const name = location ? (children as string) : undefined;
+  const el = href ? (
+    <a ref={link} className={cls} href={href} onClick={onClick} aria-label={name}>
+      {body}
+    </a>
+  ) : onClick ? (
+    <button ref={link} type="button" className={cls} onClick={onClick} aria-label={name}>
+      {body}
+    </button>
+  ) : (
+    <code className={cls}>{children}</code>
+  );
+  // Always mounted for a location, turned on only while cut: swapping the wrapper would remount the link.
+  return location ? (
+    <Tooltip label={children as string} wrap describe={false} disabled={!cut}>
+      {el}
+    </Tooltip>
+  ) : (
+    el
+  );
 }
 
 /** Returns the link of a reference such as src/app.c:86, or undefined when it has no target. */
